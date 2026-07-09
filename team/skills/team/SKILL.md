@@ -75,9 +75,9 @@ for the task**. The roles are the small, fixed axis — what the agent *does*:
 - **`researcher`** — reads/investigates/maps to answer a question or ground a sprint (read-only).
 
 The roles are **agent definitions shipped with this plugin** (`agents/builder.md`, `reviewer.md`,
-`researcher.md`) — each carrying its charter, tool set,
-and default effort, so `agentType: 'builder'` resolves identically in every repo, in both Workflow
-`agent()` calls and the Agent tool. The reviewer's definition has **no write tools** — report-only is
+`researcher.md`) — each carrying its charter, tool set, and default effort. Plugin agents register
+under plugin-qualified names: invoke them as `agentType: 'team:builder'` / `'team:reviewer'` /
+`'team:researcher'` — identical in every repo, in both Workflow `agent()` calls and the Agent tool. The reviewer's definition has **no write tools** — report-only is
 enforced structurally, not by convention.
 
 The **skills are the unbounded axis** — the *domain*. The CTO binds a role to the skills a task needs

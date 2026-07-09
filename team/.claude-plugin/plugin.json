@@ -1,7 +1,7 @@
 {
   "name": "team",
   "description": "Virtual-team operating model: a CTO/lead (the main loop) supervises on-demand specialists, runs work as bounded sequential sprints (mission · goals · plan), and gates every change on top of an elevated adversarial reviewer. Ships the operating-model skill plus the three role agents (builder / reviewer / researcher).",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
