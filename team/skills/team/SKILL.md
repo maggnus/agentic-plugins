@@ -121,7 +121,8 @@ review → `[x]` done.
    integration risk), not a from-scratch re-review — this is what offloads the CTO and lets sprints be
    bigger. The reviewer reports only; it does not fix. A **returned** task loops back to its owning
    specialist, who fixes and re-enters review; **an open blocker forces a return**, while the CTO may
-   accept minors and file them to the backlog. Nothing lands ungated. **Scale the verify to the risk:**
+   accept majors/minors and file them to the backlog (findings carry blocker/major/minor severity).
+   Nothing lands ungated. **Scale the verify to the risk:**
    one reviewer is the default, but a high-risk diff (tenancy, billing, auth, a security or performance
    boundary) warrants a **perspective-diverse panel** — two or three reviewers each on a distinct lens
    (correctness · security/tenancy · performance), a finding standing only if the panel can't refute it.
