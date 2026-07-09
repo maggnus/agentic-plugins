@@ -1,0 +1,14 @@
+{
+  "name": "maggnus",
+  "owner": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "team",
+      "source": "./team",
+      "description": "Virtual-team operating model: a CTO/lead supervises on-demand specialists (builder/reviewer/researcher), runs bounded sequential sprints, and gates every change on top of an elevated adversarial reviewer. Project-agnostic — domain knowledge stays in per-project area skills."
+    }
+  ]
+}
