@@ -1,6 +1,6 @@
 ---
 name: team
-description: A generic, project-agnostic multi-agent operating model — a CTO/lead (the main loop) supervises on-demand specialists, runs work as bounded sequential sprints (mission · goals · plan), and gates every change on top of an elevated adversarial reviewer. The operating model lives here; the domain lives in the per-project area skills; the three role agents (builder/reviewer/researcher) ship with this plugin. Use when planning or running any multi-agent sprint — team composition, the sprint lifecycle, sizing, reporting.
+description: A generic, project-agnostic multi-agent operating model — a CTO/lead (the main loop) supervises on-demand specialists, runs work as agile time-boxed sprints (pulled backlog · parallel streams · serialized gates), and gates every change on top of an elevated adversarial reviewer. The operating model lives here; the domain lives in the per-project area skills; the four role agents (builder/reviewer/researcher/stream lead) ship with this plugin. Use when planning or running any multi-agent sprint — team composition, the sprint lifecycle, sizing, reporting.
 ---
 
 # The virtual-team operating model
@@ -73,9 +73,15 @@ for the task**. The roles are the small, fixed axis — what the agent *does*:
 - **`builder`** — implements or changes code in its assigned scope.
 - **`reviewer`** — adversarially verifies; the elevated quality gate (default `max` effort).
 - **`researcher`** — reads/investigates/maps to answer a question or ground a sprint (read-only).
+- **`lead`** — supervises ONE bounded stream on the CTO's behalf (owner-added 2026-07-10): the one
+  role with spawn rights — it raises its own builders/researchers/reviewer, runs the
+  build→review→return loop internally, and delivers a single review-verified, uncommitted diff
+  with evidence to the CTO gate. One level deep: a lead never spawns another lead. (The `lead`
+  role is distinct from the `lead` seniority tier — tiers preset effort/latitude on the three
+  worker roles; the lead role sits above tiers, bounds [`xhigh`, `max`].)
 
 The roles are **agent definitions shipped with this plugin** (`agents/builder.md`, `reviewer.md`,
-`researcher.md`) — each carrying its charter, tool set, and default effort. Plugin agents register
+`researcher.md`, `lead.md`) — each carrying its charter, tool set, and default effort. Plugin agents register
 under plugin-qualified names: invoke them as `agentType: 'team:builder'` / `'team:reviewer'` /
 `'team:researcher'` — identical in every repo, in both Workflow `agent()` calls and the Agent tool. The reviewer's definition has **no write tools** — report-only is
 enforced structurally, not by convention.
@@ -85,8 +91,12 @@ The **skills are the unbounded axis** — the *domain*. The CTO binds a role to 
 `frontend`/`design-template`; a Rust, CUDA, or ML task → `builder` + that area's skill. **Roles × skills
 = an unbounded team** with no per-domain agent sprawl and no drifting duplicate of a skill's knowledge —
 the domain lives in the skill, the agent carries only the role. **No cap on team size**; the CTO composes
-exactly the specialists a sprint needs. Coordination is **hub-and-spoke through the CTO** — no
-peer-to-peer agent chat.
+exactly the specialists a sprint needs. Coordination is **hub-and-spoke through the CTO** — or, for a
+delegated stream, through its CTO-appointed **`lead`** (exactly one level of delegation) — never
+peer-to-peer agent chat. Appoint a lead when the box carries 3+ parallel streams or a stream's
+internal build→review iteration would flood the CTO's gate; the CTO then gates **stream results**
+on the lead's + reviewer's evidence instead of every intermediate diff — same rule that lets the
+reviewer raise the sprint-size ceiling, applied one level up. Nothing lands ungated either way.
 
 Invoke a specialist as a Workflow `agent()` with the role's `agentType`, naming the skills it must
 consult in its task. (A lone read-only ground or pre-flight pass can be a direct Agent-tool call;
@@ -99,7 +109,7 @@ verify fidelity — each on its own lens.
 ### Seniority tiers — the CTO's delegation presets
 
 A third, optional axis: **seniority** — shorthand the CTO may attach to a specialist at invocation.
-A tier is NOT a new agent (the three roles stay; no `senior-builder.md` sprawl): it is a **preset**
+A tier is NOT a new agent (the roles stay; no `senior-builder.md` sprawl): it is a **preset**
 bundling where in the role's effort bounds the call sits with the **decision latitude** granted in
 the task message:
 
@@ -277,7 +287,7 @@ project's engineering-rules doc — honor them.
 
 ## Where this lives (reuse)
 
-This operating model ships as the **`team` plugin** (this skill + the three role agents) from the
+This operating model ships as the **`team` plugin** (this skill + the four role agents) from the
 `maggnus` marketplace — canonical source `github.com/maggnus/claude-plugins`. On a new machine:
 `claude plugin marketplace add maggnus/claude-plugins && claude plugin install team@maggnus`.
 Every project on the machine then gets the same operating model with zero per-repo setup; a repo
