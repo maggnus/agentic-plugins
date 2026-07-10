@@ -125,10 +125,14 @@ scoping the task tighter, never from a weaker specialist.
 
 ## The sprint — the unit of work
 
-A sprint is a bounded body of work run as a staged Workflow, carrying a **mission** (why), **goals**
-(what success is), a **task list**, and a **plan** (how they compose). Keep it lightweight — the plan
-is a few lines the CTO jots, **not paperwork**. Track a task as `[ ]` planned → `[~]` in progress / in
-review → `[x]` done.
+A sprint is a **time-boxed iteration, not a roadmap line** (owner directive 2026-07-10 — agile
+proper): the CTO **pulls a backlog** into the box — tasks drawn from one or more roadmap
+cards, mixed freely with hardening — sized to the team's parallel capacity and the CTO's
+validation bandwidth, and runs them as **parallel work streams**. A card too big for one box
+splits across sprints; several small items share one. The sprint carries a **mission** (why),
+**goals** (what success is), the **pulled backlog** (task list), and a **plan** (how they
+compose). Keep it lightweight — the plan is a few lines the CTO jots, **not paperwork**. Track a
+task as `[ ]` planned → `[~]` in progress / in review → `[x]` done.
 
 1. **Plan (CTO).** Mission · goals · scope (in / explicitly out) · known risks & unknowns · the
    ownership split (exclusive files per specialist) · the execution plan. Unfamiliar territory is
@@ -159,10 +163,15 @@ review → `[x]` done.
    multiple diffs or changed code**; tick the plan doc; report. **Unresolved tasks carry to the next
    sprint or the backlog** — never silently dropped.
 
-**Sequential — one sprint at a time**; a new one does not start until the current closes (overlap only
-read-only: drafting the next plan while the current review runs). A sprint's mission can equally be
-**hardening** — refactor, performance, reliability, docs, dependency upgrades — not only feature
-delivery; the production north star demands those too.
+**Parallel streams, serialized gates (owner directives 2026-07-10).** Within the box the backlog
+runs as parallel work streams under **strict file-ownership separation** (worktree isolation when
+separation can't be guaranteed). **Waiting is not a state**: when a stream blocks on a dead wait
+the CTO cannot shorten (a review pass, an externally-paced run or deploy window, a long build),
+idle capacity pulls the next backlog task — the bench never sits idle while a gate bakes. What
+stays serialized is the **gate**: each stream's integration (review → CTO gate → commit) lands one
+at a time, and cross-stream conflicts resolve through the CTO, never peer-to-peer. A sprint's
+mission can equally be **hardening** — refactor, performance, reliability, docs, dependency
+upgrades — not only feature delivery; the production north star demands those too.
 
 ### Match the process to the risk
 
