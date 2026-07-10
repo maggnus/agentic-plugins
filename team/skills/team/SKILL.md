@@ -96,6 +96,33 @@ skill) — is owner-visible: propose it, don't silently grow an org chart. The s
 more than one specialist — e.g. a `builder` to implement and a `reviewer` bound with the design skill to
 verify fidelity — each on its own lens.
 
+### Seniority tiers — the CTO's delegation presets
+
+A third, optional axis: **seniority** — shorthand the CTO may attach to a specialist at invocation.
+A tier is NOT a new agent (the three roles stay; no `senior-builder.md` sprawl): it is a **preset**
+bundling where in the role's effort bounds the call sits with the **decision latitude** granted in
+the task message:
+
+- **senior** — the bounds' floor. Executes a well-specified task exactly to spec; every design
+  question is escalated back, not decided. For mechanical, fully-specified work.
+- **lead** — the role's default effort. Owns the *local* implementation design within its assigned
+  scope (decomposition, naming, local trade-offs); escalates anything cross-module. The ordinary
+  sprint task.
+- **principal** — the bounds' ceiling. Carries bounded design latitude *inside* its owned scope —
+  internal architecture, algorithm choice, refactor shape — with **every such call flagged
+  explicitly in its report** for the CTO gate. Sparing: the hardest task of a big sprint, never the
+  default.
+
+Latitude never weakens a gate: a principal's calls still pass review and the CTO gate, and the
+charter-level gates (new dependency/service, schema, infra, system boundaries, design deviations —
+the founder gates) stay gates at **every** tier. The tiers are vocabulary, not ceremony — the CTO
+may always set `effort` and latitude explicitly instead, and no task needs a tier label to run.
+
+There is deliberately **no `junior` tier** (owner delegated the call, 2026-07-10): the effort floor
+exists because agents below it degrade on long agentic tasks, and "light" work already has its
+path — the low-risk tier (CTO inline or a lone `senior` builder, no ceremony). Cheapness comes from
+scoping the task tighter, never from a weaker specialist.
+
 ## The sprint — the unit of work
 
 A sprint is a bounded body of work run as a staged Workflow, carrying a **mission** (why), **goals**
@@ -198,8 +225,9 @@ tool's own — not restated. The rules that bind every sprint:
   higher. The bounds are fixed: `builder`/`researcher` in **[`high`, `max`]** (default `xhigh`);
   `reviewer` in **[`xhigh`, `max`]** (default `max` — it optimizes for confidence, not speed; the
   quality gate never drops below `xhigh`). Role definitions carry the defaults, so an override is
-  stated only when the CTO deviates. **Never blanket-`max`** — pinning every agent to the ceiling is
-  abdicating the dial, not managing it.
+  stated only when the CTO deviates; the **seniority tiers** (senior/lead/principal, above) name the
+  floor/default/ceiling presets on this dial. **Never blanket-`max`** — pinning every agent to the
+  ceiling is abdicating the dial, not managing it.
 - **Model.** Agents inherit the session model — don't pin `model` without a recorded reason (review is
   the natural place to spend a stronger model if one exists).
 - **Ground once, feed digests.** One ground pass — a `researcher`, or the CTO inline for a small scope —
