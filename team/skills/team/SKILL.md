@@ -71,7 +71,7 @@ Not a fixed org chart, and **not one agent per domain**. A **specialist = a gene
 for the task**. The roles are the small, fixed axis — what the agent *does*:
 
 - **`builder`** — implements or changes code in its assigned scope.
-- **`reviewer`** — adversarially verifies; the elevated, max-effort quality gate.
+- **`reviewer`** — adversarially verifies; the elevated quality gate (default `max` effort).
 - **`researcher`** — reads/investigates/maps to answer a question or ground a sprint (read-only).
 
 The roles are **agent definitions shipped with this plugin** (`agents/builder.md`, `reviewer.md`,
@@ -114,7 +114,7 @@ review → `[x]` done.
    same files. A task is ready for review only when it is actually **done**: implementation complete ·
    scoped checks green · tests added/updated · any doc the change made stale updated · **no orphaned
    TODO/stub** (a labeled placeholder is fine, a silent stub is not).
-4. **Review → CTO gate.** A **max-effort adversarial `reviewer`** carries the heavy verification
+4. **Review → CTO gate.** An **adversarial `reviewer`** (default `max` effort) carries the heavy verification
    (refute-by-default, file:line evidence across correctness, security, tests, performance,
    architecture) and **runs the project's validation gate — the single authoritative pass**. Its
    evidence-backed verdict lets the CTO's gate be **final judgment on top** (goals, architecture,
@@ -193,9 +193,13 @@ memory**, not here (this skill stays project-agnostic).
 Generic Workflow mechanics (fan-out, barriers, pipelines, resume, structured outputs) are the Workflow
 tool's own — not restated. The rules that bind every sprint:
 
-- **Effort by role.** Defaults live in the role definitions — `builder`/`researcher` `xhigh`, the
-  **`reviewer` `max`** (it optimizes for confidence, not speed). Override `effort` per agent call only
-  when a stage warrants it (a mechanical stage → `high`). Floor `high`; **never blanket-`max`**.
+- **Effort — the CTO's dial, within set bounds (owner directive).** The CTO assigns `effort` per
+  agent call as a judgment sized to the stage — mechanical work lower, judgment-heavy or risky work
+  higher. The bounds are fixed: `builder`/`researcher` in **[`high`, `max`]** (default `xhigh`);
+  `reviewer` in **[`xhigh`, `max`]** (default `max` — it optimizes for confidence, not speed; the
+  quality gate never drops below `xhigh`). Role definitions carry the defaults, so an override is
+  stated only when the CTO deviates. **Never blanket-`max`** — pinning every agent to the ceiling is
+  abdicating the dial, not managing it.
 - **Model.** Agents inherit the session model — don't pin `model` without a recorded reason (review is
   the natural place to spend a stronger model if one exists).
 - **Ground once, feed digests.** One ground pass — a `researcher`, or the CTO inline for a small scope —

@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Team-role adversarial reviewer — the elevated quality gate for a sprint's diff. Verifies refute-by-default with file:line evidence across correctness, security, tests, performance, and architecture (plus design fidelity when the diff touches UI), and runs the project's validation gate as the single authoritative pass. Reports only; never fixes (no write tools). Used by the team skill (Workflow agentType 'team:reviewer') at max effort.
+description: Team-role adversarial reviewer — the elevated quality gate for a sprint's diff. Verifies refute-by-default with file:line evidence across correctness, security, tests, performance, and architecture (plus design fidelity when the diff touches UI), and runs the project's validation gate as the single authoritative pass. Reports only; never fixes (no write tools). Used by the team skill (Workflow agentType 'team:reviewer') at max effort by default; the CTO may set effort per call within [xhigh, max].
 tools: Read, Glob, Grep, Bash, ToolSearch, Skill, WebFetch, WebSearch
 effort: max
 ---
