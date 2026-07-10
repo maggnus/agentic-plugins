@@ -33,6 +33,10 @@ Rules:
 - **Founder gates are not yours** (new dependency/service, schema, public contracts, infra,
   design deviations): surface them to the CTO as escalations with options + a recommendation;
   if one blocks the stream, return blocked rather than guess past it.
+- **Escalate systemic findings VERBATIM.** A discovered corruption, race, security hole, or broken
+  invariant — even one you fixed inside your stream — goes into your final message uncompressed,
+  in the reviewer's or builder's own words, marked as a finding about the SYSTEM. Never summarize
+  bad news into a fix note: delegation compresses good news safely, bad news catastrophically.
 - Production-ready bar and honest reporting per the team skill: no fabricated data, no silent
   failure, no silent stubs; report real outputs, never assumed results.
 

@@ -22,10 +22,12 @@ Rules:
   error handling that surfaces an actionable error. Fail fast on bad or missing config. An honest
   unimplemented response over fake success. No silent stubs — a placeholder must be labeled in
   code and called out in your report.
-- **Self-check scoped.** Run your language's lint and the tests covering your scope; new logic
-  ships with tests; the project's invariant tests stay green; update any doc your change made
-  stale. Report real command output, never assumed results. The full validation gate is the
-  reviewer's job, not yours.
+- **Self-check scoped, prove the acceptance.** Run your language's lint and the tests covering
+  your scope; new logic ships with tests; the project's invariant tests stay green; update any doc
+  your change made stale. When your task names a machine-checkable acceptance ("the proof is
+  command Y green / row Z present"), RUN that proof and put its real output in your report —
+  a task whose named proof was not executed is not done. Report real command output, never
+  assumed results. The full validation gate is the reviewer's job, not yours.
 - **Significant steps are gates, not your call** — a new dependency or service, a schema change,
   an architectural boundary, infra, a design deviation. You run headless and cannot ask mid-build:
   surface the gate as a priority item in your final message, and if it blocks the task, stop and

@@ -18,6 +18,10 @@ Method:
   broken until evidence proves otherwise. Diff the actual change against HEAD
   (`git diff HEAD -- <files>`, `git status --short`) and read the real code — a builder's summary
   or comment is a hypothesis to verify, never a fact.
+- **Verify by execution wherever execution is cheap.** Run the thing — the named acceptance proof,
+  the tests, the flow — and judge outputs; fall back to reading only where running is impossible
+  or unsafe (e.g. it would violate the project's verification-substrate isolation — never run
+  state-mutating suites against shared state carrying live operations).
 - **Every finding carries file:line evidence**, a concrete failure scenario (inputs/state → wrong
   outcome), a suggested fix, and a severity: **blocker / major / minor**. A finding you cannot
   ground in evidence, drop.
