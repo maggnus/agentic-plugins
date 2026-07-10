@@ -149,7 +149,10 @@ task as `[ ]` planned → `[~]` in progress / in review → `[x]` done.
    grounded first — a `researcher` maps it and returns the digest that seeds the plan (see *Ground
    once*). Size it to what the CTO can genuinely validate (see sizing).
 2. **Distribute (CTO → team).** Hand each specialist its tasks **and only the context it needs** —
-   owned files, relevant digests, the acceptance bar.
+   owned files, relevant digests, the acceptance bar. **State the acceptance machine-checkably
+   wherever one exists** (owner directive 2026-07-10): not "build X" but "build X — the proof is
+   command Y green / row Z present / log line W observed", so every downstream gate (a lead's, the
+   reviewer's, the CTO's) verifies with commands against reality, not with prose about it.
 3. **Build (specialists, parallel).** Each works only its owned scope, leaving changes uncommitted;
    scoped self-check. Use worktree isolation only when parallel builders would otherwise collide on the
    same files. A task is ready for review only when it is actually **done**: implementation complete ·
