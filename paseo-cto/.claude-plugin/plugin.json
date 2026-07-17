@@ -1,0 +1,9 @@
+{
+  "name": "paseo-cto",
+  "description": "CTO operating model over external Paseo agents (any provider): the main loop plans, hands out machine-checkable tasks with exclusive file zones, reviews by execution with one-line verdicts, integrates and pushes, serializes deploys against live runs, and keeps the fleet busy from the roadmap on a fixed self-check cycle. Token-economical: the CTO spends judgment, the fleet spends tokens.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  }
+}
