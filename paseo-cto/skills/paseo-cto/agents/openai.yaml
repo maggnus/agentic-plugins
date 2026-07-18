@@ -1,0 +1,7 @@
+interface:
+  display_name: "Paseo CTO"
+  short_description: "Govern an external Paseo engineering fleet"
+  default_prompt: "Use $paseo-cto to run the next unblocked roadmap atom with a governed external agent fleet."
+
+policy:
+  allow_implicit_invocation: true

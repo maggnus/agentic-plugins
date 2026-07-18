@@ -13,7 +13,7 @@
     {
       "name": "paseo-cto",
       "source": "./paseo-cto",
-      "description": "CTO over an external Paseo agent fleet (Codex/GPT, Claude, ...): machine-checkable task hand-outs, execution-verified one-line review verdicts, CTO-owned integration serialized against live runs, 10-minute self-check cycle, idle-minimized fleet. The cross-provider sibling of the team plugin."
+      "description": "Dual Claude/Codex CTO plugin for an external Paseo agent fleet: owner-controlled model selection, isolated worktrees, bounded concurrency, machine-checkable task contracts, execution-verified review, finish notifications, safe integration, and a default 15-minute observation cadence."
     }
   ]
 }

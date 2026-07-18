@@ -1,12 +1,14 @@
-# claude-plugins
+# Claude/Codex plugins
 
-Personal Claude Code plugin marketplace (`maggnus`).
+Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` is a
+dual Claude Code/Codex plugin.
 
 ## Install
 
 ```sh
 claude plugin marketplace add maggnus/claude-plugins
 claude plugin install team@maggnus
+claude plugin install paseo-cto@maggnus
 ```
 
 On the dev machine the marketplace can point at the local clone instead, so edits apply without
@@ -40,6 +42,26 @@ Ships:
 Domain knowledge does not live here — it stays in each project's own area skills
 (`.claude/skills/*`). Never copy the skill or the role agents into a project; a local copy
 shadows the plugin and drifts.
+
+### `paseo-cto` — the external-agent CTO operating model
+
+A project-agnostic CTO loop over external Paseo agents, packaged natively for both Claude Code and
+Codex. It selects the first unblocked roadmap atom from project truth, delegates work under an
+owner-controlled model allowlist and exclusive file zones, reviews by execution, and keeps review,
+integration, and push gates with the CTO.
+
+The default fleet policy uses `codex/gpt-5.6-sol` with `xhigh` reasoning, `subagent` relationships,
+dedicated worktrees for substantive writes, bounded concurrency, and finish notifications instead
+of polling. Its default 15-minute heartbeat observes and reports active work; it never starts a
+duplicate agent. Owners can explicitly override the cadence and model allowlist.
+
+Ships:
+
+- **skill `paseo-cto`** — a concise operating entrypoint with separate task-contract and
+  fleet-lifecycle references;
+- **Claude manifest** — `.claude-plugin/plugin.json` for marketplace installation;
+- **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and
+  `skills/paseo-cto/agents/openai.yaml`, with no hardcoded Paseo MCP endpoint.
 
 ## Releasing a change
 
