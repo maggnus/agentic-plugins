@@ -104,6 +104,12 @@ late-stage tasks in the project's deferred-work document with an explicit pull t
 original stable IDs, and pull one back by moving its row into the tracker. A status view where
 everything reads as endless progress hides the real frontier.
 
+When an atom enters a discovery or evidence loop (measure → diagnose → fix → repeat), immediately
+split its exit conditions into checkbox sub-rows right in the tracker under the parent row, IDs
+`<parent>.1`, `<parent>.2`, …; add newly discovered steps as new sub-rows and flip checkboxes in
+the same push that lands each wave. The owner must always be able to count what is done, what is
+in flight, and what remains without reading session history.
+
 ## Notify-on-finish lifecycle
 
 Create agent-scoped work with `notifyOnFinish: true` (or leave its native true default). Do not poll a
