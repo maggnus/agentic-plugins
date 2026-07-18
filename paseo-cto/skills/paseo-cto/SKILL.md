@@ -28,7 +28,7 @@ spend the fleet's.*
 ## Fleet policy
 
 - Default model tier: the provider's frontier coding model (e.g. `codex/gpt-5.6-sol`),
-  thinking **high/xhigh**; **max is the CTO's reserve** for the genuinely hardest tasks;
+  thinking **xhigh**; **max is the CTO's reserve** for the genuinely hardest tasks;
   never ultra by default. Permission mode: auto-review.
 - **Minimize idle** (standing owner directive): when an agent finishes, pull it the next
   unblocked roadmap item immediately — later-stage work is allowed when the current
