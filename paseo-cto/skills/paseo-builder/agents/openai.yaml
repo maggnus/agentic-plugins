@@ -1,0 +1,7 @@
+interface:
+  display_name: "Paseo Builder"
+  short_description: "Implement one isolated Paseo task"
+  default_prompt: "Use $paseo-cto:paseo-builder to execute this exact task contract and return a verified local commit."
+
+policy:
+  allow_implicit_invocation: false

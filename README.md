@@ -9,6 +9,9 @@ dual Claude Code/Codex plugin.
 claude plugin marketplace add maggnus/claude-plugins
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
+
+codex plugin marketplace add maggnus/claude-plugins
+codex plugin add paseo-cto@maggnus
 ```
 
 On the dev machine the marketplace can point at the local clone instead, so edits apply without
@@ -16,6 +19,7 @@ a push:
 
 ```sh
 claude plugin marketplace add ~/Code/claude-plugins
+codex plugin marketplace add ~/Code/claude-plugins
 ```
 
 ## Plugins
@@ -45,23 +49,37 @@ shadows the plugin and drifts.
 
 ### `paseo-cto` — the external-agent CTO operating model
 
-A project-agnostic CTO loop over external Paseo agents, packaged natively for both Claude Code and
-Codex. It selects the first unblocked roadmap atom from project truth, delegates work under an
-owner-controlled model allowlist and exclusive file zones, reviews by execution, and keeps review,
-integration, and push gates with the CTO.
+A project-agnostic CTO organization over external Paseo agents, packaged natively for both Claude
+Code and Codex. It keeps a living hierarchical execution plan, moves independent work forward while
+deepening discovered branches, routes work across GPT and Claude, and preserves founder, review,
+integration, push, deploy, and irreversible-operation gates.
 
-The default fleet policy uses `codex/gpt-5.6-sol` with `xhigh` reasoning, `subagent` relationships,
-dedicated worktrees for substantive writes, bounded concurrency, and finish notifications instead
-of polling. Its default 15-minute heartbeat observes and reports active work; it never starts a
-duplicate agent. Owners can explicitly override the cadence and model allowlist.
+The first operating run presents a compact multiple-choice charter for CTO strategy, available
+models, reasoning and permission policies, fleet budget, autonomy horizon, and review depth. It is
+persisted and not repeated on resume. Four explicit worker skills define provider-neutral authority.
+Writers use isolated workspaces and local commits; the CTO reviews every write, assigns a ten-point
+assessment, resolves evidence-based disputes, and integrates safely.
+
+Invoke the CTO skill as `$paseo-cto:paseo-cto` in Codex or `/paseo-cto:paseo-cto` in Claude. Worker
+prompts use the same qualified namespace for `paseo-builder`, `paseo-reviewer`,
+`paseo-researcher`, or `paseo-lead`; dispatch fails closed when the plugin is unavailable in the
+selected worker family.
+
+A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
+Its compact English table includes the CTO and every active agent. Recoverable checkpoints and
+stable labels allow a fresh or compacted session to resume without replaying completed work.
 
 Ships:
 
-- **skill `paseo-cto`** — a concise operating entrypoint with separate task-contract and
-  fleet-lifecycle references;
+- **skill `paseo-cto`** — the CTO operating loop, onboarding charter, living plan, founder status,
+  review, lifecycle, provider policy, and complete Paseo command catalog;
+- **worker role skills** — `paseo-builder`, `paseo-reviewer`, `paseo-researcher`, and `paseo-lead`;
 - **Claude manifest** — `.claude-plugin/plugin.json` for marketplace installation;
 - **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and
   `skills/paseo-cto/agents/openai.yaml`, with no hardcoded Paseo MCP endpoint.
+
+References load progressively: project status does not load fleet/task documentation, ordinary
+fleet work uses a compact core-command sheet, and the complete command catalog is lookup-only.
 
 ## Releasing a change
 

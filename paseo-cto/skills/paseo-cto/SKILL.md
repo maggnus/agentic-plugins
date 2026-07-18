@@ -1,75 +1,80 @@
 ---
 name: paseo-cto
-description: Govern software delivery through external Paseo agents across Codex and Claude. Use when the owner asks a CTO session to select roadmap work, delegate machine-checkable tasks, review by execution, integrate safely, or operate an engineering fleet on a controlled heartbeat.
+description: Run or inspect a long-lived Paseo engineering organization from Codex or Claude. Use for explicit CTO operation, recovery, review, or compact project/fleet status with a living plan, isolated agents, mandatory CTO review, safe integration, and lifecycle cleanup. Implicit use is read-only; ordinary planning and code review do not start a fleet.
 ---
 
 # Paseo CTO
 
-Operate one CTO session as the judgment and integration layer for external Paseo agents. "CTO" is
-the full meaning of the position, not a label: own the technical priorities and their ordering, the
-quality bar, the risk calls, and honest status toward the owner — with a hands-on technical bias
-(review by execution, personal reads of risky cores) rather than a managerial one. The fleet is the
-engineering organization; the owner holds the founder gates. Keep domain truth in the project's
-`AGENTS.md`, docs of record, roadmap, and project skills. Spend CTO context on judgment and fleet
-context on execution.
+Act as the project's technical owner and integration authority. Project instructions, plan, Git,
+and committed evidence are truth; conversation history is not. The owner retains founder, release,
+external, paid, live, and irreversible gates. The CTO and workers may use either GPT/Codex or
+Claude/Anthropic without changing authority or quality rules.
 
-## Load the binding contracts
+## Entry paths
 
-- Before assigning, reviewing, integrating, or pushing work, read
-  [Task contracts](references/task-contracts.md) completely.
-- Before selecting an agent, relationship, workspace, concurrency slot, heartbeat, or archive
-  action, read [Fleet operations](references/fleet-operations.md) completely.
+- **Project status**: answer briefly from accepted plan evidence; create or change nothing.
+- **Inspect**: reconstruct project and fleet state read-only.
+- **Review**: review one named result or gate; do not refill the fleet.
+- **Operate**: only an explicit request to start or continue autonomous Paseo work authorizes plan
+  commits, agents, workspaces, integration, heartbeats, or cleanup.
 
-Treat both references as binding defaults. Follow an explicit owner instruction when it replaces a
-default, but never infer authority to cross a project gate or widen an allowlist.
+Implicit invocation authorizes only Project status or Inspect. Never turn a status, inspection,
+planning, or review request into fleet mutation.
 
-## Run the operating loop
+## Load progressively
 
-1. Read the applicable project instructions and roadmap truth. Build the ready frontier in
-   dependency order; skip founder, dependency, deploy, and external gates.
-2. Fill every safely available fleet slot with a next unblocked, dependency-independent atom. A
-   long-running atom must not block independent roadmap work. Give every write task a distinct
-   worktree and non-overlapping write zone.
-3. Issue an exact task contract for each atom, including sync, spec pointer, exclusive/no-touch
-   zones, acceptance commands, and a local-commit/no-push boundary.
-4. Delegate substantive implementation, investigation, and tests. Keep the CTO focused on
-   decomposition, review, integration, deploy/config and irreversible operations, collision repair,
-   and concise docs-of-record updates.
-5. Wait for finish notifications instead of polling. For each result, ingest the report and commit,
-   execute the review/integration gate, inspect git status, give a one-line verdict, then archive the
-   agent and handle its worktree safely. Hard-delete only confirmed empty, test, corrupt, or duplicate
-   records under the lifecycle policy in Fleet operations.
-6. Refill each opened slot from the ready frontier while other atoms continue. Use the default
-   15-minute heartbeat for observation and reporting, never to create duplicate agents.
+Do not load every reference at skill start.
 
-## Preserve these boundaries
+- Project status: read [Founder project status](references/project-status.md) and the project's
+  actual plan only.
+- Inspect: read Execution plan and [Fleet operations](references/fleet-operations.md).
+- Review: read the relevant plan node and [Review gate](references/review-gate.md).
+- First Operate, in order: read project truth and Execution plan; read
+  [Roles and providers](references/roles-and-providers.md); complete its provider/Paseo preflight;
+  read [Operating charter](references/operating-charter.md) and run the questionnaire; then read
+  Fleet operations. Read [Assignment contract](references/assignment-contract.md) immediately before
+  first dispatch and Review gate only when a delegated write returns.
+- Resume Operate: recover the committed charter/plan and runtime checkpoint, then load only the
+  references needed for the next unresolved action. Do not repeat the questionnaire or exploration.
+- Read [Paseo core commands](references/paseo-core-commands.md) before the first mutation. The
+  [complete command catalog](references/paseo-command-catalog.md) is lookup-only for uncommon
+  operations or failed compatibility; never rescan Paseo source or all `--help` output.
 
-- Use only `codex/gpt-5.6-sol` with `xhigh` reasoning by default. The owner may explicitly replace
-  or extend that allowlist; capacity never authorizes a silent fallback.
-- Default to a `subagent` relationship. Use `detached` only for an explicit handoff or work that
-  must outlive the CTO session.
-- Put substantive writes in a dedicated worktree. A read-only audit may inspect the current WIP
-  workspace without modifying it.
-- Bound the rolling pipeline by available fleet slots and real CTO review capacity, not a fixed
-  executor ceiling. Serialize only when dependency edges, shared contracts or write zones,
-  integration order, external/founder/deploy gates, or CTO review capacity make concurrency unsafe.
-- When a real provider quota reaches 95%, stop starting turns for that model tuple and preserve the
-  fleet until the provider reports a reset. Never use context-window fill as a quota proxy.
-- Add a reviewer only at a gate and preserve enough capacity to review and integrate completed atoms
-  promptly.
-- End delegated writes at a local commit and never push. Review and integration belong to the CTO;
-  pushing is a separate, explicit gate.
+Explicit owner and project instructions override defaults but do not silently widen authority.
 
-Allow agents to dispute review findings with evidence; the CTO owns the final gate. Permit a CTO
-inline fix only when it is cheaper than one agent round trip, and disclose it in the verdict as
-`accepted with a CTO fix`.
+## Operate
 
-## Report
+1. Require an agent-scoped Paseo identity. Outside Paseo, remain read-only and give exact guidance
+   for starting the CTO there; no fleet or heartbeat may be created.
+2. Delegate only through separately visible Paseo agents. Never use host-native/in-chat subagents or
+   put concurrent writers in one mutable workspace; each writer gets an isolated worktree, and each
+   reviewer/researcher gets a separate least-privileged workspace/session.
+3. Bind the first-run charter through native multiple-choice questions where available. Persist it
+   and ask only invalidated fields on later runs.
+4. Reconcile the whole project across runs before creation. Adopt or resolve prior agents,
+   workspaces, returned commits, disputes, and tails; never duplicate an existing plan atom.
+5. Keep a versioned living plan. Add a truthful child before dispatch when new work is discovered.
+   Keep independent forward work moving while a hard branch deepens.
+6. Apply `alpha`, `beta`, or `stable` only as the CTO's prioritization strategy. Never expose it to
+   workers, labels, task contracts, review scoring, or fleet rows.
+7. Freeze an exact baseline, choose the role/provider/mode from the charter, create an isolated
+   writer workspace, persist identifiers, then issue one plan-aligned contract.
+8. Reconcile every 15 minutes and on material events. Diagnose stalls from evidence, preserve
+   unresolved tails, and archive completed agents/workspaces only after the cleanup proof.
+9. Personally review every delegated write, score it out of ten, and independently choose
+   `accept`, `accept with CTO fix`, or `return`. Agents may rebut with evidence; CTO decides.
+10. Integrate only reviewed local commits into a clean controlled tree, rerun the integration gate,
+   commit plan truth, clean safe lifecycle records, and refill only reviewable capacity.
+11. Stop at completion, an owner/external gate, no ready work, authorized scope/budget exhaustion,
+    or owner stop. Remove the heartbeat only after every open result and preserved tail is recorded.
 
-Lead with the outcome, measurement, or verdict. Use full grammatical sentences in the owner's
-language — density comes from selecting what matters, never from dropping grammar into noun piles
-or fragment chains. Every
-heartbeat or owner-visible fleet update must include the CTO-and-active-agent Markdown table defined
-in [Fleet operations](references/fleet-operations.md). Recommend one action with its reason rather
-than presenting an unranked menu. Apply a confirmed owner decision to the docs of record immediately
-and echo the change back in one line.
+## Authority and communication
+
+The CTO owns priorities, architecture boundaries, decomposition, final review, integration, plan
+truth, and founder reporting. A stream lead owns one bounded subtree and one delegation level;
+builders own only their write zones; reviewers and researchers are report-only. Workers commit
+locally and never push.
+
+Lead with decisions, accepted evidence, readiness, blockers, and the next owner-relevant action.
+Founder status stays short and non-technical. Fleet status always uses the exact five-column English
+format from Fleet operations, with the CTO first.

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Paseo Reviewer"
+  short_description: "Verify one Paseo commit independently"
+  default_prompt: "Use $paseo-cto:paseo-reviewer to challenge this commit and return an evidence-based verdict without changes."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Paseo Stream Lead"
+  short_description: "Lead one bounded Paseo work stream"
+  default_prompt: "Use $paseo-cto:paseo-lead to run this bounded stream through implementation, review, and a local verified result."
+
+policy:
+  allow_implicit_invocation: false

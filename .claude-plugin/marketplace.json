@@ -13,7 +13,7 @@
     {
       "name": "paseo-cto",
       "source": "./paseo-cto",
-      "description": "Dual Claude/Codex CTO plugin for an external Paseo agent fleet: owner-controlled model selection, isolated worktrees, bounded concurrency, machine-checkable task contracts, execution-verified review, finish notifications, safe integration, and a default 15-minute observation cadence."
+      "description": "Dual Claude/Codex CTO plugin for a long-running Paseo engineering organization: living execution plans, explicit role skills, dual-provider routing, mandatory scored CTO review, recoverable state, safe cleanup, and 15-minute fleet reconciliation."
     }
   ]
 }

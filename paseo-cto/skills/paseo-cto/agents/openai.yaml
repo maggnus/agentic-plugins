@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo CTO"
-  short_description: "Govern a rolling Paseo engineering fleet"
-  default_prompt: "Use $paseo-cto to keep available fleet slots filled with unblocked, dependency-independent roadmap atoms."
+  short_description: "Run a durable Paseo engineering fleet"
+  default_prompt: "Use $paseo-cto:paseo-cto to start or resume project execution, reconcile the fleet, and keep the living plan current."
 
 policy:
   allow_implicit_invocation: true

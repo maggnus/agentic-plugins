@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "1.2.2",
-  "description": "Govern an external Paseo engineering fleet with a bounded rolling pipeline for independent roadmap atoms, quota-aware waiting, machine-checkable task contracts, execution-based review, safe integration, and a 15-minute observation heartbeat.",
+  "version": "2.0.0",
+  "description": "Run a provider-neutral Paseo engineering organization with a living execution plan, explicit worker roles, mandatory CTO review, long-session recovery, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -9,17 +9,19 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Paseo CTO",
-    "shortDescription": "Govern a rolling Paseo engineering fleet",
-    "longDescription": "Run a CTO operating loop over external Paseo agents with a strict owner-controlled model allowlist, isolated worktrees, a bounded rolling pipeline for independent roadmap atoms, finish notifications, roadmap gates, execution-based review, and safe local integration.",
+    "shortDescription": "Run a durable Paseo engineering organization",
+    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude with a living hierarchical plan, explicit role skills, dual-provider routing, isolated workspaces, mandatory scored CTO review, safe local integration, recoverable checkpoints, lifecycle reconciliation, and concise founder reporting.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
       "Multi-agent orchestration",
       "Task governance",
-      "Review and integration"
+      "Review and integration",
+      "Long-session recovery",
+      "Fleet lifecycle control"
     ],
     "defaultPrompt": [
-      "Use $paseo-cto to keep available fleet slots filled with unblocked, dependency-independent roadmap atoms and observe them with a 15-minute heartbeat."
+      "Use $paseo-cto:paseo-cto to start or resume project execution, reconcile the fleet, and keep the living plan current."
     ]
   }
 }
