@@ -82,3 +82,7 @@ the push separately. An informational log inside an `&&` chain is not a gate.
   that run; integrate agent-returned config values between runs in CTO-owned commits.
 - Treat shared-tree contamination as a correctness failure, not cleanup trivia. Preserve dirty or
   unintegrated worktrees until their state is understood and reported.
+- An evidence-gated task closes on a committed green artifact, never on merged code: the measuring
+  instrument is not the evidence. Keep failed or diagnostic artifacts out of the docs of record
+  unless they document a finding referenced elsewhere, and say explicitly which of the two — the
+  instrument or the proof — a verdict actually accepted.

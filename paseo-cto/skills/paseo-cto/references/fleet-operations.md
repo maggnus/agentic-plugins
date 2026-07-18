@@ -99,6 +99,11 @@ Use read-only preflight where it helps prepare a candidate's exact spec, depende
 acceptance without consuming unsafe review capacity. Preflight must not start gated or overlapping
 implementation and is not a substitute for filling a safe executor slot.
 
+Keep the open-work tracker carrying only actively driven work: park blocked, low-priority, and
+late-stage tasks in the project's deferred-work document with an explicit pull trigger and their
+original stable IDs, and pull one back by moving its row into the tracker. A status view where
+everything reads as endless progress hides the real frontier.
+
 ## Notify-on-finish lifecycle
 
 Create agent-scoped work with `notifyOnFinish: true` (or leave its native true default). Do not poll a
