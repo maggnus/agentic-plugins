@@ -35,11 +35,12 @@ Verify IDs at runtime because catalogs can change:
 
 | Family | Preferred order | Default reasoning |
 | --- | --- | --- |
-| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `xhigh` |
-| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `xhigh` |
+| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `max` |
+| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `max` |
 
-Use the charter's selected tuple. Exceptional reasoning tiers or fast modes require explicit owner
-or binding project authorization.
+Use the charter's selected tuple. Workers run at the highest available reasoning tier (`max`, or
+the provider's strongest equivalent) by owner directive 2026-07-18; lower tiers or fast modes
+require explicit owner or binding project authorization.
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from
 `inspect_provider` rather than hard-coding provider names:
