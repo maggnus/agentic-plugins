@@ -49,6 +49,8 @@ default, but never infer authority to cross a project gate or widen an allowlist
 - Bound the rolling pipeline by available fleet slots and real CTO review capacity, not a fixed
   executor ceiling. Serialize only when dependency edges, shared contracts or write zones,
   integration order, external/founder/deploy gates, or CTO review capacity make concurrency unsafe.
+- When a real provider quota reaches 95%, stop starting turns for that model tuple and preserve the
+  fleet until the provider reports a reset. Never use context-window fill as a quota proxy.
 - Add a reviewer only at a gate and preserve enough capacity to review and integrate completed atoms
   promptly.
 - End delegated writes at a local commit and never push. Review and integration belong to the CTO;

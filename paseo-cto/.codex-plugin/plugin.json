@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "1.2.1",
-  "description": "Govern an external Paseo engineering fleet with a bounded rolling pipeline for independent roadmap atoms, machine-checkable task contracts, execution-based review, safe integration, and a 15-minute observation heartbeat.",
+  "version": "1.2.2",
+  "description": "Govern an external Paseo engineering fleet with a bounded rolling pipeline for independent roadmap atoms, quota-aware waiting, machine-checkable task contracts, execution-based review, safe integration, and a 15-minute observation heartbeat.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

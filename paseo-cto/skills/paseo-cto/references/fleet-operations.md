@@ -6,6 +6,7 @@ worktree.
 ## Contents
 
 - [Owner authority and hard model allowlist](#owner-authority-and-hard-model-allowlist)
+- [Provider quota wait policy](#provider-quota-wait-policy)
 - [Relationship and workspace](#relationship-and-workspace)
 - [Concurrency budget](#concurrency-budget)
 - [Roadmap truth and gates](#roadmap-truth-and-gates)
@@ -33,6 +34,25 @@ On a provider-capacity error, preserve the existing agent and its context, repor
 retry the same tuple only through a later authorized action. A heartbeat may observe and report
 capacity readiness, but must not create a replacement. Do not churn, change provider/model/reasoning,
 or silently fall back. Capacity is an expected wait state, not model authority.
+
+## Provider quota wait policy
+
+Use only an explicit provider quota signal that identifies the model or provider tuple, current
+consumption percentage, and reset state or timestamp. When observed consumption reaches or exceeds
+95%, enter `quota-wait` for that tuple: do not call `create_agent`, start a follow-up turn, retry, or
+replace an agent on that tuple. Let already-running turns reach their next safe finish notification;
+preserve their sessions, worktrees, and pending review state.
+
+Observe recovery through the heartbeat. Resume the same tuple only after Paseo/provider evidence
+shows consumption below 95% or confirms that the quota window reset. Never switch provider, model,
+or reasoning tier to evade the wait unless the owner explicitly changes the allowlist.
+
+Do not confuse context-window usage with provider quota. `contextWindowUsedTokens /
+contextWindowMaxTokens` governs compaction and session hygiene, not subscription or rate-limit
+capacity, and it has no provider reset timestamp. If the current Paseo surface exposes only
+per-agent token/context usage, report `provider quota not observable` and do not invent a 95%
+measurement. An actual capacity/rate-limit error still enters the same wait state even when no
+percentage was available before the error.
 
 ## Relationship and workspace
 
@@ -121,7 +141,9 @@ stop after archive and report that hard-delete is unavailable through the curren
 Use `create_heartbeat` on a 15-minute cadence by default; the owner may set another cadence explicitly.
 A heartbeat is an observation prompt returning to the CTO session, not `create_schedule` or another
 mechanism that creates a new agent. It checks notifications, active agents, background jobs, gates,
-and capacity waits. It must never launch a duplicate for work that is already active.
+capacity waits, and any explicit provider-quota percentage/reset evidence. It must never launch a
+duplicate for work that is already active. If quota evidence is unavailable, say so once per material
+state change rather than repeating a fabricated percentage.
 
 Treat overlap or `already active` as expected idempotency signals. Keep the current agent and wait for
 notification; do not repair healthy overlap with cancellation, recreation, or model churn.
