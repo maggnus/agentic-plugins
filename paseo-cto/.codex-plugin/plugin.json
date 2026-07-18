@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "1.1.0",
-  "description": "Govern an external Paseo engineering fleet with bounded concurrency, machine-checkable task contracts, execution-based review, safe integration, and a 15-minute observation heartbeat.",
+  "version": "1.2.0",
+  "description": "Govern an external Paseo engineering fleet with a bounded rolling pipeline for independent roadmap atoms, machine-checkable task contracts, execution-based review, safe integration, and a 15-minute observation heartbeat.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -9,8 +9,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Paseo CTO",
-    "shortDescription": "Govern an external Paseo engineering fleet",
-    "longDescription": "Run a CTO operating loop over external Paseo agents with a strict owner-controlled model allowlist, isolated worktrees, bounded concurrency, finish notifications, roadmap gates, execution-based review, and safe local integration.",
+    "shortDescription": "Govern a rolling Paseo engineering fleet",
+    "longDescription": "Run a CTO operating loop over external Paseo agents with a strict owner-controlled model allowlist, isolated worktrees, a bounded rolling pipeline for independent roadmap atoms, finish notifications, roadmap gates, execution-based review, and safe local integration.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
@@ -19,7 +19,7 @@
       "Review and integration"
     ],
     "defaultPrompt": [
-      "Use $paseo-cto to run the next unblocked roadmap atom with a 15-minute heartbeat."
+      "Use $paseo-cto to keep available fleet slots filled with unblocked, dependency-independent roadmap atoms and observe them with a 15-minute heartbeat."
     ]
   }
 }

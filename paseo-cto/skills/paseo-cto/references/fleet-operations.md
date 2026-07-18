@@ -46,16 +46,20 @@ or silently fall back. Capacity is an expected wait state, not model authority.
 
 ## Concurrency budget
 
-Keep the normal live set bounded to:
+Operate a bounded rolling pipeline. While fleet slots are available, continuously start the next
+unblocked, dependency-independent roadmap atoms; a long-running atom must not block independent
+roadmap work or leave otherwise safe slots idle. Give every concurrent write task a distinct Paseo
+worktree and exclusive, non-overlapping write zones.
 
-1. the CTO session;
-2. one executor for the current atom; and
-3. optionally, one read-only preflight for the next independent roadmap card.
+Bound the live set by the available owner/platform fleet slots and the CTO's real capacity to review
+and integrate results promptly. Add a reviewer only when an implementation reaches its gate, account
+for that temporary slot in the same budget, and remove it after the verdict. Do not create agents
+merely to keep a fleet-looking dashboard busy.
 
-Add a reviewer only when an implementation reaches its gate, and remove that temporary slot after the
-verdict. Exceed this budget only when all added tasks have genuinely independent file zones and the CTO
-has real capacity to review their results promptly. Do not create agents merely to keep a fleet-looking
-dashboard busy.
+Serialize atoms only when concurrency is unsafe because of a dependency edge, a shared contract or
+overlapping write zone, required integration order, an external/founder/deploy gate, or insufficient
+real CTO review capacity. Do not treat elapsed runtime, roadmap adjacency, or the existence of another
+executor as a serialization reason.
 
 When a slot opens, take the next unblocked atom rather than leaving a finished agent idle. Reuse an
 agent only when continuity is valuable and it remains active for a concrete follow-up; otherwise archive
@@ -64,12 +68,16 @@ it and start the next atom with a clean contract.
 ## Roadmap truth and gates
 
 Before selecting work, read every applicable project `AGENTS.md`, the docs of record, roadmap, and
-dependency status. Choose the first unblocked atom by dependency order, not simply the lowest card
-number. Skip any founder decision, unmet dependency, deploy approval, external publication, provider
-setup, sign-off, or other external gate. Never cross one without explicit owner authority.
+dependency status. Build the ready frontier in dependency order, not simply by the lowest card number,
+then fill safe fleet slots with unblocked atoms whose dependencies, contracts, write zones, and
+integration order permit parallel work. A running atom is not itself a dependency edge and must not
+hold back an independent ready atom. Skip any founder decision, unmet dependency, deploy approval,
+external publication, provider setup, sign-off, or other external gate. Never cross one without
+explicit owner authority.
 
-Use the optional preflight slot only for the next independent card. Preflight may identify its exact
-spec, dependencies, zones, and acceptance, but must not start gated or overlapping implementation.
+Use read-only preflight where it helps prepare a candidate's exact spec, dependencies, zones, and
+acceptance without consuming unsafe review capacity. Preflight must not start gated or overlapping
+implementation and is not a substitute for filling a safe executor slot.
 
 ## Notify-on-finish lifecycle
 

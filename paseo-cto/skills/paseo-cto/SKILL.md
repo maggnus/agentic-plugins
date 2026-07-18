@@ -21,16 +21,20 @@ default, but never infer authority to cross a project gate or widen an allowlist
 
 ## Run the operating loop
 
-1. Read the applicable project instructions and roadmap truth. Select the first unblocked atom by
+1. Read the applicable project instructions and roadmap truth. Build the ready frontier in
    dependency order; skip founder, dependency, deploy, and external gates.
-2. Issue the exact task contract, including sync, spec pointer, exclusive/no-touch zones,
-   acceptance commands, and a local-commit/no-push boundary.
-3. Delegate substantive implementation, investigation, and tests. Keep the CTO focused on
+2. Fill every safely available fleet slot with a next unblocked, dependency-independent atom. A
+   long-running atom must not block independent roadmap work. Give every write task a distinct
+   worktree and non-overlapping write zone.
+3. Issue an exact task contract for each atom, including sync, spec pointer, exclusive/no-touch
+   zones, acceptance commands, and a local-commit/no-push boundary.
+4. Delegate substantive implementation, investigation, and tests. Keep the CTO focused on
    decomposition, review, integration, deploy/config and irreversible operations, collision repair,
    and concise docs-of-record updates.
-4. Wait for finish notification instead of polling. Ingest the report and commit, execute the gate,
-   inspect git status, give a one-line verdict, then archive the agent and handle its worktree safely.
-5. Start the next unblocked atom only when a concurrency slot is available. Use the default
+5. Wait for finish notifications instead of polling. For each result, ingest the report and commit,
+   execute the review/integration gate, inspect git status, give a one-line verdict, then archive the
+   agent and handle its worktree safely.
+6. Refill each opened slot from the ready frontier while other atoms continue. Use the default
    15-minute heartbeat for observation and reporting, never to create duplicate agents.
 
 ## Preserve these boundaries
@@ -41,8 +45,11 @@ default, but never infer authority to cross a project gate or widen an allowlist
   must outlive the CTO session.
 - Put substantive writes in a dedicated worktree. A read-only audit may inspect the current WIP
   workspace without modifying it.
-- Keep the normal live set to the CTO, one executor for the current atom, and optionally one
-  read-only preflight for the next independent card. Add a reviewer only at a gate.
+- Bound the rolling pipeline by available fleet slots and real CTO review capacity, not a fixed
+  executor ceiling. Serialize only when dependency edges, shared contracts or write zones,
+  integration order, external/founder/deploy gates, or CTO review capacity make concurrency unsafe.
+- Add a reviewer only at a gate and preserve enough capacity to review and integrate completed atoms
+  promptly.
 - End delegated writes at a local commit and never push. Review and integration belong to the CTO;
   pushing is a separate, explicit gate.
 
