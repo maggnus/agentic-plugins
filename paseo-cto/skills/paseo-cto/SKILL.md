@@ -74,6 +74,20 @@ additivity — never prose).
   script-section merges) personally.
 - Long chains in shells: **always `cd` to the repo root first** (persistent cwd killed
   three chains in one day), and never mask exit codes with `| tail` inside `&&` chains.
+- **The push-queue gate is a separate call, never a line in a `&&` chain** (2026-07-17:
+  four unreviewed agent commits swept to origin in one day — an informational `git log`
+  before `push` gates nothing). Check `git log origin/main..HEAD` alone, review every
+  listed commit, only then push. A shared checked-out branch with several committing
+  agents makes this structural: prefer per-agent worktrees for new substantive tasks.
+- **Background wrappers must carry the real exit code**: `cmd; echo exit=$?; tail log`
+  reports success even when `cmd` failed mid-chain (a failed image push masqueraded as a
+  completed deploy and a whole verdict was measured on a stale binary). Echo the exit
+  explicitly and grep the log for ERROR before trusting it.
+- **Evidence runs gate on image ancestry, not tag equality**: embed the commit SHA in the
+  image tag and require `git merge-base --is-ancestor <fix> <image-sha>` for every commit
+  the verdict depends on. Tag/template equality passed while the binary predated the fix.
+- **Provider capacity errors**: don't churn-retry and don't switch models on your own —
+  the agent keeps its context; hold, retry on the next cycle tick, tell the owner.
 
 ## The cycle
 
