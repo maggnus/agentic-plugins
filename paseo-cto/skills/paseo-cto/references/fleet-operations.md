@@ -99,13 +99,16 @@ and capacity waits. It must never launch a duplicate for work that is already ac
 Treat overlap or `already active` as expected idempotency signals. Keep the current agent and wait for
 notification; do not repair healthy overlap with cancellation, recreation, or model churn.
 
-Every heartbeat and owner-visible fleet update must lead with the outcome and include this Markdown
-table with the CTO plus every active agent:
+Every heartbeat and owner-visible fleet update must lead with the outcome, carry the report
+timestamp (owner-local time) next to the table, and include this Markdown table with the CTO plus
+every active agent. No provider/model column — the owner controls the allowlist separately; identify
+work by its roadmap atom index (e.g. `S2C-11`, `S2-11`, or a wave label) with a very short title in
+its own column:
 
-| Actor | Relation | Provider/model + reasoning | Status | Task / idle | Elapsed | Next action |
-| --- | --- | --- | --- | --- | --- | --- |
-| CTO | owner session | `<provider/model + reasoning>` | active | `<current gate or coordination task>` | `<time>` | `<one concrete action>` |
-| `<agent>` | `subagent` or `detached` | `<provider/model + reasoning and brief reason>` | `<state>` | `<atom or explicit idle reason>` | `<time>` | `<one concrete action>` |
+| Actor | Atom | Title (short) | Status | Elapsed | Next action |
+| --- | --- | --- | --- | --- | --- |
+| CTO | `<atom/gate index or —>` | `<current gate or coordination, 2-5 words>` | active | `<time in state>` | `<one concrete action>` |
+| `<agent>` | `<roadmap atom / wave index>` | `<task title, 2-5 words>` | `<state>` | `<time in state>` | `<one concrete action>` |
 
 Use full grammatical sentences in the owner's language. When the owner is offline, continue only safe,
 unblocked work; accumulate concise updates and leave every founder, deploy, external, and sign-off gate
