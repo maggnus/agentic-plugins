@@ -33,7 +33,8 @@ default, but never infer authority to cross a project gate or widen an allowlist
    and concise docs-of-record updates.
 5. Wait for finish notifications instead of polling. For each result, ingest the report and commit,
    execute the review/integration gate, inspect git status, give a one-line verdict, then archive the
-   agent and handle its worktree safely.
+   agent and handle its worktree safely. Hard-delete only confirmed empty, test, corrupt, or duplicate
+   records under the lifecycle policy in Fleet operations.
 6. Refill each opened slot from the ready frontier while other atoms continue. Use the default
    15-minute heartbeat for observation and reporting, never to create duplicate agents.
 

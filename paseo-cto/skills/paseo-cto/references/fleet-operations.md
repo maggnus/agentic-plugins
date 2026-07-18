@@ -97,6 +97,25 @@ After notification, use this order:
 Never leave finished agents as idle tails. Never discard a dirty or unintegrated tree merely to make
 the fleet appear clean.
 
+### Archive versus hard-delete
+
+Use `archive_agent` as the normal completion action. It removes a finished agent from the active
+fleet while preserving useful task history. Do not treat `kill_agent` as chat deletion: it terminates
+the provider session but may leave the archived record visible.
+
+Hard-delete only a confirmed empty, test, corrupt, or duplicate record after proving that it owns no
+running or reusable work, pending permission, worktree, unintegrated commit, disputed evidence, or
+unique task history. Resolve exact IDs first with `paseo ls --all --global --json`, then invoke one
+target at a time:
+
+```bash
+paseo delete <exact-agent-id> --json
+```
+
+Never use `paseo delete --all` or `paseo delete --cwd` as routine cleanup. After deletion, rerun the
+global list and require the exact ID to be absent. If the CLI cannot reach the same daemon as the UI,
+stop after archive and report that hard-delete is unavailable through the current MCP surface.
+
 ## Heartbeat and reporting
 
 Use `create_heartbeat` on a 15-minute cadence by default; the owner may set another cadence explicitly.

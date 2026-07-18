@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
   "description": "CTO operating model over external Paseo agents for Claude Code and Codex: owner-controlled model selection, machine-checkable task contracts, isolated worktrees, a bounded rolling pipeline for independent roadmap atoms, execution-based review, safe integration, finish notifications, and a default 15-minute observation heartbeat.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
