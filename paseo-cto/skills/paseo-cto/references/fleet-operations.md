@@ -79,6 +79,7 @@ Paseo's native state and project work state differ. Maintain one English derived
 `Time` is time in this state, not total task duration. After recovery without reliable
 `stateSince`, use the closest timestamp and prefix `~`. Idle is not storage: archive unless a
 specific follow-up or dispute justifies reuse. A lead with active children is `waiting`, not done.
+`waiting` describes project state; it does not by itself authorize a heartbeat.
 
 Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
 meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal/background evidence, and
@@ -88,7 +89,30 @@ workspace over discarding work.
 
 ## Fifteen-minute heartbeat and table
 
-Keep one agent-scoped heartbeat while work, review, a recoverable wait, or a tail remains:
+The heartbeat is a liveness mechanism, not a reminder. Keep one agent-scoped heartbeat only while
+work, review/rework, an unresolved permission, a verified background operation, a recoverable wait,
+or a recoverable tail remains. A recoverable tail still has an action available under the current
+authority, such as review, integration, rework, cleanup, or preservation of mutable state.
+
+A **durable owner-gated tail** has all of the following: immutable branch/baseline/head coordinates,
+an explicit pull trigger that requires a new owner instruction, accepted plan change, or external
+decision, and no agent, workspace, terminal, permission, review, rework, or background operation
+that still needs care. It remains visible in runtime state and the final `Tails` count, but it does
+not qualify for a heartbeat.
+
+Enter quiescent close immediately when the ready frontier is empty, no current-authority action or
+mutable runtime resource remains, and every remaining tail is durable and owner-gated. In the same
+turn:
+
+1. Persist every tail and the exact resume trigger.
+2. Emit the final summary and five-column table once; `Tails` may be non-zero.
+3. Delete the heartbeat and record its deleted status and timestamp in runtime state.
+
+Do not renew the heartbeat or emit another identical scheduled report after quiescent close. Such a
+report is a lifecycle defect. A later owner instruction, accepted plan change, or matching external
+event starts a new reconciliation from the recorded resume trigger.
+
+For states that still qualify, use:
 
 ```text
 name: paseo-cto:<project>:<cto-short-id>
@@ -163,5 +187,6 @@ disputed, or unknown states remain visible tails. Hard-delete only a proven empt
 duplicate exact record; never use bulk delete or routine `kill_agent`.
 
 Before context compaction, persist runtime and durable plan truth. Never archive the CTO while child
-work, disputes, or unintegrated tails remain. At clean close, resolve or preserve every result,
-emit a final table, delete the heartbeat, record the exact resume point, then allow CTO archival.
+work, disputes, or unintegrated recoverable tails remain. At clean or quiescent close, resolve or
+preserve every result, retain durable owner-gated branches, emit a final table once, delete the
+heartbeat in the same turn, record the exact resume point, then allow CTO archival.

@@ -65,8 +65,12 @@ Explicit owner and project instructions override defaults but do not silently wi
    `accept`, `accept with CTO fix`, or `return`. Agents may rebut with evidence; CTO decides.
 10. Integrate only reviewed local commits into a clean controlled tree, rerun the integration gate,
    commit plan truth, clean safe lifecycle records, and refill only reviewable capacity.
-11. Stop at completion, an owner/external gate, no ready work, authorized scope/budget exhaustion,
-    or owner stop. Remove the heartbeat only after every open result and preserved tail is recorded.
+11. Stop immediately at completion, an owner/external gate, no ready work, authorized scope/budget
+    exhaustion, or owner stop. A heartbeat is a liveness mechanism, not a reminder: retain it only
+    while in-scope state can still change without a new owner instruction. A fully recorded durable
+    tail with immutable Git coordinates and an explicit owner/plan pull trigger is preserved close
+    state, not active work. After every open result and tail is recorded, persist the exact resume
+    trigger, emit the final report once, and delete the heartbeat in the same turn.
 
 ## Authority and communication
 

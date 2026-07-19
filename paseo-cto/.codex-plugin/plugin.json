@@ -1,6 +1,6 @@
 {
   "name": "paseo-cto",
-  "version": "2.0.0",
+  "version": "2.0.0+codex.20260719010153",
   "description": "Run a provider-neutral Paseo engineering organization with a living execution plan, explicit worker roles, mandatory CTO review, long-session recovery, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
   "author": {
     "name": "Maksim Korenev",
