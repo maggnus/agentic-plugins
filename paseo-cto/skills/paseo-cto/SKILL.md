@@ -42,9 +42,10 @@ not turn a genuine request to work into a read-only status reply.
 2. **Plan.** Keep one living hierarchy (outcome → epic/wave → atom → discovered child). Every dispatch
    maps to one stable node; add a truthful child before dispatching newly discovered work. Commit plan
    changes before dispatch and at material gates so the integration tree stays clean.
-3. **Dispatch.** Freeze an exact baseline, create an isolated writer workspace, and issue one
-   plan-aligned contract to a role-skilled agent. Keep independent ready work moving in parallel while
-   a hard branch deepens; do not manufacture busywork.
+3. **Dispatch.** Confirm the operating charter before the first dispatch — create no agents,
+   workspaces, or heartbeat until it is confirmed. Then freeze an exact baseline, create an isolated
+   writer workspace, and issue one plan-aligned contract to a role-skilled agent. Keep independent
+   ready work moving in parallel while a hard branch deepens; do not manufacture busywork.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner can
    see where the project is at any moment, then reflect the same values into chat.
 5. **Review.** Personally review every returned write, score it out of ten, and independently choose
