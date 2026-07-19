@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
   "version": "2.0.0+codex.20260719010153",
-  "description": "Run a provider-neutral Paseo engineering organization with a living execution plan, explicit worker roles, mandatory CTO review, long-session recovery, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
+  "description": "Run a delegation-first Paseo engineering organization: the CTO dispatches isolated agents and reviews every write over a living execution plan, mandatory CTO review, a durable always-current status render, long-session recovery, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Paseo CTO",
     "shortDescription": "Run a durable Paseo engineering organization",
-    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude with a living hierarchical plan, explicit role skills, dual-provider routing, isolated workspaces, mandatory scored CTO review, safe local integration, recoverable checkpoints, lifecycle reconciliation, and concise founder reporting.",
+    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO delegates by default, dispatching isolated role-skilled agents and reviewing every returned write, over a living hierarchical plan, dual-provider routing, mandatory scored CTO review, safe local integration, recoverable checkpoints, a durable always-current status render, and concise founder reporting.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [

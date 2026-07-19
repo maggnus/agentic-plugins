@@ -1,23 +1,21 @@
 # Paseo core commands
 
-Read this compact reference before routine fleet mutation. Use the
-[complete catalog](paseo-command-catalog.md) only for an operation not covered here or a failed
-compatibility branch. The mappings were checked against Paseo main `c97f823` (`0.2.0-beta.1`) and
-installed daemon `0.1.110`.
+Read this compact reference before routine fleet mutation. It covers the current Paseo API only
+(`0.2`, checked against main `c97f823` / `0.2.0-beta.1`). Older-daemon `0.1.x` shapes, the full tool
+and CLI index, and recovery recipes live in the [command catalog](paseo-command-catalog.md); load it
+only for an operation not covered here or a failed compatibility branch.
 
-## Choose one lifecycle branch
+At startup, inspect the available tool names once and confirm you are on the current API
+(`create_workspace`/`list_workspaces`/`archive_workspace` and `delete_heartbeat` exist). If they do
+not, switch to the catalog's compatibility branch. Never mix branches, and never probe by making
+speculative write calls.
 
-| Operation | Current `0.2` | Compatibility `0.1.x` |
-| --- | --- | --- |
-| Create/list/archive isolation | `create/list/archive_workspace` | `create/list/archive_worktree` |
-| Create child | `create_agent(workspaceId)` | `create_agent(relationship, workspace)` |
-| Cancel run | `cancel_agent` | `paseo stop <id> --json` if no tool |
-| Delete CTO heartbeat | `delete_heartbeat` | `delete_schedule` |
+## Resolve provider settings first
 
-Never mix branches. Resolve provider/model/reasoning/`modeId` with
-`list_providers`, scoped `list_models`, and `inspect_provider` before launch.
+Before any launch, resolve provider/model/reasoning/`modeId` with `list_providers`, scoped
+`list_models`, and `inspect_provider`. Passing `settings.modeId` on every `create_agent` is mandatory.
 
-Current creation:
+## Create isolated work
 
 ```text
 create_workspace({isolation:"worktree", path:<repo>, mode:"branch-off",
@@ -27,29 +25,23 @@ create_agent({workspaceId:<id>, title:<max-60>, provider:<provider/model>,
   settings:{modeId:<inspected-role-mode>, thinkingOptionId?:<inspected-effort>}})
 ```
 
-Compatibility creation:
-
-```text
-create_worktree({cwd:<repo>, target:{kind:"branch-off", worktreeSlug:<slug>,
-  branchName:<branch>, baseBranch:<exact-SHA>}})
-create_agent({relationship:{kind:"subagent"},
-  workspace:{kind:"existing", workspaceId:<id>}, title:<max-60>,
-  provider:<provider/model>, initialPrompt:<contract>, notifyOnFinish:false,
-  labels:<string-map>, settings:{modeId:<inspected-role-mode>,
-  thinkingOptionId?:<inspected-effort>}})
-```
+Persist the workspace ID immediately after creation and the agent ID and labels immediately after
+launch. Use `notifyOnFinish:false` for parallel agents; set it true only when deliberately awaiting one
+agent alone.
 
 ## Routine reconciliation
 
 - Global recovery: `paseo ls --global --label paseo-cto.project=<project> --json`.
-- Workspaces: current `list_workspaces`; compatibility
-  `list_worktrees({cwd:<known-project-root>})` for every known root.
+- Workspaces: `list_workspaces`.
 - One agent: `get_agent_status`; recent evidence: `get_agent_activity(limit:10–20)`; bounded CLI
   fallback: `paseo logs <id> --tail 20`.
 - Permissions: `list_pending_permissions`, then `respond_to_permission` only within authority.
 - Long processes: `list_terminals` and `capture_terminal`; never interrupt merely for inspection.
 - Idle follow-up/rework: `send_agent_prompt`; sending to a running agent replaces its turn.
 
-Create the CTO heartbeat inside the CTO agent with stable name, `*/15 * * * *`, `maxRuns:96`, and
-`expiresIn:24h`; persist its ID. Archive only exact agents/workspaces after the Fleet operations
-proof. Never restart the daemon, bulk-delete, or routinely use `kill_agent`.
+## Heartbeat and cleanup
+
+Create the CTO heartbeat inside the CTO agent with a stable name, `*/15 * * * *`, `maxRuns:96`, and
+`expiresIn:24h`; persist its ID and delete it with `delete_heartbeat`. Archive only exact
+agents/workspaces after the Fleet operations cleanup proof. Never restart the daemon, bulk-delete, or
+routinely use `kill_agent`.

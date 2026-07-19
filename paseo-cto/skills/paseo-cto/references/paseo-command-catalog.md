@@ -9,6 +9,34 @@ This catalog was checked against Paseo main `c97f823` (`0.2.0-beta.1`) and the i
 tool names once and choose the matching branch. Do not probe compatibility by making speculative
 write calls.
 
+## Compatibility branch (older daemon `0.1.x`)
+
+The current-API creation and reconciliation shapes are in [Paseo core commands](paseo-core-commands.md).
+The `0.1.110` daemon predates workspace commands; choose the branch by actual tool availability and
+never mix branches within a run.
+
+| Operation | Current `0.2` | Compatibility `0.1.x` |
+| --- | --- | --- |
+| Create/list/archive isolation | `create/list/archive_workspace` | `create/list/archive_worktree` |
+| Create child | `create_agent(workspaceId)` | `create_agent(relationship, workspace)` |
+| Cancel run | `cancel_agent` | `paseo stop <id> --json` if no tool |
+| Delete CTO heartbeat | `delete_heartbeat` | `delete_schedule` |
+
+Compatibility creation:
+
+```text
+create_worktree({cwd:<repo>, target:{kind:"branch-off", worktreeSlug:<slug>,
+  branchName:<branch>, baseBranch:<exact-SHA>}})
+create_agent({relationship:{kind:"subagent"},
+  workspace:{kind:"existing", workspaceId:<id>}, title:<max-60>,
+  provider:<provider/model>, initialPrompt:<contract>, notifyOnFinish:false,
+  labels:<string-map>, settings:{modeId:<inspected-role-mode>,
+  thinkingOptionId?:<inspected-effort>}})
+```
+
+For `0.1.x` workspace inventory use `list_worktrees({cwd:<known-project-root>})` for every known root;
+`paseo worktree ls --json` is not a global inventory command and may fail without repository context.
+
 ## Complete agent-scoped MCP catalog
 
 Inputs below list the operational fields an orchestrator normally needs. Use the tool's exposed

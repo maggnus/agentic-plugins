@@ -50,9 +50,11 @@ shadows the plugin and drifts.
 ### `paseo-cto` — the external-agent CTO operating model
 
 A project-agnostic CTO organization over external Paseo agents, packaged natively for both Claude
-Code and Codex. It keeps a living hierarchical execution plan, moves independent work forward while
-deepening discovered branches, routes work across GPT and Claude, and preserves founder, review,
-integration, push, deploy, and irreversible-operation gates.
+Code and Codex. The CTO delegates by default: it decomposes the work, dispatches isolated role-skilled
+agents, and touches code itself only for a trivial change or a bounded integration-time fix. It keeps
+a living hierarchical execution plan, moves independent work forward while deepening discovered
+branches, routes work across GPT and Claude, and preserves founder, review, integration, push, deploy,
+and irreversible-operation gates.
 
 The first operating run presents a compact multiple-choice charter for CTO strategy, available
 models, reasoning and permission policies, fleet budget, autonomy horizon, and review depth. It is
@@ -66,8 +68,10 @@ prompts use the same qualified namespace for `paseo-builder`, `paseo-reviewer`,
 selected worker family.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
-Its compact English table includes the CTO and every active agent. Recoverable checkpoints and
-stable labels allow a fresh or compacted session to resume without replaying completed work.
+Every reconcile rewrites one durable status render at a fixed path — the owner's always-current answer
+to "where are we" — and reflects the same values into chat, so a Claude CTO and a Codex CTO produce
+identical output and no report is silently skipped. Recoverable checkpoints and stable labels allow a
+fresh or compacted session to resume without replaying completed work.
 
 Ships:
 

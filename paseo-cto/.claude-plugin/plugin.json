@@ -1,6 +1,6 @@
 {
   "name": "paseo-cto",
-  "description": "Provider-neutral CTO operating model for Claude Code and Codex: a living execution plan, explicit worker roles, dual-provider routing, mandatory scored CTO review, isolated workspaces, recoverable long sessions, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
+  "description": "Provider-neutral, delegation-first CTO operating model for Claude Code and Codex: the CTO dispatches isolated Paseo agents and reviews every write over a living execution plan, dual-provider routing, mandatory scored CTO review, a durable always-current status render, recoverable long sessions, safe lifecycle cleanup, and 15-minute fleet reconciliation.",
   "version": "2.0.0",
   "author": {
     "name": "Maksim Korenev",

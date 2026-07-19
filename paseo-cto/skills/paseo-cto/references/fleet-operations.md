@@ -1,12 +1,13 @@
 # Fleet operations
 
-Read this file before creating, recovering, monitoring, archiving, or reporting a fleet.
+Read this file before creating, recovering, monitoring, or archiving a fleet. Reporting lives in
+[Status and reporting](status-and-reporting.md); this file governs lifecycle, not layout.
 
 ## Preflight and state
 
-`operate` requires the CTO to be an agent-scoped Paseo session (`PASEO_AGENT_ID` or equivalent
-caller identity). Outside Paseo, allow only inspection/status and explain how to start or hand off to
-a Paseo CTO; do not create agents, workspaces, or a heartbeat.
+`operate` requires the CTO to be an agent-scoped Paseo session (`PASEO_AGENT_ID` or equivalent caller
+identity). Outside Paseo, allow only inspection/status and explain how to start or hand off to a Paseo
+CTO; create no agents, workspaces, or heartbeat.
 
 Bind project root/plan, integration branch and accepted `HEAD`, CTO/project/run IDs, charter, owner
 gates, capacity, and heartbeat. Capacity counts external agents only. Keep plan/charter in Git and
@@ -17,52 +18,47 @@ $(git rev-parse --git-common-dir)/paseo-cto/<run>.json
 ```
 
 Resolve the common directory before use; never clean an unresolved or broad path. Persist after each
-lifecycle mutation and commit plan changes before dispatch/material gates so integration stays
+lifecycle mutation, and commit plan changes before dispatch and material gates so integration stays
 clean.
 
 ## Reconcile before creation
 
 Reconcile on startup, resume, context recovery, every heartbeat, and material events. On startup,
-recovery, and every fourth heartbeat (about hourly), also run an orphan sweep:
+recovery, and every fourth heartbeat (about hourly), also sweep for orphans — unlabeled crash tails
+that routine project/run-scoped queries miss.
 
 1. Read plan, accepted Git state, and runtime checkpoint.
-2. Inventory agents with `paseo ls --global --json`. Match the project first,
-   regardless of run, then partition by `paseo-cto.run`; adopt or resolve prior-run work before new
-   work on the same task.
-3. On the current API use `list_workspaces`. On `0.1.x`, call
-   `list_worktrees({cwd:<each bound or discovered project root>})`; derive further paths from global
-   agent inventory. Never use `paseo worktree ls --json` as a global inventory command.
+2. Inventory agents with `paseo ls --global --json`. Match the project first, regardless of run, then
+   partition by `paseo-cto.run`; adopt or resolve prior-run work before new work on the same task.
+3. List workspaces with `list_workspaces` (older-daemon fallback in the command catalog).
 4. Inspect known IDs/permissions and match each owned record to its plan node, lifecycle owner, Git
    state, evidence, and review state.
-5. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded
-   workspaces, archived-agent workspaces, and dirty/unintegrated/unknown tails.
+5. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded or
+   archived-agent workspaces, and dirty/unintegrated/unknown tails.
 6. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
 
-Routine cycles may scope by project/run labels, but the hourly sweep must catch unlabeled crash
-tails. Never mutate an unlabeled or foreign record without proving ownership. Never create a
-duplicate for a task/role already `running`, `waiting`, `reviewing`, or `rework` in any run.
+Never mutate an unlabeled or foreign record without proving ownership. Never create a duplicate for a
+task/role already `running`, `waiting`, `reviewing`, or `rework` in any run.
 
-`paseo-cto.parent` identifies the sole lifecycle owner. The CTO displays lead descendants in the
-global table but does not prompt, return, integrate, or archive lead-owned children until the lead
-explicitly hands them over or escalates. Record handover in runtime state before changing ownership.
+`paseo-cto.parent` identifies the sole lifecycle owner. The CTO displays lead descendants in status
+but does not prompt, return, integrate, or archive lead-owned children until the lead explicitly hands
+them over or escalates. Record handover in runtime state before changing ownership.
 
 ## Create isolated work
 
-Choose one branch from Paseo core commands:
+Freeze an exact baseline and use plan-aligned branch/workspace names:
 
-- current: `create_workspace`, then `create_agent(workspaceId)`;
-- `0.1.x`: `create_worktree`, then legacy `create_agent(relationship, workspace)`.
+- `create_workspace`, then `create_agent(workspaceId)` (older-daemon `create_worktree` +
+  legacy `create_agent` shapes are in the command catalog).
 
-Freeze an exact baseline and use plan-aligned branch/workspace names. Persist the workspace
-immediately after creation, then the agent ID and labels immediately after launch.
-
-Parallel agents use `notifyOnFinish: false`: current finish injection can replace the CTO turn and
-is lost on daemon restart. It may be true only when deliberately awaiting one agent alone.
+Persist the workspace immediately after creation, then the agent ID and labels immediately after
+launch. Parallel agents use `notifyOnFinish: false`: a finish injection can replace the CTO turn and
+is lost on daemon restart; set it true only when deliberately awaiting one agent alone.
 
 ## Derived status and stalls
 
-Paseo's native state and project work state differ. Maintain one English derived status and reset
-`stateSince` only when it changes:
+Paseo's native state and project work state differ. Maintain one English derived status per agent and
+reset `stateSince` only when it changes:
 
 | Status | Meaning |
 | --- | --- |
@@ -76,43 +72,32 @@ Paseo's native state and project work state differ. Maintain one English derived
 | `error` | Paseo/provider failure remains unresolved. |
 | `done` | Accepted result awaits immediate cleanup. |
 
-`Time` is time in this state, not total task duration. After recovery without reliable
-`stateSince`, use the closest timestamp and prefix `~`. Idle is not storage: archive unless a
-specific follow-up or dispute justifies reuse. A lead with active children is `waiting`, not done.
-`waiting` describes project state; it does not by itself authorize a heartbeat.
+Idle is not storage: archive unless a specific follow-up or dispute justifies reuse. A lead with active
+children is `waiting`, not done.
 
-Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
-meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal/background evidence, and
-permission/capacity/external-wait checks. Do not prompt a genuinely running turn. For confirmed
-stalls, preserve Git/workspace state before cancellation; prefer reuse or replacement in the same
-workspace over discarding work.
+Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without meaningful
+progress, bounded `get_agent_activity(limit: 10–20)`, terminal/background evidence, and
+permission/capacity/external-wait checks. Do not prompt a genuinely running turn. For confirmed stalls,
+preserve Git/workspace state before cancellation; prefer reuse or replacement in the same workspace
+over discarding work.
 
-## Fifteen-minute heartbeat and table
+## One heartbeat, one invariant
 
-The heartbeat is a liveness mechanism, not a reminder. Keep one agent-scoped heartbeat only while
-work, review/rework, an unresolved permission, a verified background operation, a recoverable wait,
-or a recoverable tail remains. A recoverable tail still has an action available under the current
-authority, such as review, integration, rework, cleanup, or preservation of mutable state.
+Keep exactly one agent-scoped heartbeat while the CTO can still advance in-scope work without a new
+owner instruction: any agent `running`, `reviewing`, or `rework`; a pending permission; a verified
+background operation; or a recoverable tail with an available action (review, integration, rework,
+cleanup, or preserving mutable state).
 
-A **durable owner-gated tail** has all of the following: immutable branch/baseline/head coordinates,
-an explicit pull trigger that requires a new owner instruction, accepted plan change, or external
-decision, and no agent, workspace, terminal, permission, review, rework, or background operation
-that still needs care. It remains visible in runtime state and the final `Tails` count, but it does
-not qualify for a heartbeat.
+Stop it the moment that is false — when the ready frontier is empty and every remaining tail is
+**owner-gated**: immutable branch/baseline/head coordinates, a pull trigger that needs a new owner
+instruction, accepted plan change, or external event, and no agent, workspace, permission, review,
+rework, or background operation still needing care. In that same turn, persist every tail and the exact
+resume trigger, write the final `STATUS.md` render once, and delete the heartbeat (current
+`delete_heartbeat`, older-daemon `delete_schedule`). Do not renew it or re-emit an identical scheduled
+report afterward; a later owner instruction, accepted plan change, or matching external event starts a
+fresh reconciliation from the recorded trigger.
 
-Enter quiescent close immediately when the ready frontier is empty, no current-authority action or
-mutable runtime resource remains, and every remaining tail is durable and owner-gated. In the same
-turn:
-
-1. Persist every tail and the exact resume trigger.
-2. Emit the final summary and five-column table once; `Tails` may be non-zero.
-3. Delete the heartbeat and record its deleted status and timestamp in runtime state.
-
-Do not renew the heartbeat or emit another identical scheduled report after quiescent close. Such a
-report is a lifecycle defect. A later owner instruction, accepted plan change, or matching external
-event starts a new reconciliation from the recorded resume trigger.
-
-For states that still qualify, use:
+Create the heartbeat inside the CTO agent; a stable name plus target is idempotent:
 
 ```text
 name: paseo-cto:<project>:<cto-short-id>
@@ -121,11 +106,8 @@ maxRuns: 96
 expiresIn: 24h
 ```
 
-Store its ID; stable name plus target is idempotent. Renew deliberately. Delete with current
-`delete_heartbeat` or compatibility `delete_schedule`. On collision with an active CTO turn, report
-at the nearest idle boundary; the next interval catches up.
-
-Use this exact prompt, filling absolute paths and IDs:
+Store its ID. On collision with an active CTO turn, report at the nearest idle boundary; the next
+interval catches up. Use this exact reconciliation prompt, filling absolute paths and IDs:
 
 ```text
 PASEO CTO RECONCILIATION
@@ -135,58 +117,33 @@ Project/run: <project>/<run>
 CTO/runtime: <cto-id>/<absolute-runtime-json>
 Read plan and runtime state. Reconcile project agents globally, process returns and permissions,
 derive states/stateSince and LOC, diagnose evidence-backed stalls, preserve tails, perform safe
-archival, and update plan/runtime. Every fourth run perform the orphan workspace sweep. Refill
-only safe capacity from ready plan nodes; never duplicate or mutate lead-owned descendants. Emit
-the exact English summary and five-column table required by Fleet operations, with CTO first.
+archival, and update plan/runtime. Every fourth run perform the orphan workspace sweep. Refill only
+safe capacity from ready plan nodes; never duplicate or mutate lead-owned descendants. Rewrite the
+durable STATUS render and reflect it into chat per Status and reporting, CTO first.
 ```
-
-Emit immediately after material changes as well as on the timer:
-
-```markdown
-Status <YYYY-MM-DD HH:MM TZ> | Active <N> | Review <N> | Stalled <N> | Archived <N> | Tails <N>
-
-| Agent | Task | Status | Time | LOC |
-| --- | --- | --- | --- | --- |
-| `cto-claude` | Review authentication integration | `reviewing` | 8m | — |
-| `A-14-gpt-builder` | Complete storage API path | `running` | 18m | +2.4k -36 |
-| `A-15-claude-researcher` | Verify startup dependency chain | `blocked` | 12m | — |
-```
-
-The summary counts external agents; CTO is excluded. `Archived` is cleanup since the prior report;
-`Tails` is preserved state needing action. Use exactly `Agent | Task | Status | Time | LOC`; names
-encode provider/role, tasks stay plan-aligned, and surrounding prose stays in the owner's language.
-
-`LOC` is the current textual line delta for that task/workspace against its recorded baseline,
-computed from numeric `git diff --numstat <baseline> --` totals and abbreviated (`+2.4k -36`). It is
-a snapshot while work is running and exact after the returned commit. Binary and untracked files do
-not silently enter the count; report them as a tail or artifact. Use `—` for report-only agents or
-when no code delta applies. For the CTO, show the delta of its current bounded change; otherwise
-use `—`. Do not sum rows because lead and child diffs may overlap.
 
 ## Archive and close
 
-Run the Review gate first. Returned work remains `reviewing` or `rework`; keep its originating
-agent/workspace through unresolved findings or disputes.
+Run the Review gate first. Returned work stays `reviewing` or `rework`; keep its originating
+agent/workspace through unresolved findings or disputes. Before archival:
 
-Before archival:
+1. Capture report, IDs, Git state/commits, decision, and archive-surviving evidence as required by the
+   Assignment contract and Review gate.
+2. Require empty `git status --porcelain` and prove accepted commits reachable from integration, unless
+   an explicit preservation/discard decision is recorded. A report-only reviewer/researcher may close
+   earlier when pre/post Git states match and its source commit stays reachable from a preserved
+   builder branch.
+3. Require no running turn, unresolved permission, dispute, needed terminal, or unrecorded tail. Normal
+   closure is idle/done; a native `error`/`closed` record may close after diagnosis, state
+   preservation, and a recorded retry/replace/discard decision.
+4. Archive the exact agent, verify removal, then archive the exact workspace/worktree and verify again.
+   Update runtime/plan and increment `Archived-since`.
 
-1. Capture report, IDs, Git state/commits, decision, and archive-surviving evidence as required by
-   the Assignment contract and Review gate.
-2. Require empty `git status --porcelain` and prove accepted commits reachable from integration,
-   unless an explicit preservation/discard decision is recorded. A report-only reviewer/researcher
-   may close earlier when pre/post Git states match and its source commit remains reachable from a
-   preserved builder branch.
-3. Require no running turn, unresolved permission, dispute, needed terminal, or unrecorded tail.
-   Normal closure is idle/done. A native `error` or `closed` record may also close after diagnosis,
-   state preservation, and a recorded retry/replace/discard decision.
-4. Archive the exact agent, verify removal, then archive the exact workspace/worktree and verify
-   again. Update runtime/plan and increment `Archived`.
-
-Workspace archival may stop every agent/terminal there and remove the worktree. Dirty, unintegrated,
+Workspace archival may stop every agent/terminal there and remove the worktree; dirty, unintegrated,
 disputed, or unknown states remain visible tails. Hard-delete only a proven empty, test, corrupt, or
-duplicate exact record; never use bulk delete or routine `kill_agent`.
+duplicate exact record; never bulk-delete or routinely `kill_agent`.
 
 Before context compaction, persist runtime and durable plan truth. Never archive the CTO while child
 work, disputes, or unintegrated recoverable tails remain. At clean or quiescent close, resolve or
-preserve every result, retain durable owner-gated branches, emit a final table once, delete the
-heartbeat in the same turn, record the exact resume point, then allow CTO archival.
+preserve every result, retain durable owner-gated branches, write the final STATUS render once, delete
+the heartbeat in the same turn, record the exact resume point, then allow CTO archival.

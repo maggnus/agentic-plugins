@@ -55,13 +55,17 @@ new work inside an inaccurate old row merely to preserve the original plan.
 
 Each active node carries, in the project's native format:
 
-- stable ID and a concise outcome-oriented title;
+- stable ID and a concise outcome-oriented title that stands on its own as a status row;
 - state: `ready`, `active`, `review`, `rework`, `blocked`, `deferred`, or `done`;
 - dependencies and explicit gates;
 - completion evidence or acceptance condition;
 - current owner or agent when active;
 - commit/evidence reference when returned;
-- blocker and pull trigger when blocked or deferred.
+- blocker and pull trigger when blocked or deferred;
+- for a discovered child, the evidence or event that spawned it — its reason for existing.
+
+The last two exist so no task reads as random in status: every node ties back to a parent and, when it
+was not in the original plan, to the finding that created it.
 
 Stable IDs are never renumbered or silently removed. Split a node when it crosses independent write
 zones, owners, acceptance boundaries, or dependency edges. Newly discovered depth becomes explicit
@@ -95,3 +99,7 @@ ID, heartbeat ID/name, last report time, archived-since-report count, active pla
 states and `stateSince`, every agent/workspace ID with its path, branch, baseline, returned commits,
 and preserved tails. Update it before compaction, at material transitions, and at close. If
 `stateSince` is absent, report recovered state time as approximate.
+
+The human-facing status render sits beside this checkpoint at
+`$(git rev-parse --git-common-dir)/paseo-cto/STATUS.md`; the checkpoint is machine truth, and
+[Status and reporting](status-and-reporting.md) defines how the render is produced from it.
