@@ -4,14 +4,51 @@ Read this file when a delegated write returns, before integration, and before an
 
 ## Mandatory review
 
-The CTO personally reviews every delegated write after any reviewer or lead gate:
+The CTO personally reviews every delegated write after any reviewer or lead gate. Review is
+deliberative: the CTO retains final integration authority, but a preliminary CTO opinion is not a
+verdict and cannot bypass the originating agent's right of reply.
+
+### Preliminary assessment
 
 1. inspect the report, exact commit, ancestry, diff, and final workspace state;
 2. rerun cheap acceptance and read risk-bearing code;
 3. list evidenced `blocker`, `major`, or `minor` findings;
 4. score the exact contract out of ten;
-5. independently choose `accept`, `accept with CTO fix`, or `return`, with reason;
-6. integrate accepted work and rerun the integration gate.
+5. state a proposed `accept`, `accept with CTO fix`, or `return`, with reason;
+6. mark the result `PRELIMINARY — NOT AUTHORIZED` and send the exact findings, evidence, score, and
+   proposed action to the originating agent.
+
+### Mandatory right of reply
+
+Before every final verdict, give the originating agent one bounded response round. The agent replies
+against the exact preliminary assessment with one of:
+
+- `AGREE` — accepts the findings and proposed action;
+- `PARTIAL` — identifies each accepted and defended finding;
+- `DEFEND` — defends the solution against each disputed finding.
+
+A defense cites specification, code, tests, measurements, or a reproducible counterexample. The
+agent must not edit, recommit, or widen scope during this round unless the CTO separately authorizes
+rework. Keep its agent and workspace available; do not integrate, apply a CTO fix, return for rework,
+or archive while the response is unresolved.
+
+The CTO evaluates every defended finding on its evidence, reruns a decisive bounded check when
+needed, and withdraws or reclassifies any finding the response disproves. For every rejected defense,
+the final record cites the decisive contrary evidence; authority alone is not a reason. Silence is
+not agreement. If the originating agent is genuinely unavailable after one explicit follow-up and an
+availability check, record `NO RESPONSE`, the attempted contact, and the reason, then use the safest
+evidence-supported authorization. Mere elapsed time is not unavailability.
+
+The final authorization must not introduce a new adverse finding that the agent had no opportunity
+to answer. If the response or a decisive check reveals one, issue a revised preliminary assessment
+and reopen only the affected finding before deciding it.
+
+### Final authorization
+
+Only after resolving the response does the CTO issue `FINAL AUTHORIZATION — ACCEPT`, `FINAL
+AUTHORIZATION — ACCEPT WITH CTO FIX`, or `FINAL AUTHORIZATION — RETURN`, with the revised score and
+finding dispositions. Then integrate accepted work and rerun the integration gate. The final
+authorization is the CTO's decision; the response round is due process, not agent veto or consensus.
 
 The score informs the owner; it never determines the verdict:
 
@@ -28,14 +65,12 @@ work when agent continuity helps. A CTO fix is small, obvious, bounded, separate
 rerun, and disclosed. Keep the originating agent/workspace active through disputes or rework.
 
 ```text
-ACCEPT — 8/10 — <reason>
-ACCEPT WITH CTO FIX — 6/10 — <small fix and rerun proof>
-RETURN — 7/10 — <why the originating agent should rework it>
+PRELIMINARY — NOT AUTHORIZED — 7/10 — PROPOSED RETURN — <findings and evidence>
+AGENT RESPONSE — PARTIAL — <accepted findings and evidence-backed defenses>
+FINAL AUTHORIZATION — ACCEPT WITH CTO FIX — 8/10 — <each disposition and bounded fix>
 ```
 
-An agent may accept or rebut a finding with specification, code, test, or measurement evidence. The
-CTO revises disproved findings honestly; if evidence remains ambiguous, the CTO records the final
-decision. Debate never widens scope.
+Debate never widens scope. Safety and owner gates remain closed during the response round.
 
 ## Evidence, integration, and external gates
 

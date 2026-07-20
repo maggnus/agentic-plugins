@@ -32,9 +32,12 @@ stalled-work diagnosis, or archival not settled by the compact rules below.
    descendants, permissions, returns, and tails every 15 minutes while the subtree is open; use one
    stable, expiring, ID-recorded stream heartbeat. Do not block independent children behind
    unrelated depth.
-5. Review writer commits, obtain independent review when contracted, return substantial rework to
-   its author, and integrate only accepted commits without squashing. Run the stream gate and keep
-   every child writer commit reachable and ordered for mandatory CTO review.
+5. Review writer commits and obtain independent review when contracted. Before a child verdict, send
+   the writer a `PRELIMINARY — NOT AUTHORIZED` assessment and complete the mandatory `AGREE`,
+   `PARTIAL`, or `DEFEND` response round from the Review gate. Resolve every defense with evidence,
+   then issue the final child authorization, return substantial rework to its author, and integrate
+   only accepted commits without squashing. Run the stream gate and keep every child writer commit
+   reachable and ordered for mandatory CTO review.
 
 Never infer a stall from time alone: require two unchanged snapshots plus bounded activity,
 terminal, permission, capacity, and external-wait checks. Before archiving an exact child, preserve

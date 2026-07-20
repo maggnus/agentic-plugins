@@ -15,6 +15,7 @@ Acceptance: <commands, expected exits/measurements, negative cases, durable arti
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <local shape/message/trailers>; never push
 Return: <hash, concise diff, real checks, Git state, blockers/disputes, proposed children>
+Right of reply: remain available for one bounded preliminary-review response; answer AGREE, PARTIAL, or DEFEND finding-by-finding with evidence; make no changes without an explicit rework contract
 ```
 
 Use `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:paseo-<role>` in Claude. Include the
@@ -22,6 +23,11 @@ preflight-resolved `modeId`. The worker verifies its initial state but never fet
 switches branches, or changes the baseline without an explicit follow-up. Its normal report stays
 below 2500 characters; systemic security, corruption, race, privacy, or data-loss evidence is never
 compressed away.
+
+The first return does not end the writer's responsibility. Until the CTO or lead records final
+authorization, the writer remains available for the contracted right-of-reply round. It answers the
+preliminary assessment against the existing commit and evidence, without silently starting rework.
+Agreement is explicit; silence is not agreement.
 
 The CTO strategy never appears in the contract: it selects the atom but does not weaken acceptance.
 Every writer has its own workspace; parallel writers never share mutable paths or verification

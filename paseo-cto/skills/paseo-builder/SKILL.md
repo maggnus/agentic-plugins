@@ -29,3 +29,9 @@ deploy, publish, mutate live systems, install unapproved dependencies, or cross 
 Return under 2500 characters unless preserving a systemic finding: `done|blocked|error`, commit and
 concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
 disputes, proposed plan children, and durable artifact locations.
+
+After return, remain available until final authorization. When the CTO or lead sends a preliminary
+review, respond once as `AGREE`, `PARTIAL`, or `DEFEND`, addressing every finding. A defense uses the
+existing specification, code, tests, measurements, or a reproducible counterexample. Do not edit,
+recommit, or begin rework unless an explicit follow-up contract authorizes it; silence is not
+agreement.
