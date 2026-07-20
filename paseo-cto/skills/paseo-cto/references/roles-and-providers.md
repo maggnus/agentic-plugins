@@ -54,7 +54,7 @@ Verify IDs at runtime because catalogs can change:
 | Family | Preferred order | Default reasoning |
 | --- | --- | --- |
 | GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `xhigh` (reviewer `max`) |
-| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `xhigh` (reviewer `max`) |
+| Claude | `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `xhigh` (reviewer `max`) |
 
 Use the persistent charter's selected tuple. By owner directive 2026-07-20, the reviewer role runs at
 `max` — the quality gate gets the top tier — and every other role (builder, claude-designer,
