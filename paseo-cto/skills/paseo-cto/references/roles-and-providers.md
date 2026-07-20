@@ -11,7 +11,8 @@ dispatch, for each selected worker family:
 2. require `paseo-cto` to be installed and enabled in that worker environment: verify with
    `codex plugin list` for Codex or `claude plugin list` for Claude;
 3. call `inspect_provider`, validate the model/reasoning tuple, and resolve an exact `modeId`;
-4. record provider, model, reasoning, and `modeId` in the runtime checkpoint.
+4. validate provider, model, reasoning, and `modeId` against the persistent charter; store newly
+   resolved role modes in its `modeMap`, then record the settings revision and snapshot in runtime.
 
 Do not dispatch to a family whose plugin or selected tuple is unavailable. Do not ask a worker to
 discover or install the plugin. Preserve an existing failed agent and workspace as `waiting`; a
@@ -20,12 +21,20 @@ provider/model change requires a charter change, never a silent fallback.
 All workers are separate Paseo provider sessions, visible and archivable in Paseo. Do not delegate
 through the host's in-chat subagent facility. Writers never share a mutable workspace.
 
-These three owner-approved rules replace only the corresponding generic Paseo defaults for an
+These four owner-approved rules replace only the corresponding generic Paseo defaults for an
 explicitly invoked Paseo CTO run:
 
 - use the accepted operating charter, not `~/.paseo/orchestration-preferences.json`, for models;
 - set `notifyOnFinish: false` for parallel agents until the platform issue is fixed;
-- run the bounded 15-minute reconciliation defined by the CTO lifecycle, not ad-hoc polling.
+- run the bounded 15-minute reconciliation defined by the CTO lifecycle, not ad-hoc polling;
+- agent permission requests are the CTO's to resolve, never the owner's. Check
+  `list_pending_permissions` at the start of every turn and every reconcile, and `respond_to_permission`
+  immediately within authority — never leave a request sitting for the owner to answer or let it stall
+  an agent until the next heartbeat. Routine build/read/in-worktree approvals (dependency fetch for a
+  gate, a file change inside the agent's own worktree) the CTO grants or denies itself; only a genuine
+  owner-gate (push, deploy, publication, live mutation, money, secrets, schema, irreversible action)
+  is ever escalated to the owner. An agent that requests a write outside its worktree or write zone is
+  out of scope: deny with `interrupt: true` and return it to its contract.
 
 Retain every other base Paseo safety rule.
 
@@ -35,12 +44,13 @@ Verify IDs at runtime because catalogs can change:
 
 | Family | Preferred order | Default reasoning |
 | --- | --- | --- |
-| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `max` |
-| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `max` |
+| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `high` |
+| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `high` |
 
-Use the charter's selected tuple. Workers run at the highest available reasoning tier (`max`, or
-the provider's strongest equivalent) by owner directive 2026-07-18; lower tiers or fast modes
-require explicit owner or binding project authorization.
+Use the persistent charter's selected tuple. Workers default to the `high` reasoning tier by owner
+directive 2026-07-20 — a deliberate step down from the former maximum-tier default (2026-07-18).
+`max`, `ultra`, or fast modes require explicit owner or binding project authorization; lower tiers
+than `high` likewise require it.
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from
 `inspect_provider` rather than hard-coding provider names:

@@ -58,7 +58,9 @@ and irreversible-operation gates.
 
 The first operating run presents a compact multiple-choice charter for CTO strategy, available
 models, reasoning and permission policies, fleet budget, autonomy horizon, and review depth. It is
-persisted and not repeated on resume. Four explicit worker skills define provider-neutral authority.
+persisted per project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation or
+daemon restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Four explicit worker skills define
+provider-neutral authority.
 Writers use isolated workspaces and local commits; the CTO reviews every write, assigns a ten-point
 assessment, resolves evidence-based disputes, and integrates safely.
 

@@ -19,7 +19,8 @@ the repository's normal documentation area.
 
 ## CTO-only delivery strategy
 
-The CTO holds exactly one strategy for the current project session. It controls prioritization only:
+The CTO holds exactly one strategy for the project until the owner changes the persistent charter. It
+controls prioritization only:
 
 - **`alpha`** — maximize forward motion toward a runnable system and a verified basic end-to-end
   path. Defer work that is not needed to launch or test that path.
@@ -98,12 +99,15 @@ at material gates, and keeps the integration tree clean before creating worker b
 ## Persist a recoverable checkpoint
 
 Keep mutable runtime state outside the tracked worktree at the exact resolved path
-`$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Record the accepted integration `HEAD`, CTO
-ID, heartbeat ID/name, last report time, archived-since-report count, active plan nodes, derived
-states and `stateSince`, every agent/workspace ID with its path, branch, baseline, returned commits,
-the release clock, and preserved tails. Update it before compaction, at material transitions, and at
-close. If `stateSince` is absent, report recovered state time as approximate.
+`$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Persistent owner choices live separately in
+the canonical `SETTINGS.json` defined by [Persistent settings](persistent-settings.md). Record the
+settings path/revision and a non-authoritative charter snapshot, accepted integration `HEAD`, CTO ID,
+heartbeat ID/name, last report time, archived-since-report count, active plan nodes, derived states
+and `stateSince`, every agent/workspace ID with its path, branch, baseline, returned commits, the
+release clock, and preserved tails. Update the runtime file before compaction, at material
+transitions, and at close. A runtime checkpoint, old run, or replacement CTO may never overwrite the
+canonical settings. If `stateSince` is absent, report recovered state time as approximate.
 
-The human-facing status render sits beside this checkpoint at
+The human-facing status render sits beside the settings and checkpoints at
 `$(git rev-parse --git-common-dir)/paseo-cto/STATUS.md`; the checkpoint is machine truth, and
 [Status and reporting](status-and-reporting.md) defines how the render is produced from it.

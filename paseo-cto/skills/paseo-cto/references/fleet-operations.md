@@ -9,17 +9,18 @@ Read this file before creating, recovering, monitoring, or archiving a fleet. Re
 identity). Outside Paseo, allow only inspection/status and explain how to start or hand off to a Paseo
 CTO; create no agents, workspaces, or heartbeat.
 
-Bind project root/plan, integration branch and accepted `HEAD`, CTO/project/run IDs, charter, owner
-gates, capacity, and heartbeat. Capacity counts external agents only. Keep plan/charter in Git and
-volatile state at the canonical absolute path defined by Execution plan:
+Bind project root/plan, the canonical settings path/revision, integration branch and accepted `HEAD`,
+CTO/project/run IDs, owner gates, capacity, and heartbeat. Capacity counts external agents only. Keep
+plan truth in Git, persistent owner choices in `SETTINGS.json`, and volatile state at the canonical
+absolute path defined by Execution plan:
 
 ```text
 $(git rev-parse --git-common-dir)/paseo-cto/<run>.json
 ```
 
-Resolve the common directory before use; never clean an unresolved or broad path. Persist after each
-lifecycle mutation, and commit plan changes before dispatch and material gates so integration stays
-clean.
+Resolve the common directory before use; never clean an unresolved or broad path. Recover settings
+before runtime, persist runtime after each lifecycle mutation, and commit plan changes before dispatch
+and material gates so integration stays clean.
 
 ## Reconcile before creation
 
@@ -27,7 +28,9 @@ Reconcile on startup, resume, context recovery, every heartbeat, and material ev
 recovery, and every fourth heartbeat (about hourly), also sweep for orphans — unlabeled crash tails
 that routine project/run-scoped queries miss.
 
-1. Read plan, accepted Git state, and runtime checkpoint.
+1. Read and validate persistent settings first, then plan, accepted Git state, and runtime checkpoint.
+   If the runtime snapshot differs, retain the persistent settings and record the mismatch; never let
+   an old run or a replacement CTO reset owner choices.
 2. Inventory agents with `paseo ls --global --json`. Match the project first, regardless of run, then
    partition by `paseo-cto.run`; adopt or resolve prior-run work before new work on the same task.
 3. List workspaces with `list_workspaces` (older-daemon fallback in the command catalog).
@@ -54,6 +57,14 @@ Freeze an exact baseline and use plan-aligned branch/workspace names:
 Persist the workspace immediately after creation, then the agent ID and labels immediately after
 launch. Parallel agents use `notifyOnFinish: false`: a finish injection can replace the CTO turn and
 is lost on daemon restart; set it true only when deliberately awaiting one agent alone.
+
+## CTO handover
+
+A new CTO first loads the same `SETTINGS.json`, inventories all project agents regardless of prior
+run or CTO, and then adopts or creates runtime state. Preserve the settings revision and charter
+snapshot while replacing only CTO/run/heartbeat identity. Do not re-onboard, choose provider defaults,
+or reinterpret owner overrides merely because the CTO changes between Claude and Codex. Conflicting
+legacy checkpoints are history; Persistent settings defines the migration and dispute rule.
 
 ## Derived status and stalls
 
@@ -116,7 +127,8 @@ Project root: <absolute-root>
 Plan: <absolute-plan-path>
 Project/run: <project>/<run>
 CTO/runtime: <cto-id>/<absolute-runtime-json>
-Read plan and runtime state. Reconcile project agents globally, process returns and permissions,
+Settings: <absolute-settings-json> revision <revision>
+Read and validate settings first, then plan and runtime state. Reconcile project agents globally, process returns and permissions,
 derive states/stateSince and LOC, diagnose evidence-backed stalls, preserve tails, perform safe
 archival, and update plan/runtime. Every fourth run perform the orphan workspace sweep. Refill only
 safe capacity from ready plan nodes; never duplicate or mutate lead-owned descendants. Rewrite the
