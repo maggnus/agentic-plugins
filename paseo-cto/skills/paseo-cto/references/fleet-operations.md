@@ -120,7 +120,8 @@ Read plan and runtime state. Reconcile project agents globally, process returns 
 derive states/stateSince and LOC, diagnose evidence-backed stalls, preserve tails, perform safe
 archival, and update plan/runtime. Every fourth run perform the orphan workspace sweep. Refill only
 safe capacity from ready plan nodes; never duplicate or mutate lead-owned descendants. Rewrite the
-durable STATUS render and reflect it into chat per Status and reporting, CTO first.
+durable STATUS render, then post its header block and fleet table verbatim into chat (not a prose
+summary), CTO first, per Status and reporting.
 ```
 
 ## Archive and close

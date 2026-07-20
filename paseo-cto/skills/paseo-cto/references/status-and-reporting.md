@@ -13,9 +13,12 @@ the same turn, so they can never disagree:
    directory; the same location as the runtime checkpoint). This write is unconditional and
    deterministic: it happens on every reconcile and material event regardless of whether you also post
    to chat. It is the owner's always-current answer to "where are we", openable at any moment.
-2. **Chat** — reflect the same render (or its header plus fleet table) into the conversation on
-   material events and on the heartbeat. A skipped or collided chat post never means stale truth,
-   because the file is already current; catch up on the next interval.
+2. **Chat** — on every heartbeat reconcile and material event, post to chat **verbatim** the header
+   block and the fleet table, CTO row first — never a prose summary in their place. Prose may
+   accompany the table but must not replace it. The sole exception is a bare founder "where are we"
+   question, which follows Founder status below and omits the fleet table; a scheduled heartbeat
+   reconcile never omits it. A skipped or collided chat post never means stale truth, because the
+   file is already current; catch up on the next interval.
 
 State the absolute `STATUS.md` path once when Operate begins and whenever you post a chat report, so
 the owner knows where to look. Founder-facing prose stays in the owner's language; the table headers,

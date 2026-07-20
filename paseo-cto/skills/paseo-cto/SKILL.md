@@ -68,7 +68,8 @@ Treat time and distance to the next usable release as engineering constraints.
    writer workspace, and issue one plan-aligned contract to a role-skilled agent. Keep independent
    ready work moving in parallel while a hard branch deepens; do not manufacture busywork.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner can
-   see where the project is at any moment, then reflect the same values into chat.
+   see where the project is at any moment, then post its header block and fleet table verbatim into chat
+   (CTO row first, not a prose summary; a bare founder "where are we" is the only exception).
 5. **Review and authorize.** Personally review every returned write and issue a preliminary scored
    assessment, then give its originating agent one bounded right-of-reply round to agree, partly
    agree, or defend the solution with evidence. Resolve every defense and revise disproved findings
