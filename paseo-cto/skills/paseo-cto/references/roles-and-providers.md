@@ -44,13 +44,13 @@ Verify IDs at runtime because catalogs can change:
 
 | Family | Preferred order | Default reasoning |
 | --- | --- | --- |
-| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `high` |
-| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `high` |
+| GPT | `codex/gpt-5.6-sol`, then `codex/gpt-5.6-terra` | `xhigh` (reviewer `max`) |
+| Claude | `claude/claude-fable-5`, then `claude/claude-opus-4-8[1m]`, then `claude/claude-opus-4-8` | `xhigh` (reviewer `max`) |
 
-Use the persistent charter's selected tuple. Workers default to the `high` reasoning tier by owner
-directive 2026-07-20 — a deliberate step down from the former maximum-tier default (2026-07-18).
-`max`, `ultra`, or fast modes require explicit owner or binding project authorization; lower tiers
-than `high` likewise require it.
+Use the persistent charter's selected tuple. By owner directive 2026-07-20, the reviewer role runs at
+`max` — the quality gate gets the top tier — and every other role (builder, researcher, lead) defaults
+to `xhigh`. `ultra`, fast modes, or any tier below these require explicit owner or binding project
+authorization.
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from
 `inspect_provider` rather than hard-coding provider names:

@@ -25,7 +25,7 @@ blocks safe operation. The owner may change one field without repeating anything
 persisted before further operation.
 
 ```text
-CTO charter: alpha | GPT <model> | Claude <model> | high reasoning | role-safe | 4/3+1 external fleet | until-gate | risk-based review
+CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer max) | role-safe | 4/3+1 external fleet | until-gate | risk-based review
 ```
 
 ## The eight fields
@@ -34,9 +34,9 @@ CTO charter: alpha | GPT <model> | Claude <model> | high reasoning | role-safe |
    from project evidence.
 2. **GPT model** — the strongest currently allowed Codex/OpenAI choice, preferred tuple first.
 3. **Claude model** — the strongest currently allowed Anthropic choice, preferred tuple first.
-4. **Reasoning policy** — `high` by default (owner directive 2026-07-20, a deliberate step down from the
-   former maximum-tier default of 2026-07-18). `maximum`, `balanced`, or `uniform-high` only on explicit
-   owner request; offer only efforts the selected models support.
+4. **Reasoning policy** — by owner directive 2026-07-20: the reviewer role runs at `max`, and every
+   other role (builder, researcher, lead) defaults to `xhigh`. `ultra`, uniform overrides, or any tier
+   below these only on explicit owner request; offer only efforts the selected models support.
 5. **Permission policy** — `role-safe` (writers get the charter's writer mode, reviewers/researchers
    the strongest read-only/plan mode), `always-ask` (writers ask before writes/sensitive actions), or
    `full-access-writers` (writers full/bypass). Reviewers/researchers always stay read-only/plan.
