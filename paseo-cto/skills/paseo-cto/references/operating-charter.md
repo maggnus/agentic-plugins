@@ -25,7 +25,7 @@ blocks safe operation. The owner may change one field without repeating anything
 persisted before further operation.
 
 ```text
-CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer max) | role-safe | 4/3+1 external fleet | until-gate | risk-based review
+CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer max) | full-access-writers | 4/3+1 external fleet | until-gate | risk-based review
 ```
 
 ## The eight fields
@@ -37,9 +37,13 @@ CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer ma
 4. **Reasoning policy** — by owner directive 2026-07-20: the reviewer role runs at `max`, and every
    other role (builder, researcher, lead) defaults to `xhigh`. `ultra`, uniform overrides, or any tier
    below these only on explicit owner request; offer only efforts the selected models support.
-5. **Permission policy** — `role-safe` (writers get the charter's writer mode, reviewers/researchers
-   the strongest read-only/plan mode), `always-ask` (writers ask before writes/sensitive actions), or
-   `full-access-writers` (writers full/bypass). Reviewers/researchers always stay read-only/plan.
+5. **Permission policy** — `full-access-writers` by default (owner directive 2026-07-20: agents run with
+   full permissions so they do not stall on permission prompts). Writers (builder/lead) use the selected
+   full-access/bypass mode. Reviewers/researchers keep the strongest read-only/plan mode where the
+   provider enforces one; where none exists (e.g. Codex has no read-only-execute mode) they run
+   full-access under a report-only contract with pre/post `git status --porcelain` equality (reduced
+   enforcement) rather than blocking on prompts. `role-safe` or `always-ask` only on explicit owner
+   request. Push, deploy, and the other owner/CTO gates are unchanged by this.
 6. **Fleet budget** — `balanced` (3 writers + 1 review reserve), `conservative` (2 writers + 1 review
    reserve), or `capacity` (a known positive `max_live`, reserving one review slot). The CTO does not
    count toward `max_live`.

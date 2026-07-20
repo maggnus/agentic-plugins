@@ -53,18 +53,25 @@ to `xhigh`. `ultra`, fast modes, or any tier below these require explicit owner 
 authorization.
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from
-`inspect_provider` rather than hard-coding provider names:
+`inspect_provider` rather than hard-coding provider names. By owner directive 2026-07-20 the default
+policy is `full-access-writers`: agents launch with full permissions so they never stall on permission
+prompts. Writers still commit locally and never push — that gate is unchanged.
 
-- `role-safe`: reviewer/researcher use the strongest enforceable read-only or plan mode;
-  builder/lead use the charter's writer mode;
-- `always-ask`: builder/lead use the mode that asks before writes or sensitive actions;
-  reviewer/researcher still use the strongest read-only or plan mode;
-- `full-access-writers`: builder/lead use the selected full-access mode; reviewer/researcher remain
-  in the strongest read-only or plan mode.
+- `full-access-writers` (default): builder/lead use the selected full-access/bypass mode. Reviewers and
+  researchers keep the strongest read-only or plan mode where the provider enforces one; where none
+  exists (e.g. Codex offers no read-only-execute mode) they run full-access under a report-only contract
+  with byte-identical pre/post `git status --porcelain` (reduced enforcement) instead of blocking on
+  prompts;
+- `role-safe` (explicit owner request): reviewer/researcher use the strongest enforceable read-only or
+  plan mode; builder/lead use the charter's writer mode;
+- `always-ask` (explicit owner request): builder/lead use the mode that asks before writes or sensitive
+  actions; reviewer/researcher still use the strongest read-only or plan mode.
 
-If no enforceable read-only mode exists, give a reviewer/researcher the least-privileged available
-`modeId`, a fresh isolated workspace, a text-only no-write contract, and require exact equality of
-pre/post `git status --porcelain`. Mark the run `reduced enforcement`.
+Containment does not depend on the permission mode: every writer runs in its own isolated worktree, and
+an agent that writes outside its worktree or write zone is out of scope (deny/return regardless of
+mode). The CTO still resolves any permission request itself and never lets one reach the owner; under
+`full-access-writers` these are rare by design. Mark a report-only agent run without an enforceable
+read-only mode as `reduced enforcement`.
 
 ## Roles and authority
 
