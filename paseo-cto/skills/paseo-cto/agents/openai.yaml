@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo CTO"
-  short_description: "Run a durable Paseo engineering fleet"
-  default_prompt: "Use $paseo-cto:paseo-cto to start or resume project execution, reconcile the fleet, and keep the living plan current."
+  short_description: "Run a release-driven, durable Paseo fleet"
+  default_prompt: "Use $paseo-cto:paseo-cto to advance the nearest shippable product outcome, reconcile the fleet, and keep the living plan current."
 
 policy:
   allow_implicit_invocation: true

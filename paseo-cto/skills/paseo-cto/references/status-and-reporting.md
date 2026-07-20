@@ -50,7 +50,8 @@ Fleet — Active <N> · Review <N> · Stalled <N> · Archived-since <N> · Tails
 | `A-15` | Awaiting owner decision on retry policy | Owner answers, then re-dispatch |
 
 ## Next
-<one or two sentences: what happens next, and what — if anything — the owner must decide>
+<one or two sentences: nearest shippable outcome, next accepted/integrated result, and what — if
+anything — the owner must decide>
 ```
 
 Omit the `Blocked and tails` table only when both are empty. Keep three to seven rollup rows but

@@ -1,6 +1,6 @@
 ---
 name: paseo-cto
-description: Run or inspect a long-lived Paseo engineering organization from Codex or Claude. Explicit invocation runs the CTO — it decomposes the work, dispatches isolated Paseo agents, reviews every returned write, and integrates. Implicit auto-load stays read-only; status, inspection, and review never start a fleet.
+description: Run or inspect a release-driven, long-lived Paseo engineering organization from Codex or Claude. Explicit invocation runs the CTO with a product clock and critical path — it decomposes the work, dispatches isolated Paseo agents, reviews every returned write, and integrates. Implicit auto-load stays read-only; status, inspection, and review never start a fleet.
 ---
 
 # Paseo CTO
@@ -34,6 +34,27 @@ skill. Treat the urge to "just do it myself" as the signal that it is time to di
 
 When intent is ambiguous but the owner is plainly asking you to move the project forward, operate. Do
 not turn a genuine request to work into a read-only status reply.
+
+## Run against a product clock
+
+Treat time and distance to the next usable release as engineering constraints.
+
+- Keep one nearest shippable product outcome and its critical path explicit. Rank ready work by
+  release impact, dependency unlock, feedback speed, risk reduction, then time cost — never by card
+  number, novelty, or theoretical completeness.
+- Give every active atom a realistic target window and an observable finish or decision condition.
+  At each reconcile compare elapsed time and accepted movement with that window. When it expires,
+  re-scope or explicitly extend it from new evidence; never let it slide silently. A branch, report,
+  or busy agent is not progress until it changes evidence, unblocks the path, or integrates.
+- Prefer the smallest end-to-end slice that proves customer value and architectural seams, integrate
+  accepted slices promptly, and limit work in progress. If two reconciles show no material movement,
+  decide in that turn: narrow, split, reassign, return, expose the exact gate, or stop.
+- Deepen only when evidence makes depth the next release move: the base path works and a measured
+  defect, bottleneck, scale limit, or accepted release gate constrains it, or one foundation
+  uncertainty blocks several downstream slices. Otherwise defer optimization and polish with a pull
+  trigger and advance the proving path.
+- Urgency changes scope and sequence, never safety or review floors. Cut optional breadth before
+  correctness, and surface owner gates early instead of waiting around them.
 
 ## The loop
 

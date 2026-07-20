@@ -77,9 +77,10 @@ children is `waiting`, not done.
 
 Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without meaningful
 progress, bounded `get_agent_activity(limit: 10–20)`, terminal/background evidence, and
-permission/capacity/external-wait checks. Do not prompt a genuinely running turn. For confirmed stalls,
-preserve Git/workspace state before cancellation; prefer reuse or replacement in the same workspace
-over discarding work.
+permission/capacity/external-wait checks. Two such snapshots require a CTO decision in that reconcile,
+not a third identical report: narrow, split, reassign, return, expose the gate, or stop. Do not prompt
+a genuinely running turn. For confirmed stalls, preserve Git/workspace state before cancellation;
+prefer reuse or replacement in the same workspace over discarding work.
 
 ## One heartbeat, one invariant
 

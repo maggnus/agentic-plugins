@@ -84,6 +84,10 @@ Depth must not block forward motion without a real dependency. While one branch 
 problem, keep an independent ready branch moving if write zones, integration order, and review
 capacity remain safe. Conversely, do not manufacture small tasks merely to appear busy.
 
+Keep the release clock in runtime state: nearest shippable outcome, current critical path, target
+window, next observable finish or decision, and accepted movement since the prior reconcile. Re-rank
+after every material event; do not preserve a stale priority merely because work already started.
+
 Update the plan at dispatch, discovery, return/rework, acceptance, integration, blocking, deferral,
 and close. The CTO owns plan edits in the integration tree; workers propose new nodes in reports
 rather than editing the project-wide tracker unless their contract explicitly grants that path.
@@ -97,8 +101,8 @@ Keep mutable runtime state outside the tracked worktree at the exact resolved pa
 `$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Record the accepted integration `HEAD`, CTO
 ID, heartbeat ID/name, last report time, archived-since-report count, active plan nodes, derived
 states and `stateSince`, every agent/workspace ID with its path, branch, baseline, returned commits,
-and preserved tails. Update it before compaction, at material transitions, and at close. If
-`stateSince` is absent, report recovered state time as approximate.
+the release clock, and preserved tails. Update it before compaction, at material transitions, and at
+close. If `stateSince` is absent, report recovered state time as approximate.
 
 The human-facing status render sits beside this checkpoint at
 `$(git rev-parse --git-common-dir)/paseo-cto/STATUS.md`; the checkpoint is machine truth, and

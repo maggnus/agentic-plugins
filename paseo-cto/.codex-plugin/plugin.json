@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "2.0.0+codex.20260720011810",
-  "description": "Run a delegation-first Paseo engineering organization: the CTO dispatches isolated agents and authorizes every write only after mandatory scored review and an evidence-based author response, over a living execution plan with durable status, recovery, cleanup, and 15-minute reconciliation.",
+  "version": "2.0.0+codex.20260720035949",
+  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates isolated work, and integrates only evidence-reviewed results.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -9,8 +9,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Paseo CTO",
-    "shortDescription": "Run a durable Paseo engineering organization",
-    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO delegates by default, dispatching isolated role-skilled agents and authorizing every returned write only after scored review, a mandatory evidence-based author response, and explicit finding disposition, over a living hierarchical plan with safe integration, recoverable checkpoints, durable status, and concise founder reporting.",
+    "shortDescription": "Run a release-driven Paseo engineering organization",
+    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates isolated role-skilled work; and integrates only after scored review and evidence-based author response.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
@@ -21,7 +21,7 @@
       "Fleet lifecycle control"
     ],
     "defaultPrompt": [
-      "Use $paseo-cto:paseo-cto to start or resume project execution, reconcile the fleet, and keep the living plan current."
+      "Use $paseo-cto:paseo-cto to advance the nearest shippable product outcome, reconcile the fleet, and keep the living plan current."
     ]
   }
 }
