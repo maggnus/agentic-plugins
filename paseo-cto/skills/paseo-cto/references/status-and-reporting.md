@@ -67,8 +67,9 @@ toward `alpha` exit is not stable-release readiness.
 Use exactly `Agent | Task | Status | Time | LOC`, CTO first. The render is mechanical so providers
 cannot diverge:
 
-- **Agent** — `<plan-id>-<family>-<role>`; the CTO row is `cto-gpt` or `cto-claude`. `family` is `gpt`
-  or `claude`.
+- **Agent** — `<plan-id>-<family>-<role>`; the Claude Designer exception is
+  `<plan-id>-claude-designer` because the role name fixes its provider family. The CTO row is
+  `cto-gpt` or `cto-claude`. `family` is `gpt` or `claude`.
 - **Task** — the plan node's own outcome title, prefixed with its stable plan ID in backticks
   (`` `A-14.2` ``); use `` `—` `` for the CTO's own bounded change. Never invent an ad-hoc phrasing;
   the ID lets the owner trace every row up to its epic in the rollup, so no task looks random.
@@ -79,7 +80,8 @@ cannot diverge:
 - **LOC** — the textual line delta against the recorded baseline from `git diff --numstat <baseline> --`
   totals. Abbreviate each side independently: below 1000, the exact integer; 1000 or more, one-decimal
   thousands with a `k` suffix, rounding half up (`+2.4k -36`). It is a live snapshot while running and
-  exact after the returned commit. Use `—` for report-only agents and when no code delta applies. Do
+  exact after the returned commit. Use `—` for Claude Designers, report-only agents, and when no code delta
+  applies. Do
   not sum rows: lead and child diffs may overlap. Report binary/untracked changes as a tail, never in
   the count.
 

@@ -13,8 +13,8 @@ Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, negative cases, durable artifacts>
 Observation: <expected silence/long operations and safe liveness proof>
-Commit: <local shape/message/trailers>; never push
-Return: <hash, concise diff, real checks, Git state, blockers/disputes, proposed children>
+Commit: <local shape/message/trailers>; never push; for Claude Designer use "none" and require exact external result evidence
+Return: <hash or external design result, concise diff, real checks, Git state, blockers/disputes, proposed children>
 Right of reply: remain available for one bounded preliminary-review response; answer AGREE, PARTIAL, or DEFEND finding-by-finding with evidence; make no changes without an explicit rework contract
 ```
 
@@ -26,16 +26,23 @@ compressed away.
 
 The first return does not end the writer's responsibility. Until the CTO or lead records final
 authorization, the writer remains available for the contracted right-of-reply round. It answers the
-preliminary assessment against the existing commit and evidence, without silently starting rework.
+preliminary assessment against the existing commit or external artifact and evidence, without
+silently starting rework.
 Agreement is explicit; silence is not agreement.
 
 The CTO strategy never appears in the contract: it selects the atom but does not weaken acceptance.
-Every writer has its own workspace; parallel writers never share mutable paths or verification
-substrates. A cross-zone need is a blocker or proposed child, not implicit scope expansion.
+Every repository writer has its own workspace; a Claude Designer has a separate Claude session and
+exclusive Claude Design project/file zone. Parallel writers never share mutable paths or
+verification substrates. A cross-zone need is a blocker or proposed child, not implicit scope
+expansion.
 
 ## Role additions
 
 - Builder: exact write zone, local commit, empty final porcelain.
+- Claude Designer: Claude provider only; exact project ID and file zone; required design skill and
+  brief; preconditions; read-back and render proof; byte-identical pre/post repository porcelain;
+  no commit, acceptance, sharing, members, publication, or unrelated external action. Dispatch only
+  from the CTO.
 - Reviewer: exact commit and acceptance, preferably a fresh workspace, byte-identical pre/post
   `git status --porcelain`, report only.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.

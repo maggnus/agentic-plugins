@@ -35,11 +35,13 @@ CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer ma
 2. **GPT model** — the strongest currently allowed Codex/OpenAI choice, preferred tuple first.
 3. **Claude model** — the strongest currently allowed Anthropic choice, preferred tuple first.
 4. **Reasoning policy** — by owner directive 2026-07-20: the reviewer role runs at `max`, and every
-   other role (builder, researcher, lead) defaults to `xhigh`. `ultra`, uniform overrides, or any tier
-   below these only on explicit owner request; offer only efforts the selected models support.
+   other role (builder, claude-designer, researcher, lead) defaults to `xhigh`. `ultra`, uniform
+   overrides, or any tier below these only on explicit owner request; offer only efforts the
+   selected models support.
 5. **Permission policy** — `full-access-writers` by default (owner directive 2026-07-20: agents run with
-   full permissions so they do not stall on permission prompts). Writers (builder/lead) use the selected
-   full-access/bypass mode. Reviewers/researchers keep the strongest read-only/plan mode where the
+   full permissions so they do not stall on permission prompts). Writers
+   (builder/lead/claude-designer) use the selected full-access/bypass mode. Reviewers/researchers
+   keep the strongest read-only/plan mode where the
    provider enforces one; where none exists (e.g. Codex has no read-only-execute mode) they run
    full-access under a report-only contract with pre/post `git status --porcelain` equality (reduced
    enforcement) rather than blocking on prompts. `role-safe` or `always-ask` only on explicit owner
@@ -53,9 +55,10 @@ CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer ma
    work), `every-write`, or `cto-only`.
 
 These are standing rules, not choices: the CTO reviews every delegated write; one 15-minute heartbeat
-runs while work remains; agents commit locally and never push; push, deploy, publication, live
-mutation, money, and irreversible actions stay separate gates; and critical security, privacy,
-authorization, and data-integrity risks are never deferred by strategy.
+runs while work remains; repository writers commit locally and never push, while Claude Designers
+return external versions/read-back/render proof without repository changes; push, deploy,
+publication, live mutation, money, and irreversible actions stay separate gates; and critical
+security, privacy, authorization, and data-integrity risks are never deferred by strategy.
 
 ## Persist
 

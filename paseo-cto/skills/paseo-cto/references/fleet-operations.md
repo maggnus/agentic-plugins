@@ -141,10 +141,13 @@ summary), CTO first, per Status and reporting.
 Run the Review gate first. Returned work stays `reviewing` or `rework`; keep its originating
 agent/workspace through unresolved findings or disputes. Before archival:
 
-1. Capture report, IDs, Git state/commits, decision, and archive-surviving evidence as required by the
+1. Capture report, IDs, Git state/commits or external design versions/render references, decision,
+   and archive-surviving evidence as required by the
    Assignment contract and Review gate.
-2. Require empty `git status --porcelain` and prove accepted commits reachable from integration, unless
-   an explicit preservation/discard decision is recorded. A report-only reviewer/researcher may close
+2. Require empty `git status --porcelain` and prove accepted commits reachable from integration,
+   unless an explicit preservation/discard decision is recorded. For a Claude Designer, require
+   byte-identical pre/post porcelain, account for every contracted external path, and preserve
+   reviewed versions and render references. A report-only reviewer/researcher may close
    earlier when pre/post Git states match and its source commit stays reachable from a preserved
    builder branch.
 3. Require no running turn, unresolved permission, dispute, needed terminal, or unrecorded tail. Normal

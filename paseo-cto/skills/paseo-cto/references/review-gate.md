@@ -1,6 +1,7 @@
 # CTO review gate
 
-Read this file when a delegated write returns, before integration, and before any push.
+Read this file when a delegated write returns, before repository integration, external-design
+acceptance, and any push.
 
 ## Mandatory review
 
@@ -10,7 +11,9 @@ verdict and cannot bypass the originating agent's right of reply.
 
 ### Preliminary assessment
 
-1. inspect the report, exact commit, ancestry, diff, and final workspace state;
+1. inspect the report and final workspace state; for repository work inspect the exact commit,
+   ancestry, and diff; for design work inspect the exact project/paths, preconditions or returned
+   versions, read-back, render reference, and byte-identical pre/post repository state;
 2. rerun cheap acceptance and read risk-bearing code;
 3. list evidenced `blocker`, `major`, or `minor` findings;
 4. score the exact contract out of ten;
@@ -62,7 +65,9 @@ The score informs the owner; it never determines the verdict:
 Choose return versus CTO repair by severity, blast radius, depth, hot context, correction/task size,
 acceptance cost, and collision risk. Return deep, behavioral, architectural, cross-file, or uncertain
 work when agent continuity helps. A CTO fix is small, obvious, bounded, separately committed,
-rerun, and disclosed. Keep the originating agent/workspace active through disputes or rework.
+rerun, and disclosed. Do not apply a CTO fix directly to an external design; return it to the
+Claude Designer with an exact rework contract. Keep the originating agent/workspace active through
+disputes or rework.
 
 ```text
 PRELIMINARY — NOT AUTHORIZED — 7/10 — PROPOSED RETURN — <findings and evidence>
@@ -75,13 +80,17 @@ Debate never widens scope. Safety and owner gates remain closed during the respo
 ## Evidence, integration, and external gates
 
 - Preserve real exits; a pipe or trailing diagnostic must not mask failure.
-- Preserve archive-worthy evidence through a commit, approved artifact store, or concise CTO
-  checkpoint/verdict. Leave no tracked or untracked disposable tail.
+- Preserve archive-worthy evidence through a commit, approved artifact store, exact external object
+  version/render reference, or concise CTO checkpoint/verdict. Leave no tracked, untracked, or
+  temporary external-design tail.
 - Prove generated/deployed artifact ancestry and serialize live changes against evidence runs.
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
 
 Integrate reviewed commits only into a clean CTO tree. Verify ancestry, resolve collisions
 deliberately, run the project gate, and update the plan in the appropriate local integration commit.
+For an accepted design, verify the returned external version still matches the reviewed read-back and
+render, then update plan truth without copying generated design source into the repository unless a
+separate contract requires it.
 Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema operations,
 and irreversible actions each remain a separate explicit owner/project gate. Before push, inspect
 and review every commit in `<upstream>..HEAD` and its evidence.
