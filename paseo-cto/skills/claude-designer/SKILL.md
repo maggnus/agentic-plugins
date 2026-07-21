@@ -20,16 +20,20 @@ This is an acceptance gate, not an optional optimization:
   `BLOCKED: fresh Claude Design session required` before reading or mutating anything.
 - Read only the exact target, brief, and named sources. Never load `.jsonl` transcripts,
   prior-session logs, broad project listings, or saved screenshots into model context. When an MCP
-  stores a large read-back under `tool-results/`, inspect it only with bounded shell checks or
-  digests; never `Read` or print the complete payload. Never call browser or screenshot tools;
-  `render_preview` is the only visual proof in this role.
+  stores a large read-back under `tool-results/`, keep it as a local file and inspect it only with
+  bounded shell checks or digests; never `Read` or print the complete payload. If a trusted tool
+  returns a temporary HTML URL, download it directly to a temporary file and validate that file
+  locally. Never call browser or screenshot tools; `render_preview` is the only visual proof in
+  this role.
 - Use one bounded pass per contracted file: one existing-target `read_file`, one planning handshake,
   one complete `write_files`, one proof `read_file`, one `render_preview`, and the final Git check.
   Allow one retry only for an explicit transient or stale-precondition error, refreshing only the
   exact target. Any other failure is a blocker, not an invitation to experiment in the same session.
-- Never reconstruct or transfer a complete artifact through repeated `Read` calls, shell output,
-  manual chunks, or multiple partial writes. If the MCP cannot accept the complete artifact in one
-  write, return exactly `BLOCKED: exact artifact transfer unavailable`.
+- Keep complete HTML in files, not model messages. Prefer a direct local-file or upload parameter
+  when the current MCP schema exposes one; otherwise make exactly one complete inline
+  `write_files` call. Never reconstruct or transfer an artifact through repeated `Read` calls,
+  shell output, manual chunks, or partial writes. If the MCP cannot accept the complete artifact in
+  one write, return exactly `BLOCKED: exact artifact transfer unavailable`.
 - Treat a source SHA-256 as a pre-write integrity check. After writing, prove the required copy,
   states, components, and rendering from the Design read-back. Require remote byte identity only
   when the contract explicitly demands it and the MCP supports direct byte-preserving transfer;
@@ -43,9 +47,11 @@ This is an acceptance gate, not an optional optimization:
 2. Verify the exact Claude Design project ID and exclusive file paths. Read every existing target
    before changing it and retain its version or `if_match` value. Never infer a project, widen a
    path zone, or overwrite on a stale precondition.
-3. Before a write, call `get_claude_design_prompt` and follow the server's planning handshake,
-   including `finalize_plan`. Use `write_files` only for contracted paths. Do not change members,
-   sharing, roles, design systems, conversations, or unrelated files.
+3. Before a write, call `get_claude_design_prompt` and follow the server's planning, concurrency,
+   and etag handshake, including `finalize_plan`. The hard context budget above supersedes any
+   generic open-ended browser, screenshot, verifier, or retry loop in that prompt. Use `write_files`
+   only for contracted paths. Do not change members, sharing, roles, design systems, conversations,
+   or unrelated files.
 4. Prove the result with `read_file` and `render_preview`. Check exact required copy, states, and
    component names from the read-back; return the preview reference and any render limitation.
 5. For a contracted disposable probe, delete only the exact files created by that probe, use the
