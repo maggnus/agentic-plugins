@@ -85,7 +85,11 @@ Treat time and distance to the next usable release as engineering constraints.
    the inspected tool result with the exact project, path, operation status, and returned version.
    Never infer success from a started call, local HTML, logs, screenshots, UI changes, or etag drift;
    without explicit Claude Code confirmation keep the node unconfirmed and communicate through a
-   fresh bounded Claude Designer session before review or downstream dispatch.
+   fresh bounded Claude Designer session before review or downstream dispatch. When project settings
+   prohibit Claude Design MCP, never dispatch a Claude Designer unless the contract names an
+   owner-approved non-MCP channel with equivalent project/path/version/render proof. MCP prohibition
+   includes proxy use through another agent or Claude Code session. If no approved channel exists,
+   keep the design node owner-gated and do not spend a provider session attempting fallbacks.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat. Diagnose
    stalls from evidence, preserve tails, and archive completed agents only after the cleanup proof.
 7. **Close** when the ready frontier is empty and every remaining tail is owner-gated: persist the
@@ -103,6 +107,10 @@ Treat time and distance to the next usable release as engineering constraints.
   remain a separate explicit owner gate. A design contract grants only its named non-production
   Claude Design project and file paths; sharing, membership, publication, and every other external
   mutation stay closed.
+- A project-scoped owner prohibition on Claude Design MCP is absolute: do not discover, configure,
+  call, or proxy `claude-design` MCP tools. Local HTML transfer, browser automation, screenshots,
+  undocumented HTTP calls, and tool-result archive parsing are not substitutes. Dispatch no Design
+  worker until the owner approves a verifiable non-MCP channel.
 - You review every delegated write before integration. CTO authority is final but not unilateral:
   the originating agent receives the mandatory evidence-based response round defined by the Review
   gate, and preliminary findings authorize no integration, fix, return, or archive. No

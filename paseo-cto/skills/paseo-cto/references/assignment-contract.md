@@ -45,7 +45,11 @@ expansion.
   include explicit Claude Code confirmation for every claimed Design action, tied to the inspected
   tool result, exact project/path, status, and returned version. A started call, local artifact, log,
   screenshot, UI observation, or etag drift is not confirmation; no review or dependent dispatch may
-  begin while confirmation is absent or ambiguous. Dispatch only from the CTO.
+  begin while confirmation is absent or ambiguous. Dispatch only from the CTO. When owner settings
+  prohibit Claude Design MCP, the contract must name an owner-approved non-MCP channel and its exact
+  project/path/version/render proof. Never call or proxy `mcp__claude-design__*`, including through
+  another Claude Code session. If no approved channel exists, do not dispatch and record
+  `BLOCKED: owner-approved non-MCP Claude Design channel required`.
 - Reviewer: exact commit and acceptance, preferably a fresh workspace, byte-identical pre/post
   `git status --porcelain`, report only.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.
