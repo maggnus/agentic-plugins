@@ -41,8 +41,11 @@ expansion.
 - Builder: exact write zone, local commit, empty final porcelain.
 - Claude Designer: Claude provider only; exact project ID and file zone; required design skill and
   brief; preconditions; read-back and render proof; byte-identical pre/post repository porcelain;
-  no commit, acceptance, sharing, members, publication, or unrelated external action. Dispatch only
-  from the CTO.
+  no commit, acceptance, sharing, members, publication, or unrelated external action. Its Return must
+  include explicit Claude Code confirmation for every claimed Design action, tied to the inspected
+  tool result, exact project/path, status, and returned version. A started call, local artifact, log,
+  screenshot, UI observation, or etag drift is not confirmation; no review or dependent dispatch may
+  begin while confirmation is absent or ambiguous. Dispatch only from the CTO.
 - Reviewer: exact commit and acceptance, preferably a fresh workspace, byte-identical pre/post
   `git status --porcelain`, report only.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.

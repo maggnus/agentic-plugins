@@ -80,7 +80,12 @@ Treat time and distance to the next usable release as engineering constraints.
    before the final `accept`, `accept with CTO fix`, or `return` authorization. Integrate repository
    writes only after that final authorization into a clean tree, rerun the gate, and commit plan
    truth. For external design writes, verify exact returned versions, read-back, render reference,
-   and repository non-mutation before recording the authorization and plan truth.
+   and repository non-mutation before recording the authorization and plan truth. Treat an external
+   design action as having occurred only after the originating Claude Code worker explicitly confirms
+   the inspected tool result with the exact project, path, operation status, and returned version.
+   Never infer success from a started call, local HTML, logs, screenshots, UI changes, or etag drift;
+   without explicit Claude Code confirmation keep the node unconfirmed and communicate through a
+   fresh bounded Claude Designer session before review or downstream dispatch.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat. Diagnose
    stalls from evidence, preserve tails, and archive completed agents only after the cleanup proof.
 7. **Close** when the ready frontier is empty and every remaining tail is owner-gated: persist the

@@ -42,6 +42,19 @@ This is an acceptance gate, not an optional optimization:
   200k context tokens, additional visual exploration, or another correction cycle, report the
   remaining item and require a fresh follow-up session.
 
+## Explicit Claude Code confirmation
+
+Every Claude Design action remains unconfirmed until Claude Code receives the corresponding tool
+result and explicitly records the outcome. A started call, local HTML, transcript entry, changed
+screen, screenshot, or observed etag is never confirmation by itself.
+
+- Confirm each dependency before starting the next: target read, planning handshake, write, proof
+  read-back, render, and cleanup when applicable.
+- If a call is interrupted, times out, returns ambiguously, or the session ends before its result,
+  report `CONFIRMATION: not confirmed` and stop. Never infer completion or let downstream work begin.
+- The final return must state `CONFIRMATION: confirmed` only when every claimed operation has an
+  inspected tool result with the exact project, path, returned version or etag, and operation status.
+
 1. Record the exact bytes of `git status --porcelain`. Read only the project instructions, design
    brief, design-system sources, and domain skills named by the contract.
 2. Verify the exact Claude Design project ID and exclusive file paths. Read every existing target
@@ -72,6 +85,7 @@ Return under 2500 characters unless preserving a systemic finding:
 
 ```text
 STATUS: ready | blocked | error
+CONFIRMATION: confirmed | not confirmed — <operation-to-tool-result evidence>
 DESIGN: <project ID; exact changed paths; returned versions or preconditions>
 PROOF: <read-back facts; render result and preview reference>
 BUDGET: <fresh-session gate; target reads/writes/read-backs/renders/retries; prohibited inputs none>
