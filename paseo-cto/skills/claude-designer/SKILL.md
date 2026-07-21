@@ -10,6 +10,34 @@ this exact qualified skill. Otherwise return exactly `BLOCKED: role skill unavai
 Require a Claude provider session with the `claude-design` MCP tools available. If the tools are
 missing or unauthenticated, return exactly `BLOCKED: Claude Design unavailable` without mutation.
 
+## Hard context budget
+
+This is an acceptance gate, not an optional optimization:
+
+- Run each assignment in a fresh Claude session dedicated to one bounded artifact. A 1M context
+  window never authorizes session reuse. If the session already contains a prior design assignment,
+  rework, full artifact, render images, or transcript evidence, return exactly
+  `BLOCKED: fresh Claude Design session required` before reading or mutating anything.
+- Read only the exact target, brief, and named sources. Never load `.jsonl` transcripts,
+  prior-session logs, broad project listings, or saved screenshots into model context. When an MCP
+  stores a large read-back under `tool-results/`, inspect it only with bounded shell checks or
+  digests; never `Read` or print the complete payload. Never call browser or screenshot tools;
+  `render_preview` is the only visual proof in this role.
+- Use one bounded pass per contracted file: one existing-target `read_file`, one planning handshake,
+  one complete `write_files`, one proof `read_file`, one `render_preview`, and the final Git check.
+  Allow one retry only for an explicit transient or stale-precondition error, refreshing only the
+  exact target. Any other failure is a blocker, not an invitation to experiment in the same session.
+- Never reconstruct or transfer a complete artifact through repeated `Read` calls, shell output,
+  manual chunks, or multiple partial writes. If the MCP cannot accept the complete artifact in one
+  write, return exactly `BLOCKED: exact artifact transfer unavailable`.
+- Treat a source SHA-256 as a pre-write integrity check. After writing, prove the required copy,
+  states, components, and rendering from the Design read-back. Require remote byte identity only
+  when the contract explicitly demands it and the MCP supports direct byte-preserving transfer;
+  otherwise do not loop on invisible serialization differences.
+- Stop immediately after the required proof and return. If acceptance would require approaching
+  200k context tokens, additional visual exploration, or another correction cycle, report the
+  remaining item and require a fresh follow-up session.
+
 1. Record the exact bytes of `git status --porcelain`. Read only the project instructions, design
    brief, design-system sources, and domain skills named by the contract.
 2. Verify the exact Claude Design project ID and exclusive file paths. Read every existing target
@@ -40,6 +68,7 @@ Return under 2500 characters unless preserving a systemic finding:
 STATUS: ready | blocked | error
 DESIGN: <project ID; exact changed paths; returned versions or preconditions>
 PROOF: <read-back facts; render result and preview reference>
+BUDGET: <fresh-session gate; target reads/writes/read-backs/renders/retries; prohibited inputs none>
 CLEANUP: <probe deletion and absence proof, or not applicable>
 REPOSITORY: <exact pre/post porcelain equality>
 UNVERIFIED: <visual or interactive checks not actually performed>
