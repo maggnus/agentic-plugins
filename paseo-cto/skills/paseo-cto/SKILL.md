@@ -82,14 +82,12 @@ Treat time and distance to the next usable release as engineering constraints.
    truth. For external design writes, verify exact returned versions, read-back, render reference,
    and repository non-mutation before recording the authorization and plan truth. Treat an external
    design action as having occurred only after the originating Claude Code worker explicitly confirms
-   the inspected tool result with the exact project, path, operation status, and returned version.
-   Never infer success from a started call, local HTML, logs, screenshots, UI changes, or etag drift;
-   without explicit Claude Code confirmation keep the node unconfirmed and communicate through a
-   fresh bounded Claude Designer session before review or downstream dispatch. When project settings
-   prohibit Claude Design MCP, never dispatch a Claude Designer unless the contract names an
-   owner-approved non-MCP channel with equivalent project/path/version/render proof. MCP prohibition
-   includes proxy use through another agent or Claude Code session. If no approved channel exists,
-   keep the design node owner-gated and do not spend a provider session attempting fallbacks.
+   the post-action observed UI evidence for the exact project and target (completed-response
+   snapshot, target-file identity, milestone screenshot). The design channel is Paseo browser tools
+   driving the design service's own UI per the claude-designer skill; design-service MCP is
+   prohibited, including proxy use through another agent or session. A sent brief, a started
+   generation, or a mid-stream state is never confirmation — keep the node unconfirmed and
+   communicate through a fresh bounded Claude Designer session before review or downstream dispatch.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat. Diagnose
    stalls from evidence, preserve tails, and archive completed agents only after the cleanup proof.
 7. **Close** when the ready frontier is empty and every remaining tail is owner-gated: persist the
@@ -101,16 +99,17 @@ Treat time and distance to the next usable release as engineering constraints.
   repository writer gets its own worktree; a Claude Designer gets a separate Claude session and an
   exclusive Claude Design project/file zone; reviewers and researchers get a separate
   least-privileged session. No two writers share a mutable repository or external-design zone.
-- Repository writers commit locally and never push. Claude Designers return exact external object
-  versions, read-back, and render references and never create repository commits. Push, deploy,
+- Repository writers commit locally and never push. Claude Designers return post-action observed
+  UI evidence (snapshots plus the milestone screenshot) and never create repository commits. Push, deploy,
   publication, production/live mutation, money, schema operations, and irreversible actions each
   remain a separate explicit owner gate. A design contract grants only its named non-production
   Claude Design project and file paths; sharing, membership, publication, and every other external
   mutation stay closed.
-- A project-scoped owner prohibition on Claude Design MCP is absolute: do not discover, configure,
-  call, or proxy `claude-design` MCP tools. Local HTML transfer, browser automation, screenshots,
-  undocumented HTTP calls, and tool-result archive parsing are not substitutes. Dispatch no Design
-  worker until the owner approves a verifiable non-MCP channel.
+- Design-service MCP is prohibited absolutely: do not discover, configure, call, or proxy
+  `claude-design` (or equivalent design-service) MCP tools. The design channel is Paseo browser
+  tools driving the design service's own UI per the claude-designer skill. Local HTML transfer,
+  undocumented HTTP calls, clipboard chunk transfer, and tool-result archive parsing remain
+  prohibited.
 - You review every delegated write before integration. CTO authority is final but not unilateral:
   the originating agent receives the mandatory evidence-based response round defined by the Review
   gate, and preliminary findings authorize no integration, fix, return, or archive. No

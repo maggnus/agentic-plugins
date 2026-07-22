@@ -41,21 +41,19 @@ expansion.
 - Builder: exact write zone, local commit, empty final porcelain. A builder producing user-facing
   design artifacts (prototypes, mockups, styled pages) must receive the project's design-system
   skill sources in Read; visual values come from those sources' tokens, never invented ad hoc.
-- Claude Designer: Claude provider only; exact project ID and file zone; required design skill and
-  brief; named design-system skill sources (mandatory — the role fails closed without them);
-  preconditions; read-back and render proof; byte-identical pre/post repository porcelain;
-  no commit, acceptance, sharing, members, publication, or unrelated external action. Its Return must
-  include explicit Claude Code confirmation for every claimed Design action, tied to the inspected
-  tool result, exact project/path, status, and returned version. A started call, local artifact, log,
-  screenshot, UI observation, or etag drift is not confirmation; no review or dependent dispatch may
-  begin while confirmation is absent or ambiguous. Dispatch only from the CTO. The contract must also
-  fix the token-protocol parameters from the claude-designer skill: atomized target files (never a
-  monolith), the designer model/effort tuple from the charter, a context ceiling, single-write and
-  narrow-read discipline, and the one-correction-round limit. When owner settings
-  prohibit Claude Design MCP, the contract must name an owner-approved non-MCP channel and its exact
-  project/path/version/render proof. Never call or proxy `mcp__claude-design__*`, including through
-  another Claude Code session. If no approved channel exists, do not dispatch and record
-  `BLOCKED: owner-approved non-MCP Claude Design channel required`.
+- Claude Designer: Claude provider only; channel is exclusively Paseo browser tools driving the
+  design service's own UI per the claude-designer skill — design-service MCP
+  (`mcp__claude-design__*` or equivalent) is never called or proxied, including through another
+  session. Contract names the exact design project, target file zone, brief, and the mandatory
+  design-system skill sources (the role fails closed without them); byte-identical pre/post
+  repository porcelain; no commit, acceptance, sharing, members, publication, or unrelated external
+  action. Its Return must include post-action observed UI evidence for every claimed design action:
+  a completed-response snapshot, the target file's observed identity, and the milestone screenshot.
+  A sent brief, a started generation, or a mid-stream state is not confirmation; no review or
+  dependent dispatch may begin while confirmation is absent or ambiguous. Dispatch only from the
+  CTO. The contract must also fix the token-protocol parameters from the claude-designer skill:
+  one atom per session, briefs-not-freight, snapshot-over-screenshot discipline, the designer
+  model/effort tuple from the charter, a context ceiling, and the one-correction-round limit.
 - Reviewer: exact commit and acceptance, preferably a fresh workspace, byte-identical pre/post
   `git status --porcelain`, report only.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.
