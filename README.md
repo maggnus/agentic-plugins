@@ -89,5 +89,22 @@ fleet work uses a compact core-command sheet, and the complete command catalog i
 
 ## Releasing a change
 
-Edit → commit → push. Machines installed from GitHub pick it up via
-`claude plugin marketplace update maggnus`.
+For `paseo-cto`, keep the base version in `.claude-plugin/plugin.json` and
+`.codex-plugin/plugin.json` identical. Before committing, refresh the Codex cachebuster and validate
+the plugin:
+
+```sh
+python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
+python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
+```
+
+Then commit and push. Machines installed from GitHub update and reinstall from the remote
+marketplace with:
+
+```sh
+claude plugin marketplace update maggnus
+codex plugin marketplace upgrade maggnus
+codex plugin add paseo-cto@maggnus
+```
+
+Start a new Codex conversation after reinstalling so it loads the updated skills and tools.
