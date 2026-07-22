@@ -38,9 +38,12 @@ expansion.
 
 ## Role additions
 
-- Builder: exact write zone, local commit, empty final porcelain.
+- Builder: exact write zone, local commit, empty final porcelain. A builder producing user-facing
+  design artifacts (prototypes, mockups, styled pages) must receive the project's design-system
+  skill sources in Read; visual values come from those sources' tokens, never invented ad hoc.
 - Claude Designer: Claude provider only; exact project ID and file zone; required design skill and
-  brief; preconditions; read-back and render proof; byte-identical pre/post repository porcelain;
+  brief; named design-system skill sources (mandatory — the role fails closed without them);
+  preconditions; read-back and render proof; byte-identical pre/post repository porcelain;
   no commit, acceptance, sharing, members, publication, or unrelated external action. Its Return must
   include explicit Claude Code confirmation for every claimed Design action, tied to the inspected
   tool result, exact project/path, status, and returned version. A started call, local artifact, log,

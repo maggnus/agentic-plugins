@@ -60,6 +60,16 @@ below exists to prevent that.
 10. **No conversation freight.** Never move artifact content through conversation/prompt payloads
     when a file operation exists for it.
 
+## Design-system sources
+
+The contract must name the project's design-system skill sources — repository design skills and/or
+the external design project's design-system file. Load them before composing anything: their tokens,
+type roles, and component semantics BIND the output. Where a named source's composition or layout
+pattern conflicts with the contract's frozen decisions (e.g. an active program has reopened the
+topology the source describes), the contract's frozen decisions win — note the conflict in Return
+instead of following the stale pattern. If the contract names no design-system source, return
+exactly `BLOCKED: design-system sources required`.
+
 ## Bounded execution
 
 Use a fresh Claude session for one artifact. Read only the exact brief and named sources. Preserve
