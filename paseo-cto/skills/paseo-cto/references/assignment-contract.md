@@ -45,7 +45,10 @@ expansion.
   include explicit Claude Code confirmation for every claimed Design action, tied to the inspected
   tool result, exact project/path, status, and returned version. A started call, local artifact, log,
   screenshot, UI observation, or etag drift is not confirmation; no review or dependent dispatch may
-  begin while confirmation is absent or ambiguous. Dispatch only from the CTO. When owner settings
+  begin while confirmation is absent or ambiguous. Dispatch only from the CTO. The contract must also
+  fix the token-protocol parameters from the claude-designer skill: atomized target files (never a
+  monolith), the designer model/effort tuple from the charter, a context ceiling, single-write and
+  narrow-read discipline, and the one-correction-round limit. When owner settings
   prohibit Claude Design MCP, the contract must name an owner-approved non-MCP channel and its exact
   project/path/version/render proof. Never call or proxy `mcp__claude-design__*`, including through
   another Claude Code session. If no approved channel exists, do not dispatch and record

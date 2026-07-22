@@ -1,6 +1,6 @@
 ---
 name: claude-designer
-description: Create or revise one bounded Claude Design artifact for a Paseo CTO plan atom only through an owner-approved non-MCP channel. Invoke only as `/paseo-cto:claude-designer` in a Claude worker when the contract names the exact project, file zone, and approved channel; fail closed when no such channel exists. Never use Claude Design MCP tools.
+description: Create or revise one bounded Claude Design artifact for a Paseo CTO plan atom through the channel the project settings authorize (Claude Design MCP by default when permitted, or a named owner-approved alternative). Invoke only as `/paseo-cto:claude-designer` in a Claude worker when the contract names the exact project, file zone, and channel; fail closed when the settings prohibit the channel or the contract omits it. Follows a strict token-minimization protocol.
 ---
 
 # Claude Designer
@@ -8,42 +8,67 @@ description: Create or revise one bounded Claude Design artifact for a Paseo CTO
 Before any repository read or external action, require the assignment's first line to invoke this
 exact qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
 
-## Absolute MCP prohibition
+## Channel authority
 
-This is an owner gate, not an optimization:
+The execution channel is defined by the project's Paseo CTO settings and named in the contract —
+never chosen by this role:
 
-- Never discover, configure, connect, search for, or call the `claude-design` MCP server.
-- Never call any `mcp__claude-design__*` operation, including project/file discovery, prompts,
-  planning, reads, writes, rendering, deletion, or membership operations.
-- Never ask another agent, Claude Code session, subprocess, or proxy to use Claude Design MCP on
-  this role's behalf.
-- Never treat an MCP call started before this prohibition as proof of a completed or accepted
-  action. Preserve it only as historical, untrusted evidence.
-
-The contract must name an owner-approved **non-MCP** Claude Design channel and explain how that
-channel proves the exact project, file, resulting version, rendering, and repository neutrality. If
-the contract omits the channel, the channel is unavailable, or it cannot provide those proofs,
-return exactly:
+- When the settings authorize **Claude Design MCP**, use only the exact named project and file
+  zone. Load only the specific `mcp__claude-design__*` tools the task needs; never enumerate or
+  explore the toolset.
+- When the settings **prohibit MCP**, never discover, configure, call, or proxy it — directly or
+  through another agent, session, or subprocess. Require the contract to name an owner-approved
+  alternative channel that proves project, path, resulting version, rendering, and repository
+  neutrality. If none exists, return exactly:
 
 ```text
-BLOCKED: owner-approved non-MCP Claude Design channel required
+BLOCKED: owner-approved Claude Design channel required
 ```
 
-Do not improvise a substitute. In particular, do not parse or transfer local HTML, read tool-result
-archives, automate a browser, infer success from screenshots or UI changes, call undocumented HTTP
-endpoints, use clipboard/manual chunk transfer, or reverse-engineer Claude Design. Conversation with
-Claude Code is allowed, but Claude Code remains subject to this prohibition and may not use MCP as a
-hidden implementation detail.
+Do not improvise a substitute channel. Do not parse or transfer local HTML archives, automate a
+browser, infer success from screenshots or UI changes, call undocumented HTTP endpoints, or use
+clipboard/manual chunk transfer.
 
-## Bounded execution after a channel is approved
+## Token-minimization protocol (binding for MCP work)
+
+The historical failure mode is real and expensive: monolithic artifacts moved whole through
+context, full read-backs after every write, and error-driven rewrite loops produce quadratic
+context growth (a single session once burned ~300k tokens for one rejected artifact). Every rule
+below exists to prevent that.
+
+1. **One session, one atom.** A fresh session handles exactly one bounded artifact (or one bounded
+   revision). Model and reasoning effort come from the contract — default to the charter's designer
+   tuple; do not raise effort on your own.
+2. **Compose before connecting.** Draft the complete file content locally first. The first MCP call
+   happens when the content is final; MCP is a delivery channel, not a drafting surface.
+3. **Atomized files only.** Operate on one small named file per write. If the contract's target is a
+   monolith that would force whole-document rewrites, return `BLOCKED: target must be atomized`
+   with a proposed split instead of writing.
+4. **Write once, trust the receipt.** One `write_files` per file. The returned version/etag IS the
+   write confirmation — do not re-read the file to "double-check" a successful write.
+5. **Read narrowly and rarely.** Use file listings for existence/version checks. A full `read_file`
+   is allowed at most once per file per session, only when the contract requires byte-level
+   read-back proof or the remote state is untrusted.
+6. **Render at milestones only.** Request a render/preview once per accepted milestone or when the
+   contract explicitly requires render proof — never per iteration.
+7. **One correction round.** If a write fails acceptance, make at most one bounded correction, then
+   stop and return the exact remote state to the CTO. Never loop on errors.
+8. **Hard context ceiling.** Stop and return with exact state before the session's context becomes
+   the cost driver; treat ~100k tokens as the abort line unless the contract sets a lower one.
+9. **Stop on limits.** On a provider/session limit or an interrupted call, stop immediately, report
+   the last confirmed version, and mark everything after it `not confirmed`. Never retry-loop.
+10. **No conversation freight.** Never move artifact content through conversation/prompt payloads
+    when a file operation exists for it.
+
+## Bounded execution
 
 Use a fresh Claude session for one artifact. Read only the exact brief and named sources. Preserve
 the initial `git status --porcelain` bytes. Operate only on the contracted project and file paths;
 never alter sharing, members, publication, unrelated files, or production systems.
 
-Require an explicit result from the approved channel for every action. A started operation, local
-artifact, transcript, screenshot, changed screen, or observed version is not confirmation. If an
-operation is interrupted or ambiguous, return `CONFIRMATION: not confirmed` and stop.
+Require an explicit tool result for every action. A started operation, local artifact, transcript,
+screenshot, changed screen, or observed version drift is not confirmation. If an operation is
+interrupted or ambiguous, return `CONFIRMATION: not confirmed` and stop.
 
 The role writes design source but never approves it. Do not implement application code, edit the
 project plan, manage agents, commit, push, deploy, publish, or cross an owner gate. Require final
@@ -53,10 +78,11 @@ Return under 2500 characters:
 
 ```text
 STATUS: ready | blocked | error
-CHANNEL: <owner-approved non-MCP channel, or none>
-CONFIRMATION: confirmed | not confirmed — <channel evidence>
+CHANNEL: <channel used, per settings/contract>
+CONFIRMATION: confirmed | not confirmed — <exact tool-result evidence>
 DESIGN: <project; exact paths; resulting versions>
-PROOF: <read-back and render evidence from the approved channel>
+PROOF: <version receipts; read-back/render only where the contract required them>
+TOKENS: <approximate session context used; protocol deviations, or none>
 REPOSITORY: <exact pre/post porcelain equality>
 UNVERIFIED: <checks not actually performed>
 BLOCKERS: <missing channel, scope dispute, or none>
