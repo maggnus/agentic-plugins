@@ -55,7 +55,10 @@ expansion.
   one atom per session, briefs-not-freight, snapshot-over-screenshot discipline, the designer
   model/effort tuple from the charter, a context ceiling, and the one-correction-round limit.
 - Reviewer: exact commit and acceptance, preferably a fresh workspace, byte-identical pre/post
-  `git status --porcelain`, report only.
+  `git status --porcelain`, report only. The contract's named domain skills are a floor, not a
+  ceiling: the reviewer surveys the project's available skills and additionally loads every one
+  bearing directly or indirectly on the change under review, judges the diff against their rules,
+  and reports which extra skills it loaded.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.
 - Lead: one stream, one child level, child budget/zones, allowed worker tuples and role-mode map,
   exclusive ledger, and one stream gate; no lead child.
