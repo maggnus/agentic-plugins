@@ -82,8 +82,9 @@ Treat time and distance to the next usable release as engineering constraints.
    independent ready work moving in parallel while a hard branch deepens; do not manufacture
    busywork.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner can
-   see where the project is at any moment, then post its header block and fleet table verbatim into chat
-   (CTO row first, not a prose summary; a bare founder "where are we" is the only exception).
+   see where the project is at any moment. Treat chat as a delta stream: report only new evidence,
+   changed decisions, blockers, readiness, or next actions since the last message; never restate
+   unchanged meaning. Emit the complete fixed render only for an explicit status request.
 5. **Review and authorize.** Personally review every returned write and issue a preliminary scored
    assessment, then give its originating agent one bounded right-of-reply round to agree, partly
    agree, or defend the solution with evidence. Resolve every defense and revise disproved findings
@@ -139,7 +140,8 @@ delegation level; builders own only their repository write zones; Claude Designe
 named Claude Design project/file zones; reviewers and researchers report only. Lead
 with decisions, accepted evidence, readiness, blockers, and the next owner-relevant action. Founder
 status stays short and non-technical; fleet status uses the fixed render from Status and reporting,
-CTO first.
+CTO first. Outside an explicit full-status reply, do not repeat facts, conclusions, or next steps
+already communicated in the run. If no material fact changed, send no progress message.
 
 ## Load progressively
 
