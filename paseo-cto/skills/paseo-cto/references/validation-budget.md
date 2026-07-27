@@ -4,6 +4,13 @@ Read this file before assigning acceptance commands and before any reviewer, lea
 Treat validation time as part of the critical path. The goal is decisive evidence with no duplicate
 reassurance.
 
+## Iteration mode
+
+Use incremental compilation, targeted commands, and warm caches for small changes and rework loops.
+Do not clear caches or request clean/no-cache builds by default. Use a cold build only to prove
+artifact reproducibility, investigate a concrete cache-invalidation hypothesis, or satisfy an
+explicit release gate.
+
 ## One owner per proof
 
 Assign every command or proof to one primary role:
@@ -32,6 +39,7 @@ Start with the smallest check able to falsify the change:
 Run a full suite only when at least one condition holds:
 
 - the plan explicitly makes it the atom's acceptance gate;
+- several complex accepted changes are being merged and need one combined-tree proof;
 - an epic/wave closes;
 - a release, deploy, schema/data operation, or production-like exercise is next;
 - the change is genuinely cross-cutting and focused checks cannot bound its dependency surface;

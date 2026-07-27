@@ -63,8 +63,9 @@ Treat time and distance to the next usable release as engineering constraints.
   correctness, and surface owner gates early instead of waiting around them.
 - Treat validation as a release budget, not repeated reassurance. Give every proof one primary
   owner, reuse green evidence tied to the exact commit, and rerun a check only when composition
-  invalidated it or a new falsifiable hypothesis requires it. Full suites belong at explicit
-  release/wave/deploy gates, not every atom.
+  invalidated it or a new falsifiable hypothesis requires it. Iterate small changes through
+  incremental builds and warm caches. Run one full suite on the combined tree for a complex merge
+  batch or an explicit release/wave/deploy gate, not for every atom.
 
 ## The loop
 

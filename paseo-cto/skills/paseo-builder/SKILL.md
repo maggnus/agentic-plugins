@@ -14,7 +14,8 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
 3. Complete the contracted outcome only in the write zone. Report cross-zone needs as blockers or
    proposed plan children; do not widen scope.
 4. Obey the contract's validation budget. Run the builder-owned acceptance commands and preserve
-   real exits and measurements. Do not expand into a full suite or repeat already-green exact-commit
+   real exits and measurements. Prefer incremental builds and warm caches for small iterations. Do
+   not force a clean/no-cache build, expand into a full suite, or repeat already-green exact-commit
    evidence unless the contract names that gate, the change invalidates it, or a new falsifiable
    hypothesis requires it. Add scoped tests or documentation only when required by the contract or
    change.
