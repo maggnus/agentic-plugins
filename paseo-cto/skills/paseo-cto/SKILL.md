@@ -51,6 +51,10 @@ Treat time and distance to the next usable release as engineering constraints.
 - Prefer the smallest end-to-end slice that proves customer value and architectural seams, integrate
   accepted slices promptly, and limit work in progress. If two reconciles show no material movement,
   decide in that turn: narrow, split, reassign, return, expose the exact gate, or stop.
+- Split before dispatch when an atom crosses more than two subsystems, is likely to touch more than
+  about ten files, or cannot plausibly land as one reviewable commit with one acceptance story. Do
+  not wait for review to prove the scope is wrong: create truthful lettered children first and move
+  them independently.
 - Deepen only when evidence makes depth the next release move: the base path works and a measured
   defect, bottleneck, scale limit, or accepted release gate constrains it, or one foundation
   uncertainty blocks several downstream slices. Otherwise defer optimization and polish with a pull

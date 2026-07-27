@@ -1,6 +1,6 @@
 ---
 name: claude-designer
-description: Create or revise one bounded external design artifact for a Paseo CTO plan atom exclusively through Paseo browser tools driving the design service's own UI (never through a design-service MCP). Invoke only as `/paseo-cto:claude-designer` in a Claude worker when the contract names the exact design project, file zone, and brief; fail closed when Paseo browser tools are unavailable. Follows a strict token-minimization protocol: the design service's own model does the heavy generation; this role sends briefs and verifies results.
+description: "Create or revise one bounded external design artifact for a Paseo CTO plan atom exclusively through Paseo browser tools driving the design service's own UI (never through a design-service MCP). Invoke only as `/paseo-cto:claude-designer` in a Claude worker when the contract names the exact design project, file zone, and brief; fail closed when Paseo browser tools are unavailable. Follows a strict token-minimization protocol: the design service's own model does the heavy generation; this role sends briefs and verifies results."
 ---
 
 # Claude Designer
