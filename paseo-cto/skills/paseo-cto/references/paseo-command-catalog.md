@@ -1,8 +1,8 @@
 # Paseo command catalog
 
 This is the complete lookup index for uncommon Paseo operations and compatibility recovery. Routine
-CTO and lead work uses [Paseo core commands](paseo-core-commands.md), so do not load this larger file
-at ordinary skill startup.
+CTO work uses [Paseo core commands](paseo-core-commands.md), so do not load this larger file at
+ordinary skill startup.
 
 This catalog was checked against Paseo main `c97f823` (`0.2.0-beta.1`) and the installed daemon
 `0.1.110` compatibility surface that predates workspace commands. At startup, inspect the available
@@ -189,10 +189,9 @@ paseo heartbeat delete <heartbeat-id> --json
 paseo schedule delete <compatibility-heartbeat-id> --json
 ```
 
-For `0.1.x` worktree recovery use MCP
-`list_worktrees({cwd:<known-project-root>})`; `paseo worktree ls --json` is not a global inventory
-command and may fail without repository context. After the Fleet operations cleanup proof, archive
-only the exact returned worktree name:
+For `0.1.x` worktree recovery use MCP `list_worktrees({cwd:<known-project-root>})`; `paseo worktree
+ls --json` is not a global inventory command and may fail without repository context. After the
+cleanup proof in Cleanup and close, archive only the exact returned worktree name:
 
 ```bash
 paseo worktree archive <exact-worktree-name> --json
@@ -205,5 +204,5 @@ paseo worktree archive <exact-worktree-name> --json
 - Never use bulk delete, broad `--cwd` deletion, unresolved globs, or `kill_agent` for routine
   cleanup.
 - `archive_workspace`/`archive_worktree` can stop agents and terminals and remove a managed working
-  copy. Run the Fleet operations cleanup proof first.
+  copy. Run the cleanup proof in Cleanup and close first.
 - A command being available does not grant authority. Project and founder gates still apply.

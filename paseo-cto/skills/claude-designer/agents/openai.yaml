@@ -1,4 +1,0 @@
-interface:
-  display_name: "Claude Designer"
-  short_description: "Create and verify Claude Design frames"
-  default_prompt: "Use $paseo-cto:claude-designer to create and verify this bounded Claude Design frame without changing repository files."

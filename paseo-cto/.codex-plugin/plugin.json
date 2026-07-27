@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "2.6.0+codex.20260727133243",
-  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates isolated engineering and Claude Design work, and integrates only evidence-reviewed results.",
+  "version": "3.0.0+codex.20260727141509",
+  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates work to isolated builder, reviewer, and researcher agents, and integrates only evidence-reviewed results.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Paseo CTO",
     "shortDescription": "Run a release-driven Paseo engineering organization",
-    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates isolated engineering and Claude Design work; and integrates only after consequence-based review and executable evidence.",
+    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates implementation, review, and investigation to isolated agents; and integrates only after consequence-based review and executable evidence.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
@@ -18,8 +18,7 @@
       "Task governance",
       "Review and integration",
       "Long-session recovery",
-      "Fleet lifecycle control",
-      "Claude Design orchestration"
+      "Fleet lifecycle control"
     ],
     "defaultPrompt": [
       "Use $paseo-cto:paseo-cto to advance the nearest shippable product outcome, reconcile the fleet, and keep the living plan current."

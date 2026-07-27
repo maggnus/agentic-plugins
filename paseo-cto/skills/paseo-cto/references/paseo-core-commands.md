@@ -43,5 +43,5 @@ agent alone.
 
 Create the CTO heartbeat inside the CTO agent with a stable name, `*/15 * * * *`, `maxRuns:96`, and
 `expiresIn:24h`; persist its ID and delete it with `delete_heartbeat`. Archive only exact
-agents/workspaces after the Fleet operations cleanup proof. Never restart the daemon, bulk-delete, or
-routinely use `kill_agent`.
+agents/workspaces after the cleanup proof in Cleanup and close. Never restart the daemon,
+bulk-delete, or routinely use `kill_agent`.

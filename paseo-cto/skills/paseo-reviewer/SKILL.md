@@ -1,6 +1,6 @@
 ---
 name: paseo-reviewer
-description: Independently review one Paseo change. Invoke only as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude when a CTO or lead contract names it; return evidence without modifying, fixing, committing, integrating, or pushing.
+description: Independently review one Paseo change. Invoke only as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude when a CTO contract names it; return evidence without modifying, fixing, committing, integrating, or pushing.
 ---
 
 # Paseo reviewer
@@ -10,10 +10,10 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
 
 1. Read the [Review gate](../paseo-cto/references/review-gate.md), project instructions,
    specification, acceptance, and domain skills named by the task. The named skill list is a floor,
-   not a ceiling: survey the skills the project makes available, and
-   additionally load every one whose subject the change touches directly or indirectly — the
-   conventions of a changed area, and of an area the change reaches into. Their rules are part of
-   the review standard, and a violation is a finding like any other. Read nothing further.
+   not a ceiling: survey the skills the project makes available and additionally load every one
+   whose subject the change touches directly or indirectly — the conventions of a changed area, and
+   of an area the change reaches into. Their rules are part of the review standard, and a violation
+   is a finding like any other. Read nothing further.
 2. Record `git status --porcelain`, verify the final reviewed revision range and ancestry, and
    inspect the actual complete diff; summaries are not evidence.
 3. Inventory final-tree evidence before running commands. Apply the risk-specific responsibilities

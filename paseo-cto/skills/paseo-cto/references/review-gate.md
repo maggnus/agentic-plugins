@@ -1,7 +1,7 @@
 # CTO review gate
 
-Read this file when a delegated write returns, before repository integration, external-design
-acceptance, and any push. A project may define stricter gates; it must not define a weaker floor.
+Read this file when a delegated write returns, before repository integration and any push. A project
+may define stricter gates; it must not define a weaker floor.
 
 ## Risk classification
 
@@ -57,25 +57,24 @@ selected executable falsifier or fault-injection proof must challenge the threat
 reviewer may own that proof; no separate falsifier role is required. A maintained negative or
 conformance suite counts only when it demonstrably distinguishes the defect.
 
-## Bounded author response
+## The author's bounded response round
 
-Give the originating agent one bounded evidence-based response only when there is a blocker or major
-finding, a proposed return, a disputed scope or contract, or a semantic CTO integration edit. The
-agent may agree, partly agree, or defend each disputed finding with specification, code, tests,
-measurements, or a reproducible counterexample. Agreement is not an acceptance gate. Clean
-acceptance and Routine second looks require no author response.
+Grant the originating agent one bounded, evidence-based round of response only when there is a
+blocker or major finding, a proposed return, a disputed scope or contract, or a semantic CTO
+integration edit. In that round the agent may agree, partly agree, or defend each disputed finding
+with specification, code, tests, measurements, or a reproducible counterexample. Agreement is not an
+acceptance gate. Clean acceptance and Routine second looks require no response round at all.
 
-The agent must not edit, recommit, or widen scope during the response unless rework is explicitly
+The agent must not edit, recommit, or widen scope during the round unless rework is explicitly
 authorized. Resolve every defense on evidence and withdraw or reclassify disproved findings. A new
-adverse finding discovered during the response receives its own bounded response before final
-authorization. Agent silence is recorded but does not create agreement or automatically block an
-otherwise evidence-supported decision.
+adverse finding discovered during the round earns its own bounded round before final authorization.
+Agent silence is recorded but does not create agreement or automatically block an otherwise
+evidence-supported decision.
 
 Choose return versus CTO repair by severity, blast radius, depth, hot context, correction size,
 acceptance cost, and collision risk. A CTO fix is small, obvious, bounded, separately visible,
 rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work when
-author continuity helps. Do not apply a CTO fix directly to an external design; return it with an
-exact rework contract.
+author continuity helps.
 
 ## Integration delta
 
@@ -91,13 +90,11 @@ Patch identity is optional provenance metadata, never an acceptance criterion. I
 in `<upstream>..HEAD` before push. Do not repeat a leaf suite whose reviewed tree and dependency
 surface remain unchanged; follow [Validation budget](validation-budget.md).
 
-## Durable and external evidence
+## Durable evidence
 
-- Preserve archive-worthy evidence through Git, an approved artifact store, an exact external
-  object/version reference, CI, runtime state, or a concise durable authorization record.
+- Preserve archive-worthy evidence through Git, an approved artifact store, CI, runtime state, or a
+  concise durable authorization record.
 - Prove generated or deployed artifact ancestry and serialize live changes against evidence runs.
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
-- For accepted external design, verify the returned version still matches reviewed read-back and
-  render, and require byte-identical pre/post repository state.
 - Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema
   operations, and irreversible actions remain separate explicit owner/project gates.

@@ -1,6 +1,6 @@
 # Validation budget
 
-Read this file before assigning acceptance commands and before any reviewer, lead, or CTO rerun.
+Read this file before assigning acceptance commands and before any reviewer or CTO rerun.
 Treat validation time as part of the critical path. The goal is decisive evidence with no duplicate
 reassurance.
 
@@ -20,7 +20,7 @@ Assign every command or proof to one primary role:
 | Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces. |
 | Routine second look | The inspection assigned by the Review gate. |
 | Reviewer | Independent inspection and any falsifier assigned by the Review gate. |
-| Lead / CTO | Final-range ancestry, integration-delta review, collision resolution, and checks invalidated by composition. |
+| CTO | Final-range ancestry, integration-delta review, collision resolution, and checks invalidated by composition. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
 
 Do not copy the same green command set across roles. After verifying the exact commit, command,

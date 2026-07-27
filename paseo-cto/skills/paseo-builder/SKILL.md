@@ -1,6 +1,6 @@
 ---
 name: paseo-builder
-description: Implement one bounded Paseo CTO atom. Invoke only as `$paseo-cto:paseo-builder` in Codex or `/paseo-cto:paseo-builder` in Claude when a CTO or lead contract names it; stay in the write zone, prove acceptance, commit locally, and never push or manage agents.
+description: Implement one bounded Paseo CTO atom. Invoke only as `$paseo-cto:paseo-builder` in Codex or `/paseo-cto:paseo-builder` in Claude when a CTO contract names it; stay in the write zone, prove acceptance, commit locally, and never push or manage agents.
 ---
 
 # Paseo builder
@@ -34,7 +34,6 @@ Return under 2500 characters unless preserving a systemic finding: `done|blocked
 concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
 disputes, proposed plan children, and durable artifact locations.
 
-After return, remain available until final authorization or archival. Follow the bounded
-author-response conditions from the
-[Review gate](../paseo-cto/references/review-gate.md) without restating them. Do not edit, recommit,
-or begin rework unless an explicit follow-up contract authorizes it.
+After return, remain available until final authorization or archival. Follow the response-round
+conditions from the [Review gate](../paseo-cto/references/review-gate.md) without restating them. Do
+not edit, recommit, or begin rework unless an explicit follow-up contract authorizes it.

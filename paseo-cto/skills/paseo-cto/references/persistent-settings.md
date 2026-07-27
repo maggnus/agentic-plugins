@@ -28,7 +28,7 @@ The minimum schema is:
   "charter": {
     "strategy": "alpha",
     "gptModel": "codex/gpt-5.6-sol",
-    "claudeModel": "claude/claude-opus-4-8[1m]",
+    "claudeModel": "claude/claude-opus-5[1m]",
     "reasoningPolicy": "xhigh",
     "permissionPolicy": "full-access-writers",
     "fleetBudget": "conservative",

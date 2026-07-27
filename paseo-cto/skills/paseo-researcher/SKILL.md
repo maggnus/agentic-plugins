@@ -1,6 +1,6 @@
 ---
 name: paseo-researcher
-description: Investigate one bounded Paseo question. Invoke only as `$paseo-cto:paseo-researcher` in Codex or `/paseo-cto:paseo-researcher` in Claude when a CTO or lead contract names it; remain read-only and return compact, sourced evidence.
+description: Investigate one bounded Paseo question. Invoke only as `$paseo-cto:paseo-researcher` in Codex or `/paseo-cto:paseo-researcher` in Claude when a CTO contract names it; remain read-only and return compact, sourced evidence.
 ---
 
 # Paseo researcher
