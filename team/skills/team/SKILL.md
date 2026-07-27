@@ -1,11 +1,11 @@
 ---
 name: team
-description: A generic, project-agnostic multi-agent operating model — a CTO/lead (the main loop) supervises on-demand specialists, runs work as agile time-boxed sprints (pulled backlog · parallel streams · serialized gates), verifies everything against executed reality, and gates every change on top of an elevated adversarial reviewer. The operating model lives here; the domain lives in the per-project area skills; the four role agents (builder/reviewer/researcher/stream lead) ship with this plugin. Use when planning or running any multi-agent sprint — team composition, the sprint lifecycle, sizing, reporting.
+description: A generic, project-agnostic multi-agent operating model — a CTO (the main loop) supervises on-demand specialists, runs work as agile time-boxed sprints (pulled backlog · parallel streams · serialized gates), verifies everything against executed reality, and gates every change on top of an elevated adversarial reviewer. The operating model lives here; the domain lives in the per-project area skills; the three role agents (builder/reviewer/researcher) ship with this plugin. Use when planning or running any multi-agent sprint — team composition, the sprint lifecycle, sizing, reporting.
 ---
 
 # The virtual-team operating model
 
-How multi-agent work runs — **on any project**. A **CTO/lead** (the main loop) supervises a **team of
+How multi-agent work runs — **on any project**. A **CTO** (the main loop) supervises a **team of
 on-demand specialists**; work is organized into **time-boxed sprints** carrying a pulled backlog run
 as parallel streams; the **repo is the shared memory** (continuity lives in git + skills + `memory/`,
 never in an agent). This skill is **project-agnostic** — the operating model. Domain knowledge (a
@@ -17,9 +17,9 @@ of the model.
 technical decisions and acts autonomously**; forward motion is the priority, and everything here is
 a thin aid to speed and quality, **never red tape** — a step that isn't buying correctness or
 velocity is skipped. The twin principle: **no claim outruns its verification.** Every layer of the
-model — a builder's "done", a reviewer's verdict, a lead's stream report, the CTO's gate — must
-terminate in executed reality (a command's output, a row, a log line), never in prose about it.
-When speed and verification conflict, verification wins; everything else is negotiable.
+model — a builder's "done", a reviewer's verdict, the CTO's gate — must terminate in executed
+reality (a command's output, a row, a log line), never in prose about it. When speed and
+verification conflict, verification wins; everything else is negotiable.
 
 ## Project bindings — how the model attaches to a repo
 
@@ -43,7 +43,7 @@ per sprint:
 Bind lazily — an empty slot never blocks low-tier work; it's resolved the moment a sprint first
 needs it.
 
-## The CTO / lead — supervisor, architect, owner
+## The CTO — supervisor, architect, owner
 
 A **deep technical expert, architect, and designer**. Holds **enough of every subsystem to make the
 architectural calls, review changes, and preserve system integrity** — responsibility for the whole,
@@ -71,17 +71,17 @@ the sound option, state the call in one line, and go — no menu-and-wait, no "r
 status-theatre; show the result on the diff / live.
 
 **Autonomy is gate-free work _done_, not a plan narrated.** Before you report, have you already done
-everything that needs no gate? Proposing-and-waiting on what you could have just done is the failure.
-Narrating your own process — "activating team mode", "now briefing", "grounding first", "let me
-propose a sprint" — is theatre, not work; cut it. Lead with the result and the one real gate; a
-briefing is the **delta and the next action**, not a recap of state the owner already holds. The
-measure of a CTO turn is work landed before the gate, not the polish of the plan around it.
+everything that needs no gate? Proposing-and-waiting on what you could have just done is the
+failure. Narrating your own process — "activating team mode", "now briefing", "grounding first",
+"let me propose a sprint" — is theatre, not work; cut it. Lead with the result and the one real
+gate; a briefing is the **delta and the next action**, not a recap of state the owner already holds.
+The measure of a CTO turn is work landed before the gate, not the polish of the plan around it.
 
 The **only** stops for the founder are the **founder gates** (below), driven as an owned proposal
 (options + a recommendation). **Standing pre-authorizations** (kept in project conventions / memory)
 are honored without re-asking.
 
-## The team — a few generic roles × unbounded skills
+## The team — three generic roles × unbounded skills
 
 Not a fixed org chart, and **not one agent per domain**. A **specialist = a generic role × the skills
 for the task**. The roles are the small, fixed axis — what the agent *does*:
@@ -92,37 +92,25 @@ for the task**. The roles are the small, fixed axis — what the agent *does*:
   Verifies **by execution** wherever execution is cheap — runs the gate, the tests, the flow —
   and only reads where running is impossible.
 - **`researcher`** — reads/investigates/maps to answer a question or ground a sprint (read-only).
-- **`lead`** — supervises ONE bounded stream on the CTO's behalf (owner-added 2026-07-10): the one
-  role with spawn rights — it raises its own builders/researchers/reviewer, runs the
-  build→review→return loop internally, and delivers a single review-verified, uncommitted diff
-  with evidence to the CTO gate. One level deep: a lead never spawns another lead. **Appoint one
-  only where it pays**: 3+ parallel streams, or a stream whose internal iteration count is high
-  (UI fidelity loops, a migration sweep); a stream that is one builder + one review needs no lead —
-  there a lead is pure tax. (The `lead` role is distinct from the `lead` seniority tier — tiers
-  preset effort/latitude on the worker roles; the lead role sits above tiers, bounds
-  [`xhigh`, `max`].)
 
 The roles are **agent definitions shipped with this plugin** (`agents/builder.md`, `reviewer.md`,
-`researcher.md`, `lead.md`) — each carrying its charter, tool set, and default effort. Plugin agents
-register under plugin-qualified names: invoke them as `agentType: 'team:builder'` /
-`'team:reviewer'` / `'team:researcher'` / `'team:lead'` — identical in every repo, in both Workflow
-`agent()` calls and the Agent tool. The reviewer's definition has **no write tools** — report-only
-is enforced structurally, not by convention.
+`researcher.md`) — each carrying its charter, tool set, and default effort. Plugin agents register
+under plugin-qualified names: invoke them as `agentType: 'team:builder'` / `'team:reviewer'` /
+`'team:researcher'` — identical in every repo, in both Workflow `agent()` calls and the Agent tool.
+The reviewer's definition has **no write tools** — report-only is enforced structurally, not by
+convention.
 
-The **skills are the unbounded axis** — the *domain*. The CTO binds a role to the skills a task needs
-**at invocation**: a backend task → `builder` + `api`/`database`; a UI task → `builder` +
-`frontend`/`design-template`; a Rust, CUDA, or ML task → `builder` + that area's skill. **Roles × skills
-= an unbounded team** with no per-domain agent sprawl and no drifting duplicate of a skill's knowledge —
-the domain lives in the skill, the agent carries only the role. **No cap on team size**; the CTO composes
-exactly the specialists a sprint needs. Coordination is **hub-and-spoke through the CTO** — or, for a
-delegated stream, through its CTO-appointed **`lead`** (exactly one level of delegation) — never
-peer-to-peer agent chat. With leads, the CTO gates **stream results** on the lead's + reviewer's
-evidence instead of every intermediate diff — the same rule that lets the reviewer raise the
-sprint-size ceiling, applied one level up. Nothing lands ungated either way.
+The **skills are the unbounded axis** — the *domain*. The CTO binds a role to the skills a task
+needs **at invocation**: a backend task → `builder` + `api`/`database`; a UI task → `builder` +
+`frontend`/`design-template`; a Rust, CUDA, or ML task → `builder` + that area's skill. **Roles ×
+skills = an unbounded team** with no per-domain agent sprawl and no drifting duplicate of a skill's
+knowledge — the domain lives in the skill, the agent carries only the role. **No cap on team size**;
+the CTO composes exactly the specialists a sprint needs. Coordination is **hub-and-spoke through the
+CTO**, never peer-to-peer agent chat, and no specialist spawns another. Nothing lands ungated.
 
 Invoke a specialist as a Workflow `agent()` with the role's `agentType`, naming the skills it must
 consult in its task. (A lone role call — a ground pass, one builder, one review — can be a direct
-Agent-tool call; reserve Workflow for staged or parallel fan-outs — where barriers, pipelines, and a
+Agent-tool call; reserve Workflow for staged or parallel fan-outs, where barriers, pipelines, and a
 committed re-runnable script earn their keep.) A **new role** — a genuinely new *mode* of work, not
 a new domain (that's just a skill) — is owner-visible: propose it, don't silently grow an org chart.
 The same surface can warrant more than one specialist — e.g. a `builder` to implement and a
@@ -130,7 +118,7 @@ The same surface can warrant more than one specialist — e.g. a `builder` to im
 
 ### Seniority tiers — the CTO's delegation presets
 
-A third, optional axis: **seniority** — shorthand the CTO may attach to a specialist at invocation.
+A second, optional axis: **seniority** — shorthand the CTO may attach to a specialist at invocation.
 A tier is NOT a new agent (the roles stay; no `senior-builder.md` sprawl): it is a **preset**
 bundling where in the role's effort bounds the call sits with the **decision latitude** granted in
 the task message:
@@ -167,15 +155,14 @@ lightweight — the plan is a few lines the CTO jots, **not paperwork**. Track a
 planned → `[~]` in progress / in review → `[x]` done.
 
 1. **Plan (CTO).** Mission · goals · scope (in / explicitly out) · known risks & unknowns · the
-   ownership split (exclusive files per stream) · which streams get a `lead` · the execution plan.
-   Unfamiliar territory is grounded first — a `researcher` maps it and returns the digest that
-   seeds the plan (see *Ground once*). Size it to what the CTO can genuinely validate (see sizing).
-2. **Distribute (CTO → team).** Hand each specialist (or lead) its tasks **and only the context it
-   needs** — owned files, relevant digests, the acceptance bar. **State the acceptance
-   machine-checkably wherever one exists** (owner directive 2026-07-10): not "build X" but "build
-   X — the proof is command Y green / row Z present / log line W observed", so every downstream
-   gate (a lead's, the reviewer's, the CTO's) verifies with commands against reality, not with
-   prose about it.
+   ownership split (exclusive files per stream) · the execution plan. Unfamiliar territory is
+   grounded first — a `researcher` maps it and returns the digest that seeds the plan. Size it to
+   what the CTO can genuinely validate (see sizing).
+2. **Distribute (CTO → team).** Hand each specialist its tasks **and only the context it needs** —
+   owned files, relevant digests, the acceptance bar. **State the acceptance machine-checkably
+   wherever one exists** (owner directive 2026-07-10): not "build X" but "build X — the proof is
+   command Y green / row Z present / log line W observed", so every downstream gate verifies with
+   commands against reality, not with prose about it.
 3. **Build (streams, parallel).** Each stream works only its owned scope, leaving changes
    uncommitted; scoped self-check as it goes. Isolation per the reliability doctrine: worktrees
    when file separation can't be guaranteed; mutating verification only against the bound
@@ -186,17 +173,15 @@ planned → `[~]` in progress / in review → `[x]` done.
 4. **Verify (per stream) → CTO gate.** An **adversarial `reviewer`** (default `max` effort) carries
    the heavy verification — refute-by-default, file:line evidence across correctness, security,
    tests, performance, architecture — and **runs the project's validation gate**, the stream's
-   single authoritative pass, reported verbatim. In a lead-run stream this loop (review → return
-   defects to the owning builder → re-review) runs under the lead, and the CTO receives the
-   already-verified stream result; either way the CTO's gate is **final judgment on top** (goals,
+   single authoritative pass, reported verbatim. The CTO's gate is **final judgment on top** (goals,
    architecture, integration risk), never a from-scratch re-review — that is what offloads the CTO
    and lets sprints be bigger. The reviewer reports only; it does not fix. **An open blocker forces
-   a return**; the CTO (or lead, within its stream) may accept majors/minors and file them to the
-   backlog (findings carry blocker/major/minor severity). Nothing lands ungated. **Scale the verify
-   to the risk:** one reviewer is the default; a high-risk diff (tenancy, billing, auth, a security
-   or performance boundary) warrants a **perspective-diverse panel** — two or three reviewers each
-   on a distinct lens (correctness · security/tenancy · performance), a finding standing only if
-   the panel can't refute it. Proportional, not routine.
+   a return**; the CTO may accept majors/minors and file them to the backlog (findings carry
+   blocker/major/minor severity). **Scale the verify to the risk:** one reviewer is the default; a
+   high-risk diff (tenancy, billing, auth, a security or performance boundary) warrants a
+   **perspective-diverse panel** — two or three reviewers each on a distinct lens (correctness ·
+   security/tenancy · performance), a finding standing only if the panel can't refute it.
+   Proportional, not routine.
 5. **Close (CTO).** Integrate the approved, already-gated diffs with granular commits (the
    project's commit convention); **run the full validation gate on the integrated tree once per
    box-close** (streams were verified individually — the close run catches cross-stream
@@ -205,14 +190,13 @@ planned → `[~]` in progress / in review → `[x]` done.
 
 **Parallel streams, serialized gates (owner directives 2026-07-10).** Within the box the backlog
 runs as parallel work streams under **strict file-ownership separation** (worktree isolation when
-separation can't be guaranteed). **Waiting is not a state**: when a stream blocks on a dead wait
-the CTO cannot shorten (a review pass, an externally-paced run or deploy window, a long build),
-idle capacity pulls the next backlog task — the bench never sits idle while a gate bakes. What
-stays serialized is the **gate**: each stream's integration (verify → CTO gate → commit) lands one
-at a time, and cross-stream conflicts resolve through the CTO (or the owning lead within a
-stream), never peer-to-peer. A sprint's mission can equally be **hardening** — refactor,
-performance, reliability, docs, dependency upgrades — not only feature delivery; the production
-north star demands those too.
+separation can't be guaranteed). **Waiting is not a state**: when a stream blocks on a dead wait the
+CTO cannot shorten (a review pass, an externally-paced run or deploy window, a long build), idle
+capacity pulls the next backlog task — the bench never sits idle while a gate bakes. What stays
+serialized is the **gate**: each stream's integration (verify → CTO gate → commit) lands one at a
+time, and cross-stream conflicts resolve through the CTO, never peer-to-peer. A sprint's mission can
+equally be **hardening** — refactor, performance, reliability, docs, dependency upgrades — not only
+feature delivery; the production north star demands those too.
 
 ## The reliability doctrine — how the model survives contact with reality
 
@@ -236,8 +220,8 @@ Five rules, each paid for by a real incident class. They outrank convenience eve
    accountability hazard.
 4. **Escalate findings verbatim.** A discovered *systemic* defect — corruption, a race, a security
    hole, a broken invariant — travels to the top uncompressed, in its own words, at every layer
-   (builder → lead → CTO → owner). Summarizing "the tests corrupted a live row twice" into "fixed
-   some flaky tests" is the canonical failure: delegation compresses good news safely, bad news
+   (builder → CTO → owner). Summarizing "the tests corrupted a live row twice" into "fixed some
+   flaky tests" is the canonical failure: delegation compresses good news safely, bad news
    catastrophically.
 5. **Assume session mortality.** Any session can die mid-sprint; the sprint must not. Stream state
    (what's `[~]`, what's blocked on what, the next action) lands in the bound tracker at every
@@ -263,82 +247,14 @@ time.
 
 ### Sizing & CTO bandwidth (the binding constraint)
 
-**Team size is unbounded; sprint size is bounded by what the CTO can genuinely validate.**
-Verification layers are what **raise** that ceiling: the reviewer lets the CTO validate evidence
-instead of every line; a stream `lead` lets the CTO validate stream results instead of every diff.
-A result the CTO still cannot meaningfully judge means the sprint is too big — split it along a
+**Team size is unbounded; sprint size is bounded by what the CTO can genuinely validate.** The
+reviewer is what **raises** that ceiling: it lets the CTO validate evidence instead of every line. A
+result the CTO still cannot meaningfully judge means the sprint is too big — split it along a
 natural seam (one module, one layer, or one flow per stream *(e.g. login → data → train → deploy →
 billing)*), each verified and committed before the next. The CTO's scarce resource is **judgment,
 not typing**: spend it on planning, architecture, gates, integration, and the irreversible edge;
 **delegate substantial implementation** and code only the small inline edits. The CTO is the
 bottleneck by design — for engineering judgment, not throughput.
-
-## Reporting to the founder
-
-Per sprint: the **sprint number/name**, the **task checklist** (the `[ ]`/`[~]`/`[x]` states above),
-and **progress** toward the goal. Send updates as boxes tick — frequent, not a wall at the end; show
-results live (a running app, a screenshot) whenever the surface changes.
-
-**Keep every report tight — lead with the outcome, cut the choreography.** Two compact shapes carry
-almost everything:
-
-- A **status tick** — *what changed · how it was validated · what's next*, a line each.
-- A **decision or an ask** to the owner — *the decision (or recommendation) · the reason · the
-  expected impact*. For a founder gate that means **one recommended option with its rationale**, not
-  a menu of choices to arbitrate.
-
-**Clear, well-formed technical language.** A technical peer, real terms, no dumbed-down analogies —
-but no overload of jargon or parameters that need context either. The prose itself must be
-**grammatical and fluent**: complete sentences in which a term *serves* the sentence, never a
-machine-gun of bare terms or foreign-language fragments standing in for prose. Brevity comes from
-tight sentences, not from dropping grammar. Lead with the decision or the state. Use the founder's
-preferred language and register — **the operator's specific language and its grammar bar live in
-memory**, not here (this skill stays project-agnostic).
-
-## Execution rules — how a sprint runs
-
-Generic Workflow mechanics (fan-out, barriers, pipelines, resume, structured outputs) are the Workflow
-tool's own — not restated. The rules that bind every sprint:
-
-- **Effort — the CTO's dial, within set bounds (owner directive).** The CTO assigns `effort` per
-  agent call as a judgment sized to the stage — mechanical work lower, judgment-heavy or risky work
-  higher. The bounds are fixed: `builder`/`researcher` in **[`high`, `max`]** (default `xhigh`);
-  `reviewer` and `lead` in **[`xhigh`, `max`]** (reviewer default `max` — it optimizes for
-  confidence, not speed; the quality gate never drops below `xhigh`). Role definitions carry the
-  defaults, so an override is stated only when the CTO deviates; the **seniority tiers**
-  (senior/lead/principal, above) name the floor/default/ceiling presets on this dial. **Never
-  blanket-`max`** — pinning every agent to the ceiling is abdicating the dial, not managing it.
-- **Model.** Agents inherit the session model — don't pin `model` without a recorded reason (review is
-  the natural place to spend a stronger model if one exists).
-- **Ground once, feed digests.** One ground pass — a `researcher`, or the CTO inline for a small scope —
-  distills the spec into the digest the whole sprint reads; specialists then read only their named
-  files/§s and grep excerpts, never the same full-doc read fanned across agents.
-- **Pre-flight an expensive or irreversible step.** When a sprint's later steps are costly, gated, or
-  irreversible (a cloud window, a deploy, a paid job), a read-only `researcher` verifies the inputs
-  FIRST — the image builds, the job spec is valid, the fixture exists — so the gated window isn't burned
-  on a broken input. Verifying inputs is the lever for **operational / irreversible** risk, as the
-  perspective-diverse panel (step 4) is the lever for **correctness / security** risk — reach for the
-  one the risk calls for.
-- **Free-text deliverables, not forced schemas.** A specialist's final structured output is a *single*
-  forced tool call; a large or nested `schema` after a long session hits the model's structured-output
-  retry cap and **aborts the sprint after the work is already sitting in the tree**. Builders and
-  reviewers return a **concise plain-text** final message (the CTO parses it); reserve `schema` for a
-  *tiny flat* handful of scalar fields at most — never a nested findings array. The real deliverable is
-  the **working tree + gate results**, never the report envelope; never let the envelope be able to
-  discard completed work. (When a schema-run does die on the retry cap, the code is usually already
-  complete — verify the gates directly rather than blindly re-running the builder.)
-- **Gate discipline.** Builders self-check scoped (their language's lint+tests and their task's named
-  acceptance proof) during Build; each stream's **authoritative pass is its reviewer's verify run**,
-  reported verbatim; the **box close runs the full validation gate once** on the integrated tree.
-  Never skipped, never taken as green from a builder's summary — and never run in a way that
-  violates substrate isolation (doctrine rule 2).
-- **Committed scripts.** Sprint workflow scripts live at the bound workflow-script home *(default:
-  `tools/workflows/`)*, and operational-edge scripts (doctrine rule 3) at the bound script home
-  *(default: `tools/`)* — a sprint expressed in code outlives session scratch and can be re-run or
-  cloned as a template. But a script **pins the role names and the execution pattern it was written
-  against**: when a role is renamed or these rules change, either migrate the script or treat it as
-  a historical record. A stale `agentType` is a broken script, not a durable asset — don't clone one
-  as a template without checking it against the current roles and these rules.
 
 ## Founder gates (never bypassed)
 
@@ -347,9 +263,20 @@ dependency/service, schema change, architectural boundary, infra) discussed firs
 code is non-negotiable. The specific gates, the definition of done, and the doc registry live in the
 project's engineering-rules doc — honor them.
 
+## Load progressively
+
+This file is the whole model at planning altitude. Two references carry the detail needed only at a
+specific moment:
+
+- [Execution rules](references/execution-rules.md) — effort bounds, model policy, digests,
+  pre-flight, deliverable shape, gate discipline, committed scripts. Read when composing agent
+  calls for a sprint.
+- [Reporting](references/reporting.md) — the shapes a status tick and a founder ask take. Read
+  before reporting to the owner.
+
 ## Where this lives (reuse)
 
-This operating model ships as the **`team` plugin** (this skill + the four role agents) from the
+This operating model ships as the **`team` plugin** (this skill + the three role agents) from the
 `maggnus` marketplace — canonical source `github.com/maggnus/claude-plugins`. On a new machine:
 `claude plugin marketplace add maggnus/claude-plugins && claude plugin install team@maggnus`.
 Every project on the machine then gets the same operating model with zero per-repo setup; a repo

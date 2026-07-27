@@ -1,7 +1,7 @@
 {
   "name": "team",
-  "description": "Virtual-team operating model: a CTO/lead (the main loop) supervises on-demand specialists, runs work as agile time-boxed sprints (pulled backlog, parallel streams, serialized gates), and gates every change on top of an elevated adversarial reviewer. Ships the operating-model skill plus four role agents (builder / reviewer / researcher / stream lead).",
-  "version": "2.0.0",
+  "description": "Virtual-team operating model: a CTO (the main loop) supervises on-demand specialists, runs work as agile time-boxed sprints (pulled backlog, parallel streams, serialized gates), and gates every change on top of an elevated adversarial reviewer. Ships the operating-model skill plus three role agents (builder / reviewer / researcher).",
+  "version": "3.0.0",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
