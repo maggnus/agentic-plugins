@@ -8,18 +8,18 @@ description: Independently review one Paseo change. Invoke only as `$paseo-cto:p
 Before any repository read or write, require the assignment's first line to invoke this exact
 qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
 
-1. Read the project instructions, specification, acceptance, and domain skills named by the task.
-   That list is a floor, not a ceiling: survey the skills the project makes available, and
+1. Read the [Review gate](../paseo-cto/references/review-gate.md), project instructions,
+   specification, acceptance, and domain skills named by the task. The named skill list is a floor,
+   not a ceiling: survey the skills the project makes available, and
    additionally load every one whose subject the change touches directly or indirectly — the
    conventions of a changed area, and of an area the change reaches into. Their rules are part of
    the review standard, and a violation is a finding like any other. Read nothing further.
 2. Record `git status --porcelain`, verify the final reviewed revision range and ancestry, and
    inspect the actual complete diff; summaries are not evidence.
-3. Inventory final-tree evidence before running commands. Try proportionately to refute
-   correctness, contract compliance, tests, security, data integrity, performance, architecture,
-   and integration behavior through the diff and static inspection. For Significant work, add a
-   falsifier only for a concrete risk hypothesis. For Critical work, independently select at least
-   one executable falsifier or fault-injection proof against the threatened invariant.
+3. Inventory final-tree evidence before running commands. Apply the risk-specific responsibilities
+   from the Review gate. Try proportionately to refute correctness, contract compliance, tests,
+   security, data integrity, performance, architecture, and integration behavior through the diff
+   and static inspection.
 4. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
    to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
    hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is

@@ -18,8 +18,8 @@ Assign every command or proof to one primary role:
 | Role | Default responsibility |
 | --- | --- |
 | Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces. |
-| Routine second look | Non-author inspection of the complete final diff, scope, and acceptance evidence. |
-| Reviewer | Independent Significant/Critical inspection; a falsifier for a concrete Significant hypothesis or every Critical invariant. |
+| Routine second look | The inspection assigned by the Review gate. |
+| Reviewer | Independent inspection and any falsifier assigned by the Review gate. |
 | Lead / CTO | Final-range ancestry, integration-delta review, collision resolution, and checks invalidated by composition. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
 
@@ -52,10 +52,9 @@ running every unrelated suite.
 
 ## Contract and review behavior
 
-Write one `Validation budget` line in every repository assignment. Name builder-owned commands,
-the risk-required second look or independent review, any hypothesis-bound falsifier, integration
-checks, and the exact full-suite trigger. If the contract lists a full suite, state why the trigger
-applies.
+Write one `Validation budget` line in every repository assignment. Name builder-owned commands, the
+Review-gate owner and proof, integration checks, and the exact full-suite trigger. If the contract
+lists a full suite, state why the trigger applies.
 
 When a returned result is green, reviewers and the CTO first inspect its exact evidence. Rerun only
 what changed during integration or what a concrete review hypothesis challenges. Record unrun

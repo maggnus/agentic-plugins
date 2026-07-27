@@ -34,9 +34,7 @@ Return under 2500 characters unless preserving a systemic finding: `done|blocked
 concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
 disputes, proposed plan children, and durable artifact locations.
 
-After return, remain available until final authorization or archival. Respond once when the CTO or
-lead requests the bounded author response defined by the Review gate: a blocker/major finding,
-proposed return, disputed scope/contract, or semantic integration edit. Address the affected
-findings with agreement, partial agreement, or an evidence-based defense. Do not edit, recommit, or
-begin rework unless an explicit follow-up contract authorizes it. Clean acceptance and Routine
-second looks require no response.
+After return, remain available until final authorization or archival. Follow the bounded
+author-response conditions from the
+[Review gate](../paseo-cto/references/review-gate.md) without restating them. Do not edit, recommit,
+or begin rework unless an explicit follow-up contract authorizes it.

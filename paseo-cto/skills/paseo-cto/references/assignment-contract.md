@@ -14,10 +14,11 @@ Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, negative cases, durable artifacts>
 Validation budget: <builder-owned checks; review depth; hypothesis-bound falsifier if any; integration checks; exact full-suite trigger>
+Review: <apply Review gate for the declared risk; name only the non-author second-look/review owner>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push; for Claude Designer use "none" and require exact external result evidence
 Return: <final range or external design result, concise diff, real checks, Git state, blockers/disputes, proposed children>
-Author response: <only if triggered by blocker/major, proposed return, disputed scope/contract, or semantic integration edit; evidence-based and no changes without rework authorization>
+Author response: <only when triggered by Review gate; evidence-based and no changes without rework authorization>
 ```
 
 Use `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:paseo-<role>` in Claude. Include the
@@ -32,11 +33,9 @@ coherent, reviewable outcome and acceptance story. Split work before dispatch wh
 independent outcomes, risk levels, acceptance stories, owners, or landing value. A cross-zone need
 is a blocker or proposed child, never implicit scope expansion.
 
-Risk and review semantics live only in [Review gate](review-gate.md). Do not redefine them in an
-assignment or infer Critical from a subsystem name. Routine receives a non-author integrator/CTO
-second look; Significant receives independent review; Critical receives independent review plus an
-independently selected executable falsifier. A Significant card adds a falsifier only for a concrete
-risk hypothesis.
+Risk classification, review depth, landing decisions, falsifiers, and author-response conditions
+live only in [Review gate](review-gate.md). Apply that file by reference; do not restate or override
+it in an assignment.
 
 The CTO strategy selects the atom but does not weaken acceptance. Every repository writer has its
 own workspace; a Claude Designer has a separate Claude session and exclusive Claude Design

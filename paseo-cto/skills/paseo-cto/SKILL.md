@@ -85,17 +85,11 @@ Treat time and distance to the next usable release as engineering constraints.
    see where the project is at any moment. Treat chat as a delta stream: report only new evidence,
    changed decisions, blockers, readiness, or next actions since the last message; never restate
    unchanged meaning. Emit the complete fixed render only for an explicit status request.
-5. **Review and authorize.** Apply the risk gate to every returned write. Routine work receives a
-   mandatory non-author integrator/CTO second look over the complete final diff and evidence.
-   Significant work receives independent review; add a falsifier only for a concrete risk
-   hypothesis. Critical work is defined by credible consequences to product invariants, not by
-   subsystem, and receives independent review plus an independently selected executable falsifier.
-   Numerical scores are not used. Give the author a bounded evidence-based response only for a
-   blocker/major finding, proposed return, disputed contract/scope, or semantic CTO integration edit;
-   agreement is never an acceptance gate. Integrate repository writes only after `ACCEPT` or
-   `ACCEPT WITH CTO FIX` into a clean tree, review the integration delta, rerun invalidated checks,
-   and commit plan truth. For external design writes, verify exact returned versions, read-back,
-   render reference,
+5. **Review and authorize.** Read and apply the [Review gate](references/review-gate.md) to every
+   returned write; it is the sole plugin authority for risk classification, review depth, landing
+   decisions, falsifiers, integration delta, and bounded author response. Integrate repository writes
+   only after its acceptance gate into a clean tree, rerun invalidated checks, and commit plan truth.
+   For external design writes, verify exact returned versions, read-back, render reference,
    and repository non-mutation before recording the authorization and plan truth. Treat an external
    design action as having occurred only after the originating Claude Code worker explicitly confirms
    the post-action observed UI evidence for the exact project and target (completed-response

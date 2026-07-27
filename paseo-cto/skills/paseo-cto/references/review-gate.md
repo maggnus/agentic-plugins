@@ -17,10 +17,11 @@ or implementation mechanism:
   completion, public compatibility, or the safety of an irreversible action.
 
 Auth, protocol, migration, storage, deployment, and similar surfaces trigger an explicit
-classification check; they do not automatically make a card Critical. Uncertainty raises the card
-by one level. Crossing subsystems, changing shared components, dependencies, build/test
-infrastructure, or requiring manual integration raises it to at least Significant unless the diff
-and consequences are mechanically bounded.
+classification check; they do not automatically make a card Critical. Uncertainty prevents a
+Routine classification but never creates Critical by itself; Critical always requires a credible
+threat to a named critical invariant. Crossing subsystems, changing shared components, dependencies,
+build/test infrastructure, or requiring manual integration raises a card to at least Significant
+unless the diff and consequences are mechanically bounded.
 
 ## Common evidence floor
 
@@ -40,7 +41,7 @@ Numerical scores are not used.
 ### Routine
 
 A non-author integrator or CTO performs a mandatory second look over the complete final diff, scope,
-and final-revision acceptance evidence and returns `PASS` or `RETURN`. This is not a formal
+and final-revision acceptance evidence and returns `ACCEPT` or `RETURN`. This is not a formal
 independent review. It requires no separate reviewer, falsifier, author response, or score.
 
 ### Significant

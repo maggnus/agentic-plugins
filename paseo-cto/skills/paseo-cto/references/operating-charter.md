@@ -51,15 +51,9 @@ CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer ma
    count toward `max_live`.
 7. **Autonomy horizon** — `until-gate` (continue safe ready work to completion or a founder/external
    gate), `one-wave` (finish the current wave and stop cleanly), or `named-scope` (only named nodes).
-8. **Independent review depth** — `risk-based` is the minimum: Routine gets a mandatory non-author
-   integrator/CTO second look, Significant gets independent review, and Critical gets independent
-   review plus an independently selected executable falsifier. `every-write` may strengthen this
-   by assigning a formal independent reviewer to Routine work. No charter choice may reduce the
-   risk-based floor.
-
-Risk is determined by the credible consequence of a defect. Auth, protocol, migration, storage,
-deployment, and similar subsystem names trigger classification review but never determine Critical
-automatically.
+8. **Independent review depth** — `risk-based` applies the complete floor from
+   [Review gate](review-gate.md). `every-write` may strengthen it by assigning a formal independent
+   reviewer to Routine work. No charter choice may reduce or redefine the risk-based floor.
 
 These are standing rules, not choices: every delegated write receives at least the required
 non-author second look; one 15-minute heartbeat runs while work remains; repository writers commit
