@@ -102,8 +102,8 @@ and integration authority, including for lead-approved work.
 
 Route by dominant need: prefer GPT for mechanical implementation and structured diagnostics;
 Claude for product/architecture synthesis, UI judgment, qualitative research, and every Claude
-Designer assignment. Prefer an opposite-family independent reviewer; otherwise use a fresh session.
-Record material exceptions.
+Designer assignment. When the risk gate requires independent review, prefer an opposite-family
+reviewer; otherwise use a fresh session. Record material exceptions.
 
 ## Identity, labels, and ownership
 

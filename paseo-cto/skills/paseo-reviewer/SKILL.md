@@ -1,6 +1,6 @@
 ---
 name: paseo-reviewer
-description: Independently review one Paseo commit. Invoke only as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude when a CTO or lead contract names it; return evidence without modifying, fixing, committing, integrating, or pushing.
+description: Independently review one Paseo change. Invoke only as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude when a CTO or lead contract names it; return evidence without modifying, fixing, committing, integrating, or pushing.
 ---
 
 # Paseo reviewer
@@ -13,12 +13,13 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    additionally load every one whose subject the change touches directly or indirectly — the
    conventions of a changed area, and of an area the change reaches into. Their rules are part of
    the review standard, and a violation is a finding like any other. Read nothing further.
-2. Record `git status --porcelain`, verify the exact commit/ancestry, and inspect the actual diff;
-   summaries are not evidence.
-3. Inventory exact-commit evidence before running commands. Try proportionately to refute
+2. Record `git status --porcelain`, verify the final reviewed revision range and ancestry, and
+   inspect the actual complete diff; summaries are not evidence.
+3. Inventory final-tree evidence before running commands. Try proportionately to refute
    correctness, contract compliance, tests, security, data integrity, performance, architecture,
-   and integration behavior through the diff, static inspection, and the cheapest decisive
-   falsifiers.
+   and integration behavior through the diff and static inspection. For Significant work, add a
+   falsifier only for a concrete risk hypothesis. For Critical work, independently select at least
+   one executable falsifier or fault-injection proof against the threatened invariant.
 4. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
    to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
    hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is
@@ -33,7 +34,7 @@ never rely only on a disposable workspace path.
 
 Each finding needs `blocker|major|minor`, file/line or command evidence, failure scenario, and
 required correction. Drop ungrounded findings. Any open blocker means `RETURN`; otherwise choose by
-evidence. Do not assign a score—the CTO does.
+evidence. Do not assign a numerical score.
 
 Return under 2500 characters unless preserving a systemic finding:
 

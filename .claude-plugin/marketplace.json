@@ -13,7 +13,7 @@
     {
       "name": "paseo-cto",
       "source": "./paseo-cto",
-      "description": "Dual Claude/Codex CTO plugin for a long-running Paseo engineering organization. The CTO delegates by default — it dispatches isolated Paseo agents and reviews every write — over a living execution plan, dual-provider routing, mandatory scored CTO review, a durable always-current status render, recoverable state, safe cleanup, and 15-minute fleet reconciliation."
+      "description": "Dual Claude/Codex CTO plugin for a long-running Paseo engineering organization. The CTO delegates by default over a living execution plan, applies consequence-based risk review with a mandatory second look for every write, and maintains durable status, recoverable state, safe cleanup, and 15-minute fleet reconciliation."
     }
   ]
 }

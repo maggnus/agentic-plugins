@@ -1,6 +1,6 @@
 {
   "name": "paseo-cto",
-  "version": "2.5.4",
+  "version": "2.6.0+codex.20260727131015",
   "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates isolated engineering and Claude Design work, and integrates only evidence-reviewed results.",
   "author": {
     "name": "Maksim Korenev",
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Paseo CTO",
     "shortDescription": "Run a release-driven Paseo engineering organization",
-    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates isolated engineering and Claude Design work; and integrates only after scored review and evidence-based author response.",
+    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates isolated engineering and Claude Design work; and integrates only after consequence-based review and executable evidence.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [

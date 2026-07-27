@@ -15,13 +15,13 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    proposed plan children; do not widen scope.
 4. Obey the contract's validation budget. Run the builder-owned acceptance commands and preserve
    real exits and measurements. Prefer incremental builds and warm caches for small iterations. Do
-   not force a clean/no-cache build, expand into a full suite, or repeat already-green exact-commit
+   not force a clean/no-cache build, expand into a full suite, or repeat already-green final-tree
    evidence unless the contract names that gate, the change invalidates it, or a new falsifiable
    hypothesis requires it. Add scoped tests or documentation only when required by the contract or
    change.
-5. Inspect the diff, make the required local commit, and require empty `git status --porcelain`.
-   Remove only task-owned disposable files by exact path; never use broad clean commands. Never
-   push.
+5. Inspect the complete diff, create the coherent local commit set required by the contract, and
+   require empty `git status --porcelain`. One card means one outcome, not one commit. Remove only
+   task-owned disposable files by exact path; never use broad clean commands. Never push.
 
 Evidence needed after workspace archive must be committed, placed in the contract's durable artifact
 store, or included concisely in the return for the CTO checkpoint. Disposable logs belong only in an
@@ -34,8 +34,9 @@ Return under 2500 characters unless preserving a systemic finding: `done|blocked
 concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
 disputes, proposed plan children, and durable artifact locations.
 
-After return, remain available until final authorization. When the CTO or lead sends a preliminary
-review, respond once as `AGREE`, `PARTIAL`, or `DEFEND`, addressing every finding. A defense uses the
-existing specification, code, tests, measurements, or a reproducible counterexample. Do not edit,
-recommit, or begin rework unless an explicit follow-up contract authorizes it; silence is not
-agreement.
+After return, remain available until final authorization or archival. Respond once when the CTO or
+lead requests the bounded author response defined by the Review gate: a blocker/major finding,
+proposed return, disputed scope/contract, or semantic integration edit. Address the affected
+findings with agreement, partial agreement, or an evidence-based defense. Do not edit, recommit, or
+begin rework unless an explicit follow-up contract authorizes it. Clean acceptance and Routine
+second looks require no response.
