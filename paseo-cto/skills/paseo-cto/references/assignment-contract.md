@@ -12,6 +12,7 @@ Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, negative cases, durable artifacts>
+Validation budget: <builder-owned checks; reviewer-only falsifiers; CTO/lead integration checks; exact full-suite trigger>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <local shape/message/trailers>; never push; for Claude Designer use "none" and require exact external result evidence
 Return: <hash or external design result, concise diff, real checks, Git state, blockers/disputes, proposed children>
@@ -35,6 +36,11 @@ Every repository writer has its own workspace; a Claude Designer has a separate 
 exclusive Claude Design project/file zone. Parallel writers never share mutable paths or
 verification substrates. A cross-zone need is a blocker or proposed child, not implicit scope
 expansion.
+
+Assign each proof to exactly one role according to
+[Validation budget](validation-budget.md). Do not copy the same full command set into builder,
+reviewer, lead, and CTO responsibilities. Exact-commit green evidence remains valid until a changed
+tree, contradictory result, or concrete hypothesis invalidates it.
 
 ## Role additions
 

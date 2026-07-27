@@ -61,6 +61,10 @@ Treat time and distance to the next usable release as engineering constraints.
   trigger and advance the proving path.
 - Urgency changes scope and sequence, never safety or review floors. Cut optional breadth before
   correctness, and surface owner gates early instead of waiting around them.
+- Treat validation as a release budget, not repeated reassurance. Give every proof one primary
+  owner, reuse green evidence tied to the exact commit, and rerun a check only when composition
+  invalidated it or a new falsifiable hypothesis requires it. Full suites belong at explicit
+  release/wave/deploy gates, not every atom.
 
 ## The loop
 
@@ -73,8 +77,9 @@ Treat time and distance to the next usable release as engineering constraints.
 3. **Dispatch.** Recover the persisted operating charter, or confirm and persist it on the first run,
    before the first dispatch — create no agents, workspaces, or heartbeat until this is complete. Then
    freeze an exact baseline, create an isolated writer workspace or external-design session, and issue
-   one plan-aligned contract to a role-skilled agent. Keep independent ready work moving in parallel
-   while a hard branch deepens; do not manufacture busywork.
+   one plan-aligned contract with an explicit validation budget to a role-skilled agent. Keep
+   independent ready work moving in parallel while a hard branch deepens; do not manufacture
+   busywork.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner can
    see where the project is at any moment, then post its header block and fleet table verbatim into chat
    (CTO row first, not a prose summary; a bare founder "where are we" is the only exception).
@@ -142,6 +147,7 @@ Load only what the next action needs; do not read every reference at skill start
 - Project status: [Status and reporting](references/status-and-reporting.md) and the actual plan only.
 - Inspect: [Execution plan](references/execution-plan.md) and [Fleet operations](references/fleet-operations.md).
 - Review: the relevant plan node and [Review gate](references/review-gate.md).
+- Validation planning or any command rerun: [Validation budget](references/validation-budget.md).
 - First Operate, in order: read project truth and Execution plan; read
   [Persistent settings](references/persistent-settings.md) and recover or migrate `SETTINGS.json`;
   read [Roles and providers](references/roles-and-providers.md) and complete its provider/Paseo

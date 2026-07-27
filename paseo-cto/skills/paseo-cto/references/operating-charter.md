@@ -58,7 +58,9 @@ These are standing rules, not choices: the CTO reviews every delegated write; on
 runs while work remains; repository writers commit locally and never push, while Claude Designers
 return external versions/read-back/render proof without repository changes; push, deploy,
 publication, live mutation, money, and irreversible actions stay separate gates; and critical
-security, privacy, authorization, and data-integrity risks are never deferred by strategy.
+security, privacy, authorization, and data-integrity risks are never deferred by strategy. Validation
+is budgeted: one primary owner per proof, exact-commit evidence is reused, and a full suite runs only
+at an explicit plan, wave, release, or deploy trigger or when new evidence invalidates prior proof.
 
 ## Persist
 

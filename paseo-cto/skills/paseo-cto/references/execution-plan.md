@@ -10,6 +10,7 @@ Resolve these bindings from the repository before operating:
 - roadmap or product goals;
 - living execution-plan document;
 - authoritative validation commands;
+- validation ownership and the exact triggers for full-suite, wave, release, and deploy checks;
 - integration branch and commit convention;
 - founder, release, deploy, external, data, and irreversible-operation gates.
 
@@ -60,6 +61,7 @@ Each active node carries, in the project's native format:
 - state: `ready`, `active`, `review`, `rework`, `blocked`, `deferred`, or `done`;
 - dependencies and explicit gates;
 - completion evidence or acceptance condition;
+- a bounded validation ladder when the project-wide default is insufficient;
 - current owner or agent when active;
 - commit/evidence reference when returned;
 - blocker and pull trigger when blocked or deferred;

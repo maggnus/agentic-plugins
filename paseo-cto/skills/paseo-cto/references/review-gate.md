@@ -14,7 +14,8 @@ verdict and cannot bypass the originating agent's right of reply.
 1. inspect the report and final workspace state; for repository work inspect the exact commit,
    ancestry, and diff; for design work inspect the exact project/paths, preconditions or returned
    versions, read-back, render reference, and byte-identical pre/post repository state;
-2. rerun cheap acceptance and read risk-bearing code;
+2. inventory exact-commit evidence, read risk-bearing code, and run only the cheapest decisive
+   acceptance or falsifier not already owned and proven by another role;
 3. list evidenced `blocker`, `major`, or `minor` findings;
 4. score the exact contract out of ten;
 5. state a proposed `accept`, `accept with CTO fix`, or `return`, with reason;
@@ -35,7 +36,7 @@ agent must not edit, recommit, or widen scope during this round unless the CTO s
 rework. Keep its agent and workspace available; do not integrate, apply a CTO fix, return for rework,
 or archive while the response is unresolved.
 
-The CTO evaluates every defended finding on its evidence, reruns a decisive bounded check when
+The CTO evaluates every defended finding on its evidence, runs one decisive bounded check when
 needed, and withdraws or reclassifies any finding the response disproves. For every rejected defense,
 the final record cites the decisive contrary evidence; authority alone is not a reason. Silence is
 not agreement. If the originating agent is genuinely unavailable after one explicit follow-up and an
@@ -52,6 +53,8 @@ Only after resolving the response does the CTO issue `FINAL AUTHORIZATION — AC
 AUTHORIZATION — ACCEPT WITH CTO FIX`, or `FINAL AUTHORIZATION — RETURN`, with the revised score and
 finding dispositions. Then integrate accepted work and rerun the integration gate. The final
 authorization is the CTO's decision; the response round is due process, not agent veto or consensus.
+Follow [Validation budget](validation-budget.md): a review round does not reset green evidence or
+authorize a second full-suite run.
 
 The score informs the owner; it never determines the verdict:
 
@@ -87,7 +90,9 @@ Debate never widens scope. Safety and owner gates remain closed during the respo
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
 
 Integrate reviewed commits only into a clean CTO tree. Verify ancestry, resolve collisions
-deliberately, run the project gate, and update the plan in the appropriate local integration commit.
+deliberately, run only project checks invalidated by the combined tree plus any explicit
+wave/release/deploy gate, and update the plan in the appropriate local integration commit. Do not
+repeat a leaf suite whose exact commit and dependency surface are unchanged.
 For an accepted design, verify the returned external version still matches the reviewed read-back and
 render, then update plan truth without copying generated design source into the repository unless a
 separate contract requires it.

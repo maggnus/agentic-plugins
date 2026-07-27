@@ -15,9 +15,15 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    the review standard, and a violation is a finding like any other. Read nothing further.
 2. Record `git status --porcelain`, verify the exact commit/ancestry, and inspect the actual diff;
    summaries are not evidence.
-3. Try proportionately to refute correctness, contract compliance, tests, security, data integrity,
-   performance, architecture, and integration behavior.
-4. Run named acceptance and safe negative cases. Never mutate an unapproved shared or live system.
+3. Inventory exact-commit evidence before running commands. Try proportionately to refute
+   correctness, contract compliance, tests, security, data integrity, performance, architecture,
+   and integration behavior through the diff, static inspection, and the cheapest decisive
+   falsifiers.
+4. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
+   to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
+   hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is
+   missing, stale, contradictory, or invalidated by the diff. Never mutate an unapproved shared or
+   live system.
 5. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
    remove only your disposable files by exact path, never broad clean.
 

@@ -36,8 +36,9 @@ stalled-work diagnosis, or archival not settled by the compact rules below.
    the writer a `PRELIMINARY — NOT AUTHORIZED` assessment and complete the mandatory `AGREE`,
    `PARTIAL`, or `DEFEND` response round from the Review gate. Resolve every defense with evidence,
    then issue the final child authorization, return substantial rework to its author, and integrate
-   only accepted commits without squashing. Run the stream gate and keep every child writer commit
-   reachable and ordered for mandatory CTO review.
+   only accepted commits without squashing. Apply the validation budget: reuse exact-commit child
+   evidence and run only stream checks invalidated by composition or required by a new hypothesis.
+   Keep every child writer commit reachable and ordered for mandatory CTO review.
 
 Never infer a stall from time alone: require two unchanged snapshots plus bounded activity,
 terminal, permission, capacity, and external-wait checks. Before archiving an exact child, preserve

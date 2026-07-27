@@ -13,8 +13,11 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    pull, rebase, switch branches, clean, reset, or change the baseline.
 3. Complete the contracted outcome only in the write zone. Report cross-zone needs as blockers or
    proposed plan children; do not widen scope.
-4. Run every acceptance command and preserve real exits and measurements. Add scoped tests or
-   documentation only when required by the contract or change.
+4. Obey the contract's validation budget. Run the builder-owned acceptance commands and preserve
+   real exits and measurements. Do not expand into a full suite or repeat already-green exact-commit
+   evidence unless the contract names that gate, the change invalidates it, or a new falsifiable
+   hypothesis requires it. Add scoped tests or documentation only when required by the contract or
+   change.
 5. Inspect the diff, make the required local commit, and require empty `git status --porcelain`.
    Remove only task-owned disposable files by exact path; never use broad clean commands. Never
    push.
