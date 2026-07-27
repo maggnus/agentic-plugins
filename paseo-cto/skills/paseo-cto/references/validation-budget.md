@@ -27,6 +27,15 @@ Do not copy the same green command set across roles. After verifying the exact c
 environment, exit, and durable result, reuse that evidence. A fresh role or review round alone does
 not invalidate it.
 
+## Rework budget
+
+Rework preserves proof ownership. The builder reruns only checks invalidated by its correction and
+adds regressions for accepted findings. The same reviewer normally inspects the complete correction
+delta in context and reruns its existing independently selected falsifier when the hypothesis still
+applies. A new reviewer, a distinct falsifier, a full-range reread from zero, or another full green
+suite needs one of the explicit invalidation or replacement conditions in the Review gate; the fact
+that `HEAD` changed is not enough by itself.
+
 ## Escalation ladder
 
 Start with the smallest check able to falsify the change:

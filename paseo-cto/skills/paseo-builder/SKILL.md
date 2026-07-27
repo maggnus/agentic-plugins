@@ -18,7 +18,8 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    not force a clean/no-cache build, expand into a full suite, or repeat already-green final-tree
    evidence unless the contract names that gate, the change invalidates it, or a new falsifiable
    hypothesis requires it. Add scoped tests or documentation only when required by the contract or
-   change.
+   change. During authorized rework, preserve still-valid proof and add regressions only for accepted
+   findings.
 5. Inspect the complete diff, create the coherent local commit set required by the contract, and
    require empty `git status --porcelain`. One card means one outcome, not one commit. Remove only
    task-owned disposable files by exact path; never use broad clean commands. Never push.
@@ -37,3 +38,8 @@ disputes, proposed plan children, and durable artifact locations.
 After return, remain available until final authorization or archival. Follow the response-round
 conditions from the [Review gate](../paseo-cto/references/review-gate.md) without restating them. Do
 not edit, recommit, or begin rework unless an explicit follow-up contract authorizes it.
+
+When repeated blocker or major findings expose one missing ownership, lifecycle, serialization, or
+linearization model, state that model and its bounded interleaving/acceptance matrix before editing
+within the same authorized rework. Do not patch each symptom independently or create a separate
+research stage unless the CTO contract says material uncertainty remains.

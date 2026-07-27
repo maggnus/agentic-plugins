@@ -22,7 +22,8 @@ $(git rev-parse --git-common-dir)/paseo-cto/<run>.json
 
 Resolve the common directory before use; never clean an unresolved or broad path. Recover settings
 before runtime, persist runtime after each lifecycle mutation, and commit plan changes before
-dispatch and material gates so integration stays clean.
+dependent dispatch and material gates so integration stays clean. Lifecycle-only transitions belong
+in runtime/status and do not justify a plan commit.
 
 ## Reconcile before creation
 
@@ -45,7 +46,11 @@ that routine project/run-scoped queries miss.
 
 Never mutate an unlabeled or foreign record without proving ownership. Never create a duplicate for
 a task/role already `running`, `waiting`, `reviewing`, or `rework` in any run. The CTO is the sole
-lifecycle owner of every agent in the run, recorded as `paseo-cto.parent`.
+lifecycle owner of every agent in the run, recorded as `paseo-cto.parent`. A reviewer that returned
+findings remains the default re-review owner rather than an idle tail; preserve it with its workspace
+until the bounded rework resolves unless a Review-gate replacement condition applies. Advance a
+preserved clean reviewer branch only through the Review gate's verified conflict-free fast-forward;
+otherwise create a replacement workspace rather than rewriting review history.
 
 ## Create isolated work
 

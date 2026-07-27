@@ -15,7 +15,9 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    of an area the change reaches into. Their rules are part of the review standard, and a violation
    is a finding like any other. Read nothing further.
 2. Record `git status --porcelain`, verify the final reviewed revision range and ancestry, and
-   inspect the actual complete diff; summaries are not evidence.
+   inspect the actual complete diff; summaries are not evidence. On a re-review you own, reuse your
+   recorded inspection of unchanged lines, inspect the entire correction delta and affected context,
+   and confirm that the resulting complete range still satisfies scope and contract.
 3. Inventory final-tree evidence before running commands. Apply the risk-specific responsibilities
    from the Review gate. Try proportionately to refute correctness, contract compliance, tests,
    security, data integrity, performance, architecture, and integration behavior through the diff
@@ -23,8 +25,10 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
 4. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
    to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
    hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is
-   missing, stale, contradictory, or invalidated by the diff. Never mutate an unapproved shared or
-   live system.
+   missing, stale, contradictory, or invalidated by the diff. A falsifier you selected independently
+   remains independent: rerun it on the corrected exact revision when its hypothesis still applies,
+   and do not invent a different one solely because this is a re-review. Never mutate an unapproved
+   shared or live system.
 5. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
    remove only your disposable files by exact path, never broad clean.
 

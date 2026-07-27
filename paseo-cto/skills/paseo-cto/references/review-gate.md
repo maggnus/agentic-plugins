@@ -76,6 +76,36 @@ acceptance cost, and collision risk. A CTO fix is small, obvious, bounded, separ
 rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work when
 author continuity helps.
 
+## Lean re-review after return
+
+An accepted `RETURN` starts bounded rework inside the same card; it does not reset valid review
+evidence or require a new review organization.
+
+- Keep the originating author and independent reviewer, with their workspaces, until the finding is
+  resolved. Reuse the same reviewer by default.
+- Before re-review, the CTO may advance a clean preserved reviewer branch to the corrected exact
+  revision only by verified conflict-free fast-forward: require empty porcelain, the recorded prior
+  reviewed `HEAD`, and ancestry from that `HEAD` to the correction. Record the new exact range.
+  Never rebase, reset, manually edit, or resolve conflicts in the reviewer workspace; use a
+  replacement workspace when fast-forward is impossible.
+- The reviewer may satisfy complete-final-diff inspection by retaining its own inspection of
+  unchanged lines, inspecting the entire rework delta and affected context, and confirming the final
+  range, scope, ancestry, and evidence. Do not force a context-free reread of unchanged material.
+- A reviewer-selected falsifier remains independently selected. Rerun it on the corrected exact
+  revision when its hypothesis still applies; do not require a novel or distinct falsifier merely
+  because the commit changed. Add a new proof only for a new risk hypothesis, materially changed
+  semantics or dependency surface, contradictory evidence, or an invalidated prior proof.
+- Use a replacement reviewer only when the prior reviewer is unavailable or errored, independence
+  is compromised, a disputed finding needs an independent tie-break, or the rework materially
+  expands scope, dependencies, or the threatened invariant.
+- When several blocker or major findings are symptoms of one missing model, use the existing author
+  response/rework round to state the shared ownership, lifecycle, serialization, or linearization
+  model and its bounded acceptance matrix before patching. Do not add a separate research stage
+  unless material uncertainty remains.
+
+The author response and explicitly authorized rework may be one follow-up when the CTO accepts the
+findings and the repair contract is clear. Never insert a ceremonial `AGREE` round.
+
 ## Integration delta
 
 Integrate accepted work only into a clean CTO tree. Compare the integrated result with the reviewed

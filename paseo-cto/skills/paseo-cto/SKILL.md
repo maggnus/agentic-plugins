@@ -66,6 +66,10 @@ Treat time and distance to the next usable release as engineering constraints.
   invalidated it or a new falsifiable hypothesis requires it. Iterate small changes through
   incremental builds and warm caches. Run one full suite on the combined tree for a complex merge
   batch or an explicit release/wave/deploy gate, not for every atom.
+- Treat an evidence-based return as continuation of the same review, not a reason to rebuild the
+  review fleet. Keep the author and non-author reviewer available through bounded rework, reuse the
+  reviewer's still-valid inspection and independently selected proof, and require novelty only when
+  scope, semantics, or the risk hypothesis materially changes.
 
 ## The loop
 
@@ -74,7 +78,9 @@ Treat time and distance to the next usable release as engineering constraints.
    commits, disputes, and tails; never duplicate a task or role already active.
 2. **Plan.** Keep one living hierarchy (outcome → epic/wave → atom → discovered child). Every
    dispatch maps to one stable node; add a truthful child before dispatching newly discovered work.
-   Commit plan changes before dispatch and at material gates so the integration tree stays clean.
+   Commit semantic plan changes before dependent dispatch and at material gates so the integration
+   tree stays clean. Agent/workspace lifecycle, reviewer queueing, and candidate coordinates belong
+   in runtime and status; do not create a Git commit solely for those transient transitions.
 3. **Dispatch.** Recover the persisted operating charter, or confirm and persist it on the first
    run, before the first dispatch — create no agents, workspaces, or heartbeat until this is
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
@@ -89,7 +95,8 @@ Treat time and distance to the next usable release as engineering constraints.
    returned write; it is the sole plugin authority for risk classification, review depth, landing
    decisions, falsifiers, integration delta, and the author's bounded right of response. Integrate
    repository writes only after its acceptance gate into a clean tree, rerun invalidated checks, and
-   commit plan truth.
+   commit plan truth. After `RETURN`, default to the same author and reviewer in their preserved
+   workspaces; create a replacement reviewer only under the exceptions in the Review gate.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat.
    Diagnose stalls from evidence, preserve tails, and archive completed agents only after the
    cleanup proof.

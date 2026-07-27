@@ -22,6 +22,10 @@ originating agent and workspace through unresolved findings or disputes. Before 
 4. Archive the exact agent, verify removal, then archive the exact workspace/worktree and verify
    again. Update runtime/plan and increment `Archived-since`.
 
+After an evidence-based `RETURN`, keep both author and reviewer workspaces through bounded rework by
+default. Archive the reviewer early only when it is being replaced under the Review gate or the
+review evidence and exact continuation owner are durably preserved.
+
 Workspace archival may stop every agent and terminal there and remove the worktree; dirty,
 unintegrated, disputed, or unknown states remain visible tails. Hard-delete only a proven empty,
 test, corrupt, or duplicate exact record; never bulk-delete or routinely `kill_agent`.

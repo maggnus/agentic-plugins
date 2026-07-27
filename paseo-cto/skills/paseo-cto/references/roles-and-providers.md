@@ -93,7 +93,10 @@ reviewer and integration authority.
 
 Route by dominant need: prefer GPT for mechanical implementation and structured diagnostics; Claude
 for product and architecture synthesis, UI judgment, and qualitative research. When the risk gate
-requires independent review, prefer an opposite-family reviewer; otherwise use a fresh session.
+requires an initial independent review, prefer an opposite-family reviewer; otherwise use a fresh
+session. After an evidence-based return, reuse the same non-author reviewer/session by default under
+the Review gate. Replace it only for unavailability/error, compromised independence, a disputed
+finding needing a tie-break, or materially expanded scope, dependencies, or threatened invariant.
 Record material exceptions.
 
 ## Identity, labels, and ownership

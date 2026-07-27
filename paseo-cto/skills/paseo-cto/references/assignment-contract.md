@@ -51,8 +51,11 @@ contradictory result, or concrete hypothesis invalidates it.
 - Builder: exact write zone, coherent local commit set, reviewed final range, empty final porcelain.
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
-- Reviewer: final reviewed range and acceptance, preferably a fresh workspace, byte-identical
-  pre/post `git status --porcelain`, report only. The contract's named domain skills are a floor:
+- Reviewer: final reviewed range and acceptance, preferably a fresh workspace for the initial
+  independent review, byte-identical pre/post `git status --porcelain`, report only. Preserve and
+  reuse that reviewer/workspace for bounded re-review by default; assign the final correction delta,
+  affected context, and the existing independently selected falsifier unless a Review-gate
+  replacement or invalidation condition applies. The contract's named domain skills are a floor:
   load every available skill bearing directly on the change and report the additions.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only.
 

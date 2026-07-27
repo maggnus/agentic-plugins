@@ -91,12 +91,17 @@ Keep the release clock in runtime state: nearest shippable outcome, current crit
 window, next observable finish or decision, and accepted movement since the prior reconcile. Re-rank
 after every material event; do not preserve a stale priority merely because work already started.
 
-Update the plan at dispatch, discovery, return/rework, acceptance, integration, blocking, deferral,
-and close. The CTO owns plan edits in the integration tree; workers propose new nodes in reports
-rather than editing the project-wide tracker unless their contract explicitly grants that path.
+Update the plan when dispatch depends on a new or changed node, and at discovery, semantic
+return/rework, acceptance, integration, blocking, deferral, and close. Reviewer queueing,
+agent/workspace lifecycle, and candidate coordinates are transient runtime/status facts, not plan
+changes. The CTO owns plan edits in the integration tree; workers propose new nodes in reports rather
+than editing the project-wide tracker unless their contract explicitly grants that path.
 
-The plan is durable project truth in Git. The CTO commits plan changes locally before dispatch and
-at material gates, and keeps the integration tree clean before creating worker baselines.
+The plan is durable project truth in Git. The CTO commits semantic plan changes locally before a
+dispatch that depends on them and at material gates, and keeps the integration tree clean before
+creating worker baselines. Do not create a plan commit solely to record that an unchanged candidate
+entered review or that an agent/workspace changed lifecycle state; runtime and `STATUS.md` own those
+transitions.
 
 ## Persist a recoverable checkpoint
 
