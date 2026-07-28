@@ -1,6 +1,6 @@
 {
   "name": "paseo-cto",
-  "version": "3.0.0+codex.20260727155043",
+  "version": "3.0.1+codex.20260728020308",
   "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates work to isolated builder, reviewer, and researcher agents, and integrates only evidence-reviewed results.",
   "author": {
     "name": "Maksim Korenev",

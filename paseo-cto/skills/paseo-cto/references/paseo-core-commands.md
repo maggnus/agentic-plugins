@@ -26,8 +26,8 @@ create_agent({workspaceId:<id>, title:<max-60>, provider:<provider/model>,
 ```
 
 Persist the workspace ID immediately after creation and the agent ID and labels immediately after
-launch. Use `notifyOnFinish:false` for parallel agents; set it true only when deliberately awaiting one
-agent alone.
+launch. Use `notifyOnFinish:false` for parallel agents; set it true only for a single active agent on
+the critical path.
 
 ## Routine reconciliation
 

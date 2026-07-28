@@ -44,6 +44,15 @@ that routine project/run-scoped queries miss.
    or archived-agent workspaces, and dirty/unintegrated/unknown tails.
 6. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
 
+### Turn-start check
+
+Agents do not announce completion; the CTO discovers it. Because a full reconcile runs only on the
+heartbeat and material events, begin **every** CTO turn with the cheap check instead: pending
+permissions plus the status of the agents already recorded in runtime. A turn happens whenever the
+owner writes or the CTO continues its own work, so this costs no extra cycle and usually surfaces a
+return well before the next heartbeat. Escalate to the full reconcile below only when the cheap
+check shows a return, an error, or a permission needing a decision.
+
 Never mutate an unlabeled or foreign record without proving ownership. Never create a duplicate for
 a task/role already `running`, `waiting`, `reviewing`, or `rework` in any run. The CTO is the sole
 lifecycle owner of every agent in the run, recorded as `paseo-cto.parent`. A reviewer that returned
@@ -61,7 +70,10 @@ Freeze an exact baseline and use plan-aligned branch/workspace names:
 
 Persist the workspace immediately after creation, then the agent ID and labels immediately after
 launch. Parallel agents use `notifyOnFinish: false`: a finish injection can replace the CTO turn and
-is lost on daemon restart; set it true only when deliberately awaiting one agent alone.
+is lost on daemon restart. Set it true in exactly one case — a single active agent sitting on the
+critical path, where there is no concurrent turn to displace and the finish is the next thing the
+CTO needs. With more than one agent in flight the flag stays false and the turn-start check plus the
+heartbeat carry discovery.
 
 ## CTO handover
 

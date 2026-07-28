@@ -26,10 +26,12 @@ These four owner-approved rules replace only the corresponding generic Paseo def
 explicitly invoked Paseo CTO run:
 
 - use the accepted operating charter, not `~/.paseo/orchestration-preferences.json`, for models;
-- set `notifyOnFinish: false` for parallel agents until the platform issue is fixed;
+- set `notifyOnFinish: false` for parallel agents until the platform issue is fixed; it may be true
+  only for a single active agent on the critical path (see Fleet operations);
 - run the bounded 15-minute reconciliation defined by the CTO lifecycle, not ad-hoc polling;
 - agent permission requests are the CTO's to resolve, never the owner's. Check
-  `list_pending_permissions` at the start of every turn and every reconcile, and
+  `list_pending_permissions` at the start of every turn and every reconcile — together with the
+  recorded agents' status, per the Fleet operations turn-start check — and
   `respond_to_permission` immediately within authority — never leave a request sitting for the owner
   to answer or let it stall an agent until the next heartbeat. Routine build/read/in-worktree
   approvals (a dependency fetch for a gate, a file change inside the agent's own worktree) the CTO
