@@ -75,6 +75,46 @@ critical path, where there is no concurrent turn to displace and the finish is t
 CTO needs. With more than one agent in flight the flag stays false and the turn-start check plus the
 heartbeat carry discovery.
 
+## Parallel admission — earn concurrency, do not declare it
+
+The fleet budget is a ceiling, not a quota to fill. Concurrency is earned by the shape of the plan:
+dispatch as many writers as there are ready atoms that pass admission, and no more. An idle slot
+costs nothing; two writers colliding in one file cost a rework round and a manual merge.
+
+Admit a second and every further writer only when all of these hold:
+
+- **Disjoint write zones at file granularity.** Two live contracts never name the same file, and
+  never the same generated artifact. Sharing a directory is fine; sharing `service.go` is not.
+- **No shared regeneration.** A canonical contract and everything generated from it — protobuf and
+  its bindings, an ORM schema and its generated code, migrations, a design-token file and the theme
+  transcribed from it — has exactly one live owner per wave. A second writer touching the same
+  generator produces a conflict that no review can absorb cheaply.
+- **Independent acceptance.** Each atom proves itself without the other's result. If atom B's tests
+  only pass once A lands, B is not ready — it is A's successor.
+- **Review capacity.** One free review slot per two live writers, rounded up. A returned candidate
+  waiting for a reviewer is the same stall as an unstarted atom, and it ages worse.
+
+Work that fails admission is not thereby serial forever. Prefer, in order: split an atom along its
+subsystem seam so the halves stop overlapping; re-baseline the later atom on the earlier one's
+accepted `HEAD`; or, only if neither works, run it as the earlier atom's successor.
+
+**Barrier atoms run alone.** An atom that edits a canonical contract, a schema or migration, shared
+build or test infrastructure, a centralized theme, or anything nearly every file imports is a
+barrier: hold the other writers until it is accepted and integrated, then re-baseline the rest.
+Trying to overlap a barrier is the single most expensive scheduling mistake available to a CTO.
+
+**Integrate continuously, never in a batch.** Land each accepted atom as soon as its review clears —
+verified conflict-free fast-forward into a clean tree — and re-baseline the still-running writers'
+successors on the new accepted `HEAD`. Conflict cost grows with the square of how long branches sit
+apart, so a batch integration at the end of a wave manufactures exactly the conflict storm a wide
+fleet was supposed to avoid. Never resolve a writer's conflict by hand in its workspace; return the
+atom with the new baseline instead.
+
+**Plan the lanes before raising the ceiling.** Before widening the fleet, name the independent lanes
+the wave actually has — by subsystem, by service, by surface. If the critical path is one chain of
+dependent atoms, the honest concurrency is one writer plus, at most, off-path work that touches
+nothing on that chain. Say so in status instead of dispatching overlapping atoms to look busy.
+
 ## CTO handover
 
 A new CTO first loads the same `SETTINGS.json`, inventories all project agents regardless of prior

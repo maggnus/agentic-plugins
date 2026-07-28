@@ -86,7 +86,10 @@ Treat time and distance to the next usable release as engineering constraints.
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
    plan-aligned contract with an explicit validation budget to a role-skilled agent. Keep
    independent ready work moving in parallel while a hard branch deepens; do not manufacture
-   busywork.
+   busywork. Concurrency is earned, not declared: dispatch a further writer only when its atom
+   passes the admission test in Fleet operations — disjoint write zones, no shared regeneration,
+   independent acceptance, free review capacity — and hold every other writer while a barrier atom
+   touching a canonical contract, schema, shared infrastructure or the centralized theme runs alone.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner
    can see where the project is at any moment. Treat chat as a delta stream: report only new
    evidence, changed decisions, blockers, readiness, or next actions since the last message; never
