@@ -3,6 +3,34 @@
 Read this file before choosing a role, provider, model, permission mode, name, or labels. It is the
 single definition of the permission policy; other references name its values but never restate them.
 
+## Plugin-version preflight
+
+Run this before the provider preflight on every explicit `operate` start or resume, and before
+relying on any rule in these references. The method changes between releases; operating from a stale
+copy silently applies retired rules.
+
+1. **Refresh the source.** In the marketplace's own checkout, fetch and confirm the working tree is
+   clean and level with its remote. A local edit that was never pushed, or a remote commit that was
+   never pulled, is the usual cause of two sessions disagreeing about the method.
+2. **Read the version from the manifest on disk**, not from the host's install registry. The
+   registry lags, and it keys installs by project path — a stale or foreign path there proves
+   nothing about what this session loaded.
+3. **Identify what this session actually loaded.** The skill's own base directory is the answer. A
+   marketplace registered as a local directory serves the live checkout, so the version-numbered
+   cache under the host's plugin directory is an archive of earlier releases, not the source; a
+   remote marketplace serves an immutable snapshot instead, and only there does the cached copy
+   answer the question.
+4. **Reconcile a mismatch before working.** Update the marketplace and the installed plugin through
+   the host CLI — `claude plugin marketplace update <name>` then `claude plugin update
+   <plugin>@<name> --scope <scope>`, or the Codex equivalents — and note that an update applies at
+   the next session start, so a mid-session refresh does not retroactively change what is already in
+   context.
+5. **Re-read the changed files.** When the version moved, reload the affected references before
+   acting on them, and reconcile `SETTINGS.json` against any changed field: a release that redefines
+   a charter value leaves the persisted choice valid but its wording stale.
+
+Only then continue to the provider preflight and to creating agents.
+
 ## Provider preflight
 
 The CTO may run in Codex or Claude; role authority and acceptance do not change by provider. Before

@@ -146,8 +146,9 @@ Load only what the next action needs; do not read every reference at skill start
 - Validation planning or any command rerun: [Validation budget](references/validation-budget.md).
 - First Operate, in order: read project truth and Execution plan; read
   [Persistent settings](references/persistent-settings.md) and recover or migrate `SETTINGS.json`;
-  read [Roles and providers](references/roles-and-providers.md) and complete its provider/Paseo
-  preflight; read [Operating charter](references/operating-charter.md) and confirm only a genuinely
+  read [Roles and providers](references/roles-and-providers.md) and complete its plugin-version
+  preflight — confirm which copy of this method the session actually loaded and refresh it before
+  relying on any rule here — then its provider/Paseo preflight; read [Operating charter](references/operating-charter.md) and confirm only a genuinely
   new or owner-changed charter; then read Fleet operations. Read
   [Assignment contract](references/assignment-contract.md) immediately before the first dispatch,
   and [Status and reporting](references/status-and-reporting.md) before the first status render or
