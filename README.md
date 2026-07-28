@@ -88,6 +88,9 @@ Ships:
 
 - **skill `paseo-cto`** — the CTO operating loop, onboarding charter, living plan, founder status,
   review gate, fleet lifecycle, provider policy, and the Paseo command catalog;
+- **document standard and templates** — the canonical plan document, acceptance history and
+  invariant registry, plus a reference shape check. A project without a tracker gets them by
+  default; a project with one keeps its own and binds to it;
 - **worker role skills** — `paseo-builder`, `paseo-reviewer`, and `paseo-researcher`;
 - **Claude manifest** — `.claude-plugin/plugin.json` for marketplace installation;
 - **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and one `agents/openai.yaml`

@@ -151,6 +151,8 @@ Load only what the next action needs; do not read every reference at skill start
   reconcile — not before the first agent.
 - Archival, cleanup, or close: [Cleanup and close](references/cleanup-and-close.md), read when a
   result is accepted or the fleet is being wound down, not at startup.
+- Creating a project's plan documents, writing a new card, or recording an accepted one:
+  [Document standard](references/document-standard.md) and its `templates/`.
 - Resume Operate or change CTO: recover `SETTINGS.json` first, then the committed plan and runtime
   checkpoint. A new conversation, provider family, CTO ID, or run ID never resets the charter. Load
   only what the next unresolved action needs; do not repeat the charter or exploration.

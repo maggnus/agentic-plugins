@@ -14,9 +14,11 @@ Resolve these bindings from the repository before operating:
 - integration branch and commit convention;
 - founder, release, deploy, external, data, and irreversible-operation gates.
 
-Use existing project documents. Do not impose a particular filename or duplicate a tracker. If the
-project has no execution plan, create the smallest useful one only in `operate` mode and keep it in
-the repository's normal documentation area.
+Never duplicate a tracker the project already keeps: bind to it and require only that every field
+below has a home in it. When the project has no plan document, create the canonical set from
+[Document standard](document-standard.md) in `operate` mode, in the repository's normal
+documentation area. That standard also fixes the card shape, the acceptance row and the reference
+check that keeps both from drifting.
 
 ## CTO-only delivery strategy
 
