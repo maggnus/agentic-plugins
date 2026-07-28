@@ -68,9 +68,10 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     # A shallower heading closes the current card.
     if ($0 ~ /^#{1,6} / && length($0) - length(substr($0, index($0, " "))) < length(level)) { flush(); id = "" }
     if (id == "") next
-    if ($0 ~ /\*\*Outcome/)    has_outcome = 1
-    if ($0 ~ /\*\*Acceptance/) has_acceptance = 1
-    if ($0 ~ /\*\*Risk/) {
+    # Anchored at line start: a field nested in a child bullet describes the child, not this card.
+    if ($0 ~ /^\*\*Outcome/)    has_outcome = 1
+    if ($0 ~ /^\*\*Acceptance/) has_acceptance = 1
+    if ($0 ~ /^\*\*Risk/) {
       has_risk = 1
       if ($0 ~ "(" risks ")") risk_ok = 1
     }
