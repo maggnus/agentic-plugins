@@ -101,8 +101,10 @@ if [ -f "$ACCEPTANCE_FILE" ]; then
         printf "acceptance shape: line %d has risk \"%s\" outside {%s}\n", NR, cell[4], risks
       last = cell[n + 1]
       gsub(/^[ \t]+|[ \t]+$/, "", last)
-      if (last == "")
-        printf "acceptance shape: line %d has an empty time field (use n/a when unmeasured)\n", NR
+      # DD/MM HH:MM (cost), local time; a bare n/a is reserved for rows that
+      # predate the column.
+      if (last != "n/a" && last !~ /^[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9] \([^()]+\)$/)
+        printf "acceptance shape: line %d has time \"%s\", want \"DD/MM HH:MM (<cost>)\" or n/a\n", NR, last
     }
   ' "$ACCEPTANCE_FILE" > /tmp/acc-shape.$$ || true
   if [ -s /tmp/acc-shape.$$ ]; then cat /tmp/acc-shape.$$ >&2; fail=1; fi

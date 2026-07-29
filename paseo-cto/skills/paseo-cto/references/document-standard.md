@@ -56,14 +56,19 @@ command transcripts belong in Git, CI and runtime artifacts.
 | Accepted outcome | What is true now that was not before |
 | Closure record | The integration commit or equivalent durable record |
 | Durable evidence | Where the proof survives: Git, CI, runtime, artifact store |
-| Time total | Active working time the card consumed |
+| Time | When the row was written, then the working time the card cost |
 
-`Time total` counts every agent turn across build, review and rework plus the CTO's own work on that
-card. Waiting is excluded — an owner decision, an external gate, a queued dispatch or an idle
-session is not spent time — so the number reads as cost, not as calendar duration. Sum it from the
-runtime checkpoint at acceptance, round to five minutes, and write `<N>h<MM>m`, or `<N>m` below an
-hour. A returned and reworked card carries the sum of its attempts. A card whose time was never
-measured records `n/a`; a figure is never reconstructed after the fact.
+`Time` holds `DD/MM HH:MM (<cost>)` — the local-time moment of acceptance, then the active working
+time in parentheses. The timestamp orders the history and shows the product clock, so it records
+when the row was written and is never backdated to when the work started.
+
+The parenthesized cost counts every agent turn across build, review and rework plus the CTO's own
+work on that card. Waiting is excluded — an owner decision, an external gate, a queued dispatch or
+an idle session is not spent time — so the number reads as cost, not as calendar duration. Sum it
+from the runtime checkpoint at acceptance, round to five minutes, and write `(<N>h<MM>m)`, `(<N>h)`
+on a whole hour, or `(<N>m)` below an hour. A returned and reworked card carries the sum of its
+attempts. A card whose time was never measured records `(n/a)`, and a historical row that predates
+the column keeps a bare `n/a`; a figure is never reconstructed after the fact.
 
 ## The invariant registry (recommended)
 
