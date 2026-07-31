@@ -34,21 +34,31 @@ that routine project/run-scoped queries miss.
 1. Read and validate persistent settings first, then plan, accepted Git state, and runtime
    checkpoint. If the runtime snapshot differs, retain the persistent settings and record the
    mismatch; never let an old run or a replacement CTO reset owner choices.
-2. Inventory agents with `paseo ls --global --json`. Match the project first, regardless of run,
-   then partition by `paseo-cto.run`; adopt or resolve prior-run work before new work on the same
-   task.
+2. Inventory agents across **every working copy**, not from the integration root alone. Agent
+   listings are scoped by working directory, and workers live in their own copies — queried from the
+   root, a busy fleet reads as empty, and an empty reading is what produces a duplicate agent on a
+   task someone is already building, sometimes inside the live builder's own copy. Enumerate the
+   workspaces first, then query per copy, and reconcile the union against runtime. Use the global,
+   label-filtered form and treat any inventory that returns nothing as unproven until a second
+   reading confirms it.
 3. List workspaces with `list_workspaces` (older-daemon fallback in the command catalog).
 4. Inspect known IDs/permissions and match each owned record to its plan node, Git state, evidence,
    and review state.
-5. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded
+5. **Collect finished work as a step, not as a by-product.** An agent that completed does not
+   announce it; its report sits until someone fetches it. For every recorded agent not currently
+   running, fetch and read the return in this reconcile, then move the card to `reviewing` or record
+   why it cannot move. A ready result left uncollected costs the whole interval it waits, and
+   survives a CTO handover unnoticed because nothing in the fleet state says a report exists.
+6. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded
    or archived-agent workspaces, and dirty/unintegrated/unknown tails.
-6. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
+7. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
 
 ### Turn-start check
 
 Agents do not announce completion; the CTO discovers it. Because a full reconcile runs only on the
 heartbeat and material events, begin **every** CTO turn with the cheap check instead: pending
-permissions plus the status of the agents already recorded in runtime. A turn happens whenever the
+permissions plus the status of the agents already recorded in runtime. A non-running agent means a
+report is waiting — fetch it in that turn rather than noting the status and moving on. A turn happens whenever the
 owner writes or the CTO continues its own work, so this costs no extra cycle and usually surfaces a
 return well before the next heartbeat. Escalate to the full reconcile below only when the cheap
 check shows a return, an error, or a permission needing a decision.
@@ -67,6 +77,18 @@ Freeze an exact baseline and use plan-aligned branch/workspace names:
 
 - `create_workspace`, then `create_agent(workspaceId)` (older-daemon `create_worktree` +
   legacy `create_agent` shapes are in the command catalog).
+
+**Always branch off an exact SHA into a new branch name.** Pointing a new workspace at a branch that
+already exists moves that branch into the new working copy, and the tree that held it is left
+standing on whatever the tool put there — commonly an unrelated branch, carrying the uncommitted
+work that was in progress. The damage is silent: the integration tree still looks like a checkout,
+and the mismatch surfaces later as a commit on the wrong branch or a lost edit.
+
+The safe order, before creating any workspace: confirm the integration tree is clean, record the
+exact baseline SHA, choose a branch name no working copy currently holds, and create the workspace
+in branch-off mode from that SHA. To hand an existing branch to an agent, verify no other copy has
+it checked out first, and re-verify the integration tree's branch and cleanliness immediately after
+the workspace exists.
 
 Persist the workspace immediately after creation, then the agent ID and labels immediately after
 launch. Parallel agents use `notifyOnFinish: false`: a finish injection can replace the CTO turn and

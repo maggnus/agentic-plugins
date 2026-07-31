@@ -1,0 +1,66 @@
+# paseo-cto — release notes
+
+Each line states the observation the change came from. Rules earn their place by removing a failure
+that was actually measured, not by anticipating one.
+
+## 4.1.0
+
+Eight corrections from a long production run, all of them cheap: each replaces a review round or a
+lost interval, and none adds a stage.
+
+- **Landing gained `ACCEPT WITH RESIDUE`.** One card ran five review rounds; the product behaviour
+  under review was settled at the second, and the remaining three argued about the quality of a
+  checking script. A true finding can now land as a recorded residue with an observable return
+  condition — forbidden outright on authentication, authorization, tenant isolation, money, privacy,
+  secrets, data loss or corruption, and irreversible actions.
+- **Review rounds now converge by rule.** Rounds were unbounded, and each one individually looked
+  justified while the card stopped moving. After the second return on one card the CTO decides in
+  that same turn: accept with residue, split the card, or name the gate and stop.
+- **Acceptance must demand a check that can fail.** Every blocking finding of the run had one shape
+  — a proof that proves something other than what it claims: a gate whose condition no input could
+  violate, a script comparing a subset against itself, a fixture pinned to the value the code already
+  emitted, a suite exercising a configuration the deployed system never reaches. Contracts now
+  require the negative half with captured output, what the check catches and what it would pass, and
+  a reachability argument for the configuration it ran in.
+- **Fleet inventory is per working copy.** Agent listings are scoped by working directory and workers
+  live in their own copies, so a busy fleet read as empty from the integration root. That reading
+  produced two duplicate agents, one of them inside a live builder's own copy. Enumerating
+  workspaces and querying each is now a reconcile step, and an empty inventory is unproven until a
+  second reading confirms it.
+- **Collecting a finished report is a step, not a by-product.** A completed agent announces nothing.
+  A ready report sat uncollected for 45 minutes once and across a CTO handover another time. Every
+  reconcile, and every turn-start check, now fetches the return of any recorded agent that is not
+  running.
+- **At least one proof travels the product's own path.** The run's most expensive defect — no user
+  file could cross a boundary the system was built to cross — survived twelve cards of live cloud
+  measurement, because the harness assembled the request and supplied the expected value itself.
+  Volume did not correct it; every run shared the same substitution. Boundary acceptance now requires
+  one proof through the real path, with the harness standing in for no participant.
+- **A same-family review says so and compensates.** The method assumes a reviewer from a different
+  provider family; when none is available the independence is lost silently and the review still
+  reads as independent. The loss is now recorded, and the reviewer's contract requires a falsifier of
+  a different shape than the author's evidence and forbids taking the problem statement from the
+  author's report.
+- **Workspace creation branches off an exact SHA.** Creating a workspace on an existing branch moved
+  that branch out of the integration tree and left it standing on an unrelated branch with
+  uncommitted work — silently, since the tree still looked like a checkout. The safe order is now
+  written down: clean tree, recorded SHA, unused branch name, and re-verification afterwards.
+
+## 4.0.0
+
+- **The plugin names no model, no reasoning effort, and no provider preference.** Model catalogs turn
+  over faster than plugin releases, and a model name written into a reference silently overrode an
+  owner choice the plugin could not see. Role assignments — the CTO's own seat included — moved into
+  one charter field the plugin reads and never fills.
+- **Charter schema 2.** A single `reasoningPolicy` string could not express a per-role effort and the
+  model fields had no slot for the CTO seat, so projects grew private keys to hold what the schema
+  could not, and those keys drifted out of agreement with it. One-fact-one-key makes that drift a
+  validation error.
+- **A reporting register.** A report written in the first person about work performed reads as an
+  account of its author rather than as the state of the system. No first person, complete
+  grammatical prose, the result first, silence in place of repetition. The language it is written in
+  is a charter field, for the same reason the models are.
+- **Outcome discipline stated rather than implied.** Progress is a changed observable state of the
+  product, not a started task or a busy fleet; work no goal claims is not scheduled.
+- **The shape check writes to a private `mktemp` directory** under a trap, instead of predictable
+  `/tmp` paths.

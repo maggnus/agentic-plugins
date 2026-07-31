@@ -18,8 +18,12 @@ verifiable source or does not enter.
 
 ## 2. Rules
 
-- Landing decisions are `ACCEPT`, `ACCEPT WITH CTO FIX`, `RETURN` or `BLOCKED`, with
-  `blocker | major | minor` findings. Numerical scores are not used.
+- Landing decisions are `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN` or
+  `BLOCKED`, with `blocker | major | minor` findings. Numerical scores are not used.
+- A residue accepted under the review gate lives here as a node with its return condition, never
+  only in review dialogue.
+- Every acceptance check carries its negative half; a check whose failing form was never observed
+  is not evidence.
 - Every delegated write receives the risk-required non-author second look before integration.
 - The validation gate is `<command>`; the full suite runs only at the triggers named per card.
 - This file is updated in the same change that ships the work.

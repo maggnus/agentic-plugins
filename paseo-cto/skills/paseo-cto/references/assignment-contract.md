@@ -12,7 +12,7 @@ Read: <project instructions; exact spec/plan sections; domain skills>
 Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
-Acceptance: <commands, expected exits/measurements, negative cases, durable artifacts>
+Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
 Validation budget: <builder-owned checks; review depth; hypothesis-bound falsifier if any; integration checks; exact full-suite trigger>
 Review: <apply Review gate for the declared risk; name only the non-author second-look/review owner>
 Observation: <expected silence/long operations and safe liveness proof>
@@ -45,6 +45,20 @@ Assign each proof to exactly one role according to [Validation budget](validatio
 copy the same full command set into builder, reviewer, and CTO responsibilities. Green evidence
 remains valid for the reviewed final tree until a changed tree, changed dependency surface,
 contradictory result, or concrete hypothesis invalidates it.
+
+## Acceptance must demand a check that can fail
+
+Write the `Acceptance` line so a passing result means something. Every contracted check carries its
+negative half — the deliberately broken input, the command, the real non-zero exit, output captured
+— plus what it distinguishes, what it would let through, and why the configuration it runs in is one
+the product reaches. See *A proof must be able to fail* in [Review gate](review-gate.md); the
+contract is where that requirement is priced in, because discovering it at review costs a round.
+
+For a boundary between two components, name in the contract which accepted proof travels the
+product's own path. A harness that assembles the request and supplies the expected value tests the
+harness; it can report success while the boundary it claims to cover has never been crossed by
+product code. One end-to-end proof through the real path settles what any number of harness runs
+cannot — see [Validation budget](validation-budget.md).
 
 ## Role additions
 

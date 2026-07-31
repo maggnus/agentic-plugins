@@ -32,9 +32,32 @@ For every returned repository write:
 2. inventory executable final-revision evidence; verbal claims are not acceptance;
 3. require a clean final worktree and preserve real command exits;
 4. list evidenced `blocker`, `major`, or `minor` findings;
-5. choose `ACCEPT`, `ACCEPT WITH CTO FIX`, `RETURN`, or `BLOCKED`.
+5. choose `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN`, or `BLOCKED`.
 
 Numerical scores are not used.
+
+## A proof must be able to fail
+
+A check that cannot fail proves nothing, and it is the most expensive defect this gate exists to
+catch: it is indistinguishable from a passing check until something in production disagrees with it.
+The recurring shape is one defect wearing different clothes — a gate whose condition no input could
+violate, a script comparing a subset against itself, a fixture pinned to the value the code
+currently produces, a suite exercising a configuration the deployed system never reaches. Each
+reports success truthfully and means nothing by it.
+
+For every check offered as acceptance evidence, require three things before it counts:
+
+- **The negative half, with its output captured.** Show the check failing on a deliberately broken
+  input — the mutation, the command, and the real non-zero exit. A check whose failing form was
+  never observed is a claim, not a measurement.
+- **What it catches and what it does not.** Name the mutations the check distinguishes and, just as
+  explicitly, the ones it would pass. A check with no stated blind spot has not been thought about.
+- **Reachability of the configuration it ran in.** Argue that the environment, inputs, and code path
+  under test are ones the product actually reaches. Evidence gathered in a configuration production
+  cannot enter is evidence about a system nobody runs.
+
+This is a property of the evidence, not an extra stage: it costs the author one broken input and one
+sentence, and it removes the review round that would otherwise discover the same thing later.
 
 ## Review depth
 
@@ -56,6 +79,69 @@ An independent non-author reviewer inspects the final diff and evidence. At leas
 selected executable falsifier or fault-injection proof must challenge the threatened invariant. The
 reviewer may own that proof; no separate falsifier role is required. A maintained negative or
 conformance suite counts only when it demonstrably distinguishes the defect.
+
+## When the reviewer shares the author's provider family
+
+An independent review borrows part of its strength from the reviewer not sharing the author's
+blind spots. When the assignment puts author and reviewer on the same provider family — because only
+one is available, or the charter says so — that property is gone, and it goes quietly: the review
+still reads as independent and still produces findings.
+
+Do not treat this as equivalent. Record in the review that the cross-family property was lost, and
+compensate in the reviewer's contract:
+
+- **Require a falsifier of a different shape than the author's evidence.** If the author proved the
+  behaviour with a unit test, the falsifier is not another unit test: it injects a fault, drives the
+  product path end to end, or attacks the boundary from outside. Same-shape evidence tends to share
+  the same blind spot.
+- **Forbid taking the problem statement from the author.** The reviewer derives what the change must
+  do from the contract, the specification, and the code — never from the author's report of what it
+  does. A review that begins by accepting the author's framing can only check the work against
+  itself.
+- **Findings that survive are worth no less; findings that are missed are more likely.** Weight the
+  absence of findings accordingly, and prefer keeping a `Critical` card's falsifier independently
+  selected even when that costs a round.
+
+## Accepting with residue
+
+Not every true finding has to be fixed before the work lands. A finding can be real, correctly
+argued, and still not worth another round — because the product behaviour under review is already
+settled and what remains improves the proof, hardens a boundary nobody can currently cross, or
+anticipates a condition that does not yet exist.
+
+`ACCEPT WITH RESIDUE` lands the work and records the finding as a known fact with a return
+condition. It requires all of:
+
+- the outcome the card contracted is met and evidenced;
+- the residue is written down where the project will find it again — a plan node, an invariant entry,
+  or a decision record — never only in review dialogue;
+- the return condition is concrete and observable: the event that makes the residue worth fixing,
+  stated so that anyone can recognise it when it happens;
+- the decision names what is being accepted, not merely that something was.
+
+**Residue is forbidden, and the decision is `RETURN` or `BLOCKED`, whenever the finding touches**
+authentication or authorization, tenant isolation, money, privacy or secrets, data loss or
+corruption, or the safety of an irreversible action. On those surfaces a known defect with a trigger
+is a known defect, and the trigger arrives as an incident.
+
+## Converge: the second return forces a decision
+
+Review rounds are not free, and their cost is invisible because each individual round looks
+justified. The failure mode is a card that keeps returning on progressively narrower findings while
+the product behaviour it was about stopped changing several rounds ago.
+
+After the **second** return on one card, the CTO decides in that same turn — not after one more
+round — among exactly these:
+
+- **accept with residue**, under the rule above;
+- **split the card**, moving the unresolved part into its own node with its own risk classification
+  and acceptance, and landing the settled part;
+- **name the gate and stop**, recording what is actually blocking convergence — a missing decision,
+  an absent capability, an unstated requirement — and who must resolve it.
+
+Continuing to a third round is available only when the new finding is a blocker on the forbidden
+list above, and the reason goes in the record. Track rounds per card, not per candidate: a
+re-dispatch under a new commit is the same card.
 
 ## The author's bounded response round
 

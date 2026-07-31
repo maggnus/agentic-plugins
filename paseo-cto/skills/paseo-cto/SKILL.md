@@ -130,7 +130,10 @@ Treat time and distance to the next usable release as engineering constraints.
    decisions, falsifiers, integration delta, and the author's bounded right of response. Integrate
    repository writes only after its acceptance gate into a clean tree, rerun invalidated checks, and
    commit plan truth. After `RETURN`, default to the same author and reviewer in their preserved
-   workspaces; create a replacement reviewer only under the exceptions in the Review gate.
+   workspaces; create a replacement reviewer only under the exceptions in the Review gate. Review
+   rounds are a cost the plan pays: after the second return on one card, decide in that turn —
+   accept with residue, split the card, or name the gate and stop — instead of ordering another
+   round.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat.
    Diagnose stalls from evidence, preserve tails, and archive completed agents only after the
    cleanup proof.

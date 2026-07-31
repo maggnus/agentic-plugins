@@ -36,6 +36,24 @@ applies. A new reviewer, a distinct falsifier, a full-range reread from zero, or
 suite needs one of the explicit invalidation or replacement conditions in the Review gate; the fact
 that `HEAD` changed is not enough by itself.
 
+## At least one proof travels the product's own path
+
+A test harness is cheap, repeatable, and the easiest place to prove nothing at all. When the harness
+assembles the request, supplies the credential, or fills in the value that product code would have
+produced, it verifies the harness — and it will keep reporting success for as long as the product
+path stays broken, across any number of runs and any amount of live infrastructure. Volume of
+evidence does not correct this; every run shares the same substitution.
+
+For any acceptance that concerns a boundary between two components — two services, two language
+planes, product code and an external system, a client and the contract it calls — **at least one
+accepted proof must travel the product's own path**, with the harness supplying no value that
+product code would generate. The harness may observe, capture, and assert; it may not stand in for
+a participant.
+
+Harness-only evidence remains useful for iteration and for isolating a component's internals. It is
+not sufficient acceptance for the boundary itself, and a card whose only evidence is harness-shaped
+has not yet proven the thing it claims.
+
 ## Escalation ladder
 
 Start with the smallest check able to falsify the change:

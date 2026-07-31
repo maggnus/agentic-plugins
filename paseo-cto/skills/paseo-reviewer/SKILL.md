@@ -21,15 +21,24 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
 3. Inventory final-tree evidence before running commands. Apply the risk-specific responsibilities
    from the Review gate. Try proportionately to refute correctness, contract compliance, tests,
    security, data integrity, performance, architecture, and integration behavior through the diff
-   and static inspection.
-4. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
+   and static inspection. Derive what the change must do from the contract, the specification, and
+   the code — never from the author's account of it. A review that starts from the author's framing
+   can only check the work against itself.
+4. Challenge every check offered as acceptance before believing it. Ask whether it could fail at
+   all: has its failing form been observed with real output, which mutations does it distinguish and
+   which would it pass, and is the configuration it ran in one the product actually reaches. A check
+   comparing a subset against itself, a fixture pinned to whatever the code currently emits, and a
+   condition no input could violate all report success truthfully. Selecting a falsifier of a
+   different shape than the author's evidence is the cheapest way to settle this — when the author
+   proved it with a unit test, do not answer with another unit test.
+5. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
    to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
    hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is
    missing, stale, contradictory, or invalidated by the diff. A falsifier you selected independently
    remains independent: rerun it on the corrected exact revision when its hypothesis still applies,
    and do not invent a different one solely because this is a re-review. Never mutate an unapproved
    shared or live system.
-5. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
+6. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
    remove only your disposable files by exact path, never broad clean.
 
 Remain report-only: no fixes, commits, integration, push, plan edits, or lifecycle actions. Put
