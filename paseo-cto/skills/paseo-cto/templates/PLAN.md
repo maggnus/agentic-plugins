@@ -67,4 +67,13 @@ trigger>
 
 **Current state.** <where the work actually is, with sources>
 
+**Rounds.** <review rounds so far — omit until there has been one>
+
+**Convergence.** <required once Rounds reaches two: accept with residue, split, or the named gate>
+
+**Residue.** <a true finding accepted rather than fixed, stated as what is known to be wrong>
+
+**Return condition.** <required whenever Residue is present: the observable event that makes it
+worth fixing>
+
 **Deferred children.** <only when a card was split: each child, what it owns, and what unblocks it>

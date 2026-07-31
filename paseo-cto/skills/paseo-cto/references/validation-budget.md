@@ -54,6 +54,23 @@ Harness-only evidence remains useful for iteration and for isolating a component
 not sufficient acceptance for the boundary itself, and a card whose only evidence is harness-shaped
 has not yet proven the thing it claims.
 
+**When the product path genuinely cannot be run** — the environment does not exist yet, the external
+system is unavailable, or exercising it would mutate something owner-gated — the rule does not
+dissolve; it defers, visibly:
+
+1. State in the card which participant the harness stood in for, and what that substitution could
+   hide. "The harness built the request" is the finding, not a footnote.
+2. Land the card as `ACCEPT WITH RESIDUE` under the [Review gate](review-gate.md), with the
+   product-path proof as the residue and its return condition the event that makes the path runnable
+   — the environment existing, the gate opening, the dependency shipping.
+3. Apply the residue tests first. A boundary whose failure is irreversible or silent — an
+   authorization path, a payment, a data-destroying operation — does not qualify: it blocks on the
+   missing environment rather than landing on harness evidence.
+
+What is not permitted is passing harness evidence off as boundary acceptance without saying so.
+A substitution that is written down is a known gap with a trigger; the same substitution unmentioned
+is the defect this rule exists to catch, and it reads as proof until production disagrees.
+
 ## Escalation ladder
 
 Start with the smallest check able to falsify the change:

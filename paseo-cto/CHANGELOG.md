@@ -3,6 +3,33 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 5.0.0
+
+Four corrections to 4.1.0, from reviewing 4.1.0 itself. Three of its eight rules lived only in
+prose, and a rule that lives only in prose is one a tired session skips — which is how the eight
+rules came to be needed in the first place.
+
+- **Two review rules became gate-enforced.** `Residue` now requires `Return condition`, and a card at
+  two or more `Rounds` requires `Convergence`. The shape check verifies both pairings, tested in both
+  directions: a residue without its trigger and a second round without its decision each fail the
+  gate, one round passes. An accepted defect is now a tracked fact rather than a line in a review
+  nobody opens again.
+- **The residue prohibition became a test rather than a list.** Naming six forbidden surfaces
+  invited the reading that anything unnamed qualifies. Two questions now decide: could the worst
+  credible failure be undone once noticed, and would it announce itself? The named surfaces stay as
+  the common cases that fail both, not as the boundary.
+- **The product-path rule gained its unavailable case.** Requiring one proof through the real path
+  with no stated exception left two outcomes when the environment does not yet exist: silent
+  violation or a blocked card. It now defers visibly — name the participant the harness stood in
+  for, land as residue with the path proof as the trigger, and never for a boundary whose failure is
+  irreversible or silent.
+- **The outcome section stopped restating the product clock.** Three of its seven rules repeated what
+  the clock already said about work in progress, stalled movement, and busy agents. Four remain — the
+  ones about what counts as a result at all.
+
+Version is major because a landing decision was added in 4.1.0 to a set consumers may parse, and
+because two plan fields are now conditionally required by the shape gate.
+
 ## 4.1.0
 
 Eight corrections from a long production run, all of them cheap: each replaces a review round or a

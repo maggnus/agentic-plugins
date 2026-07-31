@@ -11,6 +11,10 @@
 #   - every card declares Outcome and Acceptance;
 #   - a card in progress or done also declares Risk, from the allowed set — a not-started card may
 #     still be unclassified, but nothing may be dispatched without a classification;
+#   - a card declaring Residue also declares its Return condition, so an accepted defect is tracked
+#     rather than remembered;
+#   - a card at two or more review Rounds also declares Convergence, so the decision the second
+#     return forces is visible in the plan and not only in the review;
 #   - the acceptance table has a uniform column count and a non-empty time field per row.
 #
 # A card is a heading at CARD_HEADING_LEVEL whose first token matches CARD_ID_PATTERN, so ordinary
@@ -48,6 +52,10 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if (!has_acceptance) missing = missing " Acceptance"
     # A not-started card may still be unclassified; anything in progress or done may not.
     if (!has_risk && state != "todo") missing = missing " Risk"
+    # A residue is an accepted defect: without its return condition nobody is tracking it.
+    if (has_residue && !has_return_condition) missing = missing " Return-condition (required by Residue)"
+    # The second return forces a decision; record which one, in the plan, not only in the review.
+    if (rounds >= 2 && !has_convergence) missing = missing " Convergence (required at Rounds >= 2)"
     if (missing != "") printf "plan shape: card %s (line %d) is missing:%s\n", id, start, missing
     if (has_risk && !risk_ok) printf "plan shape: card %s (line %d) has a risk outside {%s}\n", id, start, risks
     cards++
@@ -59,6 +67,7 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
       if ($2 ~ idpat) {
         id = $2; start = NR
         has_outcome = has_risk = has_acceptance = risk_ok = 0
+        has_residue = has_return_condition = has_convergence = rounds = 0
         if      ($0 ~ /`\[x\]`[[:space:]]*$/) state = "done"
         else if ($0 ~ /`\[~\]`[[:space:]]*$/) state = "active"
         else if ($0 ~ /`\[ \]`[[:space:]]*$/) state = "todo"
@@ -78,6 +87,15 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if ($0 ~ /^\*\*Risk/) {
       has_risk = 1
       if ($0 ~ "(" risks ")") risk_ok = 1
+    }
+    if ($0 ~ /^\*\*Residue/)          has_residue = 1
+    if ($0 ~ /^\*\*Return condition/) has_return_condition = 1
+    if ($0 ~ /^\*\*Convergence/)      has_convergence = 1
+    # "**Rounds.** 3" or "**Rounds:** 3 — ..." — the first integer on the line is the count.
+    if ($0 ~ /^\*\*Rounds/) {
+      line = $0
+      sub(/^\*\*Rounds[^0-9]*/, "", line)
+      rounds = line + 0
     }
   }
   END { flush(); printf "cards=%d\n", cards > "/dev/stderr" }

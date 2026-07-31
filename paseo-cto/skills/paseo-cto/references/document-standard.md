@@ -33,6 +33,16 @@ A card carries exactly these fields:
 | **Acceptance** | Machine-checkable conditions: commands, exits, observable states, negative cases. |
 | **Validation budget** | Who owns which proof and the exact full-suite trigger. Optional when the project-wide default suffices. |
 | **Current state** | Where the work actually is, each claim carrying a verifiable source. |
+| **Rounds** | Review rounds this card has taken, when it has taken any. At two or more, `Convergence` becomes required. |
+| **Convergence** | Which of the three decisions the second return forced: accept with residue, split, or the named gate. Required once `Rounds` reaches two. |
+| **Residue** | A true finding accepted rather than fixed, stated as what is known to be wrong. Requires `Return condition`. |
+| **Return condition** | The observable event that makes the residue worth fixing. Required whenever `Residue` is present. |
+
+The last four exist because two review rules would otherwise live only in prose, and a rule that
+lives only in prose is one the next tired session skips. `Rounds`/`Convergence` makes the
+convergence decision visible in the plan; `Residue`/`Return condition` makes an accepted defect a
+tracked fact rather than a line in a review nobody reads again. The shape check enforces both
+pairings, so the omission is a failed gate rather than a discovery months later.
 
 Blocked or deferred work records its blocker and the pull trigger that releases it. A discovered
 child records the evidence that created it, so no node reads as random.

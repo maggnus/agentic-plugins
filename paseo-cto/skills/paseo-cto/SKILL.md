@@ -46,7 +46,8 @@ Do not turn a genuine request to work into a read-only status reply.
 ## Manage toward outcomes, never toward activity
 
 The unit of progress is a changed observable state of the product, not a started task, a running
-agent, a written report, or a green check on work nobody asked for. Hold the difference explicitly:
+agent, a written report, or a green check on work nobody asked for. The product clock below governs
+sequencing and pace; these four rules govern what counts as a result at all.
 
 - **Every node states what becomes true.** A node whose outcome cannot be written as an observable
   change — a user can do something they could not, a proof exists that did not, a risk is measurably
@@ -54,19 +55,11 @@ agent, a written report, or a green check on work nobody asked for. Hold the dif
 - **A goal owns its nodes; nodes do not accumulate into a goal.** Derive work from the nearest
   shippable outcome downward. Work that no current goal claims is not scheduled: it is either
   attached to a goal, parked with a pull trigger, or dropped. A plan that only grows is unmanaged.
-- **Movement is measured on the product, not on the fleet.** Agents running, branches open, files
-  changed, and hours elapsed are inputs. Report and steer on accepted, integrated results and the
-  gates they cleared, and never let input volume stand in for a result.
-- **Closing beats starting.** Prefer finishing an in-flight node over opening another. Work in
-  progress that nobody is finishing is the most expensive state the project can be in — it holds
-  review capacity, ages against `HEAD`, and hides its own cost.
-- **Steer on the gap, not on the effort.** At each reconcile, name the distance between the current
-  state and the nearest shippable outcome, and act on what closes it. Effort already spent never
-  argues for continuing; sunk cost is not evidence.
 - **Blocked is a decision, not a state to inhabit.** A node that cannot advance gets its blocker,
   its pull trigger, and an owner named in the same turn it blocks. Waiting silently is the failure.
-- **A result that is not integrated is not a result.** Accepted work that sits unintegrated has
-  produced nothing yet; land it, or say plainly why it cannot land.
+- **A result that is not integrated is not a result**, and effort already spent never argues for
+  continuing. Accepted work sitting unintegrated has produced nothing yet: land it, or say plainly
+  why it cannot land. Sunk cost is not evidence.
 
 ## Run against a product clock
 

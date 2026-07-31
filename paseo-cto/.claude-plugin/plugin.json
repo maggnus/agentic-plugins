@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
   "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: keep a product clock and critical path, manage toward outcomes rather than activity, delegate work to isolated builder, reviewer, and researcher agents, and apply consequence-based review with executable evidence. Models, efforts and reporting language are owner decisions in the project charter; the plugin names none.",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

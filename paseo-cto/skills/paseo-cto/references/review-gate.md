@@ -119,10 +119,24 @@ condition. It requires all of:
   stated so that anyone can recognise it when it happens;
 - the decision names what is being accepted, not merely that something was.
 
-**Residue is forbidden, and the decision is `RETURN` or `BLOCKED`, whenever the finding touches**
-authentication or authorization, tenant isolation, money, privacy or secrets, data loss or
-corruption, or the safety of an irreversible action. On those surfaces a known defect with a trigger
-is a known defect, and the trigger arrives as an incident.
+**Residue is forbidden when the finding fails either test**, and the decision is `RETURN` or
+`BLOCKED`:
+
+- **Reversibility.** Could the worst credible failure be undone once noticed? A defect that destroys,
+  discloses, or misappropriates something cannot be un-shipped by fixing it later.
+- **Detection.** Would the failure announce itself? A defect that fails silently — wrong data
+  accepted as right, an authorization that quietly permits, a payment that quietly doesn't — has no
+  moment at which the return condition fires.
+
+Authentication and authorization, tenant isolation, money, privacy and secrets, data loss and
+corruption, and irreversible actions are named because they fail both tests routinely, not because
+the list is complete. A finding outside the list that fails either test is barred just the same; the
+tests decide, the list only saves time on the common cases. When in doubt the card returns — the
+cost of one more round is bounded, and the cost of a wrong residue is not.
+
+Record the residue as a plan node carrying `Residue` and `Return condition` fields, so the shape
+check can see it exists. A residue with no return condition is not a decision, it is a defect
+nobody is tracking.
 
 ## Converge: the second return forces a decision
 
@@ -139,9 +153,11 @@ round — among exactly these:
 - **name the gate and stop**, recording what is actually blocking convergence — a missing decision,
   an absent capability, an unstated requirement — and who must resolve it.
 
-Continuing to a third round is available only when the new finding is a blocker on the forbidden
-list above, and the reason goes in the record. Track rounds per card, not per candidate: a
-re-dispatch under a new commit is the same card.
+Continuing to a third round is available only when the new finding is a blocker that fails the
+reversibility or detection test above, and the reason goes in the record. Track rounds per card, not
+per candidate: a re-dispatch under a new commit is the same card. Record the count in the card's
+`Rounds` field — a card at two or more rounds must also carry `Convergence` naming which of the
+three decisions was taken, so the choice is visible in the plan rather than only in the review.
 
 ## The author's bounded response round
 
