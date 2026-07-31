@@ -21,30 +21,54 @@ The minimum schema is:
 
 ```json
 {
-  "schema": 1,
+  "schema": 2,
   "project": "<stable-project-slug>",
   "revision": 1,
   "confirmedAt": "<RFC3339 timestamp>",
   "charter": {
     "strategy": "alpha",
-    "gptModel": "codex/gpt-5.6-sol",
-    "claudeModel": "claude/claude-opus-5[1m]",
-    "reasoningPolicy": "xhigh",
+    "roleAssignments": {
+      "cto":        { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier>" },
+      "builder":    { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|range>" },
+      "reviewer":   { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier>" },
+      "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|range>" }
+    },
     "permissionPolicy": "full-access-writers",
     "fleetBudget": "conservative",
     "autonomyHorizon": "until-gate",
     "reviewDepth": "risk-based",
+    "reportingLanguage": "<language the owner writes in>",
     "modeMap": {}
   },
   "ownerOverrides": {}
 }
 ```
 
-The eight charter fields use the values defined by Operating charter. `modeMap` records the exact
-validated provider/role modes and may grow as a new role is first used. `ownerOverrides` contains
-only explicitly confirmed, durable project-specific rules; never infer or migrate an
+The seven charter fields use the values defined by Operating charter. Every angle-bracket value
+above is a placeholder the owner fills: **the plugin ships no model, no effort tier, and no
+provider preference, and it never supplies one as a fallback.** An `effort` may name one tier or a
+range the CTO picks from per atom; a role absent from `roleAssignments` is not dispatchable.
+`family` is the short lowercase slug used in agent titles and the status table. `modeMap` records
+the exact validated provider/role modes and may grow as a new role is first used. `ownerOverrides`
+contains only explicitly confirmed, durable project-specific rules; never infer or migrate an
 authority-expanding override from an old run. Project bindings, gates, and plan truth remain in the
 project's normal tracked documents.
+
+## One fact, one key
+
+A setting is written in exactly one place. Two keys carrying the same fact will disagree — one of
+them gets updated and the other is left behind, and nothing in the file says which is current.
+
+- Never record a charter value in both `charter` and `ownerOverrides`. If an owner directive changes
+  a charter field, change that field.
+- Never add a key at the document root beyond the ones the schema names. An owner decision that is
+  not a charter field belongs in `ownerOverrides`, under a stable name.
+- Never encode a decision only in a free-text note. A note explains a value; it never carries one.
+  When a note contradicts the field beside it, the field is authoritative and the note is a defect
+  to be corrected in the same edit.
+- Validate on read: a charter field whose value is outside the set its definition allows makes the
+  file invalid, and the startup rule below applies. Do not silently accept a value borrowed from
+  another field's vocabulary.
 
 ## Startup and CTO handover
 
@@ -58,6 +82,27 @@ project's normal tracked documents.
    same settings revision. Changing CTO family or identity is not a charter change.
 5. If the file is invalid or partially written, stop before plan mutation, workspace creation, or
    dispatch. Report the exact path and validation error; do not fall back to defaults.
+
+## Migrating a `schema: 1` file
+
+Schema 1 carried `gptModel`, `claudeModel`, and a single `reasoningPolicy` string. Schema 2 replaces
+all three with `roleAssignments`, because one string could not express a per-role effort and the
+model fields had no slot for the CTO's own seat — so projects grew private keys to hold what the
+schema could not, and those keys drifted out of agreement with it.
+
+Migrate in one edit, then raise `revision`:
+
+1. Build `roleAssignments` from what the project actually dispatched: the models the old fields
+   named, the per-role efforts from wherever the project kept them, and the CTO's seat. Where the
+   old file disagreed with itself, present the candidates and ask the owner once — never pick the
+   newest timestamp.
+2. Add `reportingLanguage` from the language the owner writes in.
+3. Delete `gptModel`, `claudeModel`, and `reasoningPolicy`, along with every private key and note
+   that existed only to work around their absence.
+4. Move any remaining owner decision that is not a charter field into `ownerOverrides`, and drop
+   notes that now contradict the fields.
+
+A `schema: 1` file is readable but not operable: complete the migration before the first dispatch.
 
 ## First-run and legacy migration
 
@@ -78,7 +123,7 @@ unconfirmed authority-expanding overrides.
 
 ## Atomic updates
 
-Only an explicit owner charter change may alter the eight fields or `ownerOverrides`. Update one
+Only an explicit owner charter change may alter the seven fields or `ownerOverrides`. Update one
 field without reconfirming the rest, increment `revision`, update `confirmedAt`, validate the complete
 document, and atomically replace `SETTINGS.json` through a temporary file in the same directory.
 Afterward update the active run's settings revision and snapshot. A reconcile, restart, handover,

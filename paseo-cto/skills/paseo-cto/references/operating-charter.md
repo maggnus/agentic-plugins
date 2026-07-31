@@ -1,7 +1,7 @@
 # Operating charter
 
 Read this file before the first `operate` run and whenever the owner asks to reconfigure the project.
-The charter is eight persistent fields; the goal is to reach a confirmed charter in one exchange,
+The charter is seven persistent fields; the goal is to reach a confirmed charter in one exchange,
 not to run an interrogation.
 
 ## Propose, then confirm
@@ -12,35 +12,39 @@ again. Do not create agents, workspaces, heartbeats, commits, runtime checkpoint
 until settings have been recovered or the first charter is confirmed and persisted. For a genuine
 first run, reach confirmation fast:
 
-1. Discover providers, models, reasoning settings, and permission modes through Paseo, and read
-   enough project evidence to choose a sensible default for every field.
+1. Discover the available providers, models, reasoning settings, and permission modes through Paseo,
+   and read enough project evidence to propose a sensible value for every field except the role
+   assignments.
 2. Present the **complete proposed charter as one confirmation line** (below) and ask the owner to
-   confirm it or change any field. This is the primary interaction.
+   confirm it or change any field. This is the primary interaction. Role assignments are the one
+   part that is genuinely the owner's to state: offer the discovered catalog, never a preference.
 3. Fall back to native multiple-choice questions only for a field where evidence is genuinely silent
-   and the default would materially affect safety, and only for that field. Never offer an
-   unavailable value; if a provider family is unavailable, record that and drop its model question.
+   and the default would materially affect safety, and only for that field. Never offer a value the
+   catalog does not currently expose.
 
 On resume or CTO handover, read `SETTINGS.json` and proceed; ask only for a decision whose absence
 blocks safe operation. The owner may change one field without repeating anything, and that change is
 persisted before further operation.
 
 ```text
-CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer max) | full-access-writers | capacity fleet (max_live <N>, 1 review slot per 2 writers) | until-gate | risk-based review
+CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-writers | capacity fleet (max_live <N>, 1 review slot per 2 writers) | until-gate | risk-based review | reports in <language>
 ```
 
-## The eight fields
+## The seven fields
 
 1. **Strategy** — `alpha`, `beta`, or `stable`. Internal to the CTO (see Execution plan); recommend
    one from project evidence.
-2. **GPT model** — the strongest currently allowed Codex/OpenAI choice, preferred tuple first.
-3. **Claude model** — the strongest currently allowed Anthropic choice, preferred tuple first.
-4. **Reasoning policy** — by owner directive 2026-07-20: the reviewer role runs at `max`, and the
-   builder and researcher roles default to `xhigh`. `ultra`, uniform overrides, or any tier below
-   these only on explicit owner request; offer only efforts the selected models support.
-5. **Permission policy** — `full-access-writers` (default), `role-safe`, or `always-ask`. The three
+2. **Role assignments** — provider, model, and reasoning effort for each role the project
+   dispatches, and for the CTO's own seat. **The plugin proposes no value here and holds no
+   default.** It offers what the catalog currently exposes and records what the owner chooses; the
+   rules for reading, validating, and failing on this field are in
+   [Roles and providers](roles-and-providers.md). An entry may fix one effort or allow a range the
+   CTO picks per atom by complexity — when it allows a range, the chosen tier goes in the dispatch
+   contract. A role with no entry is not dispatchable.
+3. **Permission policy** — `full-access-writers` (default), `role-safe`, or `always-ask`. The three
    values are defined once in [Roles and providers](roles-and-providers.md); confirm the name here
    and apply that definition. Push, deploy, and the other owner/CTO gates are unchanged by it.
-6. **Fleet budget** — the ceiling on live external agents; the CTO does not count toward it.
+4. **Fleet budget** — the ceiling on live external agents; the CTO does not count toward it.
    `capacity` (recommended) takes a positive `max_live` and reserves one review slot per two live
    writers, rounded up, so a return never queues behind a busy reviewer. `balanced` (3 writers + 1
    review reserve) and `conservative` (2 writers + 1 review reserve) are fixed small presets for a
@@ -51,11 +55,17 @@ CTO charter: alpha | GPT <model> | Claude <model> | xhigh reasoning (reviewer ma
    [Fleet operations](fleet-operations.md). Raising `max_live` without disjoint work buys nothing and
    pays for it in merge conflicts, so a charter with a high ceiling obliges the CTO to structure the
    plan into independent lanes rather than to dispatch overlapping atoms.
-7. **Autonomy horizon** — `until-gate` (continue safe ready work to completion or a founder/external
+5. **Autonomy horizon** — `until-gate` (continue safe ready work to completion or a founder/external
    gate), `one-wave` (finish the current wave and stop cleanly), or `named-scope` (only named nodes).
-8. **Independent review depth** — `risk-based` applies the complete floor from
+6. **Independent review depth** — `risk-based` applies the complete floor from
    [Review gate](review-gate.md). `every-write` may strengthen it by assigning a formal independent
    reviewer to Routine work. No charter choice may reduce or redefine the risk-based floor.
+7. **Reporting language** — the language every owner-facing message is written in: chat, status,
+   escalations, and the durable render. Default to the language the owner writes in. Whatever the
+   choice, the register rules in the CTO skill hold unchanged — no first person, complete
+   grammatical prose, lead with the result, say nothing rather than repeat. Identifiers stay in
+   their source form: plan IDs, table headers, derived-status tokens, commands, paths, commit
+   messages, and code are never translated.
 
 These are standing rules, not choices: every delegated write receives at least the required
 non-author second look; one 15-minute heartbeat runs while work remains; repository writers commit
@@ -67,8 +77,8 @@ evidence invalidates prior proof.
 ## Persist
 
 Resolve each provider/role `settings.modeId` with `inspect_provider`; never hardcode mode names or
-IDs. Write the accepted charter — exact models, reasoning, mode mapping, fleet limits, strategy,
-horizon, review depth, confirmation date, and any explicit owner overrides — atomically to the
-project-scoped `SETTINGS.json`. Keep operational state in the per-run checkpoint from
+IDs. Write the accepted charter — role assignments, mode mapping, fleet limits, strategy, horizon,
+review depth, reporting language, confirmation date, and any explicit owner overrides — atomically
+to the project-scoped `SETTINGS.json`. Keep operational state in the per-run checkpoint from
 `execution-plan.md`; never use that checkpoint or a global Paseo preferences file as the settings
 authority.

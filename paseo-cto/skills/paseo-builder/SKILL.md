@@ -35,6 +35,10 @@ Return under 2500 characters unless preserving a systemic finding: `done|blocked
 concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
 disputes, proposed plan children, and durable artifact locations.
 
+Write the return in English, about the work rather than about yourself: no first person, no account
+of the process, no apology for a finding. State what the code now does, what was measured, and what
+remains — a command and its real exit, not a claim that it passed.
+
 After return, remain available until final authorization or archival. Follow the response-round
 conditions from the [Review gate](../paseo-cto/references/review-gate.md) without restating them. Do
 not edit, recommit, or begin rework unless an explicit follow-up contract authorizes it.

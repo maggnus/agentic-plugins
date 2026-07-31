@@ -21,9 +21,20 @@ the same turn, so they can never disagree:
    "where are we" question follows Founder status below and omits the fleet table.
 
 State the absolute `STATUS.md` path once when Operate begins and in an explicit full-status reply, so
-the owner knows where to look. Do not repeat it in ordinary delta updates. Founder-facing prose stays
-in the owner's language; the table headers, plan IDs, and derived-status tokens stay in English
-exactly as specified below.
+the owner knows where to look. Do not repeat it in ordinary delta updates.
+
+## Language and register
+
+Prose is written in the charter's `reportingLanguage` and follows the register rules in the CTO
+skill without exception: no first person, complete grammatical sentences rather than fragments or
+stacked nouns, the result first, and silence in place of repetition. A status render is the place
+where those rules are easiest to break — a table tempts telegraphic phrasing, and the `Constraint`
+and `Next` lines tempt a narrated account of what was done. Write them as sentences about the
+project, not about the work performed on it.
+
+Machine tokens are never translated and never rephrased: table headers, plan IDs, derived-status
+tokens, agent titles, commands, and paths appear exactly as specified below whatever the reporting
+language is.
 
 ## Durable render
 
@@ -44,9 +55,9 @@ Fleet — Active <N> · Review <N> · Stalled <N> · Archived-since <N> · Tails
 ## Active fleet
 | Agent | Task | Status | Time | LOC |
 | --- | --- | --- | --- | --- |
-| `cto-claude` | `—` Integrate storage API | `reviewing` | 8m | — |
-| `A-14-gpt-builder` | `A-14` Complete storage API path | `running` | 18m | +2.4k -36 |
-| `A-15-claude-researcher` | `A-15` Verify startup dependency chain | `blocked` | 12m | — |
+| `cto-<family>` | `—` Integrate storage API | `reviewing` | 8m | — |
+| `A-14-<family>-builder` | `A-14` Complete storage API path | `running` | 18m | +2.4k -36 |
+| `A-15-<family>-researcher` | `A-15` Verify startup dependency chain | `blocked` | 12m | — |
 
 ## Blocked and tails
 | Node | Blocker | Pull trigger |
@@ -68,8 +79,8 @@ toward `alpha` exit is not stable-release readiness.
 Use exactly `Agent | Task | Status | Time | LOC`, CTO first. The render is mechanical so providers
 cannot diverge:
 
-- **Agent** — `<plan-id>-<family>-<role>`, where `family` is `gpt` or `claude`. The CTO row is
-  `cto-gpt` or `cto-claude`.
+- **Agent** — `<plan-id>-<family>-<role>`, where `<family>` is the provider-family slug the charter's
+  `roleAssignments` records for that role. The CTO row is `cto-<family>`.
 - **Task** — the plan node's own outcome title, prefixed with its stable plan ID in backticks
   (`` `A-14.2` ``); use `` `—` `` for the CTO's own bounded change. Never invent an ad-hoc phrasing;
   the ID lets the owner trace every row up to its epic in the rollup, so no task looks random.
@@ -98,8 +109,13 @@ every count.
 
 ## Founder status
 
-When the owner asks only where the project stands, answer briefly from the accepted plan in the
-owner's language: the header block and the `Where the project is` rollup, without the fleet table or
-technical detail. Count accepted outcomes, not activity or elapsed time. Use project weights when
-defined, otherwise equal weights across the complete set. Explain any readiness change caused by a
-changed denominator. Strategy may be reported to the founder but is never sent to workers.
+When the owner asks only where the project stands, answer briefly from the accepted plan: the header
+block and the `Where the project is` rollup, without the fleet table or technical detail. Count
+accepted outcomes, not activity or elapsed time. Use project weights when defined, otherwise equal
+weights across the complete set. Explain any readiness change caused by a changed denominator.
+Strategy may be reported to the founder but is never sent to workers.
+
+Keep it to a few sentences. The founder is asking what is true about the product, not what the fleet
+has been doing: name what now works that did not, what is next, and what — if anything — awaits an
+owner decision. Internal identifiers, agent names, and mechanism belong in the fleet render, not
+here.

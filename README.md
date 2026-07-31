@@ -61,16 +61,24 @@ through `paseo-cto`, whose workers are external Paseo agents.
 A project-agnostic CTO organization over external Paseo agents, packaged natively for both Claude
 Code and Codex. The CTO delegates by default: it decomposes the work, dispatches isolated
 role-skilled agents, and touches code itself only for a trivial change or a bounded
-integration-time fix. It keeps a living hierarchical execution plan, moves independent work forward
-while deepening discovered branches, routes work across GPT and Claude, and preserves founder,
-review, integration, push, deploy, and irreversible-operation gates.
+integration-time fix. It manages toward outcomes rather than activity, keeps a living hierarchical
+execution plan, moves independent work forward while deepening discovered branches, and preserves
+founder, review, integration, push, deploy, and irreversible-operation gates.
 
-The first operating run presents a compact multiple-choice charter for CTO strategy, available
-models, reasoning and permission policies, fleet budget, autonomy horizon, and review depth. It is
-persisted per project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation
-or daemon restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Writers use isolated
-workspaces and local commits; the CTO reviews every write on the consequence-based risk gate,
-resolves evidence-based disputes, and integrates safely.
+**The plugin names no model, no reasoning effort, and no provider preference, and never supplies a
+default for one.** Which model and which effort carries which role — the CTO's own seat included —
+is the owner's decision, recorded in the project charter's `roleAssignments` and nowhere else. A
+role with no assignment is not dispatchable, and an unavailable model is reported rather than
+silently substituted. Reporting language is a charter field for the same reason; the register is
+fixed by the plugin (no first person, complete prose, result first, silence in place of repetition)
+while the language is local.
+
+The first operating run presents a compact charter for CTO strategy, role assignments, permission
+policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
+project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation or daemon
+restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Writers use isolated workspaces and
+local commits; the CTO reviews every write on the consequence-based risk gate, resolves
+evidence-based disputes, and integrates safely.
 
 Invoke the CTO skill as `$paseo-cto:paseo-cto` in Codex or `/paseo-cto:paseo-cto` in Claude. Worker
 prompts use the same qualified namespace with the platform's own prefix — `$paseo-cto:paseo-<role>`
@@ -86,8 +94,9 @@ labels allow a fresh or compacted session to resume without replaying completed 
 
 Ships:
 
-- **skill `paseo-cto`** — the CTO operating loop, onboarding charter, living plan, founder status,
-  review gate, fleet lifecycle, provider policy, and the Paseo command catalog;
+- **skill `paseo-cto`** — the CTO operating loop, outcome discipline, reporting register, onboarding
+  charter, living plan, founder status, review gate, fleet lifecycle, provider policy, and the Paseo
+  command catalog;
 - **document standard and templates** — the canonical plan document, acceptance history and
   invariant registry, plus a reference shape check. A project without a tracker gets them by
   default; a project with one keeps its own and binds to it;

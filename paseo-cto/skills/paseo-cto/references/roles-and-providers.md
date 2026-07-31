@@ -36,7 +36,7 @@ Only then continue to the provider preflight and to creating agents.
 The CTO may run in Codex or Claude; role authority and acceptance do not change by provider. Before
 dispatch, for each selected worker family:
 
-1. call `list_providers`, then `list_models` only when exact `codex` or `claude` IDs are needed;
+1. call `list_providers`, then `list_models` only when an exact model ID for that provider is needed;
 2. require `paseo-cto` to be installed and enabled in that worker environment: verify with
    `codex plugin list` for Codex or `claude plugin list` for Claude;
 3. call `inspect_provider`, validate the model/reasoning tuple, and resolve an exact `modeId`;
@@ -53,7 +53,8 @@ through the host's in-chat subagent facility. Repository writers never share a m
 These four owner-approved rules replace only the corresponding generic Paseo defaults for an
 explicitly invoked Paseo CTO run:
 
-- use the accepted operating charter, not `~/.paseo/orchestration-preferences.json`, for models;
+- take every model and effort from the charter's `roleAssignments`, never from
+  `~/.paseo/orchestration-preferences.json` or any other global default;
 - set `notifyOnFinish: false` for parallel agents until the platform issue is fixed; it may be true
   only for a single active agent on the critical path (see Fleet operations);
 - run the bounded 15-minute reconciliation defined by the CTO lifecycle, not ad-hoc polling;
@@ -70,24 +71,38 @@ explicitly invoked Paseo CTO run:
 
 Retain every other base Paseo safety rule.
 
-## Models and permission policy
+## Model and effort selection is local — the plugin makes none
 
-Verify IDs at runtime because catalogs can change:
+**This plugin names no model, no reasoning effort, and no provider preference, and it never supplies
+a default for any of them.** Model catalogs turn over faster than a plugin release, and the owner —
+not the method — knows which model is available, affordable, and appropriate today. A model name
+written here would silently override a choice the plugin cannot see.
 
-| Family | Preferred order | Default reasoning |
-| --- | --- | --- |
-| GPT | `codex/gpt-5.6-sol` | `xhigh` (reviewer `max`) |
-| Claude | `claude/claude-opus-5[1m]`, then `claude/claude-opus-5` | `xhigh` (reviewer `max`) |
+The binding lives in one place: the charter's `roleAssignments` in the project-scoped
+`SETTINGS.json`, defined by [Persistent settings](persistent-settings.md). It maps each role —
+including the CTO's own seat — to a provider, a model, and a reasoning effort, in the values the
+owner confirmed. Read it, validate it against the live catalog, and dispatch what it says.
 
-Use the persistent charter's selected tuple. By owner directive 2026-07-20, the reviewer role runs
-at `max` — the quality gate gets the top tier — and the builder and researcher roles default to
-`xhigh`. `ultra`, fast modes, or any tier below these require explicit owner or binding project
-authorization.
+- **An unassigned role is not dispatchable.** If `roleAssignments` has no entry for the role, stop
+  and ask the owner for one. Do not choose a model, infer one from another role, carry one over
+  from a previous run, or read one from a global Paseo preferences file.
+- **A missing or invalid tuple is an owner decision, never a fallback.** If the assigned model or
+  effort is unavailable at preflight, preserve the agent and workspace as `waiting`, report the
+  exact tuple and the exact failure, and wait. Substituting a neighbouring model silently is the
+  failure this rule exists to prevent.
+- **Verify what actually ran, not what was requested.** Read the runtime model the provider reports
+  back, not the value that was sent. A provider may serve a different model than the one selected;
+  when the two differ, report it rather than reconciling it quietly, because every claim the agent
+  made about its own capacity was measured on the substrate that actually ran.
+- **Record the chosen effort in the dispatch contract** whenever the assignment allows a range, so
+  the choice is auditable after the fact.
+
+## Permission policy
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from
-`inspect_provider` rather than hard-coding provider names. By owner directive 2026-07-20 the default
-policy is `full-access-writers`: agents launch with full permissions so they never stall on
-permission prompts. Repository writers still commit locally and never push.
+`inspect_provider` rather than hard-coding provider names. The default policy is
+`full-access-writers`: agents launch with full permissions so they never stall on permission
+prompts. Repository writers still commit locally and never push.
 
 - `full-access-writers` (default): the builder uses the selected full-access/bypass mode. Reviewers
   and researchers keep the strongest read-only or plan mode where the provider enforces one; where
@@ -121,19 +136,25 @@ If the qualified skill is unavailable, the worker must return exactly
 `BLOCKED: role skill unavailable` before any repository read or write. The CTO remains final
 reviewer and integration authority.
 
-Route by dominant need: prefer GPT for mechanical implementation and structured diagnostics; Claude
-for product and architecture synthesis, UI judgment, and qualitative research. When the risk gate
-requires an initial independent review, prefer an opposite-family reviewer; otherwise use a fresh
-session. After an evidence-based return, reuse the same non-author reviewer/session by default under
-the Review gate. Replace it only for unavailability/error, compromised independence, a disputed
+Routing follows `roleAssignments`; the plugin states no preference for one provider family over
+another on any kind of work. One structural rule does hold, because it is about independence rather
+than about capability: when the risk gate requires an initial independent review, prefer a reviewer
+from a different provider family than the author, and otherwise use a fresh session. A reviewer of
+the same family as the author is a weaker check — findings that survive it are worth no less, but
+findings it misses are more likely — so when the assignment leaves both on one family, record that
+the cross-family property was lost.
+
+After an evidence-based return, reuse the same non-author reviewer and session by default under the
+Review gate. Replace it only for unavailability or error, compromised independence, a disputed
 finding needing a tie-break, or materially expanded scope, dependencies, or threatened invariant.
 Record material exceptions.
 
 ## Identity, labels, and ownership
 
 Use titles no longer than 60 characters: `<plan-id>-<family>-<role>`, for example
-`A-14-claude-builder` or `A-14.2-gpt-builder`. Use `gpt` for Codex/OpenAI and `claude` for
-Anthropic; name the CTO row `cto-gpt` or `cto-claude`. Keep the status-table task aligned with the
+`A-14-<family>-builder` or `A-14.2-<family>-builder`, and `cto-<family>` for the CTO row. `<family>`
+is the short provider-family slug the charter's `roleAssignments` records for that role — a stable
+lowercase token, not a model name and not a version. Keep the status-table task aligned with the
 plan title.
 
 Set string labels on every agent:

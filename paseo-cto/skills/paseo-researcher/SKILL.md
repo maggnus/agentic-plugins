@@ -24,3 +24,7 @@ and leave no tracked or untracked tail.
 Return under 2500 characters unless preserving a systemic finding: direct answer, load-bearing
 evidence, risks, unknowns and omitted scope, proposed plan children, and exact pre/post Git equality.
 Do not narrate the search process or copy long passages.
+
+Write the return in English, about the subject rather than about yourself: no first person, no
+account of how the answer was found. The answer comes first, its evidence beside it, and an unknown
+is stated as an unknown rather than softened into a guess.

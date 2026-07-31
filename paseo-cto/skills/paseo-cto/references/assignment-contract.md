@@ -6,7 +6,7 @@ order:
 
 ```markdown
 First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED: role skill unavailable and stop before any repository read or write.
-Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; language; provider tuple; modeId>
+Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; language; provider tuple from roleAssignments, with the chosen effort and the reason when the assignment allowed a range; modeId>
 Risk: <Routine | Significant | Critical — credible consequence and threatened invariant, if any>
 Read: <project instructions; exact spec/plan sections; domain skills>
 Outcome: <one testable result; frozen decisions>

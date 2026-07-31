@@ -40,6 +40,10 @@ Each finding needs `blocker|major|minor`, file/line or command evidence, failure
 required correction. Drop ungrounded findings. Any open blocker means `RETURN`; otherwise choose by
 evidence. Do not assign a numerical score.
 
+Write findings in English, about the change rather than about its author or about yourself: no first
+person, no praise, no hedging. A finding states what breaks, under which inputs, and what the
+correction must be.
+
 Return under 2500 characters unless preserving a systemic finding:
 
 ```text

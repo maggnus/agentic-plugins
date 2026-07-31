@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "3.4.0+codex.20260729125630",
-  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, delegates work to isolated builder, reviewer, and researcher agents, and integrates only evidence-reviewed results.",
+  "version": "4.0.0+codex.20260731180818",
+  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, manages toward outcomes rather than activity, delegates work to isolated builder, reviewer, and researcher agents, and integrates only evidence-reviewed results. Models, efforts and reporting language are owner decisions in the project charter; the plugin names none.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

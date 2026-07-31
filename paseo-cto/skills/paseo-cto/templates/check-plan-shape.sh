@@ -32,6 +32,10 @@ RISK_PATTERN="${RISK_PATTERN:-Routine|Significant|Critical|pre-policy}"
 fail=0
 note() { printf '%s\n' "$1" >&2; fail=1; }
 
+# Private scratch directory: a predictable /tmp name is writable by anyone on the machine.
+work=$(mktemp -d "${TMPDIR:-/tmp}/plan-shape.XXXXXX")
+trap 'rm -rf "$work"' EXIT INT TERM
+
 [ -f "$PLAN_FILE" ] || { note "plan shape: $PLAN_FILE not found"; exit 1; }
 
 # --- cards -------------------------------------------------------------------------------------
@@ -77,13 +81,11 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     }
   }
   END { flush(); printf "cards=%d\n", cards > "/dev/stderr" }
-' "$PLAN_FILE" > /tmp/plan-shape.$$ 2>/tmp/plan-count.$$ || true
+' "$PLAN_FILE" > "$work/plan-shape" 2>"$work/plan-count" || true
 
-cards=$(sed -n 's/^cards=//p' /tmp/plan-count.$$)
-rm -f /tmp/plan-count.$$
+cards=$(sed -n 's/^cards=//p' "$work/plan-count")
 
-if [ -s /tmp/plan-shape.$$ ]; then cat /tmp/plan-shape.$$ >&2; fail=1; fi
-rm -f /tmp/plan-shape.$$
+if [ -s "$work/plan-shape" ]; then cat "$work/plan-shape" >&2; fail=1; fi
 
 [ "${cards:-0}" -gt 0 ] || note "plan shape: $PLAN_FILE declares no cards at level '$CARD_HEADING_LEVEL'"
 
@@ -106,9 +108,8 @@ if [ -f "$ACCEPTANCE_FILE" ]; then
       if (last != "n/a" && last !~ /^[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9] \([^()]+\)$/)
         printf "acceptance shape: line %d has time \"%s\", want \"DD/MM HH:MM (<cost>)\" or n/a\n", NR, last
     }
-  ' "$ACCEPTANCE_FILE" > /tmp/acc-shape.$$ || true
-  if [ -s /tmp/acc-shape.$$ ]; then cat /tmp/acc-shape.$$ >&2; fail=1; fi
-  rm -f /tmp/acc-shape.$$
+  ' "$ACCEPTANCE_FILE" > "$work/acc-shape" || true
+  if [ -s "$work/acc-shape" ]; then cat "$work/acc-shape" >&2; fail=1; fi
 else
   note "plan shape: $ACCEPTANCE_FILE not found"
 fi
