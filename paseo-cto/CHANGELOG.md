@@ -3,6 +3,23 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 5.1.0
+
+One addition to the reviewer, from a run in which every blocker across eleven accepted cards was a
+proof that could not fail rather than a defect in code. A cleanup report called seven surviving
+cloud artifacts absent. A scanner pin identified a string the peer offered about itself. A spend
+ceiling test had stopped exercising the ceiling. Thirty-two of thirty-three database-backed
+packages reported success for months while running nothing. In each case the check ran, passed, and
+reported truthfully — about the wrong thing.
+
+- **The reviewer now attempts a false green before believing any evidence.** Rule 4 opens with the
+  construction rather than the challenge: try to build a passing result that proves nothing, and
+  prefer bypass hypotheses over breakage ones — the implementation skipped, the fixture supplying
+  the expected answer, the oracle derived from the code it judges, the exercised composition
+  differing from the deployed one, the negative case that cannot fail. A surviving hypothesis is a
+  RETURN before any further code is read. Challenging a check after reading the diff comes too late:
+  by then the review has already adopted the author's frame of what the check is for.
+
 ## 5.0.0
 
 Four corrections to 4.1.0, from reviewing 4.1.0 itself. Three of its eight rules lived only in

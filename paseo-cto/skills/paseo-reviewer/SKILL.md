@@ -24,7 +24,12 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    and static inspection. Derive what the change must do from the contract, the specification, and
    the code — never from the author's account of it. A review that starts from the author's framing
    can only check the work against itself.
-4. Challenge every check offered as acceptance before believing it. Ask whether it could fail at
+4. Before accepting any evidence, first try to construct a false green. Prefer bypasses over
+   breakage: ask whether the implementation can be bypassed, the harness or fixture can supply the
+   expected result, the oracle is derived from the implementation, the exercised composition differs
+   from the deployed composition, or the claimed negative case cannot actually fail. If any such
+   hypothesis survives, RETURN before reviewing further code.
+   Challenge every check offered as acceptance before believing it. Ask whether it could fail at
    all: has its failing form been observed with real output, which mutations does it distinguish and
    which would it pass, and is the configuration it ran in one the product actually reaches. A check
    comparing a subset against itself, a fixture pinned to whatever the code currently emits, and a
