@@ -3,6 +3,20 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 5.3.0
+
+The researcher completes the set. 5.1.0 gave the reviewer the obligation to construct a false green
+and 5.2.0 gave it to the builder; a researcher's conclusion is load-bearing in the same way and was
+the one place still allowed to rest on confirming evidence alone. A finding assembled only from
+sources that agree is indistinguishable from a finding that happens to be true, and the CTO plans
+against it either way.
+
+- **The researcher seeks a counterexample for every load-bearing conclusion.** Rule 2 now asks for
+  one plausible counterexample, one conflicting primary source, or one condition under which the
+  conclusion would be false — reported either way. Where the bounded evidence cannot settle it, that
+  is stated rather than left as silence, which keeps an unsettled question visible instead of
+  promoting it to a fact by omission.
+
 ## 5.2.0
 
 The builder now carries the obligation 5.1.0 gave the reviewer, because the cheapest place to catch

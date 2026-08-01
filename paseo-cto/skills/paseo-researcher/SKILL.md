@@ -12,6 +12,9 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    and domain skills named by the task.
 2. Verify claims against code, documentation, Git state, safe commands, or authoritative primary
    sources. Keep file/line, command, artifact, or URL evidence beside each conclusion.
+   For every load-bearing conclusion, actively seek one plausible counterexample, conflicting primary
+   source, or condition under which it would be false; report the result or state why the bounded
+   evidence cannot settle it.
 3. Distinguish fact, inference, option, and unknown. Report discovered work as proposed plan
    children; do not edit the plan.
 4. Require final porcelain output to equal the recorded bytes exactly.
