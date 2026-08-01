@@ -3,6 +3,38 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 6.0.1
+
+The owner-facing status becomes a policy with a check, not a shape with headings.
+
+- **One mandatory policy, one place.** `references/status-and-reporting.md` now carries the rule for
+  every message the owner reads: brief, neutral, self-contained engineering prose — no first person,
+  emotion, praise, surprise, drama, literary framing, or commentary on how important or interesting a
+  finding feels; only what limits progress, what materially changed, why it matters to the product or
+  the critical path, and what happens next. The CTO skill and the reconcile prompt point at it rather
+  than restating it.
+
+- **The mandated headings are gone.** `FRONTIER / DECISION / IMPACT / NEXT`, introduced one version
+  earlier, traded one rigid form for another and taught the reader to skim four labels. A status is
+  now a few short natural paragraphs: at most four, usually 500–900 characters, longer only for an
+  owner decision or a critical risk that cannot be stated correctly in less.
+
+- **What must not appear is enumerated.** Intermediate attempts, commit and file and round counts,
+  file/line, commands, internal function names, query forms, harness detail, corrected internal
+  mistakes, working-tree state, and the run's own vocabulary — cards, branches, agents, reviewers,
+  rounds. Adjacent defects appear only as separate cards, and only when they move the critical path,
+  a risk, or an owner decision.
+
+- **A check for the mechanical half.** `templates/check-owner-status.sh` judges length, paragraph
+  count, first person, banned framing, internal-mechanics vocabulary, template headings, and a
+  trailing aside carrying stale internal history. It exits with the violation count. Form only: the
+  four content questions in the policy remain the real gate, and the file says so.
+
+Review reports, findings, and durable evidence are untouched — they keep commands, exact evidence,
+file/line, identifiers and reproduction detail in full. The change moves detail to the right reader
+rather than removing it, and independent adversarial review, the false-green audit, the validation
+budget, bounded scope, reviewer preservation and the RETURN/RESIDUE/SPLIT separation all stand.
+
 ## 6.0.0
 
 Three corrections from operating the 5.x method through a full day of cards. All three were failures

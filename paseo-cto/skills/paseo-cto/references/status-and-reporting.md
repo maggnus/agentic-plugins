@@ -32,35 +32,103 @@ where those rules are easiest to break — a table tempts telegraphic phrasing, 
 and `Next` lines tempt a narrated account of what was done. Write them as sentences about the
 project, not about the work performed on it.
 
-## The chat status is four lines, not a narrative
+## Owner-facing status — the mandatory policy
 
-The durable render is the full state. The message posted alongside it answers four questions and
-stops:
+The durable render is the full state. The message sent to the owner is a different artifact with a
+different job, and this policy governs it wherever it is produced — heartbeat reconcile, landing
+decision, escalation, or a direct question.
+
+> **Write owner-facing CTO status updates in a brief, neutral, self-contained engineering style. Do
+> not use first person, emotion, praise, surprise, drama, literary framing, or commentary on how
+> important, impressive, costly, interesting, or consequential a finding feels. Explain only what
+> currently limits progress, what materially changed or was decided, why it matters to the product
+> or critical path, and what happens next.**
+
+There are no mandatory headings and no keywords. A status reads as a few short natural paragraphs.
+
+### Constraints
+
+- At most four short paragraphs.
+- Usually 500–900 characters. Exceeding that is allowed only for an owner decision or a critical
+  risk that cannot be stated correctly in less.
+- Never repeat what has not changed since the previous status.
+- Never retell the course of an investigation.
+- Do not list intermediate attempts, commits, or counts of steps, files, rounds or findings unless
+  the number changes a decision.
+- No file/line, commands, internal function names, exact query forms, or test-harness detail.
+- No corrected intermediate mistakes, taken identifiers, working-tree cleanliness or other internal
+  events once they block nothing.
+- No internal jargon or metaphor — a card does not "land", a hypothesis does not "survive", a review
+  does not "earn its round", a return is not "the most substantial", an item is not "the heaviest",
+  a card does not "go off" anywhere.
+- No first person, singular or plural.
+- No evaluation of an author, a reviewer, an agent, the work, or the quality of a finding.
+- Translate technical detail into its general consequence.
+- Mention an adjacent defect only as a separate card, and only when it affects the critical path, a
+  risk, or an owner decision.
+
+The reader knows the product's architecture and has not read the current card, the review report,
+the code, or the previous message.
+
+### The check before sending
 
 ```text
-FRONTIER: what currently limits progress.
-DECISION: what materially changed and why.
-IMPACT: effect on the contracted outcome or critical path.
-NEXT: required action or disposition.
+Can the owner understand from this status alone:
+- what currently blocks or limits progress;
+- what materially changed;
+- why it matters;
+- what happens next?
 ```
 
-Omit a line that has nothing new to say rather than restating it. A reconcile that changed nothing
-material sends no message at all — the durable render stays current on its own, and a periodic
-retelling of an unchanged state trains the reader to skip it.
+If understanding it requires opening the card, the code, an agent's log, or an earlier message,
+rewrite it.
 
-Each line carries the general technical consequence, not the route taken to it. The shape to aim
-for:
+### Two artifacts, not one
+
+1. **Review report** keeps the complete technical findings — commands, exact evidence, file/line,
+   identifiers, reproduction detail. Nothing here shortens it.
+2. **Owner-facing CTO status** carries the understandable technical substance, its effect, and the
+   next action.
+
+Detail belongs in the first. A status that borrows from it has been written for the wrong reader.
+
+### Golden examples
+
+Rejected — internal detail, drama, opaque jargon, and facts that change no decision:
 
 ```text
-The proposed recovery procedure is not executable by the documented operator because the required
-restart capability is unavailable. The exercise also contains two false-green checks, so it does not
-prove the runbook. The runbook and exercise return for correction; unrelated queue and billing
-defects become separate cards.
+Семнадцать шагов зафиксировано, три самых тяжёлых пункта закрыты. Гипотеза ложного зелёного выжила,
+первый коммит ушёл с занятыми идентификаторами, а рецензент сохранён для перемотки на исправленную
+вершину.
 ```
 
-Not an account of what was tried, in what order, and how it felt. Findings keep their precise
-file/line, commands and captured output — in the review report and the evidence package, which is
-where a reader who needs them will look.
+Accepted:
+
+```text
+Инструкция дежурного и проверочные учения переделываются: прежние проверки могли сообщать успех, не
+подтверждая восстановление системы. Основные ложнозелёные проверки уже заменены воспроизводимыми
+измерениями.
+
+Два независимых дефекта продукта вынесены в отдельные задачи. Один касается сохранения биллинговых
+записей после удаления файла и влияет на юридическое обещание первому партнёру. Второй может
+оставить работу остановленной без видимого отказа.
+
+Сначала завершаются инструкция и учения, чтобы они зафиксировали текущее поведение. После этого
+найденные дефекты будут исправляться против сохранённых проверок.
+```
+
+Three more pairs, each rewritten to the consequence rather than the route:
+
+| Rejected | Accepted |
+| --- | --- |
+| "Разбор вернул карту, и это самый содержательный возврат за прогон. Гипотеза ложного зелёного, построенная до чтения кода, выжила." | "Проверочные учения не доказывают инструкцию: часть проверок сообщает успех независимо от состояния системы. Инструкция и учения возвращены на доработку." |
+| "Ключ дедупликации закреплён тремя способами, ловится три попытки слома из четырёх, четвёртая ловиться и не должна; `uniqueFieldsOf` обходит только верхний уровень." | "Очередь задач больше не может потерять признак, различающий две доставки, при добавлении нового поля. Ограничение проверки записано отдельной задачей." |
+| "Тринадцать коммитов, дерево чистое, ветка не отправлена, `make check` зелёный, стенд снесён, каждое удаление проверено чтением после него." | "Работа завершена и проверена полным набором проверок; изменения ожидают разбора." |
+
+A mechanical check for the parts a script can judge is in
+[`templates/check-owner-status.sh`](../templates/check-owner-status.sh) — length, paragraph count,
+first person, banned framing, mandated headings, and a trailing "separately" paragraph carrying
+stale internal history. It judges form only; the four questions above are the real gate.
 
 Machine tokens are never translated and never rephrased: table headers, plan IDs, derived-status
 tokens, agent titles, commands, and paths appear exactly as specified below whatever the reporting

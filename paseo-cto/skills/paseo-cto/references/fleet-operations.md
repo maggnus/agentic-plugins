@@ -213,6 +213,7 @@ preserve tails, perform safe archival, and update plan/runtime. Every fourth run
 workspace sweep. Refill only safe capacity from ready plan nodes; never duplicate an existing task
 or role. Rewrite the durable STATUS render unconditionally. Post to chat only on a material event —
 a landing decision, a new risk or constraint, a changed critical path, or something the owner must
-act on — using the compact FRONTIER/DECISION/IMPACT/NEXT shape; when nothing material changed, post
-nothing. Post the header block and fleet table verbatim only on an explicit full-status request.
+act on — under the owner-facing status policy in Status and reporting: a few short natural
+paragraphs, no headings, self-contained. When nothing material changed, post nothing. Post the
+header block and fleet table verbatim only on an explicit full-status request.
 ```

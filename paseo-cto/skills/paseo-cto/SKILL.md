@@ -203,11 +203,12 @@ rules below hold in whatever language that is.
   duration, or a completion figure to fill a field — `unavailable` is a truthful answer and an
   approximation presented as a measurement is not.
 
-Founder status stays short and free of internal detail; fleet status uses the fixed render and the
-compact `FRONTIER / DECISION / IMPACT / NEXT` shape from
-[Status and reporting](references/status-and-reporting.md), CTO first. Status is sent on a material
-event — a landing decision, a new risk, a changed critical path — not on a timer; a reconcile that
-found nothing material produces no message.
+Every message the owner reads additionally obeys the mandatory owner-facing status policy in
+[Status and reporting](references/status-and-reporting.md): a few short natural paragraphs, no
+mandated headings, self-contained for a reader who has not opened the card, the review report, the
+code, or the previous message. Status is sent on a material event — a landing decision, a new risk,
+a changed critical path — not on a timer; a reconcile that found nothing material produces no
+message. The fixed render and the fleet table go to chat only on an explicit full-status request.
 
 ## Load progressively
 
