@@ -48,9 +48,11 @@ There are no mandatory headings and no keywords. A status reads as a few short n
 
 ### Constraints
 
-- At most four short paragraphs.
-- Usually 500–900 characters. Exceeding that is allowed only for an owner decision or a critical
-  risk that cannot be stated correctly in less.
+- **Keep it as short as the material change allows, never more than 900 characters by default. One
+  or two short paragraphs are preferred; use up to four only when needed.** There is no target
+  length and no minimum: two sentences that answer the four questions below are a complete status,
+  not a draft. Exceeding 900 is allowed only for an owner decision or a critical risk that cannot be
+  stated correctly in less.
 - Never repeat what has not changed since the previous status.
 - Never retell the course of an investigation.
 - Do not list intermediate attempts, commits, or counts of steps, files, rounds or findings unless

@@ -3,6 +3,22 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 6.0.2
+
+Two corrections to 6.0.0 and 6.0.1, both found by reading the rules against each other.
+
+- **`Maturity` is a stored card field, not only a dispatch field.** 6.0.0 made the assignment and
+  the review gate require it while the project document standard still listed the card's exact
+  fields without it, so the level a card promised lived only in a prompt and the next session had to
+  guess it. It now sits beside `Risk` in the card standard, and `templates/check-plan-shape.sh`
+  enforces it on the same rule Risk carries: a not-started card may be unclassified, anything in
+  progress or done may not, and a value outside the four levels is reported.
+
+- **The status length is a ceiling, not a range.** "Usually 500–900 characters" reads as a target,
+  and a target invites writing up to it. The rule is now: as short as the material change allows,
+  never more than 900 by default, one or two paragraphs preferred and four only when needed. There
+  is no minimum — two sentences that answer the four questions are a complete status, not a draft.
+
 ## 6.0.1
 
 The owner-facing status becomes a policy with a check, not a shape with headings.

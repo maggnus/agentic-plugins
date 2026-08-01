@@ -11,6 +11,8 @@
 #   - every card declares Outcome and Acceptance;
 #   - a card in progress or done also declares Risk, from the allowed set — a not-started card may
 #     still be unclassified, but nothing may be dispatched without a classification;
+#   - the same card also declares Maturity, from the allowed set: Risk says what a defect would cost,
+#     Maturity says what the card promised to produce, and a landing decision needs both;
 #   - a card declaring Residue also declares its Return condition, so an accepted defect is tracked
 #     rather than remembered;
 #   - a card at two or more review Rounds also declares Convergence, so the decision the second
@@ -32,6 +34,7 @@ CARD_HEADING_LEVEL="${CARD_HEADING_LEVEL:-####}"
 CARD_ID_PATTERN="${CARD_ID_PATTERN:-^[A-Za-z][A-Za-z0-9]*-[0-9][0-9A-Za-z./]*$}"
 # Rows accepted before a policy existed may carry a historical classification.
 RISK_PATTERN="${RISK_PATTERN:-Routine|Significant|Critical|pre-policy}"
+MATURITY_PATTERN="${MATURITY_PATTERN:-RESEARCH|DESIGN|BUILD|OPERATIONALIZATION|pre-policy}"
 
 fail=0
 note() { printf '%s\n' "$1" >&2; fail=1; }
@@ -44,7 +47,8 @@ trap 'rm -rf "$work"' EXIT INT TERM
 
 # --- cards -------------------------------------------------------------------------------------
 # A card runs from its heading to the next heading of the same or a higher level.
-awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_PATTERN" '
+awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_PATTERN" \
+    -v maturities="$MATURITY_PATTERN" '
   function flush(   missing) {
     if (id == "") return
     missing = ""
@@ -52,12 +56,15 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if (!has_acceptance) missing = missing " Acceptance"
     # A not-started card may still be unclassified; anything in progress or done may not.
     if (!has_risk && state != "todo") missing = missing " Risk"
+    # Without it the next session guesses what the card promised, and judges it at the wrong level.
+    if (!has_maturity && state != "todo") missing = missing " Maturity"
     # A residue is an accepted defect: without its return condition nobody is tracking it.
     if (has_residue && !has_return_condition) missing = missing " Return-condition (required by Residue)"
     # The second return forces a decision; record which one, in the plan, not only in the review.
     if (rounds >= 2 && !has_convergence) missing = missing " Convergence (required at Rounds >= 2)"
     if (missing != "") printf "plan shape: card %s (line %d) is missing:%s\n", id, start, missing
     if (has_risk && !risk_ok) printf "plan shape: card %s (line %d) has a risk outside {%s}\n", id, start, risks
+    if (has_maturity && !maturity_ok) printf "plan shape: card %s (line %d) has a maturity outside {%s}\n", id, start, maturities
     cards++
   }
   {
@@ -67,6 +74,7 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
       if ($2 ~ idpat) {
         id = $2; start = NR
         has_outcome = has_risk = has_acceptance = risk_ok = 0
+        has_maturity = maturity_ok = 0
         has_residue = has_return_condition = has_convergence = rounds = 0
         if      ($0 ~ /`\[x\]`[[:space:]]*$/) state = "done"
         else if ($0 ~ /`\[~\]`[[:space:]]*$/) state = "active"
@@ -87,6 +95,10 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if ($0 ~ /^\*\*Risk/) {
       has_risk = 1
       if ($0 ~ "(" risks ")") risk_ok = 1
+    }
+    if ($0 ~ /^\*\*Maturity/) {
+      has_maturity = 1
+      if ($0 ~ "(" maturities ")") maturity_ok = 1
     }
     if ($0 ~ /^\*\*Residue/)          has_residue = 1
     if ($0 ~ /^\*\*Return condition/) has_return_condition = 1

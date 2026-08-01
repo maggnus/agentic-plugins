@@ -29,6 +29,7 @@ A card carries exactly these fields:
 | Heading | `<stable-id> — <outcome-oriented title> — <state>`, state one of `[ ]`, `[~]`, `[x]` |
 | **Outcome** | One testable result in one or two sentences. Not a task list. |
 | **Risk** | `Routine`, `Significant` or `Critical` with the credible consequence and, for `Critical`, the threatened invariant. |
+| **Maturity** | `RESEARCH`, `DESIGN`, `BUILD` or `OPERATIONALIZATION`; fixes what outcome the card promises. |
 | **Scope** | What the card owns, and the boundaries it must not cross. |
 | **Acceptance** | Machine-checkable conditions: commands, exits, observable states, negative cases. |
 | **Validation budget** | Who owns which proof and the exact full-suite trigger. Optional when the project-wide default suffices. |

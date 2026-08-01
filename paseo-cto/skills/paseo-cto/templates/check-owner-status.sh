@@ -13,7 +13,7 @@
 # rule below and still fail that.
 #
 # Checked here:
-#   - total length within the policy budget;
+#   - total length under the ceiling — there is no minimum, and a two-sentence status is complete;
 #   - at most four paragraphs;
 #   - no first person, singular or plural;
 #   - no banned emotional, literary or jargon framing;
@@ -25,9 +25,9 @@
 
 set -uo pipefail
 
-MAX_CHARS="${MAX_CHARS:-900}"
+MAX_CHARS="${MAX_CHARS:-900}"              # a ceiling, never a target: shorter is better
 HARD_MAX_CHARS="${HARD_MAX_CHARS:-1600}"   # owner decision or critical risk only
-MAX_PARAGRAPHS="${MAX_PARAGRAPHS:-4}"
+MAX_PARAGRAPHS="${MAX_PARAGRAPHS:-4}"      # one or two preferred
 
 src="${1:-/dev/stdin}"
 text="$(cat "$src")"
@@ -43,7 +43,7 @@ chars="$(printf '%s' "$text" | wc -m | tr -d ' ')"
 if [ "$chars" -gt "$HARD_MAX_CHARS" ]; then
   fail "length $chars exceeds the hard ceiling $HARD_MAX_CHARS; no owner decision justifies this much"
 elif [ "$chars" -gt "$MAX_CHARS" ]; then
-  printf '! length %s over the usual %s — allowed only for an owner decision or a critical risk\n' \
+  printf '! length %s over the %s ceiling — allowed only for an owner decision or a critical risk\n' \
     "$chars" "$MAX_CHARS" >&2
 fi
 
