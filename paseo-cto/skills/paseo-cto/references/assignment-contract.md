@@ -8,6 +8,7 @@ order:
 First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED: role skill unavailable and stop before any repository read or write.
 Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; language; provider tuple from roleAssignments, with the chosen effort and the reason when the assignment allowed a range; modeId>
 Risk: <Routine | Significant | Critical — credible consequence and threatened invariant, if any>
+Maturity: <RESEARCH | DESIGN | BUILD | OPERATIONALIZATION — the level the outcome is judged at; see the Review gate>
 Read: <project instructions; exact spec/plan sections; domain skills>
 Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
@@ -20,6 +21,8 @@ Commit: <coherent local commit set/message conventions>; final reviewed range; c
 Return: <final range, concise diff, real checks, Git state, blockers/disputes, proposed children>
 Response round: <only when triggered by Review gate; evidence-based and no changes without rework authorization>
 ```
+
+`Maturity` is not optional and is not inferred from the role: a builder can carry a `RESEARCH` card and a researcher can carry a `DESIGN` one. It fixes what counts as success before the work starts, so a refuted assumption cannot later be read as a failure to deliver. `Outcome` is written to match it — a verified answer, a chosen model, a realized contract, or a procedure proved executable by the operator who will actually run it.
 
 Address the role skill as `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:paseo-<role>` in
 Claude, where `<role>` is `builder`, `reviewer`, or `researcher`. Include the preflight-resolved

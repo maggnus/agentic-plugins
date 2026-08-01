@@ -211,6 +211,8 @@ Read and validate settings first, then plan and runtime state. Reconcile project
 process returns and permissions, derive states/stateSince and LOC, diagnose evidence-backed stalls,
 preserve tails, perform safe archival, and update plan/runtime. Every fourth run perform the orphan
 workspace sweep. Refill only safe capacity from ready plan nodes; never duplicate an existing task
-or role. Rewrite the durable STATUS render, then post its header block and fleet table verbatim into
-chat (not a prose summary), CTO first, per Status and reporting.
+or role. Rewrite the durable STATUS render unconditionally. Post to chat only on a material event —
+a landing decision, a new risk or constraint, a changed critical path, or something the owner must
+act on — using the compact FRONTIER/DECISION/IMPACT/NEXT shape; when nothing material changed, post
+nothing. Post the header block and fleet table verbatim only on an explicit full-status request.
 ```

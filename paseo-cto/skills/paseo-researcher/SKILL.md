@@ -8,6 +8,10 @@ description: Investigate one bounded Paseo question. Invoke only as `$paseo-cto:
 Before any repository read or write, require the assignment's first line to invoke this exact
 qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
 
+0. A research card's outcome is a verified answer. Refuting the question's starting hypothesis is a
+   successful result and is reported as one, without hedging and without framing it as a setback.
+   Report in the neutral, impersonal register defined in the CTO skill: no first person, no emotion,
+   no evaluation of the finding's importance.
 1. Record the exact bytes of `git status --porcelain`, then read only the instructions, sources,
    and domain skills named by the task.
 2. Verify claims against code, documentation, Git state, safe commands, or authoritative primary

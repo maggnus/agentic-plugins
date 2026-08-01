@@ -3,6 +3,39 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 6.0.0
+
+Three corrections from operating the 5.x method through a full day of cards. All three were failures
+of the method rather than of any agent following it.
+
+- **Work is judged at the maturity the card contracted.** A card now declares `RESEARCH`, `DESIGN`,
+  `BUILD` or `OPERATIONALIZATION` beside its risk, and the landing decision reads both. An
+  assumption invalidated during research or design is a result; only a defect in the contracted
+  outcome forces a return. Depth of investigation surfaces neighbouring problems, and neither the
+  reviewer nor the CTO may load one card with all of them: every finding is sorted into a defect in
+  this outcome, a refinement of the starting hypothesis, an independent product defect, or
+  additional work, and its kind is stated. Reviewer findings carry the kind; only an
+  `outcome-defect` blocker returns a card.
+
+- **The register bans evaluation, not only first person.** Reports state the prior assumption, the
+  observed evidence, the effect on the contracted outcome, and the required disposition — and
+  nothing about how important, impressive, costly or interesting the finding is. Phrases that rate
+  the work rather than report it are removed rather than softened. The rule was already in the CTO
+  skill; it now reaches every worker report through a line in each role skill.
+
+- **The heartbeat stopped forcing a message.** The reconcile prompt told the CTO to post the header
+  and fleet table into chat on every run, which contradicted the delta-stream rule three files away
+  and produced a periodic retelling of an unchanged state. The prompt now posts only on a material
+  event, in a fixed four-line shape — `FRONTIER`, `DECISION`, `IMPACT`, `NEXT` — carrying the
+  general technical consequence rather than the route taken to it. Precise file/line, commands and
+  captured output stay in the review report and the evidence package, which is where a reader who
+  needs them looks.
+
+Nothing was removed from the evidence discipline: independent adversarial review, the false-green
+audit, the validation budget, bounded scope, reviewer preservation across rounds, and the
+residue/split/return separation are unchanged, and the archival review report keeps its full
+technical detail.
+
 ## 5.3.0
 
 The researcher completes the set. 5.1.0 gave the reviewer the obligation to construct a false green

@@ -23,6 +23,38 @@ threat to a named critical invariant. Crossing subsystems, changing shared compo
 build/test infrastructure, or requiring manual integration raises a card to at least Significant
 unless the diff and consequences are mechanically bounded.
 
+## Judge at the contracted maturity
+
+Every card carries a maturity level, set when it is written and named in the assignment. Risk says
+what a defect would cost; maturity says what the card promised to produce. Both are needed before a
+landing decision, and a card judged at the wrong maturity is returned for the wrong reason.
+
+- `RESEARCH` — the outcome is a verified answer. Refuting the starting hypothesis is a successful
+  result.
+- `DESIGN` — the outcome is a working model. A preliminary plan may change as facts arrive.
+- `BUILD` — the outcome is an already-specified contract, realized. Divergence from that contract
+  is a defect.
+- `OPERATIONALIZATION` — the outcome is proof that a real procedure is executable by a real
+  operator in the environment actually available. A procedure that works only under conditions the
+  operator does not have fails this outcome.
+
+**Judge work at the maturity level contracted by the card. An assumption invalidated during
+research or design is a result, not a defect. Return work only when it fails the outcome promised at
+that maturity level. Newly discovered adjacent defects become separate findings or proposed plan
+children unless they invalidate the contracted outcome.**
+
+Depth of investigation surfaces neighbouring problems. Neither the reviewer nor the CTO may load one
+card with everything found next to it. Sort each finding into exactly one kind before deciding the
+landing:
+
+- a defect in **this card's contracted outcome** — the only kind that can force a return;
+- a **refinement of the starting hypothesis** — recorded as a result, not charged as a failure;
+- an **independent product defect** — a proposed plan child, reported precisely and left unfixed;
+- **additional work** the finding implies — a separate card, never absorbed into this one.
+
+State the kind alongside each finding. A finding whose kind is unstated is treated as the weakest
+kind it could be.
+
 ## Common evidence floor
 
 For every returned repository write:

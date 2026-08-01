@@ -32,6 +32,36 @@ where those rules are easiest to break — a table tempts telegraphic phrasing, 
 and `Next` lines tempt a narrated account of what was done. Write them as sentences about the
 project, not about the work performed on it.
 
+## The chat status is four lines, not a narrative
+
+The durable render is the full state. The message posted alongside it answers four questions and
+stops:
+
+```text
+FRONTIER: what currently limits progress.
+DECISION: what materially changed and why.
+IMPACT: effect on the contracted outcome or critical path.
+NEXT: required action or disposition.
+```
+
+Omit a line that has nothing new to say rather than restating it. A reconcile that changed nothing
+material sends no message at all — the durable render stays current on its own, and a periodic
+retelling of an unchanged state trains the reader to skip it.
+
+Each line carries the general technical consequence, not the route taken to it. The shape to aim
+for:
+
+```text
+The proposed recovery procedure is not executable by the documented operator because the required
+restart capability is unavailable. The exercise also contains two false-green checks, so it does not
+prove the runbook. The runbook and exercise return for correction; unrelated queue and billing
+defects become separate cards.
+```
+
+Not an account of what was tried, in what order, and how it felt. Findings keep their precise
+file/line, commands and captured output — in the review report and the evidence package, which is
+where a reader who needs them will look.
+
 Machine tokens are never translated and never rephrased: table headers, plan IDs, derived-status
 tokens, agent titles, commands, and paths appear exactly as specified below whatever the reporting
 language is.

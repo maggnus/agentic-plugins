@@ -8,6 +8,13 @@ description: Implement one bounded Paseo CTO atom. Invoke only as `$paseo-cto:pa
 Before any repository read or write, require the assignment's first line to invoke this exact
 qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
 
+0. The assignment declares a maturity level — `RESEARCH`, `DESIGN`, `BUILD` or
+   `OPERATIONALIZATION` — and the outcome is judged at it. On a research or design card an
+   assumption the work invalidates is a result to report plainly, not a failure to work around. On a
+   build card, divergence from the contract is a defect. Report in the neutral, impersonal register
+   defined in the CTO skill: no first person, no emotion, no evaluation of how significant the
+   result is; state the prior assumption, the observed evidence, the effect on the contracted
+   outcome, and what remains.
 1. Read only the project instructions, specification sections, and domain skills named by the task.
 2. Verify workspace, branch, baseline ancestry, and `git status --short --branch`. Do not fetch,
    pull, rebase, switch branches, clean, reset, or change the baseline.

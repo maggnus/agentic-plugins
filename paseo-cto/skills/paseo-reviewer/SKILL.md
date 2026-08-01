@@ -8,6 +8,16 @@ description: Independently review one Paseo change. Invoke only as `$paseo-cto:p
 Before any repository read or write, require the assignment's first line to invoke this exact
 qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
 
+0. Judge the change at the maturity the assignment declares, and sort every finding into exactly one
+   kind before deciding the landing — a defect in the contracted outcome, a refinement of the
+   starting hypothesis, an independent product defect, or additional work — per
+   [Judge at the contracted maturity](../paseo-cto/references/review-gate.md). Only the first kind
+   can force a return. An assumption invalidated during research or design is a result. Depth
+   surfaces neighbouring problems; report them precisely and leave them to their own cards rather
+   than loading this one with them. Write every finding and the verdict in the neutral, impersonal
+   register defined in the CTO skill: no first person, no emotion, no praise, no commentary on how
+   significant a finding feels — the prior assumption, the observed evidence, the effect on the
+   contracted outcome, the required disposition.
 1. Read the [Review gate](../paseo-cto/references/review-gate.md), project instructions,
    specification, acceptance, and domain skills named by the task. The named skill list is a floor,
    not a ceiling: survey the skills the project makes available and additionally load every one
@@ -50,8 +60,9 @@ Remain report-only: no fixes, commits, integration, push, plan edits, or lifecyc
 archive-worthy evidence in the final report or an explicitly approved durable external artifact;
 never rely only on a disposable workspace path.
 
-Each finding needs `blocker|major|minor`, file/line or command evidence, failure scenario, and
-required correction. Drop ungrounded findings. Any open blocker means `RETURN`; otherwise choose by
+Each finding needs `blocker|major|minor`, its kind (`outcome-defect`, `hypothesis-refinement`,
+`independent-defect`, `additional-work`), file/line or command evidence, failure scenario, and
+required correction. Only an `outcome-defect` blocker forces `RETURN`. Drop ungrounded findings. Any open blocker means `RETURN`; otherwise choose by
 evidence. Do not assign a numerical score.
 
 Write findings in English, about the change rather than about its author or about yourself: no first
