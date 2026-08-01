@@ -20,6 +20,10 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    hypothesis requires it. Add scoped tests or documentation only when required by the contract or
    change. During authorized rework, preserve still-valid proof and add regressions only for accepted
    findings.
+   Before return, try to construct a false green against each load-bearing acceptance check:
+   challenge a reachable bypass, lifecycle boundary, independently chosen mutation, or configuration
+   in which the check succeeds while the contracted outcome is false; preserve the failing output or
+   state why the contract makes that hypothesis unreachable.
 5. Inspect the complete diff, create the coherent local commit set required by the contract, and
    require empty `git status --porcelain`. One card means one outcome, not one commit. Remove only
    task-owned disposable files by exact path; never use broad clean commands. Never push.

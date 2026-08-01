@@ -3,6 +3,21 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 5.2.0
+
+The builder now carries the obligation 5.1.0 gave the reviewer, because the cheapest place to catch
+a proof that cannot fail is before it is offered. In the run that prompted both, a card returned at
+Critical risk on a fault its own acceptance could never have shown: emission was proved harmless
+against a sink that errors, blocks or is absent, and the failure mode was the emitter's lifecycle —
+a closed channel written to by a step still running, reachable at every ordinary shutdown. The
+evidence was sound and answered the wrong question.
+
+- **The builder attempts a false green before returning.** Rule 4 now asks, of each load-bearing
+  acceptance check, whether a reachable bypass, a lifecycle boundary, an independently chosen
+  mutation, or a differing configuration lets the check pass while the contracted outcome is false.
+  The failing output is preserved, or the contract is cited for why the hypothesis cannot be reached.
+  A builder who has already tried to break its own evidence returns a smaller review surface.
+
 ## 5.1.0
 
 One addition to the reviewer, from a run in which every blocker across eleven accepted cards was a
