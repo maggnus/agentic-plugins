@@ -3,6 +3,13 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 7.0.1
+
+The installed-release check now supports both Codex marketplace layouts. When the installation
+metadata sidecar is absent, it verifies the marketplace's detached Git checkout directly: exact
+tag, remote-tag commit, and installed revision must agree. The published `v7.0.0` tag remains
+unchanged; this correction is a new immutable release.
+
 ## 7.0.0
 
 The role contracts, review gate, document lifecycle, reporting register, and dual-host packaging now

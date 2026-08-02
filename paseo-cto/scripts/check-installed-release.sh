@@ -56,13 +56,31 @@ if codex_entries:
     require(source.get("sourceType") == "git", "Codex marketplace is not remote Git")
     require(source.get("source", "").rstrip("/") == expected_url.rstrip("/"),
             "Codex marketplace points to a different remote repository")
-    metadata_path = pathlib.Path(codex_entries[0]["root"]) / ".codex-marketplace-install.json"
-    metadata = json.loads(metadata_path.read_text()) if metadata_path.is_file() else {}
-    require(metadata.get("ref_name") == release_tag,
-            f"Codex marketplace is not pinned to {release_tag}")
-    if remote_commit:
-        require(metadata.get("revision") == remote_commit,
-                "Codex marketplace revision differs from the remote tag commit")
+    codex_root = pathlib.Path(codex_entries[0]["root"])
+    metadata_path = codex_root / ".codex-marketplace-install.json"
+    if metadata_path.is_file():
+        metadata = json.loads(metadata_path.read_text())
+        require(metadata.get("ref_name") == release_tag,
+                f"Codex marketplace is not pinned to {release_tag}")
+        if remote_commit:
+            require(metadata.get("revision") == remote_commit,
+                    "Codex marketplace revision differs from the remote tag commit")
+    else:
+        require((codex_root / ".git").exists(),
+                "Codex marketplace has neither install metadata nor a Git checkout")
+        if (codex_root / ".git").exists():
+            codex_revision = subprocess.check_output(
+                ["git", "-C", str(codex_root), "rev-parse", "HEAD"], text=True
+            ).strip()
+            codex_tag = subprocess.run(
+                ["git", "-C", str(codex_root), "describe", "--tags", "--exact-match", "HEAD"],
+                text=True, capture_output=True,
+            )
+            require(codex_tag.returncode == 0 and codex_tag.stdout.strip() == release_tag,
+                    f"Codex marketplace checkout is not pinned to {release_tag}")
+            if remote_commit:
+                require(codex_revision == remote_commit,
+                        "Codex marketplace checkout differs from the remote tag commit")
 
 codex_plugins = json.loads(output(
     "codex", "plugin", "list", "--marketplace", marketplace_name, "--json"

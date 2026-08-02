@@ -6,14 +6,14 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v7.0.0
+PASEO_CTO_TAG=v7.0.1
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v7.0.0
+PASEO_CTO_TAG=v7.0.1
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -139,7 +139,7 @@ published release tag. Existing installations migrate by removing the old market
 adding the remote repository at the new tag, and reinstalling:
 
 ```sh
-PASEO_CTO_TAG=v7.0.0
+PASEO_CTO_TAG=v7.0.1
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
