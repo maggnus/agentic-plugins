@@ -92,6 +92,72 @@ printf '%s\n' 'I checked the path; you should probably rerun it. Great work.' > 
 expect_fail "personal social and hedged status" env REPORTING_LANGUAGE=English \
   "$templates/check-owner-status.sh" "$scratch/status-bad.txt"
 
+cat > "$scratch/STATUS.md" <<'EOF'
+# Example update 2026-08-02 22:30 HKT
+Wave: W5 Recovery readiness
+Cards: 3/5
+
+## Active fleet
+| Agent | Task | Status | Time | LOC |
+| --- | --- | --- | --- | --- |
+| `cto-sol` | `—` Integrate recovery path | `reviewing` | 8m | — |
+| `W5-4-sol-builder` | `W5-4` Complete recovery | `running` | 18m | +24 -3 |
+EOF
+
+cat > "$scratch/status-plan.md" <<'EOF'
+# Example — Execution
+
+## 3. Cards
+
+### W5 — Recovery readiness
+
+#### W5-4 — Complete recovery — `[~]`
+
+**Outcome.** Recovery completes.
+
+#### W5-5 — Prove recovery — `[ ]`
+
+**Outcome.** Recovery is proved.
+EOF
+
+cat > "$scratch/status-acceptance.md" <<'EOF'
+# Example — Acceptance
+
+| Card | Wave | Risk | Accepted outcome | Closure record | Durable evidence | Time |
+|---|---|---|---|---|---|---|
+| W5-1 | W5 | Routine | First result. | closure | evidence | 02/08 20:00 (5m) |
+| W5-2 | W5 | Routine | Second result. | closure | evidence | 02/08 20:05 (5m) |
+| W5-3 | W5 | Routine | Third result. | closure | evidence | 02/08 20:10 (5m) |
+EOF
+
+expect_pass "current-wave snapshot and semantic card counts" env \
+  STATUS_FILE="$scratch/STATUS.md" PLAN_FILE="$scratch/status-plan.md" \
+  ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/# Example update 2026-08-02 22:30 HKT/# Example — Paseo CTO status/' \
+  "$scratch/STATUS.md" > "$scratch/status-old-header.md"
+expect_fail "old status heading" env STATUS_FILE="$scratch/status-old-header.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/Cards: 3\/5/Cards: 4\/5/' "$scratch/STATUS.md" > "$scratch/status-wrong-count.md"
+expect_fail "status card count differs from plan and acceptance" env \
+  STATUS_FILE="$scratch/status-wrong-count.md" PLAN_FILE="$scratch/status-plan.md" \
+  ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
+  "$templates/check-status-render.sh"
+
+# shellcheck disable=SC2016 # Backticks are literal Markdown syntax.
+sed 's/`cto-sol`/`W5-0-sol-builder`/' "$scratch/STATUS.md" > "$scratch/status-no-cto.md"
+expect_fail "fleet table without CTO first" env STATUS_FILE="$scratch/status-no-cto.md" \
+  "$templates/check-status-render.sh"
+
+sed -e 's/Wave: W5 Recovery readiness/Wave: — —/' -e 's/Cards: 3\/5/Cards: 0\/0/' \
+  "$scratch/STATUS.md" > "$scratch/status-no-wave.md"
+expect_fail "current plan cards without a current wave" env \
+  STATUS_FILE="$scratch/status-no-wave.md" PLAN_FILE="$scratch/status-plan.md" \
+  ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
+  "$templates/check-status-render.sh"
+
 transfer_repo="$scratch/transfer"
 mkdir -p "$transfer_repo"
 git -C "$transfer_repo" init -q

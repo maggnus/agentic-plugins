@@ -6,14 +6,14 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v7.0.1
+PASEO_CTO_TAG=v7.1.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v7.0.1
+PASEO_CTO_TAG=v7.1.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -69,8 +69,9 @@ is the owner's decision, recorded in the project charter's `roleAssignments` and
 role with no assignment is not dispatchable, and an unavailable model is reported rather than
 silently substituted. `reportingLanguage` is also project-local and authoritative: any valid local
 value, including Russian, overrides the plugin's English first-run proposal and the host's current
-conversation language. The register remains formal, neutral, impersonal, grammatical, result-first,
-and silent in place of repetition in every configured language.
+conversation language. The register remains formal, neutral, impersonal, grammatical, and
+result-first in every configured language. Unchanged prose is omitted; the fixed scheduled status
+snapshot is deliberately repeated.
 
 The first operating run presents a compact charter for CTO strategy, role assignments, permission
 policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
@@ -87,11 +88,17 @@ in Codex, `/paseo-cto:paseo-<role>` in Claude — for `paseo-builder`, `paseo-re
 family.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
-Every reconcile rewrites one durable status render at a fixed path — the owner's always-current
-answer to "where are we" — and reflects the same values into chat, so a Claude CTO and a Codex CTO
-using the same project settings produce equivalent output in the same configured language and no
-report is silently skipped. Recoverable checkpoints and stable labels allow a fresh or compacted
-session to resume without replaying completed work.
+Every heartbeat rewrites one durable status render and posts the same compact snapshot to chat even
+when no state changed: project and local timestamp, current wave ID and name, accepted/total cards,
+then the complete fleet table with the CTO first. Claude and Codex derive it from the same plan,
+acceptance history, and runtime state. Recoverable checkpoints and stable labels allow a fresh or
+compacted session to resume without replaying completed work.
+
+```text
+# <project> update <YYYY-MM-DD HH:MM TZ>
+Wave: <wave-id> <wave name>
+Cards: <done>/<total>
+```
 
 Ships:
 
@@ -99,9 +106,10 @@ Ships:
   charter, living plan, founder status, review gate, fleet lifecycle, provider policy, and the Paseo
   command catalog;
 - **document standard and templates** — the canonical plan document, acceptance history and
-  invariant registry, plus checks for document shape, atomic task transfer, source links, and the
-  owner-facing reporting register. An accepted task is appended to acceptance history and removed
-  from current execution in one semantic change; it is never duplicated or silently discarded;
+  invariant registry, plus checks for document shape, atomic task transfer, source links, the exact
+  current-wave status render, and the owner-facing reporting register. An accepted task is appended
+  to acceptance history and removed from current execution in one semantic change; it is never
+  duplicated or silently discarded;
 - **worker role skills** — `paseo-builder`, `paseo-reviewer`, and `paseo-researcher`;
 - **Claude manifest** — [`.claude-plugin/plugin.json`](paseo-cto/.claude-plugin/plugin.json) for
   marketplace installation;
@@ -139,7 +147,7 @@ published release tag. Existing installations migrate by removing the old market
 adding the remote repository at the new tag, and reinstalling:
 
 ```sh
-PASEO_CTO_TAG=v7.0.1
+PASEO_CTO_TAG=v7.1.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

@@ -117,9 +117,11 @@ Treat time and distance to the next usable release as engineering constraints.
    independent acceptance, free review capacity — and hold every other writer while a barrier atom
    touching a canonical contract, schema, shared infrastructure or the centralized theme runs alone.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner
-   can see where the project is at any moment. Treat chat as a delta stream: report only new
-   evidence, changed decisions, blockers, readiness, or next actions since the last message; never
-   restate unchanged meaning. Emit the complete fixed render only for an explicit status request.
+   can see where the project is at any moment. Every 15-minute heartbeat posts the simplified
+   current-wave header and complete fleet table to chat even when no state changed. Between those
+   snapshots, treat chat as a delta stream: report only new evidence, changed decisions, blockers,
+   readiness, or next actions since the last message. An explicit status request posts the same
+   current snapshot immediately.
 5. **Review and authorize.** Read and apply the [Review gate](references/review-gate.md) to every
    returned outcome, including report-only research and design outcomes. It is the sole plugin
    authority for risk classification, review depth, landing decisions, falsifiers, integration
@@ -206,9 +208,9 @@ formal, neutral, impersonal, evidence-led, and concise in every configured langu
 - **Short and load-bearing.** Lead with the decision, the accepted evidence, the readiness change,
   the blocker, and the next owner-relevant action — in that order, and stop. No preamble, no
   restating the request, no summarizing what was already said, no closing flourish.
-- **Say nothing rather than repeat.** Outside an explicit full-status reply, never resend a fact,
-  conclusion, or next step already communicated in this run. If no material fact changed, send no
-  message at all; the durable render stays current on its own.
+- **Say nothing rather than repeat prose.** Never resend a prose fact, conclusion, or next step
+  already communicated in this run. The scheduled current-wave header and fleet table are the sole
+  exception: every heartbeat publishes that mechanical snapshot even when its values are unchanged.
 - **Estimates only when measured.** Report what the evidence shows. Never invent a percentage, a
   duration, or a completion figure to fill a field — `unavailable` is a truthful answer and an
   approximation presented as a measurement is not.
@@ -232,11 +234,10 @@ link to its source. Apply [Source references](references/source-references.md); 
 path is not durable evidence.
 
 Every message the owner reads additionally obeys the mandatory owner-facing status policy in
-[Status and reporting](references/status-and-reporting.md): a few short natural paragraphs, no
-mandated headings, self-contained for a reader who has not opened the card, the review report, the
-code, or the previous message. Status is sent on a material event — a landing decision, a new risk,
-a changed critical path — not on a timer; a reconcile that found nothing material produces no
-message. The fixed render and the fleet table go to chat only on an explicit full-status request.
+[Status and reporting](references/status-and-reporting.md). The scheduled snapshot has one exact
+mechanical heading and table; any accompanying prose is brief, self-contained, and unheaded. A
+heartbeat always posts the snapshot. A landing decision, new risk, changed critical path, or owner
+gate may add a prose delta, but unchanged prose is never repeated.
 
 ## Load progressively
 

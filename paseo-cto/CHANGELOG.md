@@ -3,6 +3,26 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 7.1.0
+
+The periodic fleet display is restored as an explicit operational invariant.
+
+- **Every heartbeat publishes the fleet table.** The scheduled 15-minute reconcile writes and posts
+  the same snapshot even when state is unchanged. Material prose remains a delta stream and is not
+  repeated.
+- **The heading contains only current-wave state.** The exact render is project and local timestamp,
+  current wave ID and name, and `Cards: <done>/<total>`, followed by the complete fleet table with
+  the CTO first. Strategy, readiness, internal run identity, rollups, blockers, and next-action prose
+  are no longer part of the mechanical heading.
+- **Card statistics come from document truth.** `done` counts unique rows for the current wave in the
+  acceptance history. `total` is their union with current cards in the same wave. The last card
+  therefore produces a final `N/N` snapshot before the critical path advances.
+- **The status render has an executable gate.** The
+  [render check](skills/paseo-cto/templates/check-status-render.sh) validates the exact heading,
+  fleet columns, CTO-first ordering, derived status tokens, and plan/acceptance counts. The
+  [contract tests](scripts/test-plugin-contracts.sh) cover the valid render, the removed legacy
+  heading, a false count, a missing CTO row, and current work without an identified wave.
+
 ## 7.0.1
 
 The installed-release check now supports both Codex marketplace layouts. When the installation

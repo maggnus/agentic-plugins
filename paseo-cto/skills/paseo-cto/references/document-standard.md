@@ -121,8 +121,11 @@ headings and state mappings, the required sections, allowed risk and maturity va
 acceptance transfer, source links in acceptance rows, and the acceptance table's column count and
 time field. [`templates/check-source-links.sh`](../templates/check-source-links.sh) rejects
 mechanically recognizable bare commit and file evidence in selected durable documents.
+[`templates/check-status-render.sh`](../templates/check-status-render.sh) validates the exact
+current-wave status header and fleet table. With `PLAN_FILE` and `ACCEPTANCE_FILE`, it also proves
+that `Cards: <done>/<total>` agrees with the atomic current/history split for that wave.
 
-Copy both checks into the project's own script home and bind them to the project's validation gate;
+Copy the checks into the project's own script home and bind them to the project's validation gate;
 do not call them from the plugin path, which carries a version and differs between Claude and Codex.
 Extend the copies with whatever else the project can express — a dashboard-versus-cards cross-check
 is the usual first addition, since only the project knows its rollup.
