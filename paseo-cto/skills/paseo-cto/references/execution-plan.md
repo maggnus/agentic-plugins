@@ -75,7 +75,8 @@ was not in the original plan, to the finding that created it.
 
 The plan state and the agent state are different state machines. The plan's authoritative state is
 the exact machine token at the start of `Current state`; these tokens are never translated. The
-heading marker is only its compact render:
+heading marker is only its compact render and is always the first heading content after the Markdown
+hashes: `#### [ ] LF-06 — Ship immutable App releases`. Never put the marker after the title.
 
 | Plan state | Card marker | Agent-state relationship |
 | --- | --- | --- |
@@ -137,12 +138,14 @@ Keep mutable runtime state outside the tracked worktree at the exact resolved pa
 `$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Persistent owner choices live separately in
 the canonical `SETTINGS.json` defined by [Persistent settings](persistent-settings.md). Record the
 settings path/revision and a non-authoritative charter snapshot, accepted integration `HEAD`, CTO ID,
-heartbeat ID/name, last report time, current wave ID/name, archived-since-report count, active plan
-nodes, derived states and `stateSince`, every agent/workspace ID with its path, branch, baseline,
-returned commits, the release clock, and preserved tails. Update the runtime file before compaction,
-at material transitions, and at close. A runtime checkpoint, old run, or replacement CTO may never
-overwrite the canonical settings. If `stateSince` is absent, report recovered state time as
-approximate.
+heartbeat ID/name, loaded plugin base version/tag/commit, CTO host and role assignment,
+`sessionStartedAt`, last trustworthy host context measurement when available, last report time,
+current wave ID/name, archived-since-report count, active plan nodes, derived states and `stateSince`,
+every agent/workspace ID with its path, branch, baseline, returned commits, the release clock, and
+preserved tails. Update the runtime file before compaction, at material transitions, and at close. A
+runtime checkpoint, old run, or replacement CTO may never overwrite the canonical settings. A new
+CTO session resets `sessionStartedAt`; compaction in the same session preserves it. If `stateSince`
+is absent, report recovered state time as approximate.
 
 The human-facing status render sits beside the settings and checkpoints at
 `$(git rev-parse --git-common-dir)/paseo-cto/STATUS.md`; the checkpoint is machine truth, and

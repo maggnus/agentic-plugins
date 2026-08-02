@@ -118,10 +118,10 @@ Treat time and distance to the next usable release as engineering constraints.
    touching a canonical contract, schema, shared infrastructure or the centralized theme runs alone.
 4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner
    can see where the project is at any moment. Every 15-minute heartbeat posts the simplified
-   current-wave header and complete fleet table to chat even when no state changed. Between those
-   snapshots, treat chat as a delta stream: report only new evidence, changed decisions, blockers,
-   readiness, or next actions since the last message. An explicit status request posts the same
-   current snapshot immediately.
+   header, separate plugin/CTO-session identity line, current-wave counts, and complete fleet table
+   to chat even when no state changed. Between those snapshots, treat chat as a delta stream: report
+   only new evidence, changed decisions, blockers, readiness, or next actions since the last
+   message. An explicit status request posts the same current snapshot immediately.
 5. **Review and authorize.** Read and apply the [Review gate](references/review-gate.md) to every
    returned outcome, including report-only research and design outcomes. It is the sole plugin
    authority for risk classification, review depth, landing decisions, falsifiers, integration

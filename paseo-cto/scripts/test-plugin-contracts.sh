@@ -51,6 +51,12 @@ expect_fail "marker and current state mismatch" env \
   PLAN_FILE="$scratch/state-mismatch.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
   "$templates/check-plan-shape.sh"
 
+sed 's/^#### \[ \] EX-1 — <outcome-oriented title>$/#### EX-1 — <outcome-oriented title> — [ ]/' \
+  "$templates/PLAN.md" > "$scratch/marker-at-end.md"
+expect_fail "card marker at end of heading" env \
+  PLAN_FILE="$scratch/marker-at-end.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
+  "$templates/check-plan-shape.sh"
+
 # shellcheck disable=SC2016 # Backticks are literal Markdown syntax.
 printf '%s\n' \
   'Accepted by [abc1234](https://github.com/example/project/commit/abc1234567890).' \
@@ -94,6 +100,7 @@ expect_fail "personal social and hedged status" env REPORTING_LANGUAGE=English \
 
 cat > "$scratch/STATUS.md" <<'EOF'
 # Example update 2026-08-02 22:30 HKT
+paseo-cto: v8.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: W5 Recovery readiness
 Cards: 3/5
 
@@ -111,11 +118,11 @@ cat > "$scratch/status-plan.md" <<'EOF'
 
 ### W5 — Recovery readiness
 
-#### W5-4 — Complete recovery — `[~]`
+#### [~] W5-4 — Complete recovery
 
 **Outcome.** Recovery completes.
 
-#### W5-5 — Prove recovery — `[ ]`
+#### [ ] W5-5 — Prove recovery
 
 **Outcome.** Recovery is proved.
 EOF
@@ -131,13 +138,26 @@ cat > "$scratch/status-acceptance.md" <<'EOF'
 EOF
 
 expect_pass "current-wave snapshot and semantic card counts" env \
+  PASEO_CTO_VERSION=v8.0.0 \
   STATUS_FILE="$scratch/STATUS.md" PLAN_FILE="$scratch/status-plan.md" \
   ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/ | Context: 201k(15%)//' "$scratch/STATUS.md" > "$scratch/status-no-context.md"
+expect_pass "snapshot may omit unavailable host context" env \
+  PASEO_CTO_VERSION=v8.0.0 STATUS_FILE="$scratch/status-no-context.md" \
+  PLAN_FILE="$scratch/status-plan.md" ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
   "$templates/check-status-render.sh"
 
 sed 's/# Example update 2026-08-02 22:30 HKT/# Example — Paseo CTO status/' \
   "$scratch/STATUS.md" > "$scratch/status-old-header.md"
 expect_fail "old status heading" env STATUS_FILE="$scratch/status-old-header.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/paseo-cto: v8\.0\.0/paseo-cto: v7.1.0/' \
+  "$scratch/STATUS.md" > "$scratch/status-wrong-plugin-version.md"
+expect_fail "status plugin version differs from selected release" env \
+  PASEO_CTO_VERSION=v8.0.0 STATUS_FILE="$scratch/status-wrong-plugin-version.md" \
   "$templates/check-status-render.sh"
 
 sed 's/Cards: 3\/5/Cards: 4\/5/' "$scratch/STATUS.md" > "$scratch/status-wrong-count.md"
@@ -167,7 +187,7 @@ git -C "$transfer_repo" config user.email "paseo-cto-test@example.invalid"
 cat > "$transfer_repo/EXECUTION.md" <<'EOF'
 # Execution
 
-#### A-1 — Accepted outcome — `[~]`
+#### [~] A-1 — Accepted outcome
 
 **Outcome.** One accepted result.
 
@@ -179,7 +199,7 @@ cat > "$transfer_repo/EXECUTION.md" <<'EOF'
 
 **Current state.** `active` — implementation complete.
 
-#### B-1 — Remaining outcome — `[ ]`
+#### [ ] B-1 — Remaining outcome
 
 **Outcome.** One remaining result.
 
@@ -204,7 +224,7 @@ base_ref=$(git -C "$transfer_repo" rev-parse HEAD)
 cat > "$transfer_repo/EXECUTION.md" <<'EOF'
 # Execution
 
-#### B-1 — Remaining outcome — `[ ]`
+#### [ ] B-1 — Remaining outcome
 
 **Outcome.** One remaining result.
 

@@ -217,9 +217,11 @@ Read and validate settings first, then plan and runtime state. Reconcile project
 process returns and permissions, derive states/stateSince and LOC, diagnose evidence-backed stalls,
 preserve tails, perform safe archival, and update plan/runtime. Every fourth run perform the orphan
 workspace sweep. Refill only safe capacity from ready plan nodes; never duplicate an existing task
-or role. Resolve the current wave and its accepted/total card counts from plan and acceptance truth.
-Rewrite the durable STATUS render unconditionally, then post its current-wave header and complete
-fleet table to chat on every run, even when unchanged. Add brief unheaded prose only for a material
-event — a landing decision, a new risk or constraint, a changed critical path, or something the
-owner must act on. Never repeat unchanged prose.
+or role. Resolve the loaded plugin base version, CTO model/effort, any trustworthy host context
+measurement, session elapsed time, current wave, and accepted/total card counts from preflight,
+settings, runtime, plan, and acceptance truth.
+Rewrite the durable STATUS render unconditionally, then post its identity/current-wave header and
+complete fleet table to chat on every run, even when unchanged. Add brief unheaded prose only for a
+material event — a landing decision, a new risk or constraint, a changed critical path, or something
+the owner must act on. Never repeat unchanged prose.
 ```

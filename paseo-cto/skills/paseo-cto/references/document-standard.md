@@ -26,7 +26,7 @@ A card carries exactly these fields:
 
 | Field | Content |
 | --- | --- |
-| Heading | `<stable-id> — <outcome-oriented title> — <marker>`, where `[ ]` renders `ready|blocked|deferred`, `[~]` renders `active|review|rework`, and `[x]` renders transitional `done`. |
+| Heading | `<marker> <stable-id> — <outcome-oriented title>`. The marker is always the first content after the Markdown heading prefix: `[ ]` renders `ready|blocked|deferred`, `[~]` renders `active|review|rework`, and `[x]` renders transitional `done`. Example: `#### [ ] LF-06 — Ship immutable App releases`. |
 | **Outcome** | One testable result in one or two sentences. Not a task list. |
 | **Risk** | `Routine`, `Significant` or `Critical` with the credible consequence and, for `Critical`, the threatened invariant. |
 | **Maturity** | `RESEARCH`, `DESIGN`, `BUILD` or `OPERATIONALIZATION`; fixes what outcome the card promises. |
@@ -48,7 +48,7 @@ pairings, so the omission is a failed gate rather than a discovery months later.
 Blocked or deferred work records its blocker and the pull trigger that releases it. A discovered
 child records the evidence that created it, so no node reads as random. The exact state-to-marker
 mapping lives in [Execution plan](execution-plan.md); a disagreement between marker and `Current
-state` fails the shape gate.
+state`, or a marker placed at the end of the heading, fails the shape gate.
 
 The dashboard shows one row per epic/wave with its state and readiness; it is derived from the
 cards and must never disagree with them.

@@ -30,8 +30,9 @@ first or second person, social language, emotion, praise, blame, unsupported hed
 narrative, fragments, or commentary on an author or agent. Put the result first.
 
 The fixed snapshot labels and machine tokens below form a stable interface and are not translated:
-`update`, `Wave`, `Cards`, `Active fleet`, the table headers, plan IDs, agent titles, derived-status
-tokens, commands, and paths. The exact form is independent of the configured prose language.
+`update`, `paseo-cto`, `Model`, `Context`, `Session`, `Wave`, `Cards`, `Active fleet`, the table
+headers, plan IDs, agent titles, derived-status tokens, commands, and paths. The exact form is
+independent of the configured prose language.
 
 ## Scheduled snapshot — exact shape
 
@@ -39,6 +40,7 @@ Rewrite `STATUS.md` and post the scheduled chat snapshot in exactly this shape:
 
 ```markdown
 # <project> update <YYYY-MM-DD HH:MM TZ>
+paseo-cto: v<base-version> | Model: <provider>/<model> (<reasoning-effort>) | Context: <amount>(<percent>%) | Session: <elapsed>
 Wave: <wave-id> <wave name>
 Cards: <done>/<total>
 
@@ -49,10 +51,26 @@ Cards: <done>/<total>
 | `W5-4-<family>-builder` | `W5-4` Complete recovery path | `running` | 18m | +24 -3 |
 ```
 
-Use single spaces exactly as shown. Do not add the run ID, CTO ID, path, strategy, readiness,
-constraint, fleet counts, project rollup, blockers, tails, or next action to this mechanical render.
-Those facts belong in the plan, runtime state, or a material prose delta. Do not put any content
-after the final fleet row in `STATUS.md`.
+Use single spaces exactly as shown. The `paseo-cto` line is separate from the Markdown heading. Its
+version is the base version of the immutable marketplace tag loaded by this session; never show the
+Codex cachebuster suffix. `Model` is the exact `provider/model` assignment for the CTO role followed
+by its configured reasoning effort in parentheses. `Context` is the exact context amount and
+percentage reported by the current host, for example `201k(15%)`; do not infer or reinterpret either
+value. Omit the complete `| Context: ...` segment when the host exposes no trustworthy measurement.
+`Session` is elapsed wall-clock time since this CTO session started, rendered as `24m`, `1h`, or
+`1h24m`. A handover or new host conversation starts a new session clock; compaction inside the same
+session does not.
+
+Derive every required identity value from plugin-version preflight, `charter.roleAssignments`, and
+runtime state. If the version, model, effort, or session time is unavailable, or the version
+disagrees with the selected immutable release, fail the status gate instead of inventing it. Context
+is the only optional value. Invoke
+[`templates/check-status-render.sh`](../templates/check-status-render.sh) with
+`PASEO_CTO_VERSION=v<base-version>` to verify the displayed release.
+
+Do not add the run ID, CTO ID, path, strategy, readiness, constraint, fleet counts, project rollup,
+blockers, tails, or next action to this mechanical render. Those facts belong in the plan, runtime
+state, or a material prose delta. Do not put any content after the final fleet row in `STATUS.md`.
 
 The timestamp uses the machine's local time and a short unambiguous timezone token. Every value is
 derived from current evidence; none is estimated.

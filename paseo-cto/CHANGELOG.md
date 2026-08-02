@@ -3,6 +3,25 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 8.0.0
+
+The canonical plan heading and status identity line now put the immediately actionable state first.
+
+- **Every card starts with its marker.** The only canonical heading is
+  `#### <marker> <stable-id> — <outcome-oriented title>`, for example
+  `#### [ ] LF-06 — Ship immutable App releases`. A suffix marker is rejected. The
+  [plan-shape check](skills/paseo-cto/templates/check-plan-shape.sh), the
+  [status-render check](skills/paseo-cto/templates/check-status-render.sh), templates, transfer
+  checks, and contract fixtures use the same order.
+- **The status identifies the loaded CTO seat.** A separate line reports the immutable plugin base
+  version, exact `provider/model` with reasoning effort, optional host-provided context measurement,
+  and elapsed CTO-session time. Host context is omitted when no trustworthy measurement exists;
+  plugin version, model, effort, and session time remain mandatory.
+- **The status gate checks the selected release.** `PASEO_CTO_VERSION=v<base-version>` makes a stale
+  or falsely labelled status fail. The [contract tests](scripts/test-plugin-contracts.sh) cover the
+  new leading-marker rule, legacy suffix rejection, version mismatch, and both present and absent
+  context measurements.
+
 ## 7.1.0
 
 The periodic fleet display is restored as an explicit operational invariant.

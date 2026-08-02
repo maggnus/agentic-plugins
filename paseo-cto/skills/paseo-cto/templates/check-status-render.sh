@@ -6,6 +6,7 @@ set -euo pipefail
 status_file=${STATUS_FILE:-STATUS.md}
 plan_file=${PLAN_FILE:-}
 acceptance_file=${ACCEPTANCE_FILE:-}
+expected_version=${PASEO_CTO_VERSION:-}
 
 if [[ ! -f "$status_file" ]]; then
   printf 'status render check: missing status file: %s\n' "$status_file" >&2
@@ -23,7 +24,7 @@ if [[ -n "$plan_file" || -n "$acceptance_file" ]]; then
   fi
 fi
 
-python3 - "$status_file" "$plan_file" "$acceptance_file" <<'PY'
+python3 - "$status_file" "$plan_file" "$acceptance_file" "$expected_version" <<'PY'
 from collections import Counter
 from pathlib import Path
 import re
@@ -48,22 +49,42 @@ def token(value):
 status_path = Path(sys.argv[1])
 plan_arg = sys.argv[2]
 acceptance_arg = sys.argv[3]
+expected_version = sys.argv[4]
+if expected_version.startswith("v"):
+    expected_version = expected_version[1:]
 lines = status_path.read_text(encoding="utf-8").splitlines()
 
-if len(lines) < 8:
+if len(lines) < 9:
     fail("snapshot is incomplete")
 
 if not re.fullmatch(r"# \S(?:.*\S)? update \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+", lines[0]):
     fail("line 1 must be '# <project> update <YYYY-MM-DD HH:MM TZ>'")
 
-wave_match = re.fullmatch(r"Wave: (\S+) (\S(?:.*\S)?)", lines[1])
+identity_match = re.fullmatch(
+    r"paseo-cto: v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)"
+    r" \| Model: ([^\s|()]+/[^\s|()]+) \(([^\s|()]+)\)"
+    r"(?: \| Context: \d+(?:\.\d+)?[kKmM]\((?:100|[1-9]?\d)%\))?"
+    r" \| Session: (?:\d+h(?:[0-5]?\dm)?|\d+m)",
+    lines[1],
+)
+if not identity_match:
+    fail(
+        "line 2 must identify paseo-cto version, provider/model with effort, optional context, and session time"
+    )
+plugin_version = identity_match.group(1)
+if expected_version and plugin_version != expected_version:
+    fail(
+        f"paseo-cto version v{plugin_version} differs from expected v{expected_version}"
+    )
+
+wave_match = re.fullmatch(r"Wave: (\S+) (\S(?:.*\S)?)", lines[2])
 if not wave_match:
-    fail("line 2 must be 'Wave: <wave-id> <wave name>'")
+    fail("line 3 must be 'Wave: <wave-id> <wave name>'")
 wave_id, wave_name = wave_match.groups()
 
-cards_match = re.fullmatch(r"Cards: (\d+)/(\d+)", lines[2])
+cards_match = re.fullmatch(r"Cards: (\d+)/(\d+)", lines[3])
 if not cards_match:
-    fail("line 3 must be 'Cards: <done>/<total>'")
+    fail("line 4 must be 'Cards: <done>/<total>'")
 done, total = map(int, cards_match.groups())
 if done > total:
     fail("Cards done cannot exceed total")
@@ -74,10 +95,10 @@ expected_prefix = [
     "| Agent | Task | Status | Time | LOC |",
     "| --- | --- | --- | --- | --- |",
 ]
-if lines[3:7] != expected_prefix:
+if lines[4:8] != expected_prefix:
     fail("snapshot heading or fleet table header does not match the required shape")
 
-fleet_rows = lines[7:]
+fleet_rows = lines[8:]
 if not fleet_rows or any(not row.strip() for row in fleet_rows):
     fail("fleet table must contain consecutive rows and no trailing content")
 
@@ -131,7 +152,7 @@ for line in plan_lines:
         current_heading_wave = token(wave_heading.group(1))
         wave_titles[current_heading_wave] = wave_heading.group(2).strip()
         continue
-    card_heading = re.match(r"^####\s+(\S+)\s+[—-]\s+", line)
+    card_heading = re.match(r"^####\s+\[(?: |~|x)\]\s+(\S+)\s+[—-]\s+", line)
     if card_heading:
         card_id = token(card_heading.group(1))
         all_plan_ids.append(card_id)

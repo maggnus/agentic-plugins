@@ -7,7 +7,7 @@
 #   PLAN_FILE=docs/EXECUTION.md ACCEPTANCE_FILE=docs/ACCEPTANCE.md ./check-plan-shape.sh
 #
 # It verifies the shape the CTO loop depends on, not the content:
-#   - every card heading carries a stable ID and one of the three states;
+#   - every card heading starts with one of the three markers, followed by a stable ID;
 #   - every card declares Outcome and Acceptance;
 #   - every card declares an exact Current state token whose value matches its heading marker;
 #   - a card in progress or done also declares Risk, from the allowed set — a not-started card may
@@ -56,6 +56,13 @@ touch "$work/plan-ids" "$work/acceptance-ids"
 # A card runs from its heading to the next heading of the same or a higher level.
 awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_PATTERN" \
     -v maturities="$MATURITY_PATTERN" -v cardsfile="$work/plan-ids" '
+  function begin_card(card_id, card_state, line_number) {
+    id = card_id; state = card_state; start = line_number
+    has_outcome = has_risk = has_acceptance = risk_ok = 0
+    has_maturity = maturity_ok = 0
+    has_current_state = current_state_ok = 0
+    has_residue = has_return_condition = has_convergence = rounds = 0
+  }
   function flush(   missing) {
     if (id == "") return
     print id > cardsfile
@@ -82,18 +89,32 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if ($0 ~ ("^" level " ")) {
       flush()
       id = ""
-      if ($2 ~ idpat) {
-        id = $2; start = NR
-        has_outcome = has_risk = has_acceptance = risk_ok = 0
-        has_maturity = maturity_ok = 0
-        has_current_state = current_state_ok = 0
-        has_residue = has_return_condition = has_convergence = rounds = 0
-        if      ($0 ~ /`\[x\]`[[:space:]]*$/) state = "done"
-        else if ($0 ~ /`\[~\]`[[:space:]]*$/) state = "active"
-        else if ($0 ~ /`\[ \]`[[:space:]]*$/) state = "todo"
-        else {
-          state = "todo"
-          printf "plan shape: card %s (line %d) has no [ ] / [~] / [x] state\n", id, NR
+      raw = $0
+      sub("^" level "[[:space:]]+", "", raw)
+      heading = raw
+      marker_state = ""
+      if      (heading ~ /^\[x\][[:space:]]+/) { marker_state = "done";   sub(/^\[x\][[:space:]]+/, "", heading) }
+      else if (heading ~ /^\[~\][[:space:]]+/) { marker_state = "active"; sub(/^\[~\][[:space:]]+/, "", heading) }
+      else if (heading ~ /^\[ \][[:space:]]+/) { marker_state = "todo";   sub(/^\[ \][[:space:]]+/, "", heading) }
+
+      candidate = heading
+      sub(/[[:space:]].*$/, "", candidate)
+      if (candidate ~ idpat && marker_state != "") {
+        begin_card(candidate, marker_state, NR)
+      } else {
+        # Find a stable ID so a legacy suffix marker fails explicitly instead of disappearing as a
+        # non-card heading. The canonical current form is still accepted only by the branch above.
+        count = split(raw, part, /[[:space:]]+/)
+        card_id = ""
+        for (part_index = 1; part_index <= count; part_index++) {
+          if (part[part_index] ~ idpat) { card_id = part[part_index]; break }
+        }
+        if (card_id != "") {
+          inferred_state = "todo"
+          if      (raw ~ /`?\[x\]`?[[:space:]]*$/) inferred_state = "done"
+          else if (raw ~ /`?\[~\]`?[[:space:]]*$/) inferred_state = "active"
+          begin_card(card_id, inferred_state, NR)
+          printf "plan shape: card %s (line %d) must start with [ ] / [~] / [x] before its ID\n", id, NR
         }
       }
       next
@@ -183,7 +204,21 @@ fi
 
 extract_plan_ids() {
   awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" \
-    '$0 ~ ("^" level " ") && $2 ~ idpat { print $2 }' "$1" | sort -u
+    '$0 ~ ("^" level " ") {
+      raw = $0
+      sub("^" level "[[:space:]]+", "", raw)
+      heading = raw
+      sub(/^\[x\][[:space:]]+/, "", heading)
+      sub(/^\[~\][[:space:]]+/, "", heading)
+      sub(/^\[ \][[:space:]]+/, "", heading)
+      candidate = heading
+      sub(/[[:space:]].*$/, "", candidate)
+      if (candidate ~ idpat) { print candidate; next }
+      count = split(raw, part, /[[:space:]]+/)
+      for (part_index = 1; part_index <= count; part_index++) {
+        if (part[part_index] ~ idpat) { print part[part_index]; next }
+      }
+    }' "$1" | sort -u
 }
 
 extract_acceptance_ids() {

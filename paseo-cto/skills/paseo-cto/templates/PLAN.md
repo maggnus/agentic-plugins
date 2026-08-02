@@ -38,7 +38,7 @@ verifiable source or does not enter.
 
 ### <W1> — <wave name>
 
-#### EX-1 — <outcome-oriented title> — `[ ]`
+#### [ ] EX-1 — <outcome-oriented title>
 
 **Outcome.** <one testable result; what is true when this card is done>
 
@@ -62,7 +62,7 @@ trigger>
 
 **Current state.** `ready` — not started
 
-#### EX-2 — <next card> — `[~]`
+#### [~] EX-2 — <next card>
 
 **Outcome.** <one testable result>
 
