@@ -3,6 +3,19 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 8.0.1
+
+The scheduled snapshot now has one heading and no fleet section label.
+
+- **The heading is only the update timestamp.** The exact first line is
+  `# Update <YYYY-MM-DD HH:MM TZ>`; the project name is not repeated.
+- **The table follows the card count directly.** `## Active fleet` is removed. One blank line
+  separates `Cards` from the fixed table header, so the snapshot has exactly one Markdown heading.
+- **The wave index is bracketed.** The exact line is `Wave: [<wave-id>] <wave name>`; an absent wave
+  is `Wave: [—] —`. The [render check](skills/paseo-cto/templates/check-status-render.sh) rejects the
+  former title, an unbracketed wave index, and the removed table section heading. The
+  [contract tests](scripts/test-plugin-contracts.sh) exercise the corrected shape.
+
 ## 8.0.0
 
 The canonical plan heading and status identity line now put the immediately actionable state first.

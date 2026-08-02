@@ -6,14 +6,14 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v8.0.0
+PASEO_CTO_TAG=v8.0.1
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v8.0.0
+PASEO_CTO_TAG=v8.0.1
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -89,17 +89,20 @@ family.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
 Every heartbeat rewrites one durable status render and posts the same compact snapshot to chat even
-when no state changed: project and local timestamp; plugin version, CTO model/effort, available host
+when no state changed: local timestamp; plugin version, CTO model/effort, available host
 context and session time; current wave ID and name; accepted/total cards; then the complete fleet
 table with the CTO first. Claude and Codex derive it from the same installed tag, role assignment,
 plan, acceptance history, and runtime state. Recoverable checkpoints and stable labels allow a fresh
 or compacted session to resume without replaying completed work.
 
 ```text
-# <project> update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v8.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
-Wave: <wave-id> <wave name>
+# Update <YYYY-MM-DD HH:MM TZ>
+paseo-cto: v8.0.1 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
+
+| Agent | Task | Status | Time | LOC |
+| --- | --- | --- | --- | --- |
 ```
 
 Ships:
@@ -150,7 +153,7 @@ published release tag. Existing installations migrate by removing the old market
 adding the remote repository at the new tag, and reinstalling:
 
 ```sh
-PASEO_CTO_TAG=v8.0.0
+PASEO_CTO_TAG=v8.0.1
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

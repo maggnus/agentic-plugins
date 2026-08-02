@@ -54,11 +54,11 @@ if expected_version.startswith("v"):
     expected_version = expected_version[1:]
 lines = status_path.read_text(encoding="utf-8").splitlines()
 
-if len(lines) < 9:
+if len(lines) < 8:
     fail("snapshot is incomplete")
 
-if not re.fullmatch(r"# \S(?:.*\S)? update \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+", lines[0]):
-    fail("line 1 must be '# <project> update <YYYY-MM-DD HH:MM TZ>'")
+if not re.fullmatch(r"# Update \d{4}-\d{2}-\d{2} \d{2}:\d{2} \S+", lines[0]):
+    fail("line 1 must be '# Update <YYYY-MM-DD HH:MM TZ>'")
 
 identity_match = re.fullmatch(
     r"paseo-cto: v(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)"
@@ -77,9 +77,9 @@ if expected_version and plugin_version != expected_version:
         f"paseo-cto version v{plugin_version} differs from expected v{expected_version}"
     )
 
-wave_match = re.fullmatch(r"Wave: (\S+) (\S(?:.*\S)?)", lines[2])
+wave_match = re.fullmatch(r"Wave: \[([^\[\]\s]+)\] (\S(?:.*\S)?)", lines[2])
 if not wave_match:
-    fail("line 3 must be 'Wave: <wave-id> <wave name>'")
+    fail("line 3 must be 'Wave: [<wave-id>] <wave name>'")
 wave_id, wave_name = wave_match.groups()
 
 cards_match = re.fullmatch(r"Cards: (\d+)/(\d+)", lines[3])
@@ -91,14 +91,13 @@ if done > total:
 
 expected_prefix = [
     "",
-    "## Active fleet",
     "| Agent | Task | Status | Time | LOC |",
     "| --- | --- | --- | --- | --- |",
 ]
-if lines[4:8] != expected_prefix:
-    fail("snapshot heading or fleet table header does not match the required shape")
+if lines[4:7] != expected_prefix:
+    fail("snapshot spacing or fleet table header does not match the required shape")
 
-fleet_rows = lines[8:]
+fleet_rows = lines[7:]
 if not fleet_rows or any(not row.strip() for row in fleet_rows):
     fail("fleet table must contain consecutive rows and no trailing content")
 
@@ -131,7 +130,7 @@ if len(set(agents)) != len(agents):
 
 if wave_id == "—":
     if wave_name != "—" or (done, total) != (0, 0):
-        fail("an absent current wave must render 'Wave: — —' and 'Cards: 0/0'")
+        fail("an absent current wave must render 'Wave: [—] —' and 'Cards: 0/0'")
 elif wave_name == "—":
     fail("a current wave requires a name")
 

@@ -99,12 +99,11 @@ expect_fail "personal social and hedged status" env REPORTING_LANGUAGE=English \
   "$templates/check-owner-status.sh" "$scratch/status-bad.txt"
 
 cat > "$scratch/STATUS.md" <<'EOF'
-# Example update 2026-08-02 22:30 HKT
-paseo-cto: v8.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
-Wave: W5 Recovery readiness
+# Update 2026-08-02 22:30 HKT
+paseo-cto: v8.0.1 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+Wave: [W5] Recovery readiness
 Cards: 3/5
 
-## Active fleet
 | Agent | Task | Status | Time | LOC |
 | --- | --- | --- | --- | --- |
 | `cto-sol` | `—` Integrate recovery path | `reviewing` | 8m | — |
@@ -138,26 +137,35 @@ cat > "$scratch/status-acceptance.md" <<'EOF'
 EOF
 
 expect_pass "current-wave snapshot and semantic card counts" env \
-  PASEO_CTO_VERSION=v8.0.0 \
+  PASEO_CTO_VERSION=v8.0.1 \
   STATUS_FILE="$scratch/STATUS.md" PLAN_FILE="$scratch/status-plan.md" \
   ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
   "$templates/check-status-render.sh"
 
 sed 's/ | Context: 201k(15%)//' "$scratch/STATUS.md" > "$scratch/status-no-context.md"
 expect_pass "snapshot may omit unavailable host context" env \
-  PASEO_CTO_VERSION=v8.0.0 STATUS_FILE="$scratch/status-no-context.md" \
+  PASEO_CTO_VERSION=v8.0.1 STATUS_FILE="$scratch/status-no-context.md" \
   PLAN_FILE="$scratch/status-plan.md" ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
   "$templates/check-status-render.sh"
 
-sed 's/# Example update 2026-08-02 22:30 HKT/# Example — Paseo CTO status/' \
+sed 's/# Update 2026-08-02 22:30 HKT/# Example update 2026-08-02 22:30 HKT/' \
   "$scratch/STATUS.md" > "$scratch/status-old-header.md"
 expect_fail "old status heading" env STATUS_FILE="$scratch/status-old-header.md" \
   "$templates/check-status-render.sh"
 
-sed 's/paseo-cto: v8\.0\.0/paseo-cto: v7.1.0/' \
+awk '{ if ($0 == "| Agent | Task | Status | Time | LOC |") print "## Active fleet"; print }' \
+  "$scratch/STATUS.md" > "$scratch/status-table-heading.md"
+expect_fail "fleet table section heading" env STATUS_FILE="$scratch/status-table-heading.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/Wave: \[W5\]/Wave: W5/' "$scratch/STATUS.md" > "$scratch/status-unbracketed-wave.md"
+expect_fail "unbracketed wave index" env STATUS_FILE="$scratch/status-unbracketed-wave.md" \
+  "$templates/check-status-render.sh"
+
+sed 's/paseo-cto: v8\.0\.1/paseo-cto: v8.0.0/' \
   "$scratch/STATUS.md" > "$scratch/status-wrong-plugin-version.md"
 expect_fail "status plugin version differs from selected release" env \
-  PASEO_CTO_VERSION=v8.0.0 STATUS_FILE="$scratch/status-wrong-plugin-version.md" \
+  PASEO_CTO_VERSION=v8.0.1 STATUS_FILE="$scratch/status-wrong-plugin-version.md" \
   "$templates/check-status-render.sh"
 
 sed 's/Cards: 3\/5/Cards: 4\/5/' "$scratch/STATUS.md" > "$scratch/status-wrong-count.md"
@@ -171,7 +179,7 @@ sed 's/`cto-sol`/`W5-0-sol-builder`/' "$scratch/STATUS.md" > "$scratch/status-no
 expect_fail "fleet table without CTO first" env STATUS_FILE="$scratch/status-no-cto.md" \
   "$templates/check-status-render.sh"
 
-sed -e 's/Wave: W5 Recovery readiness/Wave: — —/' -e 's/Cards: 3\/5/Cards: 0\/0/' \
+sed -e 's/Wave: \[W5\] Recovery readiness/Wave: [—] —/' -e 's/Cards: 3\/5/Cards: 0\/0/' \
   "$scratch/STATUS.md" > "$scratch/status-no-wave.md"
 expect_fail "current plan cards without a current wave" env \
   STATUS_FILE="$scratch/status-no-wave.md" PLAN_FILE="$scratch/status-plan.md" \

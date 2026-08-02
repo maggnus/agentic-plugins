@@ -30,36 +30,36 @@ first or second person, social language, emotion, praise, blame, unsupported hed
 narrative, fragments, or commentary on an author or agent. Put the result first.
 
 The fixed snapshot labels and machine tokens below form a stable interface and are not translated:
-`update`, `paseo-cto`, `Model`, `Context`, `Session`, `Wave`, `Cards`, `Active fleet`, the table
-headers, plan IDs, agent titles, derived-status tokens, commands, and paths. The exact form is
-independent of the configured prose language.
+`Update`, `paseo-cto`, `Model`, `Context`, `Session`, `Wave`, `Cards`, the table headers, plan IDs,
+agent titles, derived-status tokens, commands, and paths. The exact form is independent of the
+configured prose language.
 
 ## Scheduled snapshot — exact shape
 
 Rewrite `STATUS.md` and post the scheduled chat snapshot in exactly this shape:
 
 ```markdown
-# <project> update <YYYY-MM-DD HH:MM TZ>
+# Update <YYYY-MM-DD HH:MM TZ>
 paseo-cto: v<base-version> | Model: <provider>/<model> (<reasoning-effort>) | Context: <amount>(<percent>%) | Session: <elapsed>
-Wave: <wave-id> <wave name>
+Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
-## Active fleet
 | Agent | Task | Status | Time | LOC |
 | --- | --- | --- | --- | --- |
 | `cto-<family>` | `—` Integrate storage API | `reviewing` | 8m | — |
 | `W5-4-<family>-builder` | `W5-4` Complete recovery path | `running` | 18m | +24 -3 |
 ```
 
-Use single spaces exactly as shown. The `paseo-cto` line is separate from the Markdown heading. Its
-version is the base version of the immutable marketplace tag loaded by this session; never show the
-Codex cachebuster suffix. `Model` is the exact `provider/model` assignment for the CTO role followed
-by its configured reasoning effort in parentheses. `Context` is the exact context amount and
-percentage reported by the current host, for example `201k(15%)`; do not infer or reinterpret either
-value. Omit the complete `| Context: ...` segment when the host exposes no trustworthy measurement.
-`Session` is elapsed wall-clock time since this CTO session started, rendered as `24m`, `1h`, or
-`1h24m`. A handover or new host conversation starts a new session clock; compaction inside the same
-session does not.
+Use single spaces exactly as shown. `# Update ...` is the only Markdown heading; the fleet table
+follows `Cards` directly after one blank line and has no `Active fleet` heading. The `paseo-cto` line
+is separate from the Markdown heading. Its version is the base version of the immutable marketplace
+tag loaded by this session; never show the Codex cachebuster suffix. `Model` is the exact
+`provider/model` assignment for the CTO role followed by its configured reasoning effort in
+parentheses. `Context` is the exact context amount and percentage reported by the current host, for
+example `201k(15%)`; do not infer or reinterpret either value. Omit the complete
+`| Context: ...` segment when the host exposes no trustworthy measurement. `Session` is elapsed
+wall-clock time since this CTO session started, rendered as `24m`, `1h`, or `1h24m`. A handover or
+new host conversation starts a new session clock; compaction inside the same session does not.
 
 Derive every required identity value from plugin-version preflight, `charter.roleAssignments`, and
 runtime state. If the version, model, effort, or session time is unavailable, or the version
@@ -90,7 +90,7 @@ The runtime checkpoint stores the current wave ID and name. Resolve both during 
 - A discovered card increases `total` as soon as it is added to that wave. A duplicate ID, a current
   `[x]` card, or a disagreement between plan and acceptance truth fails the status gate; never repair
   the display by inventing a count.
-- When no current wave exists, render `Wave: — —` and `Cards: 0/0`.
+- When no current wave exists, render `Wave: [—] —` and `Cards: 0/0`.
 
 The displayed count must always satisfy `0 <= done <= total`. The reference checker in
 [`templates/check-status-render.sh`](../templates/check-status-render.sh) validates the shape and,
