@@ -12,6 +12,7 @@ Resolve these bindings from the repository before operating:
 - authoritative validation commands;
 - validation ownership and the exact triggers for full-suite, wave, release, and deploy checks;
 - integration branch and commit convention;
+- canonical HTTPS source repository URL for commit-pinned source links;
 - founder, release, deploy, external, data, and irreversible-operation gates.
 
 Never duplicate a tracker the project already keeps: bind to it and require only that every field
@@ -65,16 +66,37 @@ Each active node carries, in the project's native format:
 - completion evidence or acceptance condition;
 - a bounded validation ladder when the project-wide default is insufficient;
 - current owner or agent when active;
-- commit/evidence reference when returned;
+- source-linked commit/evidence reference when returned;
 - blocker and pull trigger when blocked or deferred;
 - for a discovered child, the evidence or event that spawned it — its reason for existing.
 
 The last two exist so no task reads as random in status: every node ties back to a parent and, when it
 was not in the original plan, to the finding that created it.
 
-Stable IDs are never renumbered or silently removed. Split a node when it crosses independent write
-zones, owners, acceptance boundaries, or dependency edges. Newly discovered depth becomes explicit
-children. Park blocked or intentionally skipped work with a reason and a pull trigger.
+The plan state and the agent state are different state machines. The plan's authoritative state is
+the exact machine token at the start of `Current state`; these tokens are never translated. The
+heading marker is only its compact render:
+
+| Plan state | Card marker | Agent-state relationship |
+| --- | --- | --- |
+| `ready` | `[ ]` | No agent is required; the node may be dispatched. |
+| `active` | `[~]` | At least one owner is performing useful work. |
+| `review` | `[~]` | A returned outcome is undergoing the required second look. |
+| `rework` | `[~]` | The originating author is correcting accepted findings. |
+| `blocked` | `[ ]` | A dependency or decision prevents dispatch or continuation. |
+| `deferred` | `[ ]` | A named pull trigger must occur before the node becomes ready. |
+| `done` | `[x]` | Transitional only: acceptance is being recorded atomically. |
+
+Runtime agent states remain those defined by Fleet operations. They explain executor lifecycle and
+do not overwrite the plan state; the CTO derives the plan transition from evidence.
+
+Stable IDs are never renumbered, reused, or lost. Acceptance transfers a card atomically: append its
+source-linked row to the acceptance history and remove the complete card from the current execution
+plan in the same semantic change. The ID then lives in acceptance history and must not remain as a
+duplicate done card in the execution plan. A removal without the matching acceptance row is a failed
+plan-shape gate. Split a node when it crosses independent write zones, owners, acceptance boundaries,
+or dependency edges. Newly discovered depth becomes explicit children. Park blocked or intentionally
+skipped work with a reason and a pull trigger.
 
 ## Build the ready frontier
 
@@ -94,7 +116,7 @@ window, next observable finish or decision, and accepted movement since the prio
 after every material event; do not preserve a stale priority merely because work already started.
 
 Update the plan when dispatch depends on a new or changed node, and at discovery, semantic
-return/rework, acceptance, integration, blocking, deferral, and close. Reviewer queueing,
+return/rework, acceptance transfer, integration, blocking, deferral, and close. Reviewer queueing,
 agent/workspace lifecycle, and candidate coordinates are transient runtime/status facts, not plan
 changes. The CTO owns plan edits in the integration tree; workers propose new nodes in reports rather
 than editing the project-wide tracker unless their contract explicitly grants that path.
@@ -103,7 +125,8 @@ The plan is durable project truth in Git. The CTO commits semantic plan changes 
 dispatch that depends on them and at material gates, and keeps the integration tree clean before
 creating worker baselines. Do not create a plan commit solely to record that an unchanged candidate
 entered review or that an agent/workspace changed lifecycle state; runtime and `STATUS.md` own those
-transitions.
+transitions. Apply [Source references](source-references.md) to every commit or repository file that
+supports a plan claim.
 
 ## Persist a recoverable checkpoint
 

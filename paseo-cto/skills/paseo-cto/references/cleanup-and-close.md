@@ -9,9 +9,10 @@ dispatch.
 Run the [Review gate](review-gate.md) first. Returned work stays `reviewing` or `rework`; keep its
 originating agent and workspace through unresolved findings or disputes. Before archival:
 
-1. Capture the report, IDs, Git state and commits, the decision, and every piece of
+1. Capture the report, IDs, Git state and source-linked commits, the decision, and every piece of
    archive-surviving evidence required by the [Assignment contract](assignment-contract.md) and the
-   Review gate.
+   Review gate. Apply [Source references](source-references.md) to every repository file or commit
+   mentioned in durable evidence.
 2. Require empty `git status --porcelain` and prove accepted commits reachable from integration,
    unless an explicit preservation or discard decision is recorded. A report-only reviewer or
    researcher may close earlier when pre/post Git states match and its source commit stays reachable

@@ -3,6 +3,46 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 7.0.0
+
+The role contracts, review gate, document lifecycle, reporting register, and dual-host packaging now
+state one consistent operating model.
+
+- **Every returned outcome is reviewed.** The independent risk-based second look now applies to
+  report-only research and design as well as repository writes. Integration remains specific to
+  accepted writes. The reviewer evaluates the complete evidence package when no revision range
+  exists.
+- **Finding type controls disposition.** An untyped finding makes a review incomplete. Only an open
+  `outcome-defect` blocker necessarily returns the current card; independent defects and additional
+  work become separate plan children or named gates.
+- **Source identities are links.** The [source-reference policy](skills/paseo-cto/references/source-references.md)
+  requires commit-pinned links for repository commits, files, and lines used as durable evidence.
+  The [reference check](skills/paseo-cto/templates/check-source-links.sh) rejects mechanically
+  recognizable bare source identities.
+- **Acceptance is an atomic transfer.** A completed card is appended to acceptance history and
+  removed from the current execution plan in the same semantic change. The
+  [shape check](skills/paseo-cto/templates/check-plan-shape.sh) rejects duplicate IDs, transitional
+  done cards, missing source links, state-marker mismatches, and—when `BASE_REF` is supplied—removed
+  cards without acceptance rows or new acceptance rows without prior cards.
+- **Plan state is explicit.** The plan template now includes the required `Maturity` field on every
+  active example, and the document standard maps every plan state to its card marker without
+  conflating plan state with runtime agent state.
+- **Language precedence is explicit.** `charter.reportingLanguage` remains the authoritative local
+  choice and may name Russian or any other language. It overrides the plugin's English first-run
+  proposal and the host's conversation language. The formal, neutral, impersonal register applies
+  unchanged in every language, with no first or second person, social framing, emotion, praise,
+  blame, or unsupported hedging. The [status check](skills/paseo-cto/templates/check-owner-status.sh)
+  accepts a configured language and can extend its pronoun and social-language patterns per project.
+- **Codex and Claude packaging is checked together.** The
+  [distribution check](scripts/check-distribution-sync.sh) verifies shared descriptions, authors,
+  base versions, marketplace source, skill coverage, and release metadata. The
+  [contract test](scripts/test-plugin-contracts.sh) exercises document shape, source links, English
+  and Russian reporting modes, and the execution-to-acceptance transfer.
+- **Installations are immutable and remote.** Codex and Claude register the GitHub marketplace at
+  the same `v<version>` release tag; local directories and moving branches are development inputs,
+  not installation sources. The [installed-release check](scripts/check-installed-release.sh)
+  verifies the marketplace type, tag, revision, installed versions, and shared commit.
+
 ## 6.0.2
 
 Two corrections to 6.0.0 and 6.0.1, both found by reading the rules against each other.

@@ -11,7 +11,8 @@ that no test or check enforces is a gap worth its own card.
 
 <What must hold, in one or two sentences, stated so a reviewer can test it.>
 
-**Enforced by.** <test, check, database constraint, or "unenforced — see card `<ID>`">
+**Enforced by.** <commit-pinned source link to the test, check, or database constraint; or
+"unenforced — see card `<ID>`">
 
 **Breaking it costs.** <the concrete failure: data loss, tenancy leak, silent corruption, broken
 public contract>

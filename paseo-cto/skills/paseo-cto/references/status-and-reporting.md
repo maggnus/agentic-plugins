@@ -25,12 +25,13 @@ the owner knows where to look. Do not repeat it in ordinary delta updates.
 
 ## Language and register
 
-Prose is written in the charter's `reportingLanguage` and follows the register rules in the CTO
-skill without exception: no first person, complete grammatical sentences rather than fragments or
-stacked nouns, the result first, and silence in place of repetition. A status render is the place
-where those rules are easiest to break — a table tempts telegraphic phrasing, and the `Constraint`
-and `Next` lines tempt a narrated account of what was done. Write them as sentences about the
-project, not about the work performed on it.
+Prose is written in `charter.reportingLanguage` and follows the formal, neutral, impersonal register
+rules in the CTO skill without exception: no first or second person, social language, emotion,
+praise, blame, unsupported hedging, process narrative, fragments, or stacked nouns. Put the result
+first and use silence in place of repetition. A status render is the place where those rules are
+easiest to break — a table tempts telegraphic phrasing, and the `Constraint` and `Next` lines tempt a
+narrated account of what was done. Write them as sentences about the project, not about the work
+performed on it.
 
 ## Owner-facing status — the mandatory policy
 
@@ -38,11 +39,13 @@ The durable render is the full state. The message sent to the owner is a differe
 different job, and this policy governs it wherever it is produced — heartbeat reconcile, landing
 decision, escalation, or a direct question.
 
-> **Write owner-facing CTO status updates in a brief, neutral, self-contained engineering style. Do
-> not use first person, emotion, praise, surprise, drama, literary framing, or commentary on how
-> important, impressive, costly, interesting, or consequential a finding feels. Explain only what
-> currently limits progress, what materially changed or was decided, why it matters to the product
-> or critical path, and what happens next.**
+> **Write owner-facing CTO status updates in the configured reporting language as brief, formal,
+> neutral, impersonal, self-contained prose. Do not use first or second person, social language,
+> emotion, praise, blame, surprise, drama, unsupported hedging, literary framing, or commentary on
+> how important, impressive, costly,
+> interesting, or consequential a finding feels. Explain only what currently limits progress, what
+> materially changed or was decided, why it matters to the product or critical path, and what
+> happens next.**
 
 There are no mandatory headings and no keywords. A status reads as a few short natural paragraphs.
 
@@ -63,7 +66,10 @@ There are no mandatory headings and no keywords. A status reads as a few short n
 - No internal jargon or metaphor — a card does not "land", a hypothesis does not "survive", a review
   does not "earn its round", a return is not "the most substantial", an item is not "the heaviest",
   a card does not "go off" anywhere.
-- No first person, singular or plural.
+- No first or second person, singular or plural.
+- No greeting, thanks, apology, request for patience, praise, blame, or conversational aside.
+- No `seems`, `probably`, `apparently`, `hopefully`, or `likely` unless a measured probability is
+  supplied; state the bounded unknown instead.
 - No evaluation of an author, a reviewer, an agent, the work, or the quality of a finding.
 - Translate technical detail into its general consequence.
 - Mention an adjacent defect only as a separate card, and only when it affects the critical path, a
@@ -96,41 +102,46 @@ Detail belongs in the first. A status that borrows from it has been written for 
 
 ### Golden examples
 
+The examples use the English bootstrap default. Their sentence structure and register, not their
+language, are normative; a configured local language takes precedence.
+
 Rejected — internal detail, drama, opaque jargon, and facts that change no decision:
 
 ```text
-Семнадцать шагов зафиксировано, три самых тяжёлых пункта закрыты. Гипотеза ложного зелёного выжила,
-первый коммит ушёл с занятыми идентификаторами, а рецензент сохранён для перемотки на исправленную
-вершину.
+Seventeen steps were recorded and the three heaviest items were closed. The false-green hypothesis
+survived, the first commit used occupied identifiers, and the reviewer was retained for a
+fast-forward to the corrected head.
 ```
 
 Accepted:
 
 ```text
-Инструкция дежурного и проверочные учения переделываются: прежние проверки могли сообщать успех, не
-подтверждая восстановление системы. Основные ложнозелёные проверки уже заменены воспроизводимыми
-измерениями.
+The operator procedure and recovery drill are being corrected because the previous checks could
+report success without establishing recovery. The checks that admitted false success now use
+reproducible measurements.
 
-Два независимых дефекта продукта вынесены в отдельные задачи. Один касается сохранения биллинговых
-записей после удаления файла и влияет на юридическое обещание первому партнёру. Второй может
-оставить работу остановленной без видимого отказа.
+Two independent product defects have separate outcomes. Billing records can outlive a deleted file,
+which affects the first partner's contractual requirement. A separate lifecycle defect can stop
+processing without a visible failure.
 
-Сначала завершаются инструкция и учения, чтобы они зафиксировали текущее поведение. После этого
-найденные дефекты будут исправляться против сохранённых проверок.
+The procedure and drill complete first so they record current behaviour. The independent defects
+then proceed against the preserved checks.
 ```
 
 Three more pairs, each rewritten to the consequence rather than the route:
 
 | Rejected | Accepted |
 | --- | --- |
-| "Разбор вернул карту, и это самый содержательный возврат за прогон. Гипотеза ложного зелёного, построенная до чтения кода, выжила." | "Проверочные учения не доказывают инструкцию: часть проверок сообщает успех независимо от состояния системы. Инструкция и учения возвращены на доработку." |
-| "Ключ дедупликации закреплён тремя способами, ловится три попытки слома из четырёх, четвёртая ловиться и не должна; `uniqueFieldsOf` обходит только верхний уровень." | "Очередь задач больше не может потерять признак, различающий две доставки, при добавлении нового поля. Ограничение проверки записано отдельной задачей." |
-| "Тринадцать коммитов, дерево чистое, ветка не отправлена, `make check` зелёный, стенд снесён, каждое удаление проверено чтением после него." | "Работа завершена и проверена полным набором проверок; изменения ожидают разбора." |
+| "The review returned the card, and this is the most substantial return in the run. The false-green hypothesis survived." | "The recovery drill does not prove the procedure because several checks report success independently of system state. The procedure and drill require correction." |
+| "The deduplication key is pinned three ways, and three of four mutations are caught; `uniqueFieldsOf` only scans the top level." | "Adding a field can no longer remove the value that distinguishes two deliveries. The check's remaining limitation has a separate outcome." |
+| "Thirteen commits, a clean tree, an unpushed branch, green checks, and a deleted test environment." | "The contracted behaviour is implemented and the required checks pass on the reviewed revision. Authorization is pending." |
 
 A mechanical check for the parts a script can judge is in
 [`templates/check-owner-status.sh`](../templates/check-owner-status.sh) — length, paragraph count,
-first person, banned framing, mandated headings, and a trailing "separately" paragraph carrying
-stale internal history. It judges form only; the four questions above are the real gate.
+first and second person, banned framing, mandated headings, and a trailing "separately" paragraph
+carrying stale internal history. Invoke it with `REPORTING_LANGUAGE` set to the exact charter value;
+the supplied English default applies only before local settings exist. It judges form only; the four
+questions above and semantic agreement with the configured language are the real gate.
 
 Machine tokens are never translated and never rephrased: table headers, plan IDs, derived-status
 tokens, agent titles, commands, and paths appear exactly as specified below whatever the reporting

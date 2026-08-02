@@ -1,7 +1,8 @@
 # CTO review gate
 
-Read this file when a delegated write returns, before repository integration and any push. A project
-may define stricter gates; it must not define a weaker floor.
+Read this file when any delegated outcome returns, including a report-only research or design
+outcome, before the card completes and before any repository integration or push. A project may
+define stricter gates; it must not define a weaker floor.
 
 ## Risk classification
 
@@ -52,19 +53,24 @@ landing:
 - an **independent product defect** — a proposed plan child, reported precisely and left unfixed;
 - **additional work** the finding implies — a separate card, never absorbed into this one.
 
-State the kind alongside each finding. A finding whose kind is unstated is treated as the weakest
-kind it could be.
+State the kind alongside each finding. A finding whose kind is unstated makes the review report
+incomplete; no landing decision may use it until the kind is supplied.
 
 ## Common evidence floor
 
-For every returned repository write:
+For every returned outcome:
 
-1. inspect the report, final workspace state, complete reviewed revision range, ancestry, and actual
-   diff against outcome, scope, and no-touch boundaries;
-2. inventory executable final-revision evidence; verbal claims are not acceptance;
-3. require a clean final worktree and preserve real command exits;
+1. inspect the report, complete evidence package, outcome, scope, and no-touch boundaries;
+2. inventory executable or source-verifiable evidence for the exact returned result; verbal claims
+   are not acceptance;
+3. require a clean final worktree and preserve real command exits or source-linked primary evidence;
 4. list evidenced `blocker`, `major`, or `minor` findings;
 5. choose `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN`, or `BLOCKED`.
+
+For a repository write, also inspect the final workspace state, complete reviewed revision range,
+ancestry, and actual diff. For a report-only result, verify every source that carries a conclusion
+and the stated omitted scope. Apply [Source references](source-references.md) to every commit or
+repository file cited as durable evidence.
 
 Numerical scores are not used.
 
@@ -88,29 +94,36 @@ For every check offered as acceptance evidence, require three things before it c
   under test are ones the product actually reaches. Evidence gathered in a configuration production
   cannot enter is evidence about a system nobody runs.
 
-This is a property of the evidence, not an extra stage: it costs the author one broken input and one
-sentence, and it removes the review round that would otherwise discover the same thing later.
+This is a property of the evidence, not an extra stage: it costs the author one broken input,
+conflicting source, or bounded counterexample and one sentence, and it removes the review round that
+would otherwise discover the same thing later.
 
 ## Review depth
 
 ### Routine
 
-A non-author integrator or CTO performs a mandatory second look over the complete final diff, scope,
-and final-revision acceptance evidence and returns `ACCEPT` or `RETURN`. This is not a formal
-independent review. It requires no separate reviewer, falsifier, author response, or score.
+A non-author integrator or CTO performs a mandatory second look over the complete returned outcome,
+scope, and acceptance evidence. For a repository write this includes the complete final diff and
+final-revision evidence; for a report-only result it includes every load-bearing conclusion and
+source. The second look returns `ACCEPT` or `RETURN`. This is not a formal independent review. It
+requires no separate reviewer, falsifier, author response, or score.
 
 ### Significant
 
-An independent non-author reviewer inspects the final diff and evidence. Targeted success and
-relevant failure-path checks must cover the changed behaviour. Add an independent falsifier only
-when there is a concrete risk hypothesis that existing evidence does not settle.
+An independent non-author reviewer inspects the complete returned outcome and evidence. Repository
+writes require the final diff plus targeted success and relevant failure-path checks. Report-only
+results require independent verification of each load-bearing conclusion and its counterexample.
+Add an independent falsifier only when there is a concrete risk hypothesis that existing evidence
+does not settle.
 
 ### Critical
 
-An independent non-author reviewer inspects the final diff and evidence. At least one independently
-selected executable falsifier or fault-injection proof must challenge the threatened invariant. The
-reviewer may own that proof; no separate falsifier role is required. A maintained negative or
-conformance suite counts only when it demonstrably distinguishes the defect.
+An independent non-author reviewer inspects the complete returned outcome and evidence. At least one
+independently selected executable falsifier, fault-injection proof, conflicting primary source, or
+bounded counterexample must challenge the threatened invariant. Repository writes use executable
+proof when the invariant can be exercised. The reviewer may own that proof; no separate falsifier
+role is required. A maintained negative or conformance suite counts only when it demonstrably
+distinguishes the defect.
 
 ## When the reviewer shares the author's provider family
 
@@ -213,7 +226,8 @@ author continuity helps.
 ## Lean re-review after return
 
 An accepted `RETURN` starts bounded rework inside the same card; it does not reset valid review
-evidence or require a new review organization.
+evidence or require a new review organization. For a report-only outcome, the preserved author and
+reviewer continue against the same evidence package without a repository fast-forward.
 
 - Keep the originating author and independent reviewer, with their workspaces, until the finding is
   resolved. Reuse the same reviewer by default.
@@ -256,8 +270,9 @@ surface remain unchanged; follow [Validation budget](validation-budget.md).
 
 ## Durable evidence
 
-- Preserve archive-worthy evidence through Git, an approved artifact store, CI, runtime state, or a
-  concise durable authorization record.
+- Preserve archive-worthy evidence through source-linked Git references, an approved artifact store,
+  CI, runtime state, or a concise durable authorization record. Apply
+  [Source references](source-references.md) to every commit or repository file mentioned.
 - Prove generated or deployed artifact ancestry and serialize live changes against evidence runs.
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
 - Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema

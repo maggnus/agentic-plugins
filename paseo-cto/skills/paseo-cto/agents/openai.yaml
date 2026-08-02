@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo CTO"
   short_description: "Run a release-driven, durable Paseo fleet"
-  default_prompt: "Use $paseo-cto:paseo-cto to advance the nearest shippable product outcome, reconcile the fleet, and keep the living plan current."
+  default_prompt: "Use $paseo-cto:paseo-cto to advance the nearest shippable outcome, review every return, and keep source-linked plan truth current."
 
 policy:
   allow_implicit_invocation: true

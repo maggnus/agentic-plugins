@@ -13,7 +13,7 @@
     {
       "name": "paseo-cto",
       "source": "./paseo-cto",
-      "description": "Dual Claude/Codex CTO plugin for a long-running Paseo engineering organization. The CTO delegates by default over a living execution plan, manages toward outcomes rather than activity, and applies consequence-based risk review with a mandatory second look for every write. Models, reasoning efforts and reporting language are owner decisions in the project charter — the plugin names none — and durable status, recoverable state, safe cleanup and fleet reconciliation run on top."
+      "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated builder, reviewer, and researcher agents; review every returned outcome; integrate only source-linked evidence; and report in the project-configured language using a formal, neutral, impersonal register. Models and reasoning efforts remain owner decisions."
     }
   ]
 }

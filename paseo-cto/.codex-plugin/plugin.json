@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "6.0.2+codex.20260801214500",
-  "description": "Run a release-driven Paseo engineering organization: the CTO keeps a product clock and critical path, manages toward outcomes rather than activity, delegates work to isolated builder, reviewer, and researcher agents, and integrates only evidence-reviewed results. Models, efforts and reporting language are owner decisions in the project charter; the plugin names none.",
+  "version": "7.0.0+codex.20260802141558",
+  "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated builder, reviewer, and researcher agents; review every returned outcome; integrate only source-linked evidence; and report in the project-configured language using a formal, neutral, impersonal register. Models and reasoning efforts remain owner decisions.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Paseo CTO",
     "shortDescription": "Run a release-driven Paseo engineering organization",
-    "longDescription": "Operate a CTO-led Paseo fleet in Codex or Claude. The CTO keeps the nearest shippable outcome, critical path, time windows, and depth gate explicit; delegates implementation, review, and investigation to isolated agents; and integrates only after consequence-based review and executable evidence.",
+    "longDescription": "Operate the same CTO-led Paseo organization in Codex or Claude. The CTO keeps the nearest shippable outcome and critical path explicit, delegates bounded work to isolated agents, applies risk-based review to every returned outcome, requires source-linked durable evidence, and uses the project-configured language with a formal, neutral, impersonal register.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [

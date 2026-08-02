@@ -116,6 +116,12 @@ Admit a second and every further writer only when all of these hold:
 - **Review capacity.** One free review slot per two live writers, rounded up. A returned candidate
   waiting for a reviewer is the same stall as an unstarted atom, and it ages worse.
 
+The review queue has priority over another build dispatch. Significant and Critical returns are
+assigned to the reserved independent reviewer immediately; Routine returns receive their mandatory
+non-author second look from an available integrator, reviewer, or CTO. The CTO applies a complete
+review report and does not repeat already valid reviewer-owned proof. Final authorization remains
+central, but evidence production and falsification do not become a serial CTO workload.
+
 Work that fails admission is not thereby serial forever. Prefer, in order: split an atom along its
 subsystem seam so the halves stop overlapping; re-baseline the later atom on the earlier one's
 accepted `HEAD`; or, only if neither works, run it as the earlier atom's successor.
@@ -148,8 +154,8 @@ rule.
 
 ## Derived status and stalls
 
-Paseo's native state and project work state differ. Maintain one English derived status per agent
-and reset `stateSince` only when it changes:
+Paseo's native state and project work state differ. Maintain one exact machine-readable derived
+status token per agent and reset `stateSince` only when it changes:
 
 | Status | Meaning |
 | --- | --- |

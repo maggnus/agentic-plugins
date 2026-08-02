@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo Researcher"
   short_description: "Investigate one scoped question read-only"
-  default_prompt: "Use $paseo-cto:paseo-researcher to answer this bounded question with concise evidence and no changes."
+  default_prompt: "Use $paseo-cto:paseo-researcher to answer this bounded question with concise source-linked evidence and no changes."
 
 policy:
   allow_implicit_invocation: false

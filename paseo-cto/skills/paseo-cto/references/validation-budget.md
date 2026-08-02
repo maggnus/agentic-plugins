@@ -18,8 +18,9 @@ Assign every command or proof to one primary role:
 | Role | Default responsibility |
 | --- | --- |
 | Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces. |
+| Researcher | Primary-source verification, explicit unknowns, and one counterexample for every load-bearing conclusion. |
 | Routine second look | The inspection assigned by the Review gate. |
-| Reviewer | Independent inspection and any falsifier assigned by the Review gate. |
+| Reviewer | Independent inspection of the returned outcome and any falsifier assigned by the Review gate. |
 | CTO | Final-range ancestry, integration-delta review, collision resolution, and checks invalidated by composition. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
 
@@ -100,6 +101,7 @@ Write one `Validation budget` line in every repository assignment. Name builder-
 Review-gate owner and proof, integration checks, and the exact full-suite trigger. If the contract
 lists a full suite, state why the trigger applies.
 
-When a returned result is green, reviewers and the CTO first inspect its exact evidence. Rerun only
-what changed during integration or what a concrete review hypothesis challenges. Record unrun
-release checks as deferred to their named gate, not as missing atom evidence.
+When a returned result is green, reviewers and the CTO first inspect its exact evidence. Repository
+files and commits in that evidence follow [Source references](source-references.md). Rerun only what
+changed during integration or what a concrete review hypothesis challenges. Record unrun release
+checks as deferred to their named gate, not as missing atom evidence.

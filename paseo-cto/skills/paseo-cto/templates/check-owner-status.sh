@@ -15,7 +15,9 @@
 # Checked here:
 #   - total length under the ceiling — there is no minimum, and a two-sentence status is complete;
 #   - at most four paragraphs;
-#   - no first person, singular or plural;
+#   - the configured reporting language where it is mechanically distinguishable, with no first or
+#     second person;
+#   - no greeting, thanks, apology, praise, blame, or unsupported hedging;
 #   - no banned emotional, literary or jargon framing;
 #   - no internal mechanics vocabulary (commits, branches, agents, rounds, file names, counts);
 #   - no mandated template headings (FRONTIER/DECISION/IMPACT/NEXT and friends);
@@ -28,6 +30,7 @@ set -uo pipefail
 MAX_CHARS="${MAX_CHARS:-900}"              # a ceiling, never a target: shorter is better
 HARD_MAX_CHARS="${HARD_MAX_CHARS:-1600}"   # owner decision or critical risk only
 MAX_PARAGRAPHS="${MAX_PARAGRAPHS:-4}"      # one or two preferred
+REPORTING_LANGUAGE="${REPORTING_LANGUAGE:-English}"
 
 src="${1:-/dev/stdin}"
 text="$(cat "$src")"
@@ -54,10 +57,33 @@ if [ "$paragraphs" -gt "$MAX_PARAGRAPHS" ]; then
 fi
 
 # --- first person -----------------------------------------------------------
-# English and Russian, word-bounded so ordinary words containing them are left alone.
-first_person='(^|[^[:alnum:]])([Ii]|[Ww]e|[Oo]ur|[Mm]y|[Mm]ine|[Uu]s|я|мы|наш|наша|наше|наши|нами|нам|мною|меня|мне)([^[:alnum:]]|$)'
-if printf '%s' "$text" | grep -qE "$first_person"; then
-  fail "first person present: $(printf '%s' "$text" | grep -oE "$first_person" | tr -d '\n' | head -c 60)"
+# English and Russian are built in. A project using another language extends the pattern through
+# FIRST_PERSON_PATTERN without modifying its local copy of this check.
+first_person="${FIRST_PERSON_PATTERN:-(^|[^[:alnum:]])([Ii]|[Ww]e|[Oo]ur|[Mm]y|[Mm]ine|[Uu]s|я|мы|наш|наша|наше|наши|нами|нам|мною|меня|мне)([^[:alnum:]]|$)}"
+if printf '%s' "$text" | grep -qiE "$first_person"; then
+  fail "first person present: $(printf '%s' "$text" | grep -oiE "$first_person" | tr -d '\n' | head -c 60)"
+fi
+
+# --- configured language and reader address --------------------------------
+# English is only the bootstrap default. Any project-local REPORTING_LANGUAGE value overrides it.
+# Character detection is deliberately narrow: arbitrary human languages cannot be identified
+# reliably by a shell check, so semantic review remains authoritative.
+case "$REPORTING_LANGUAGE" in
+  English|english|en|en-*)
+    if printf '%s' "$text" | grep -qE '[А-Яа-яЁё]'; then
+      fail "Cyrillic prose present while REPORTING_LANGUAGE is $REPORTING_LANGUAGE"
+    fi
+    ;;
+esac
+
+second_person="${SECOND_PERSON_PATTERN:-(^|[^[:alnum:]])([Yy]ou|[Yy]our|[Yy]ours|[Yy]ourself|[Yy]ourselves|вы|ваш|ваша|ваше|ваши|вам|вами)([^[:alnum:]]|$)}"
+if printf '%s' "$text" | grep -qiE "$second_person"; then
+  fail "second person present: $(printf '%s' "$text" | grep -oiE "$second_person" | tr -d '\n' | head -c 60)"
+fi
+
+social_or_hedged="${SOCIAL_OR_HEDGED_PATTERN:-(^|[^[:alnum:]])(hello|hi|thanks|thank you|sorry|apolog(y|ize|ise|etic)|please|great work|well done|seems?|probably|apparently|hopefully|likely|привет|спасибо|пожалуйста|извин(ите|яюсь|ения)|кажется|вероятно|надеюсь)([^[:alnum:]]|$)}"
+if printf '%s' "$text" | grep -qiE "$social_or_hedged"; then
+  fail "social, evaluative, or unsupported hedging language present: $(printf '%s' "$text" | grep -oiE "$social_or_hedged" | tr -d '\n' | head -c 80)"
 fi
 
 # --- banned framing and evaluation ------------------------------------------
@@ -80,6 +106,7 @@ done
 
 # --- internal mechanics -----------------------------------------------------
 # Vocabulary that only means something to someone reading the run, not the product.
+# shellcheck disable=SC2016 # Backticks in the final pattern are literal Markdown syntax.
 internal_re=(
   'коммит|commit'
   'идентификатор|identifier'
@@ -107,7 +134,8 @@ if printf '%s' "$tail_para" | grep -qiE '^(отдельно|к слову|поп
 fi
 
 if [ "$violations" -eq 0 ]; then
-  printf '✓ owner status: form holds (%s chars, %s paragraph(s))\n' "$chars" "$paragraphs"
+  printf '✓ owner status: form holds for %s (%s chars, %s paragraph(s))\n' \
+    "$REPORTING_LANGUAGE" "$chars" "$paragraphs"
 else
   printf '%s form violation(s); the four content questions are still unchecked\n' "$violations" >&2
 fi

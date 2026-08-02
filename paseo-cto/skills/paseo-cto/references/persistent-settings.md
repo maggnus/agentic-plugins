@@ -92,11 +92,12 @@ schema could not, and those keys drifted out of agreement with it.
 
 Migrate in one edit, then raise `revision`:
 
-1. Build `roleAssignments` from what the project actually dispatched: the models the old fields
-   named, the per-role efforts from wherever the project kept them, and the CTO's seat. Where the
-   old file disagreed with itself, present the candidates and ask the owner once — never pick the
-   newest timestamp.
-2. Add `reportingLanguage` from the language the owner writes in.
+1. Build `roleAssignments` from what the project actually dispatched: the models the
+   old fields named, the per-role efforts from wherever the project kept them, and the CTO's seat.
+   Where the old file disagreed with itself, present the candidates and ask the owner once — never
+   pick the newest timestamp.
+2. Add `reportingLanguage` from the owner's explicit project preference. Use English only when no
+   local preference exists and the owner confirms the first-run proposal.
 3. Delete `gptModel`, `claudeModel`, and `reasoningPolicy`, along with every private key and note
    that existed only to work around their absence.
 4. Move any remaining owner decision that is not a charter field into `ownerOverrides`, and drop

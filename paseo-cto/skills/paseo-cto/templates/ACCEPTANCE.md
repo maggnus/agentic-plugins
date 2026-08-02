@@ -5,12 +5,15 @@ artifacts own detailed evidence.
 
 | Card | Wave | Risk | Accepted outcome | Closure record | Durable evidence | Time |
 |---|---|---|---|---|---|---|
-| `<ID>` | `<W1>` | Critical | <what is true now that was not before> | `<commit>` | Git/runtime | 28/07 20:42 (3h25m) |
-| `<ID>` | `<W1>` | Routine | <accepted outcome> | `<commit>` | Git | 29/07 09:15 (40m) |
+New rows use only `Routine`, `Significant` or `Critical`, one source-linked final closure record, the
+accepted outcome, at least one durable evidence link and the card's time field. The closure cell uses
+`[<short-sha>](<canonical-commit-url>)`; every repository file named in the outcome or evidence is a
+commit-pinned source link. Do not copy candidate coordinates, patch IDs, review dialogue or command
+transcripts here.
 
-New rows use only `Routine`, `Significant` or `Critical`, one final closure record, the accepted
-outcome, one durable evidence reference and the card's time field. Do not copy candidate
-coordinates, patch IDs, review dialogue or command transcripts here.
+Appending a row and removing the complete current card from the execution plan is one atomic
+semantic change. The stable ID must exist in exactly one current document after the change: active
+work in the execution plan, or completed work in this history.
 
 `Time` carries two different facts in one cell: when the row was written, then the working time the
 card cost, in parentheses. Write the moment of acceptance as `DD/MM HH:MM` in the machine's local

@@ -36,19 +36,22 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
    task-owned disposable files by exact path; never use broad clean commands. Never push.
 
 Evidence needed after workspace archive must be committed, placed in the contract's durable artifact
-store, or included concisely in the return for the CTO checkpoint. Disposable logs belong only in an
-approved ignored or external path; leave no tracked or untracked tail.
+store, or included concisely in the return for the CTO checkpoint. Every commit and repository file
+cited as evidence follows [Source references](../paseo-cto/references/source-references.md); bare SHAs
+and file paths are not durable references. Disposable logs belong only in an approved ignored or
+external path; leave no tracked or untracked tail.
 
 Do not infer CTO strategy, spawn/message agents, edit the project-wide plan, integrate other work,
 deploy, publish, mutate live systems, install unapproved dependencies, or cross an owner gate.
 
-Return under 2500 characters unless preserving a systemic finding: `done|blocked|error`, commit and
-concise diff, each required check with real result, final branch/empty porcelain proof, blockers or
-disputes, proposed plan children, and durable artifact locations.
+Return under 2500 characters unless preserving a systemic finding: `done|blocked|error`, source-
+linked commits and changed files, concise diff, each required check with real result, final branch/
+empty porcelain proof, blockers or disputes, proposed plan children, and durable artifact locations.
 
-Write the return in English, about the work rather than about yourself: no first person, no account
-of the process, no apology for a finding. State what the code now does, what was measured, and what
-remains — a command and its real exit, not a claim that it passed.
+Write the return in the assignment's reporting language using formal, neutral, impersonal prose
+about the work rather than about its author or reader: no first or second person, social language,
+emotion, praise, blame, unsupported hedging, process narrative, or apology. State what the code now
+does, what was measured, and what remains — a command and its real exit, not a claim that it passed.
 
 After return, remain available until final authorization or archival. Follow the response-round
 conditions from the [Review gate](../paseo-cto/references/review-gate.md) without restating them. Do

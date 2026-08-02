@@ -15,7 +15,9 @@ qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and 
 1. Record the exact bytes of `git status --porcelain`, then read only the instructions, sources,
    and domain skills named by the task.
 2. Verify claims against code, documentation, Git state, safe commands, or authoritative primary
-   sources. Keep file/line, command, artifact, or URL evidence beside each conclusion.
+   sources. Keep source-linked file/line, command, artifact, or URL evidence beside each conclusion;
+   apply [Source references](../paseo-cto/references/source-references.md) to every repository file or
+   commit cited as evidence.
    For every load-bearing conclusion, actively seek one plausible counterexample, conflicting primary
    source, or condition under which it would be false; report the result or state why the bounded
    evidence cannot settle it.
@@ -32,6 +34,8 @@ Return under 2500 characters unless preserving a systemic finding: direct answer
 evidence, risks, unknowns and omitted scope, proposed plan children, and exact pre/post Git equality.
 Do not narrate the search process or copy long passages.
 
-Write the return in English, about the subject rather than about yourself: no first person, no
-account of how the answer was found. The answer comes first, its evidence beside it, and an unknown
-is stated as an unknown rather than softened into a guess.
+Write the return in the assignment's reporting language using formal, neutral, impersonal prose
+about the subject rather than about its author or reader: no first or second person, social language,
+emotion, praise, blame, unsupported hedging, or search narrative. The answer comes first, its
+evidence beside it, and an unknown is
+stated as an unknown rather than softened into a guess.

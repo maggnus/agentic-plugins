@@ -20,14 +20,19 @@ verifiable source or does not enter.
 
 - Landing decisions are `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN` or
   `BLOCKED`, with `blocker | major | minor` findings. Numerical scores are not used.
+- The canonical source repository is `<HTTPS source repository URL>`; every commit or repository
+  file used as evidence is a commit-pinned Markdown link.
 - A residue accepted under the review gate lives here as a node with its return condition, never
   only in review dialogue.
 - Every acceptance check carries its negative half; a check whose failing form was never observed
   is not evidence.
-- Every delegated write receives the risk-required non-author second look before integration.
+- Every delegated outcome receives the risk-required non-author second look before completion; a
+  repository write receives it before integration.
 - The validation gate is `<command>`; the full suite runs only at the triggers named per card.
 - This file is updated in the same change that ships the work.
-- Accepted cards move to `<acceptance file>` with their total active time.
+- Acceptance is an atomic transfer: append the source-linked row to `<acceptance file>` and remove
+  the complete card from this current-work document in the same change. Never leave a duplicate
+  `[x]` card or delete an ID without its acceptance row.
 
 ## 3. Cards
 
@@ -39,6 +44,8 @@ verifiable source or does not enter.
 
 **Risk.** `<Routine|Significant|Critical>`: <credible consequence; for Critical, the threatened
 invariant>
+
+**Maturity.** `<RESEARCH|DESIGN|BUILD|OPERATIONALIZATION>`
 
 **Scope.**
 
@@ -53,7 +60,7 @@ invariant>
 **Validation budget.** <author-owned checks; review depth and its proof; the exact full-suite
 trigger>
 
-**Current state.** <where the work actually is; each claim with its source, or "not started">
+**Current state.** `ready` — not started
 
 #### EX-2 — <next card> — `[~]`
 
@@ -61,11 +68,13 @@ trigger>
 
 **Risk.** `<Routine|Significant|Critical>`: <credible consequence>
 
+**Maturity.** `<RESEARCH|DESIGN|BUILD|OPERATIONALIZATION>`
+
 **Scope.** <what this card owns>
 
 **Acceptance.** <machine-checkable conditions>
 
-**Current state.** <where the work actually is, with sources>
+**Current state.** `active` — <where the work actually is, with commit-pinned source links>
 
 **Rounds.** <review rounds so far — omit until there has been one>
 

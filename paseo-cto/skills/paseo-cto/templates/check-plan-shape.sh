@@ -9,6 +9,7 @@
 # It verifies the shape the CTO loop depends on, not the content:
 #   - every card heading carries a stable ID and one of the three states;
 #   - every card declares Outcome and Acceptance;
+#   - every card declares an exact Current state token whose value matches its heading marker;
 #   - a card in progress or done also declares Risk, from the allowed set — a not-started card may
 #     still be unclassified, but nothing may be dispatched without a classification;
 #   - the same card also declares Maturity, from the allowed set: Risk says what a defect would cost,
@@ -18,6 +19,10 @@
 #   - a card at two or more review Rounds also declares Convergence, so the decision the second
 #     return forces is visible in the plan and not only in the review;
 #   - the acceptance table has a uniform column count and a non-empty time field per row.
+#   - closure and durable-evidence cells are Markdown source links;
+#   - a stable ID cannot exist in both current execution and acceptance history;
+#   - with BASE_REF set, every removed card is added to acceptance and every new acceptance row came
+#     from the prior execution plan in the same change.
 #
 # A card is a heading at CARD_HEADING_LEVEL whose first token matches CARD_ID_PATTERN, so ordinary
 # subsections in the same document are left alone.
@@ -35,6 +40,7 @@ CARD_ID_PATTERN="${CARD_ID_PATTERN:-^[A-Za-z][A-Za-z0-9]*-[0-9][0-9A-Za-z./]*$}"
 # Rows accepted before a policy existed may carry a historical classification.
 RISK_PATTERN="${RISK_PATTERN:-Routine|Significant|Critical|pre-policy}"
 MATURITY_PATTERN="${MATURITY_PATTERN:-RESEARCH|DESIGN|BUILD|OPERATIONALIZATION|pre-policy}"
+BASE_REF="${BASE_REF:-}"
 
 fail=0
 note() { printf '%s\n' "$1" >&2; fail=1; }
@@ -42,18 +48,21 @@ note() { printf '%s\n' "$1" >&2; fail=1; }
 # Private scratch directory: a predictable /tmp name is writable by anyone on the machine.
 work=$(mktemp -d "${TMPDIR:-/tmp}/plan-shape.XXXXXX")
 trap 'rm -rf "$work"' EXIT INT TERM
+touch "$work/plan-ids" "$work/acceptance-ids"
 
 [ -f "$PLAN_FILE" ] || { note "plan shape: $PLAN_FILE not found"; exit 1; }
 
 # --- cards -------------------------------------------------------------------------------------
 # A card runs from its heading to the next heading of the same or a higher level.
 awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_PATTERN" \
-    -v maturities="$MATURITY_PATTERN" '
+    -v maturities="$MATURITY_PATTERN" -v cardsfile="$work/plan-ids" '
   function flush(   missing) {
     if (id == "") return
+    print id > cardsfile
     missing = ""
     if (!has_outcome)    missing = missing " Outcome"
     if (!has_acceptance) missing = missing " Acceptance"
+    if (!has_current_state) missing = missing " Current-state"
     # A not-started card may still be unclassified; anything in progress or done may not.
     if (!has_risk && state != "todo") missing = missing " Risk"
     # Without it the next session guesses what the card promised, and judges it at the wrong level.
@@ -65,6 +74,8 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if (missing != "") printf "plan shape: card %s (line %d) is missing:%s\n", id, start, missing
     if (has_risk && !risk_ok) printf "plan shape: card %s (line %d) has a risk outside {%s}\n", id, start, risks
     if (has_maturity && !maturity_ok) printf "plan shape: card %s (line %d) has a maturity outside {%s}\n", id, start, maturities
+    if (has_current_state && !current_state_ok) printf "plan shape: card %s (line %d) has an invalid or marker-mismatched Current state\n", id, start
+    if (state == "done") printf "plan shape: card %s (line %d) is [x]; transfer it atomically to acceptance before this gate\n", id, start
     cards++
   }
   {
@@ -75,6 +86,7 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
         id = $2; start = NR
         has_outcome = has_risk = has_acceptance = risk_ok = 0
         has_maturity = maturity_ok = 0
+        has_current_state = current_state_ok = 0
         has_residue = has_return_condition = has_convergence = rounds = 0
         if      ($0 ~ /`\[x\]`[[:space:]]*$/) state = "done"
         else if ($0 ~ /`\[~\]`[[:space:]]*$/) state = "active"
@@ -100,6 +112,15 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
       has_maturity = 1
       if ($0 ~ "(" maturities ")") maturity_ok = 1
     }
+    if ($0 ~ /^\*\*Current state/) {
+      has_current_state = 1
+      token = $0
+      sub(/^[^`]*`/, "", token)
+      sub(/`.*/, "", token)
+      if (state == "todo" && token ~ /^(ready|blocked|deferred)$/) current_state_ok = 1
+      if (state == "active" && token ~ /^(active|review|rework)$/) current_state_ok = 1
+      if (state == "done" && token == "done") current_state_ok = 1
+    }
     if ($0 ~ /^\*\*Residue/)          has_residue = 1
     if ($0 ~ /^\*\*Return condition/) has_return_condition = 1
     if ($0 ~ /^\*\*Convergence/)      has_convergence = 1
@@ -121,13 +142,16 @@ if [ -s "$work/plan-shape" ]; then cat "$work/plan-shape" >&2; fail=1; fi
 
 # --- acceptance table --------------------------------------------------------------------------
 if [ -f "$ACCEPTANCE_FILE" ]; then
-  awk -v risks="$RISK_PATTERN" '
+  awk -v risks="$RISK_PATTERN" -v idsfile="$work/acceptance-ids" '
     /^\|/ {
       n = split($0, cell, "|") - 2
       if (width == 0) { width = n; header = NR; next }
       if ($2 ~ /^-+$/ || $0 ~ /^\|[-|: ]+\|$/) next
       if (n != width)
         printf "acceptance shape: line %d has %d columns, header has %d\n", NR, n, width
+      id = cell[2]
+      gsub(/^[ \t]+|[ \t]+$/, "", id); gsub(/`/, "", id)
+      if (id != "") print id > idsfile
       gsub(/^[ \t]+|[ \t]+$/, "", cell[4]); gsub(/`/, "", cell[4])
       if (cell[4] != "" && cell[4] !~ "^(" risks ")$")
         printf "acceptance shape: line %d has risk \"%s\" outside {%s}\n", NR, cell[4], risks
@@ -137,11 +161,63 @@ if [ -f "$ACCEPTANCE_FILE" ]; then
       # predate the column.
       if (last != "n/a" && last !~ /^[0-9][0-9]\/[0-9][0-9] [0-9][0-9]:[0-9][0-9] \([^()]+\)$/)
         printf "acceptance shape: line %d has time \"%s\", want \"DD/MM HH:MM (<cost>)\" or n/a\n", NR, last
+      closure = cell[6]; evidence = cell[7]
+      if (closure !~ /\[[^][]+\]\([^()]+\)/)
+        printf "acceptance shape: line %d closure record is not a Markdown source link\n", NR
+      if (evidence !~ /\[[^][]+\]\([^()]+\)/)
+        printf "acceptance shape: line %d durable evidence is not a Markdown source link\n", NR
     }
   ' "$ACCEPTANCE_FILE" > "$work/acc-shape" || true
   if [ -s "$work/acc-shape" ]; then cat "$work/acc-shape" >&2; fail=1; fi
 else
   note "plan shape: $ACCEPTANCE_FILE not found"
+fi
+
+sort -u "$work/plan-ids" -o "$work/plan-ids"
+sort -u "$work/acceptance-ids" -o "$work/acceptance-ids"
+
+comm -12 "$work/plan-ids" "$work/acceptance-ids" > "$work/duplicate-ids"
+if [ -s "$work/duplicate-ids" ]; then
+  while IFS= read -r id; do note "document transfer: $id exists in both execution and acceptance"; done < "$work/duplicate-ids"
+fi
+
+extract_plan_ids() {
+  awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" \
+    '$0 ~ ("^" level " ") && $2 ~ idpat { print $2 }' "$1" | sort -u
+}
+
+extract_acceptance_ids() {
+  awk '/^\|/ { n = split($0, cell, "|") - 2; if (!seen++) next; if ($0 ~ /^\|[-|: ]+\|$/) next; id = cell[2]; gsub(/^[ \t]+|[ \t]+|`/, "", id); if (id != "") print id }' "$1" | sort -u
+}
+
+if [ -n "$BASE_REF" ]; then
+  case "$PLAN_FILE:$ACCEPTANCE_FILE" in
+    /*|*:/*) note "document transfer: BASE_REF requires repository-relative PLAN_FILE and ACCEPTANCE_FILE" ;;
+    *)
+      git_prefix=$(git rev-parse --show-prefix 2>/dev/null || true)
+      git_plan_path="${git_prefix}${PLAN_FILE#./}"
+      git_acceptance_path="${git_prefix}${ACCEPTANCE_FILE#./}"
+      if [ -z "$(git rev-parse --show-toplevel 2>/dev/null || true)" ]; then
+        note "document transfer: BASE_REF requires a Git worktree"
+      elif ! git show "$BASE_REF:$git_plan_path" > "$work/prior-plan" 2>/dev/null; then
+        note "document transfer: cannot read $PLAN_FILE at BASE_REF $BASE_REF"
+      elif ! git show "$BASE_REF:$git_acceptance_path" > "$work/prior-acceptance" 2>/dev/null; then
+        note "document transfer: cannot read $ACCEPTANCE_FILE at BASE_REF $BASE_REF"
+      else
+        extract_plan_ids "$work/prior-plan" > "$work/prior-plan-ids"
+        extract_acceptance_ids "$work/prior-acceptance" > "$work/prior-acceptance-ids"
+        comm -23 "$work/prior-plan-ids" "$work/plan-ids" > "$work/removed-plan-ids"
+        comm -13 "$work/prior-acceptance-ids" "$work/acceptance-ids" > "$work/new-acceptance-ids"
+        while IFS= read -r id; do
+          grep -Fxq "$id" "$work/acceptance-ids" || note "document transfer: removed card $id has no acceptance row"
+        done < "$work/removed-plan-ids"
+        while IFS= read -r id; do
+          grep -Fxq "$id" "$work/prior-plan-ids" || note "document transfer: new acceptance row $id was not in the prior execution plan"
+          grep -Fxq "$id" "$work/plan-ids" && note "document transfer: accepted card $id remains in execution"
+        done < "$work/new-acceptance-ids"
+      fi
+      ;;
+  esac
 fi
 
 if [ "$fail" -ne 0 ]; then

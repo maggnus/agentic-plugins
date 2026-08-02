@@ -9,22 +9,21 @@ Run this before the provider preflight on every explicit `operate` start or resu
 relying on any rule in these references. The method changes between releases; operating from a stale
 copy silently applies retired rules.
 
-1. **Refresh the source.** In the marketplace's own checkout, fetch and confirm the working tree is
-   clean and level with its remote. A local edit that was never pushed, or a remote commit that was
-   never pulled, is the usual cause of two sessions disagreeing about the method.
-2. **Read the version from the manifest on disk**, not from the host's install registry. The
-   registry lags, and it keys installs by project path — a stale or foreign path there proves
-   nothing about what this session loaded.
-3. **Identify what this session actually loaded.** The skill's own base directory is the answer. A
-   marketplace registered as a local directory serves the live checkout, so the version-numbered
-   cache under the host's plugin directory is an archive of earlier releases, not the source; a
-   remote marketplace serves an immutable snapshot instead, and only there does the cached copy
-   answer the question.
-4. **Reconcile a mismatch before working.** Update the marketplace and the installed plugin through
-   the host CLI — `claude plugin marketplace update <name>` then `claude plugin update
-   <plugin>@<name> --scope <scope>`, or the Codex equivalents — and note that an update applies at
-   the next session start, so a mid-session refresh does not retroactively change what is already in
-   context.
+1. **Require a remote tagged marketplace.** The marketplace source is the canonical Git remote and
+   its selected reference is the immutable release tag `v<base-version>`. A local directory, a
+   moving branch, or an unpinned Git source is invalid for operation even on the development
+   machine.
+2. **Read the version from the loaded manifest and the tag from marketplace metadata.** Claude's
+   manifest version equals the tag without `v`; Codex may append only its `+codex.<cachebuster>`
+   build suffix to the same base version.
+3. **Verify one commit identity.** The remote tag, the marketplace checkout revision, and the
+   installed plugin commit must be identical on both hosts. The skill's own base directory confirms
+   what this session loaded; a version label without the same commit is not sufficient.
+4. **Reconcile a mismatch before working.** Remove the stale plugin and marketplace registration,
+   then add `maggnus/claude-plugins@v<version>` in Claude or add
+   `maggnus/claude-plugins --ref v<version>` in Codex and reinstall the plugin. Never move a
+   published tag or convert the installation to a local directory. A reinstall applies only at the
+   next session start.
 5. **Re-read the changed files.** When the version moved, reload the affected references before
    acting on them, and reconcile `SETTINGS.json` against any changed field: a release that redefines
    a charter value leaves the persisted choice valid but its wording stale.
@@ -107,8 +106,8 @@ prompts. Repository writers still commit locally and never push.
 - `full-access-writers` (default): the builder uses the selected full-access/bypass mode. Reviewers
   and researchers keep the strongest read-only or plan mode where the provider enforces one; where
   none exists (e.g. Codex offers no read-only-execute mode) they run full-access under a report-only
-  contract with byte-identical pre/post `git status --porcelain` (reduced enforcement) instead of
-  blocking on prompts;
+  contract in a dedicated disposable workspace, with byte-identical pre/post
+  `git status --porcelain` (reduced enforcement), instead of blocking on prompts;
 - `role-safe` (explicit owner request): reviewer and researcher use the strongest enforceable
   read-only or plan mode; the builder uses the charter's writer mode;
 - `always-ask` (explicit owner request): the builder uses the mode that asks before writes or
@@ -118,7 +117,10 @@ Containment does not depend on the permission mode: every repository writer runs
 worktree. An agent that writes outside its worktree is out of scope (deny or return regardless of
 mode). The CTO still resolves any permission request itself and never lets one reach the owner;
 under `full-access-writers` these are rare by design. Mark a report-only agent run without an
-enforceable read-only mode as `reduced enforcement`.
+enforceable read-only mode as `reduced enforcement`. Such a run receives no mutable production
+credentials, shared workspace, or authorization to call external mutation tools. If a Critical
+review requires access that could mutate protected external state and no enforceable read-only mode
+exists, stop at `BLOCKED`; a report-only prompt is not an adequate substitute for containment.
 
 ## Roles and authority
 
@@ -129,7 +131,7 @@ Claude:
 | Role | Codex | Claude | Authority |
 | --- | --- | --- | --- |
 | Builder | `$paseo-cto:paseo-builder` | `/paseo-cto:paseo-builder` | Assigned write zone, acceptance, local commit; no agents, integration, push, or external action. |
-| Reviewer | `$paseo-cto:paseo-reviewer` | `/paseo-cto:paseo-reviewer` | Independent report on a named commit; no fixes, commits, integration, or plan edits. |
+| Reviewer | `$paseo-cto:paseo-reviewer` | `/paseo-cto:paseo-reviewer` | Independent report on a named outcome and, when present, its exact revision range; no fixes, commits, integration, or plan edits. |
 | Researcher | `$paseo-cto:paseo-researcher` | `/paseo-cto:paseo-researcher` | Read-only bounded investigation; no project decisions. |
 
 If the qualified skill is unavailable, the worker must return exactly

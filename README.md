@@ -6,23 +6,21 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-claude plugin marketplace add maggnus/claude-plugins
+PASEO_CTO_TAG=v7.0.0
+claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/claude-plugins
+PASEO_CTO_TAG=v7.0.0
+codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
 
-On the dev machine the marketplace can point at the local clone instead, so edits apply without
-a push:
-
-```sh
-claude plugin marketplace add ~/Code/claude-plugins
-codex plugin marketplace add ~/Code/claude-plugins
-```
+All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
+release tag. A local directory, a moving branch, or an unpinned remote marketplace is not a valid
+installation source. The local repository is used for development and validation only.
 
 ## Plugins
 
@@ -69,16 +67,18 @@ founder, review, integration, push, deploy, and irreversible-operation gates.
 default for one.** Which model and which effort carries which role — the CTO's own seat included —
 is the owner's decision, recorded in the project charter's `roleAssignments` and nowhere else. A
 role with no assignment is not dispatchable, and an unavailable model is reported rather than
-silently substituted. Reporting language is a charter field for the same reason; the register is
-fixed by the plugin (no first person, complete prose, result first, silence in place of repetition)
-while the language is local.
+silently substituted. `reportingLanguage` is also project-local and authoritative: any valid local
+value, including Russian, overrides the plugin's English first-run proposal and the host's current
+conversation language. The register remains formal, neutral, impersonal, grammatical, result-first,
+and silent in place of repetition in every configured language.
 
 The first operating run presents a compact charter for CTO strategy, role assignments, permission
 policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
 project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation or daemon
 restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Writers use isolated workspaces and
-local commits; the CTO reviews every write on the consequence-based risk gate, resolves
-evidence-based disputes, and integrates safely.
+local commits. Every returned outcome receives the risk-required non-author review, including
+report-only research and design; repository writes integrate only after acceptance. Every commit or
+repository file used as durable evidence is a source-code link pinned to the exact revision.
 
 Invoke the CTO skill as `$paseo-cto:paseo-cto` in Codex or `/paseo-cto:paseo-cto` in Claude. Worker
 prompts use the same qualified namespace with the platform's own prefix — `$paseo-cto:paseo-<role>`
@@ -89,8 +89,9 @@ family.
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
 Every reconcile rewrites one durable status render at a fixed path — the owner's always-current
 answer to "where are we" — and reflects the same values into chat, so a Claude CTO and a Codex CTO
-produce identical output and no report is silently skipped. Recoverable checkpoints and stable
-labels allow a fresh or compacted session to resume without replaying completed work.
+using the same project settings produce equivalent output in the same configured language and no
+report is silently skipped. Recoverable checkpoints and stable labels allow a fresh or compacted
+session to resume without replaying completed work.
 
 Ships:
 
@@ -98,12 +99,22 @@ Ships:
   charter, living plan, founder status, review gate, fleet lifecycle, provider policy, and the Paseo
   command catalog;
 - **document standard and templates** — the canonical plan document, acceptance history and
-  invariant registry, plus a reference shape check. A project without a tracker gets them by
-  default; a project with one keeps its own and binds to it;
+  invariant registry, plus checks for document shape, atomic task transfer, source links, and the
+  owner-facing reporting register. An accepted task is appended to acceptance history and removed
+  from current execution in one semantic change; it is never duplicated or silently discarded;
 - **worker role skills** — `paseo-builder`, `paseo-reviewer`, and `paseo-researcher`;
-- **Claude manifest** — `.claude-plugin/plugin.json` for marketplace installation;
-- **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and one `agents/openai.yaml`
-  per skill, with no hardcoded Paseo MCP endpoint.
+- **Claude manifest** — [`.claude-plugin/plugin.json`](paseo-cto/.claude-plugin/plugin.json) for
+  marketplace installation;
+- **Codex manifest and skill metadata** — [`.codex-plugin/plugin.json`](paseo-cto/.codex-plugin/plugin.json)
+  and one Codex metadata file in each [shared skill directory](paseo-cto/skills), with no hardcoded
+  Paseo MCP endpoint.
+
+Both hosts load the same [skill sources](paseo-cto/skills). Only invocation syntax, the Codex
+cache-busting build suffix, and Codex interface metadata differ. The
+[distribution synchronization check](paseo-cto/scripts/check-distribution-sync.sh) verifies the
+shared descriptions, authors, base versions, marketplace source, skill set, and release heading.
+The [installed-release check](paseo-cto/scripts/check-installed-release.sh) additionally verifies
+that both host installations resolve the same remote tagged commit.
 
 References load progressively. Project status reads only the reporting reference and the plan;
 ordinary fleet work uses a compact core-command sheet; archival and close load their own reference;
@@ -111,22 +122,37 @@ the complete command catalog is lookup-only.
 
 ## Releasing a change
 
-For `paseo-cto`, keep the base version in `.claude-plugin/plugin.json` and
-`.codex-plugin/plugin.json` identical. Before committing, refresh the Codex cachebuster and validate
-the plugin:
+For `paseo-cto`, keep the base version in the
+[Claude manifest](paseo-cto/.claude-plugin/plugin.json) and
+[Codex manifest](paseo-cto/.codex-plugin/plugin.json) identical. Before committing, run the contract
+tests, refresh the Codex cachebuster, validate the plugin, and verify both distributions:
 
 ```sh
+bash paseo-cto/scripts/test-plugin-contracts.sh
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
+bash paseo-cto/scripts/check-distribution-sync.sh
 ```
 
-Then commit and push. Machines installed from GitHub update and reinstall from the remote
-marketplace with:
+Commit the validated release, create its immutable tag, and push both. Never move or replace a
+published release tag. Existing installations migrate by removing the old marketplace registration,
+adding the remote repository at the new tag, and reinstalling:
 
 ```sh
-claude plugin marketplace update maggnus
-codex plugin marketplace upgrade maggnus
+PASEO_CTO_TAG=v7.0.0
+
+claude plugin uninstall paseo-cto@maggnus --scope user
+claude plugin marketplace remove maggnus --scope user
+claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}" --scope user
+claude plugin install paseo-cto@maggnus --scope user
+
+codex plugin remove paseo-cto@maggnus
+codex plugin marketplace remove maggnus
+codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
+
+bash paseo-cto/scripts/check-installed-release.sh
 ```
 
-Start a new Codex conversation after reinstalling so it loads the updated skills and tools.
+Restart Claude Code and start a new Codex conversation after reinstalling so both hosts load the
+tagged skills and metadata.

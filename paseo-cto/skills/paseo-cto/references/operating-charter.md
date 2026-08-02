@@ -1,8 +1,8 @@
 # Operating charter
 
 Read this file before the first `operate` run and whenever the owner asks to reconfigure the project.
-The charter is seven persistent fields; the goal is to reach a confirmed charter in one exchange,
-not to run an interrogation.
+The charter is seven persistent owner-controlled fields; the goal is to reach a confirmed charter
+in one exchange, not to run an interrogation.
 
 ## Propose, then confirm
 
@@ -14,7 +14,8 @@ first run, reach confirmation fast:
 
 1. Discover the available providers, models, reasoning settings, and permission modes through Paseo,
    and read enough project evidence to propose a sensible value for every field except the role
-   assignments.
+   assignments. Propose English only when no project-local reporting language or explicit owner
+   preference exists.
 2. Present the **complete proposed charter as one confirmation line** (below) and ask the owner to
    confirm it or change any field. This is the primary interaction. Role assignments are the one
    part that is genuinely the owner's to state: offer the discovered catalog, never a preference.
@@ -60,19 +61,22 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
 6. **Independent review depth** — `risk-based` applies the complete floor from
    [Review gate](review-gate.md). `every-write` may strengthen it by assigning a formal independent
    reviewer to Routine work. No charter choice may reduce or redefine the risk-based floor.
-7. **Reporting language** — the language every owner-facing message is written in: chat, status,
-   escalations, and the durable render. Default to the language the owner writes in. Whatever the
-   choice, the register rules in the CTO skill hold unchanged — no first person, complete
-   grammatical prose, lead with the result, say nothing rather than repeat. Identifiers stay in
-   their source form: plan IDs, table headers, derived-status tokens, commands, paths, commit
-   messages, and code are never translated.
+7. **Reporting language** — the language for every owner-facing message and worker return: chat,
+   status, escalation, review, research, and the durable render. Any valid project-local value has
+   precedence over the plugin's English bootstrap default and over the host's current conversation
+   language. A direct owner request changes the field only after it is persisted. The register rules
+   remain unchanged in every language: formal, neutral, impersonal, grammatical, result first, and
+   silent rather than repetitive. Machine tokens, plan IDs, commands, paths, commit messages, and
+   code retain their source form.
 
-These are standing rules, not choices: every delegated write receives at least the required
-non-author second look; one 15-minute heartbeat runs while work remains; repository writers commit
+These are standing rules, not choices: every delegated outcome receives at least the required
+non-author second look before completion, and every repository write receives it before integration;
+one 15-minute heartbeat runs while work remains; repository writers commit
 locally and never push; push, deploy, publication, live mutation, money, and irreversible actions
 stay separate gates. Validation is budgeted: one primary owner per proof, final-tree evidence is
 reused, and a full suite runs only at an explicit plan, wave, release, or deploy trigger or when new
-evidence invalidates prior proof.
+evidence invalidates prior proof. Every operational message and worker return is written in the
+configured reporting language under the formal, neutral, impersonal register in the CTO skill.
 
 ## Persist
 

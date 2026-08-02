@@ -6,10 +6,10 @@ order:
 
 ```markdown
 First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED: role skill unavailable and stop before any repository read or write.
-Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; language; provider tuple from roleAssignments, with the chosen effort and the reason when the assignment allowed a range; modeId>
+Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; reportingLanguage from SETTINGS.json; provider tuple from roleAssignments, with the chosen effort and the reason when the assignment allowed a range; modeId>
 Risk: <Routine | Significant | Critical — credible consequence and threatened invariant, if any>
 Maturity: <RESEARCH | DESIGN | BUILD | OPERATIONALIZATION — the level the outcome is judged at; see the Review gate>
-Read: <project instructions; exact spec/plan sections; domain skills>
+Read: <project instructions; exact spec/plan sections; domain skills; Source references>
 Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
@@ -18,11 +18,16 @@ Validation budget: <builder-owned checks; review depth; hypothesis-bound falsifi
 Review: <apply Review gate for the declared risk; name only the non-author second-look/review owner>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
-Return: <final range, concise diff, real checks, Git state, blockers/disputes, proposed children>
+Return: <source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
 Response round: <only when triggered by Review gate; evidence-based and no changes without rework authorization>
 ```
 
-`Maturity` is not optional and is not inferred from the role: a builder can carry a `RESEARCH` card and a researcher can carry a `DESIGN` one. It fixes what counts as success before the work starts, so a refuted assumption cannot later be read as a failure to deliver. `Outcome` is written to match it — a verified answer, a chosen model, a realized contract, or a procedure proved executable by the operator who will actually run it.
+`Maturity` is not optional and is not inferred from the role: a builder can carry a `RESEARCH` card
+and a researcher can carry a `DESIGN` one. It fixes what counts as success before the work starts,
+so a refuted assumption cannot later be read as a failure to deliver. `Outcome` is written to match
+it — a verified answer, a chosen model, a realized contract, or a procedure proved executable by the
+operator who will actually run it. Every return is written in the assignment's reporting language
+using the formal, neutral, impersonal register.
 
 Address the role skill as `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:paseo-<role>` in
 Claude, where `<role>` is `builder`, `reviewer`, or `researcher`. Include the preflight-resolved
@@ -31,6 +36,11 @@ branches, or changes the technical baseline without an explicit follow-up. Exact
 revisions are Git/CI/runtime metadata, not plan prose. Its normal report stays below 2500
 characters; systemic security, corruption, race, privacy, or data-loss evidence is never compressed
 away.
+
+Bind the canonical source repository URL before dispatch. Every commit or repository file used as
+evidence in a return, review report, plan update, or acceptance record follows
+[Source references](source-references.md). A bare SHA or file path is not an acceptable durable
+reference.
 
 One card means one outcome, not one commit. Several local commits are allowed when they form one
 coherent, reviewable outcome and acceptance story. Split work before dispatch when parts have
@@ -68,13 +78,15 @@ cannot — see [Validation budget](validation-budget.md).
 - Builder: exact write zone, coherent local commit set, reviewed final range, empty final porcelain.
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
-- Reviewer: final reviewed range and acceptance, preferably a fresh workspace for the initial
-  independent review, byte-identical pre/post `git status --porcelain`, report only. Preserve and
-  reuse that reviewer/workspace for bounded re-review by default; assign the final correction delta,
-  affected context, and the existing independently selected falsifier unless a Review-gate
-  replacement or invalidation condition applies. The contract's named domain skills are a floor:
-  load every available skill bearing directly on the change and report the additions.
-- Researcher: one question and evidence format, identical pre/post porcelain, read-only.
+- Reviewer: exact returned outcome and acceptance; for a repository write, include the final
+  reviewed range and preferably a fresh workspace for the initial independent review. Require
+  byte-identical pre/post `git status --porcelain` and report-only operation. Preserve and reuse that
+  reviewer/workspace for bounded re-review by default; assign the final correction delta, affected
+  context, and the existing independently selected falsifier unless a Review-gate replacement or
+  invalidation condition applies. The contract's named domain skills are a floor: load every
+  available skill bearing directly on the outcome and report the additions.
+- Researcher: one question and evidence format, identical pre/post porcelain, read-only, followed by
+  the risk-required non-author second look before the card completes.
 
 Evidence needed after archive must be committed, copied to an approved project artifact store, or
 captured concisely in the CTO checkpoint/authorization. Disposable logs use only an approved ignored
