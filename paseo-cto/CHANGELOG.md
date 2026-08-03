@@ -3,6 +3,35 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 8.1.0
+
+Four rules earned by a forty-hour run: what an acceptance row cannot hold, when an idle fleet is a
+defect, what an agent-daemon restart costs, and the second way a harness proves nothing.
+
+- **The acceptance row is an index, not the record.** Transferring a card into a one-line row
+  destroys its decisions, its excluded scope, its acceptance conditions and its residue, and the loss
+  is invisible afterwards because the plan is also what would reveal it. The complete card body is now
+  preserved verbatim in an accepted-card file linked from the row, an accepted residue re-enters the
+  plan as a deferred card with its return condition, and the file name is derived so a plain listing
+  sorts parents before children and `2` before `10`. Measured on a transfer that replaced seventy-line
+  cards with single sentences and lost one residue entirely.
+- **An empty fleet with admissible ready work is a defect, not a state.** Refill happens on the
+  heartbeat or on initiative, so a fleet that empties just after one can stay empty until the next
+  with nothing noticing. The two producing moments are named — archiving before dispatching, and
+  serialising behind a check the next card does not need.
+- **An agent-daemon restart preserves no session.** Measured: every agent and the scheduled heartbeat
+  are gone, while workspaces, worktrees, branches and commits survive. Recovery costs one re-dispatch
+  per active card plus recreating the heartbeat, and nothing more — because a writer commits locally.
+- **The harness must assemble what the product assembles.** Beyond substituting a value, a harness can
+  wire the components differently from the running system: a guard the product installs and the
+  harness omits, or a privileged connection where production uses an ordinary one. A constraint on
+  assembly is proved on the assembly the product uses, compared line by line rather than by
+  description. Twice in one run this left a boundary green while it crashed the server and refused
+  thirty product call sites.
+- **A worker no longer stops when the plugin mechanism withholds its role.** All three role skills now
+  resolve through the mechanism first and the installed file second, and may report the role
+  unavailable only after both fail, quoting each error.
+
 ## 8.0.1
 
 The scheduled snapshot now has one heading and no fleet section label.

@@ -5,8 +5,11 @@ description: Independently review one Paseo outcome. Invoke only as `$paseo-cto:
 
 # Paseo reviewer
 
-Before any repository read or write, require the assignment's first line to invoke this exact
-qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
+Before any repository read or write, load this role definition. Resolve it through the plugin
+mechanism first; if that does not offer it, read the skill file directly from the installed plugin
+path the assignment gives. Return `BLOCKED: role skill unavailable` only when both routes fail, and
+quote the exact error and path from each — a plugin mechanism that silently offers nothing is a host
+fault, and a worker that stops on it without attempting the file wastes the whole dispatch.
 
 0. Judge the change at the maturity the assignment declares, and sort every finding into exactly one
    kind before deciding the landing — a defect in the contracted outcome, a refinement of the

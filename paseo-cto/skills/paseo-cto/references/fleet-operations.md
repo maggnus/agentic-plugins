@@ -103,6 +103,14 @@ The fleet budget is a ceiling, not a quota to fill. Concurrency is earned by the
 dispatch as many writers as there are ready atoms that pass admission, and no more. An idle slot
 costs nothing; two writers colliding in one file cost a rework round and a manual merge.
 
+**An empty fleet with admissible ready work is a defect, not a state.** An idle slot is cheap only
+while nothing could occupy it. Refill is otherwise easy to lose between reconciles: it happens on the
+heartbeat or on the CTO's own initiative, so a fleet that empties just after one can stay empty until
+the next without anything noticing. Two moments produce it — archiving a finished agent before
+dispatching the next card, and waiting on a check that does not gate the next dispatch. Dispatch
+first, then archive; and never serialise the plan behind a verification whose result the next card
+does not need.
+
 Admit a second and every further writer only when all of these hold:
 
 - **Disjoint write zones at file granularity.** Two live contracts never name the same file, and
@@ -142,6 +150,20 @@ atom with the new baseline instead.
 the wave actually has — by subsystem, by service, by surface. If the critical path is one chain of
 dependent atoms, the honest concurrency is one writer plus, at most, off-path work that touches
 nothing on that chain. Say so in status instead of dispatching overlapping atoms to look busy.
+
+## Recovering from an agent-daemon restart
+
+A restart of the agent daemon does not preserve running work. Measured: every agent session and the
+scheduled heartbeat are gone afterwards, while workspaces, worktrees, branches and commits survive
+intact. Plan around losing every session, not only the turn in flight.
+
+Recovery therefore costs one re-dispatch per active card plus recreating the heartbeat, and nothing
+more — provided every candidate was committed. That proviso is the method's existing rule doing its
+job: a writer commits locally, so a restart costs the contract, never the code.
+
+After a restart, re-issue each active card's contract to a fresh agent in its preserved workspace,
+including the findings of any review that had already returned; recreate the heartbeat; and sweep the
+scratch directories the dead sessions left outside the repository.
 
 ## CTO handover
 

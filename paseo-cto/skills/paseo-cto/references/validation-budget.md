@@ -55,6 +55,20 @@ Harness-only evidence remains useful for iteration and for isolating a component
 not sufficient acceptance for the boundary itself, and a card whose only evidence is harness-shaped
 has not yet proven the thing it claims.
 
+### The harness assembles what the product assembles
+
+The same failure has a second form, and it is harder to see because nothing is being substituted:
+the harness wires the components differently from the way the running system wires them. A guard the
+product installs but the harness omits, a privileged connection where production uses an ordinary
+one, a client constructed by a shortcut the daemon does not use — each leaves every check green while
+the property under test is absent, or worse, while the change breaks the product outright.
+
+**A card that constrains how the system is assembled must be proved on the assembly the product
+uses.** Compare the harness against the production wiring line by line, not against its description;
+"similar" is what produced the defect. Where no such harness exists, building one is part of the
+card, not a prerequisite someone else will supply — and it is worth landing on its own even if the
+constraint it was built for is later replaced.
+
 **When the product path genuinely cannot be run** — the environment does not exist yet, the external
 system is unavailable, or exercising it would mutate something owner-gated — the rule does not
 dissolve; it defers, visibly:

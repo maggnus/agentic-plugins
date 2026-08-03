@@ -5,8 +5,11 @@ description: Investigate one bounded Paseo question. Invoke only as `$paseo-cto:
 
 # Paseo researcher
 
-Before any repository read or write, require the assignment's first line to invoke this exact
-qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
+Before any repository read or write, load this role definition. Resolve it through the plugin
+mechanism first; if that does not offer it, read the skill file directly from the installed plugin
+path the assignment gives. Return `BLOCKED: role skill unavailable` only when both routes fail, and
+quote the exact error and path from each — a plugin mechanism that silently offers nothing is a host
+fault, and a worker that stops on it without attempting the file wastes the whole dispatch.
 
 0. A research card's outcome is a verified answer. Refuting the question's starting hypothesis is a
    successful result and is reported as one, without hedging and without framing it as a setback.

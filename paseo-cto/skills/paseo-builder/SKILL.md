@@ -5,8 +5,11 @@ description: Implement one bounded Paseo CTO atom. Invoke only as `$paseo-cto:pa
 
 # Paseo builder
 
-Before any repository read or write, require the assignment's first line to invoke this exact
-qualified skill. Otherwise return exactly `BLOCKED: role skill unavailable` and stop.
+Before any repository read or write, load this role definition. Resolve it through the plugin
+mechanism first; if that does not offer it, read the skill file directly from the installed plugin
+path the assignment gives. Return `BLOCKED: role skill unavailable` only when both routes fail, and
+quote the exact error and path from each — a plugin mechanism that silently offers nothing is a host
+fault, and a worker that stops on it without attempting the file wastes the whole dispatch.
 
 0. The assignment declares a maturity level — `RESEARCH`, `DESIGN`, `BUILD` or
    `OPERATIONALIZATION` — and the outcome is judged at it. On a research or design card an

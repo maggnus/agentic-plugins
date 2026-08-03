@@ -71,6 +71,32 @@ When the reference check receives `BASE_REF=<accepted-before-change>`, it verifi
 transfer against the prior tree. Without `BASE_REF`, it still rejects an ID present in both current
 documents but cannot prove that a removed ID existed previously.
 
+### The row is an index; the card body is preserved
+
+A row records that an outcome was accepted. It cannot hold what the card decided, what it deliberately
+excluded, what its acceptance conditions were, or what residue it left. Transferring a card into a row
+alone therefore destroys the reasoning while keeping the name of the work, and the loss is invisible
+afterwards because the plan is also the record that would reveal it.
+
+So the transfer has three parts, not two:
+
+- **The body is preserved verbatim.** Write the complete card, unedited, to its own file in an
+  accepted-card directory, and link that file from the row's durable-evidence cell. Do not summarise,
+  reformat or improve it: the value of the record is that it is the text that was accepted.
+- **A residue is live work, not history.** An accepted residue with a return condition is an open
+  commitment. It re-enters the execution plan as a deferred card carrying that condition as its pull
+  trigger, and it does not travel into the history with the rest of the card.
+- **The row then carries only what a reader needs to find the rest.**
+
+Name each preserved file for its identifier so a plain directory listing is ordered: replace `/` and
+`.` with `_`, and pad every run of digits to a fixed width. `LF-08/9b` becomes `LF-08_09b.md`. Without
+the padding a listing puts `10` before `2`; with a directory per segment it puts a parent after its
+own numbered children. One directory, one file per card, and the order reads correctly.
+
+Work discovered, planned and accepted between two baselines appears only in the history. That is
+legitimate exactly when the preserved body exists — it is the evidence that a card existed at all — so
+a row without one is rejected.
+
 ## The acceptance history
 
 One compact row per accepted card, and nothing else. Candidate SHAs, patch IDs, review dialogue and
