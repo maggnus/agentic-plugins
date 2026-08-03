@@ -21,7 +21,7 @@ The minimum schema is:
 
 ```json
 {
-  "schema": 2,
+  "schema": 3,
   "project": "<stable-project-slug>",
   "revision": 1,
   "confirmedAt": "<RFC3339 timestamp>",
@@ -40,9 +40,17 @@ The minimum schema is:
     "reportingLanguage": "<language the owner writes in>",
     "modeMap": {}
   },
+  "work": {
+    "root": "docs/work",
+    "scriptHome": "<where the project keeps its copy of work.py and work-schema.json>"
+  },
   "ownerOverrides": {}
 }
 ```
+
+`work.root` is the only adjustable path in the work tree; everything below it is derived from the
+identifier. `work.scriptHome` is where the project keeps its own copy of the generator, the
+validator and the templates, because the plugin path carries a version and differs between hosts.
 
 The seven charter fields use the values defined by Operating charter. Every angle-bracket value
 above is a placeholder the owner fills: **the plugin ships no model, no effort tier, and no
@@ -83,6 +91,13 @@ them gets updated and the other is left behind, and nothing in the file says whi
 5. If the file is invalid or partially written, stop before plan mutation, workspace creation, or
    dispatch. Report the exact path and validation error; do not fall back to defaults.
 
+## Migrating a `schema: 2` file
+
+Schema 3 adds the `work` block, because the work root and the project's script home are project
+facts the loop needs before it can read or generate anything, and a value that has no slot ends up
+guessed differently by each session. Migrate by adding the block with the project's actual paths and
+raising `revision`. Nothing else changes, and the charter is not reconfirmed.
+
 ## Migrating a `schema: 1` file
 
 Schema 1 carried `gptModel`, `claudeModel`, and a single `reasoningPolicy` string. Schema 2 replaces
@@ -110,7 +125,7 @@ A `schema: 1` file is readable but not operable: complete the migration before t
 When `SETTINGS.json` is absent:
 
 1. Prefer one explicit confirmed charter already stored in tracked project configuration.
-2. Otherwise, a charter from the run named by the current `STATUS.md` may be migrated only after the
+2. Otherwise, a charter from the run named by the current `FLEET.md` may be migrated only after the
    CTO proves that run is the current active or owner-accepted run.
 3. If multiple conflicting charters remain and no current accepted run resolves them, present the
    candidates and ask the owner once. Never choose the newest timestamp, current CTO family, or

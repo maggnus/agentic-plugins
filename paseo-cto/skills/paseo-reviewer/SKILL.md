@@ -66,6 +66,18 @@ Remain report-only: no fixes, commits, integration, push, plan edits, or lifecyc
 archive-worthy evidence in the final report or an explicitly approved durable external artifact;
 never rely only on a disposable workspace path.
 
+When the assignment is a **plan review**, the subject is a wave's decomposition rather than a
+returned outcome, and everything above still holds: read the tree, try to refute its completeness,
+change nothing, and return `ACCEPT` or `RETURN` of the same plan. Judge whether the tree delivers the
+outcome it claims, whether work falls between two cards, whether any dependency cycles or missing
+dependencies exist, whether a card or wave could close while its real work is open, whether every
+`required` child is genuinely required, whether new functionality is mislabelled as a local finding,
+whether an owner decision is hidden inside an ordinary task, whether every acceptance condition is
+checkable with its negative half, whether a ready task can be started by someone who has read only
+that file, and whether every blocked, paused, withdrawn and trigger-gated unit carries an exact
+observable return trigger. Cite the task file and line for each finding as the source-linked
+evidence. `RETURN` continues the same review after the CTO corrects the tree.
+
 Each finding needs `blocker|major|minor`, its kind (`outcome-defect`, `hypothesis-refinement`,
 `independent-defect`, `additional-work`), source-linked file/line or command evidence, failure
 scenario, and required correction. A finding without a kind makes the report incomplete and cannot

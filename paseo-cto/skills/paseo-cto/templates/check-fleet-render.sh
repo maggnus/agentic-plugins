@@ -1,30 +1,42 @@
 #!/usr/bin/env bash
-# Validate the deterministic current-wave status snapshot.
+# Validate the deterministic current-wave fleet snapshot.
+#
+# The snapshot is the runtime render the heartbeat publishes: FLEET.md beside the runtime
+# checkpoint. It is a different artifact from the work index docs/work/STATUS.md, which work.py
+# generates from the permanent task files.
 
 set -euo pipefail
 
-status_file=${STATUS_FILE:-STATUS.md}
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+fleet_file=${FLEET_FILE:-FLEET.md}
+work_root=${WORK_ROOT:-}
 plan_file=${PLAN_FILE:-}
 acceptance_file=${ACCEPTANCE_FILE:-}
 expected_version=${PASEO_CTO_VERSION:-}
 
-if [[ ! -f "$status_file" ]]; then
-  printf 'status render check: missing status file: %s\n' "$status_file" >&2
+if [[ ! -f "$fleet_file" ]]; then
+  printf 'fleet render check: missing fleet snapshot: %s\n' "$fleet_file" >&2
+  exit 1
+fi
+
+if [[ -n "$work_root" && -n "$plan_file" ]]; then
+  printf 'fleet render check: supply WORK_ROOT or PLAN_FILE, not both\n' >&2
   exit 1
 fi
 
 if [[ -n "$plan_file" || -n "$acceptance_file" ]]; then
   if [[ -z "$plan_file" || -z "$acceptance_file" ]]; then
-    printf 'status render check: PLAN_FILE and ACCEPTANCE_FILE must be supplied together\n' >&2
+    printf 'fleet render check: PLAN_FILE and ACCEPTANCE_FILE must be supplied together\n' >&2
     exit 1
   fi
   if [[ ! -f "$plan_file" || ! -f "$acceptance_file" ]]; then
-    printf 'status render check: plan or acceptance file is missing\n' >&2
+    printf 'fleet render check: plan or acceptance file is missing\n' >&2
     exit 1
   fi
 fi
 
-python3 - "$status_file" "$plan_file" "$acceptance_file" "$expected_version" <<'PY'
+python3 - "$fleet_file" "$plan_file" "$acceptance_file" "$expected_version" "$work_root" \
+  "$script_dir" <<'PY'
 from collections import Counter
 from pathlib import Path
 import re
@@ -32,7 +44,7 @@ import sys
 
 
 def fail(message):
-    print(f"status render check: {message}", file=sys.stderr)
+    print(f"fleet render check: {message}", file=sys.stderr)
     raise SystemExit(1)
 
 
@@ -50,6 +62,8 @@ status_path = Path(sys.argv[1])
 plan_arg = sys.argv[2]
 acceptance_arg = sys.argv[3]
 expected_version = sys.argv[4]
+work_root = sys.argv[5]
+tools_dir = sys.argv[6]
 if expected_version.startswith("v"):
     expected_version = expected_version[1:]
 lines = status_path.read_text(encoding="utf-8").splitlines()
@@ -134,8 +148,45 @@ if wave_id == "—":
 elif wave_name == "—":
     fail("a current wave requires a name")
 
+if work_root:
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, tools_dir)
+    import work as worklib
+
+    schema = worklib.load_schema(Path(tools_dir) / "work-schema.json")
+    nodes, load_errors = worklib.load_tree(schema, Path(work_root))
+    if load_errors:
+        fail("; ".join(load_errors))
+    if wave_id == "—":
+        started = [node for node in nodes if node.kind == "card"
+                   and node.state in schema["open_states"]]
+        if started:
+            fail("a snapshot with open cards must identify the current wave")
+        if (done, total) != (0, 0):
+            fail("an absent current wave renders 'Cards: 0/0'")
+    else:
+        wave = next((node for node in nodes
+                     if node.kind == "wave" and node.id == wave_id), None)
+        if wave is None:
+            fail(f"current wave {wave_id} has no file in the work tree")
+        if wave.title != wave_name:
+            fail(f"wave name does not match the work tree: expected '{wave.title}'")
+        cards = [node for node in nodes if node.kind == "card"
+                 and worklib.owning_wave(schema, node.id) == wave_id]
+        expected_done = sum(1 for card in cards if card.state == "accepted")
+        if (done, total) != (expected_done, len(cards)):
+            fail(
+                "Cards count disagrees with the work tree: "
+                f"rendered {done}/{total}, expected {expected_done}/{len(cards)}"
+            )
+    print(
+        f"fleet render check: valid snapshot with {len(fleet_rows)} fleet rows; "
+        f"Cards {done}/{total}"
+    )
+    raise SystemExit(0)
+
 if not plan_arg:
-    print(f"status render check: valid snapshot with {len(fleet_rows)} fleet rows")
+    print(f"fleet render check: valid snapshot with {len(fleet_rows)} fleet rows")
     raise SystemExit(0)
 
 plan_lines = Path(plan_arg).read_text(encoding="utf-8").splitlines()
@@ -216,7 +267,7 @@ if (done, total) != (expected_done, expected_total):
     )
 
 print(
-    f"status render check: valid snapshot with {len(fleet_rows)} fleet rows; "
+    f"fleet render check: valid snapshot with {len(fleet_rows)} fleet rows; "
     f"Cards {done}/{total}"
 )
 PY

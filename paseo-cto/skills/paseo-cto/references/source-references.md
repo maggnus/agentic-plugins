@@ -1,6 +1,6 @@
 # Source references
 
-Read this file before writing or checking a plan card, acceptance row, review finding, research
+Read this file before writing or checking a task file, review finding, research
 conclusion, decision record, or other durable technical evidence.
 
 ## Evidence is linked to exact source

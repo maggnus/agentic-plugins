@@ -1,7 +1,11 @@
 # Assignment contract
 
 Read this file immediately before dispatching work. Give each agent one bounded plan atom in an
-isolated workspace. The first prompt line is a fail-closed role gate; put all other fields in this
+isolated workspace. The atom is one permanent task file: the contract names its path, and the fields
+below either quote that file or bind it to this dispatch. A contract that cannot be written from the
+task file means the file is not yet startable from a cold context, which is a planning defect rather
+than a dispatch detail. The worker never edits that file; state and new work units are recorded by
+the CTO. The first prompt line is a fail-closed role gate; put all other fields in this
 order:
 
 ```markdown
@@ -9,7 +13,7 @@ First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED
 Identity: <repo; plan ID/title; workspace; branch; exact technical baseline; reportingLanguage from SETTINGS.json; provider tuple from roleAssignments, with the chosen effort and the reason when the assignment allowed a range; modeId>
 Risk: <Routine | Significant | Critical — credible consequence and threatened invariant, if any>
 Maturity: <RESEARCH | DESIGN | BUILD | OPERATIONALIZATION — the level the outcome is judged at; see the Review gate>
-Read: <project instructions; exact spec/plan sections; domain skills; Source references>
+Read: <the task file path; project instructions; exact spec sections; domain skills; Source references>
 Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>

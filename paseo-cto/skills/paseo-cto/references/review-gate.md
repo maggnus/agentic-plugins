@@ -179,9 +179,20 @@ the list is complete. A finding outside the list that fails either test is barre
 tests decide, the list only saves time on the common cases. When in doubt the card returns — the
 cost of one more round is bounded, and the cost of a wrong residue is not.
 
-Record the residue as a plan node carrying `Residue` and `Return condition` fields, so the shape
-check can see it exists. A residue with no return condition is not a decision, it is a defect
-nobody is tracking.
+Record the residue in the accepted task's `Closure` section under `Residuals`, set
+`deliberate_partial: true`, and give it an exact `return_trigger`, so the tree check can see it
+exists. When the unachieved part is independent work rather than a limitation, it gets its own task
+identifier instead. A residue with no return trigger is not a decision, it is a defect nobody is
+tracking.
+
+## Reviewing a decomposition rather than an outcome
+
+A plan review applies this same gate to a wave's tree before its first card starts. The reviewer is
+the ordinary reviewer role under a plan-review contract; no planning or architecture role exists.
+The subject changes, the posture does not: the reviewer reads the tree, tries to refute its
+completeness, and returns `ACCEPT` or `RETURN` of the same plan. The checklist and the recording
+rules are in [Project bootstrap](project-bootstrap.md). A `RETURN` continues the same review after
+the CTO corrects the tree; it does not rebuild the review.
 
 ## Converge: the second return forces a decision
 

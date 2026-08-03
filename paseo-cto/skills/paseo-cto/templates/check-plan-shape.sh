@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
-# Reference check for the Paseo CTO document standard.
+# Reference check for a frozen pre-work-tree execution document and its acceptance history.
+#
+# Current work lives in the permanent work tree and is validated by work.py check. This script
+# describes the older shape — one execution document, one acceptance history, and the atomic
+# transfer between them — and stays available for a project that keeps such documents as frozen
+# history after adoption. Do not apply it to the work tree.
 #
 # Copy this into the project's own script home and bind it to the project's validation gate. Do not
 # call it from the plugin path: that path carries a version and differs between Claude and Codex.

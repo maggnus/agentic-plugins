@@ -211,7 +211,7 @@ Stop it the moment that is false — when the ready frontier is empty and every 
 **owner-gated**: immutable branch/baseline/head coordinates, a pull trigger that needs a new owner
 instruction, accepted plan change, or external event, and no agent, workspace, permission, review,
 rework, or background operation still needing care. In that same turn, persist every tail and the
-exact resume trigger, write the final `STATUS.md` render once, and delete the heartbeat (current
+exact resume trigger, write the final `FLEET.md` render once, and delete the heartbeat (current
 `delete_heartbeat`, older-daemon `delete_schedule`). Do not renew it or re-emit an identical
 scheduled report afterward; a later owner instruction, accepted plan change, or matching external
 event starts a fresh reconciliation from the recorded trigger.

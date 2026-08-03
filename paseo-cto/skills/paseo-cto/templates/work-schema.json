@@ -1,0 +1,297 @@
+{
+  "schema": 1,
+  "root_default": "docs/work",
+  "kinds": [
+    "wave",
+    "card",
+    "task",
+    "subtask"
+  ],
+  "states": [
+    "ready",
+    "active",
+    "review",
+    "rework",
+    "blocked",
+    "deferred",
+    "rejected",
+    "accepted"
+  ],
+  "markers": {
+    "ready": "[ ]",
+    "active": "[~]",
+    "review": "[~]",
+    "rework": "[~]",
+    "blocked": "[?]",
+    "deferred": "[=]",
+    "rejected": "[!]",
+    "accepted": "[x]"
+  },
+  "started_states": [
+    "active",
+    "review",
+    "rework",
+    "accepted"
+  ],
+  "open_states": [
+    "ready",
+    "active",
+    "review",
+    "rework",
+    "blocked",
+    "deferred"
+  ],
+  "relations": [
+    "required",
+    "follow_up",
+    "expansion",
+    "trigger"
+  ],
+  "risks": [
+    "routine",
+    "significant",
+    "critical"
+  ],
+  "maturities": [
+    "RESEARCH",
+    "DESIGN",
+    "BUILD",
+    "OPERATIONALIZATION"
+  ],
+  "plan_review_states": [
+    "pending",
+    "returned",
+    "accepted"
+  ],
+  "id_patterns": {
+    "wave": "^W([0-9]+)$",
+    "card": "^W([0-9]+)-([A-Z]{2,4})-([0-9]{2,})$",
+    "task": "^W([0-9]+)-([A-Z]{2,4})-([0-9]{2,})([a-z])$",
+    "subtask": "^W([0-9]+)-([A-Z]{2,4})-([0-9]{2,})([a-z])\\.([1-9][0-9]*)$"
+  },
+  "fields": {
+    "wave": {
+      "required": [
+        "id",
+        "kind",
+        "state",
+        "areas",
+        "plan_review_state",
+        "created_at",
+        "updated_at"
+      ],
+      "optional": [
+        "plan_review_evidence",
+        "plan_review_at",
+        "blocker",
+        "pause_reason",
+        "return_trigger",
+        "accepted_at"
+      ]
+    },
+    "card": {
+      "required": [
+        "id",
+        "kind",
+        "wave",
+        "state",
+        "risk",
+        "maturity",
+        "relation",
+        "created_at",
+        "updated_at"
+      ],
+      "optional": [
+        "started_at",
+        "accepted_at",
+        "candidate_commit",
+        "closure_commit",
+        "evidence",
+        "duration_minutes",
+        "depends_on",
+        "blocks",
+        "blocker",
+        "pause_reason",
+        "return_trigger",
+        "deliberate_partial"
+      ]
+    },
+    "task": {
+      "required": [
+        "id",
+        "kind",
+        "wave",
+        "card",
+        "state",
+        "risk",
+        "maturity",
+        "relation",
+        "depends_on",
+        "blocks",
+        "duration_minutes",
+        "created_at",
+        "updated_at"
+      ],
+      "optional": [
+        "started_at",
+        "accepted_at",
+        "candidate_commit",
+        "closure_commit",
+        "evidence",
+        "blocker",
+        "pause_reason",
+        "return_trigger",
+        "deliberate_partial"
+      ]
+    },
+    "subtask": {
+      "required": [
+        "id",
+        "kind",
+        "wave",
+        "card",
+        "parent",
+        "state",
+        "risk",
+        "maturity",
+        "relation",
+        "depends_on",
+        "blocks",
+        "duration_minutes",
+        "created_at",
+        "updated_at"
+      ],
+      "optional": [
+        "started_at",
+        "accepted_at",
+        "candidate_commit",
+        "closure_commit",
+        "evidence",
+        "blocker",
+        "pause_reason",
+        "return_trigger",
+        "deliberate_partial"
+      ]
+    }
+  },
+  "list_fields": [
+    "areas",
+    "depends_on",
+    "blocks",
+    "evidence"
+  ],
+  "integer_fields": [
+    "duration_minutes"
+  ],
+  "boolean_fields": [
+    "deliberate_partial"
+  ],
+  "timestamp_fields": [
+    "created_at",
+    "updated_at",
+    "started_at",
+    "accepted_at",
+    "plan_review_at"
+  ],
+  "commit_fields": [
+    "candidate_commit",
+    "closure_commit"
+  ],
+  "sections": {
+    "wave": {
+      "h2": [
+        "Outcome",
+        "Scope",
+        "Cards",
+        "Plan review"
+      ],
+      "h3": {}
+    },
+    "card": {
+      "h2": [
+        "Outcome",
+        "Invariants",
+        "Scope",
+        "Aggregate acceptance",
+        "Tasks"
+      ],
+      "h3": {}
+    },
+    "task": {
+      "h2": [
+        "Outcome",
+        "Scope",
+        "Acceptance",
+        "Current state",
+        "Next action",
+        "Guardrails",
+        "Findings",
+        "Closure"
+      ],
+      "h3": {
+        "Scope": [
+          "In",
+          "Out"
+        ],
+        "Closure": [
+          "Accepted outcome",
+          "Residuals",
+          "Evidence"
+        ]
+      }
+    },
+    "subtask": {
+      "h2": [
+        "Outcome",
+        "Scope",
+        "Acceptance",
+        "Current state",
+        "Next action",
+        "Guardrails",
+        "Findings",
+        "Closure"
+      ],
+      "h3": {
+        "Scope": [
+          "In",
+          "Out"
+        ],
+        "Closure": [
+          "Accepted outcome",
+          "Residuals",
+          "Evidence"
+        ]
+      }
+    }
+  },
+  "limits": {
+    "current_state_lines": 5
+  },
+  "status": {
+    "file": "STATUS.md",
+    "title": "# Project status",
+    "generated_marker": "<!-- generated by work.py status; edit the task file, not this table -->",
+    "header": "| Status | ID | Task | Commit | Start | Time |",
+    "separator": "|---|---|---|---|---|---|",
+    "empty_cell": "—"
+  },
+  "commit_url_pattern": "^https://[^\\s)]+/(?:commit|commits)/([0-9a-f]{40})$",
+  "evidence_waiver": "Git",
+  "banned_title_openings": [
+    "work on",
+    "working on",
+    "continue",
+    "continue with",
+    "keep ",
+    "try ",
+    "attempt ",
+    "investigate and fix",
+    "fix review findings",
+    "address review",
+    "various",
+    "misc",
+    "miscellaneous",
+    "improve ",
+    "refactor and"
+  ]
+}

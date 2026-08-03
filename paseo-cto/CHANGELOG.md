@@ -3,6 +3,48 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.0.0
+
+Work stopped moving between documents. One work unit is now one permanent file, created once and
+never moved, and the index over those files is generated rather than maintained.
+
+- **A work unit is a permanent file.** Wave, card, task and subtask each live at a path derived from
+  their identifier under the project's work root, and acceptance changes the state and the closure
+  fields in that same file. The atomic transfer into an acceptance row is removed, together with the
+  archive of preserved bodies that 8.1.0 and 8.1.1 added to compensate for it: both existed to stop
+  a transfer from destroying the reasoning, and a file that never moves cannot lose it. Measured on a
+  transfer that replaced seventy-line cards with single sentences.
+- **The structure is derived, not chosen.** The work root is the only adjustable path and is recorded
+  once in `SETTINGS.json`; everything below it follows from the identifier, and the check recomputes
+  the path in both directions. The rule permitting a project to keep its own tracker for current work
+  is withdrawn: two shapes for one plan become two truths.
+- **Blocked, paused and withdrawn work has its own marker.** The set is `[ ]` ready, `[~]` active
+  including review and rework, `[?]` blocked, `[=]` paused or trigger-gated, `[!]` withdrawn, `[x]`
+  accepted. Until now blocked and deferred work rendered as `[ ]` and read as ready. Review and
+  return remain inside `[~]`.
+- **A child declares why it exists.** `required`, `follow_up`, `expansion` or `trigger`. A parent
+  closes over its required children only, so an honestly accepted card is no longer reopened by
+  follow-up work, and a trigger-gated unit cannot start before its named event.
+- **The index is generated and the fleet snapshot is renamed.** `STATUS.md` in the work root is the
+  committed index of the project, produced by `work.py status` and never hand-edited; the runtime
+  render of who is working right now is `FLEET.md` beside the checkpoint. One name for two artifacts
+  was ambiguous in every sentence that used it.
+- **The tree is built before the first dispatch, and reviewed by someone else.** A wave whose work
+  has started without an accepted independent plan review fails the check. The reviewer role gains a
+  plan-review mode; no planning or execution-architect role is created, and the CTO still owns the
+  decomposition.
+- **A worker no longer writes the plan.** A builder reads its task file, which must be startable from
+  a cold context, and reports; the CTO records state and creates new units in the integration tree.
+  A state edit made on a frozen baseline in an isolated worktree could not be believed without a
+  merge.
+- **The shape is a program, not a convention.** `work.py` and `work-schema.json` are the single
+  source of identifiers, vocabularies, field sets and section order, shared by the templates, the
+  generator and the validator, with `work.py new` creating every node so a path and a parent listing
+  cannot disagree from the first minute.
+- **Adoption replaces migration.** A project with an execution document freezes it and starts new
+  work in the tree, usually at a wave boundary. The one enforced rule is that a live identifier has
+  exactly one home; `check-plan-shape.sh` stays available for the frozen document.
+
 ## 8.1.1
 
 The accepted-card archive is a tree, not a flat directory.

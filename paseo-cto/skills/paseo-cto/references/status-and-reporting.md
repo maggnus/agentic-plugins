@@ -3,11 +3,16 @@
 Read this file before emitting any status, and on every reconcile while operating. It defines one
 deterministic snapshot so Claude and Codex report the same project state.
 
+This file governs the **fleet snapshot**: the runtime render of who is working right now. It is a
+different artifact from the **work index**, the committed `STATUS.md` that `work.py status`
+generates from the permanent task files and that [Work tree](work-tree.md) defines. The index shows
+where the project is; the snapshot shows what the fleet is doing this minute.
+
 ## One snapshot, two sinks
 
 Compute the snapshot once per reconcile and use those exact values for both sinks:
 
-1. **Durable file** — rewrite `<git-common-dir>/paseo-cto/STATUS.md` on every reconcile and material
+1. **Durable file** — rewrite `<git-common-dir>/paseo-cto/FLEET.md` on every reconcile and material
    event. Resolve the Git common directory; never write the file to an assumed checkout root.
 2. **Chat** — post the exact current-wave header and complete fleet table on every scheduled
    15-minute heartbeat, even when nothing changed. Post the same snapshot immediately for every
@@ -15,7 +20,7 @@ Compute the snapshot once per reconcile and use those exact values for both sink
    scheduled snapshots may add a brief prose delta after the snapshot.
 
 The scheduled snapshot is the sole exception to the rule against repeating unchanged information.
-Never repeat unchanged prose. State the absolute `STATUS.md` path once when Operate begins; do not
+Never repeat unchanged prose. State the absolute `FLEET.md` path once when Operate begins; do not
 put it in the snapshot or repeat it in ordinary updates.
 
 ## Language and register
@@ -36,7 +41,7 @@ configured prose language.
 
 ## Scheduled snapshot — exact shape
 
-Rewrite `STATUS.md` and post the scheduled chat snapshot in exactly this shape:
+Rewrite `FLEET.md` and post the scheduled chat snapshot in exactly this shape:
 
 ```markdown
 # Update <YYYY-MM-DD HH:MM TZ>
@@ -65,12 +70,12 @@ Derive every required identity value from plugin-version preflight, `charter.rol
 runtime state. If the version, model, effort, or session time is unavailable, or the version
 disagrees with the selected immutable release, fail the status gate instead of inventing it. Context
 is the only optional value. Invoke
-[`templates/check-status-render.sh`](../templates/check-status-render.sh) with
+[`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) with
 `PASEO_CTO_VERSION=v<base-version>` to verify the displayed release.
 
 Do not add the run ID, CTO ID, path, strategy, readiness, constraint, fleet counts, project rollup,
 blockers, tails, or next action to this mechanical render. Those facts belong in the plan, runtime
-state, or a material prose delta. Do not put any content after the final fleet row in `STATUS.md`.
+state, or a material prose delta. Do not put any content after the final fleet row in `FLEET.md`.
 
 The timestamp uses the machine's local time and a short unambiguous timezone token. Every value is
 derived from current evidence; none is estimated.
@@ -82,19 +87,17 @@ The runtime checkpoint stores the current wave ID and name. Resolve both during 
 - The current wave is the wave containing the head of the critical path.
 - When the last card in that wave is accepted, retain the completed wave through its final `N/N`
   snapshot. Advance only after that snapshot to the wave containing the next critical-path head.
-- `done` is the count of unique acceptance-history card IDs whose `Wave` column equals the current
-  wave ID.
-- `total` is the number of unique card IDs in the union of those accepted rows and the current plan
-  cards bound to the same wave. Accepted cards are absent from the current plan because acceptance
-  is an atomic transfer.
-- A discovered card increases `total` as soon as it is added to that wave. A duplicate ID, a current
-  `[x]` card, or a disagreement between plan and acceptance truth fails the status gate; never repair
-  the display by inventing a count.
+- `total` is the number of card files in that wave's directory.
+- `done` is how many of them are in state `accepted`.
+- A discovered card increases `total` as soon as its file exists. A duplicate ID or a tree that does
+  not validate fails the status gate; never repair the display by inventing a count.
 - When no current wave exists, render `Wave: [—] —` and `Cards: 0/0`.
 
 The displayed count must always satisfy `0 <= done <= total`. The reference checker in
-[`templates/check-status-render.sh`](../templates/check-status-render.sh) validates the shape and,
-when the plan and acceptance paths are supplied, recalculates the counts.
+[`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates the shape and,
+with `WORK_ROOT` supplied, recalculates the counts and the wave name from the work tree. A project
+still reading a frozen execution document supplies `PLAN_FILE` and `ACCEPTANCE_FILE` instead; the
+two modes are mutually exclusive.
 
 ## Fleet table — fixed columns and mechanical fields
 
@@ -169,11 +172,11 @@ More consequence-focused rewrites:
 [`templates/check-owner-status.sh`](../templates/check-owner-status.sh) mechanically checks the
 optional prose delta for length, paragraph count, personal language, and banned framing. Invoke it
 with `REPORTING_LANGUAGE` set to the exact charter value. It does not check the structured snapshot;
-use [`templates/check-status-render.sh`](../templates/check-status-render.sh) for that. Both checks
+use [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) for that. Both checks
 judge form only; semantic truth remains the CTO gate.
 
 ## Evidence links
 
 Every commit or repository file named in owner-facing documentation, a review report, a decision
-record, the plan, or acceptance history is a Markdown link to its canonical source. Apply
+record, or the work tree is a Markdown link to its canonical source. Apply
 [Source references](source-references.md); a bare SHA or local path is not durable evidence.

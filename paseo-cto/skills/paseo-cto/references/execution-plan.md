@@ -8,18 +8,22 @@ Resolve these bindings from the repository before operating:
 
 - project instructions and no-touch boundaries;
 - roadmap or product goals;
-- living execution-plan document;
+- work root and the project's copy of the work tooling, from `SETTINGS.json`;
 - authoritative validation commands;
 - validation ownership and the exact triggers for full-suite, wave, release, and deploy checks;
 - integration branch and commit convention;
 - canonical HTTPS source repository URL for commit-pinned source links;
 - founder, release, deploy, external, data, and irreversible-operation gates.
 
-Never duplicate a tracker the project already keeps: bind to it and require only that every field
-below has a home in it. When the project has no plan document, create the canonical set from
-[Document standard](document-standard.md) in `operate` mode, in the repository's normal
-documentation area. That standard also fixes the card shape, the acceptance row and the reference
-check that keeps both from drifting.
+The plan lives in the work tree defined by [Work tree](work-tree.md): one work unit is one permanent
+file under the work root, created once and never moved. The structure below the root is derived from
+the identifier rather than chosen, so a project cannot express the same plan in two shapes. A project
+that already keeps an execution document adopts the tree under [Legacy adoption](legacy-adoption.md);
+its frozen history keeps the shape described in [Document standard](document-standard.md).
+
+Before the first dispatch on a new project or a new wave, build the tree under
+[Project bootstrap](project-bootstrap.md). A wave whose first card has started without an accepted
+plan review fails the tree check.
 
 ## CTO-only delivery strategy
 
@@ -48,56 +52,61 @@ during `alpha`.
 Treat the plan as a hierarchy rather than a flat immutable checklist:
 
 ```text
-project outcome
-  epic / wave
-    executable atom
-      discovered investigation, fix, verification, or integration child
+wave
+  card
+    task
+      subtask
 ```
+
+The depth stops there. Work that appears to need a fifth level was decomposed wrongly and is split
+into another card or task instead.
 
 Every dispatched task must map to one stable plan node. Existing nodes need not predict all future
 work: when evidence exposes a missing step, add a child or sibling before dispatching it. Never hide
 new work inside an inaccurate old row merely to preserve the original plan.
 
-Each active node carries, in the project's native format:
+Each node carries, in the fields fixed by
+[`templates/work-schema.json`](../templates/work-schema.json):
 
-- stable ID and a concise outcome-oriented title that stands on its own as a status row;
-- state: `ready`, `active`, `review`, `rework`, `blocked`, `deferred`, or `done`;
+- stable wave-prefixed ID and a concise outcome-oriented title that stands on its own as an index row;
+- state: `ready`, `active`, `review`, `rework`, `blocked`, `deferred`, `rejected`, or `accepted`;
+- relation to the parent: `required`, `follow_up`, `expansion`, or `trigger`;
 - dependencies and explicit gates;
-- completion evidence or acceptance condition;
+- acceptance conditions, and completion evidence once accepted;
 - a bounded validation ladder when the project-wide default is insufficient;
-- current owner or agent when active;
-- source-linked commit/evidence reference when returned;
-- blocker and pull trigger when blocked or deferred;
+- source-linked candidate or closure commit;
+- blocker when blocked, pause reason when paused, return trigger when deferred, trigger-gated or
+  withdrawn;
+- start time and accumulated active duration;
 - for a discovered child, the evidence or event that spawned it — its reason for existing.
 
-The last two exist so no task reads as random in status: every node ties back to a parent and, when it
-was not in the original plan, to the finding that created it.
+The last one exists so no task reads as random in the index: every node ties back to a parent and,
+when it was not in the original plan, to the finding that created it.
 
 The plan state and the agent state are different state machines. The plan's authoritative state is
-the exact machine token at the start of `Current state`; these tokens are never translated. The
-heading marker is only its compact render and is always the first heading content after the Markdown
-hashes: `#### [ ] LF-06 — Ship immutable App releases`. Never put the marker after the title.
+the exact machine token in the node's `state` field; these tokens are never translated. The marker is
+only its compact render.
 
-| Plan state | Card marker | Agent-state relationship |
+| Plan state | Marker | Agent-state relationship |
 | --- | --- | --- |
 | `ready` | `[ ]` | No agent is required; the node may be dispatched. |
 | `active` | `[~]` | At least one owner is performing useful work. |
 | `review` | `[~]` | A returned outcome is undergoing the required second look. |
 | `rework` | `[~]` | The originating author is correcting accepted findings. |
-| `blocked` | `[ ]` | A dependency or decision prevents dispatch or continuation. |
-| `deferred` | `[ ]` | A named pull trigger must occur before the node becomes ready. |
-| `done` | `[x]` | Transitional only: acceptance is being recorded atomically. |
+| `blocked` | `[?]` | A dependency or decision makes continuation objectively impossible. |
+| `deferred` | `[=]` | A deliberate pause, or a named trigger that must occur first. |
+| `rejected` | `[!]` | Withdrawn from the current cycle until its return trigger fires. |
+| `accepted` | `[x]` | Accepted in place, with its closure commit and evidence recorded. |
 
 Runtime agent states remain those defined by Fleet operations. They explain executor lifecycle and
 do not overwrite the plan state; the CTO derives the plan transition from evidence.
 
-Stable IDs are never renumbered, reused, or lost. Acceptance transfers a card atomically: append its
-source-linked row to the acceptance history and remove the complete card from the current execution
-plan in the same semantic change. The ID then lives in acceptance history and must not remain as a
-duplicate done card in the execution plan. A removal without the matching acceptance row is a failed
-plan-shape gate. Split a node when it crosses independent write zones, owners, acceptance boundaries,
-or dependency edges. Newly discovered depth becomes explicit children. Park blocked or intentionally
-skipped work with a reason and a pull trigger.
+Stable IDs are never renumbered, reused, or lost. Acceptance moves no text: the state changes and the
+closure fields are filled in the same file, and the parent is then tested for closure over its
+`required` children only. Split a node when it crosses independent write zones, owners, acceptance
+boundaries, or dependency edges. Newly discovered depth becomes explicit children with their own
+files under the rule in [Work tree](work-tree.md). Park blocked or intentionally skipped work with a
+reason and an exact return trigger.
 
 ## Build the ready frontier
 
@@ -120,17 +129,21 @@ containing the next critical-path head. Re-rank after every material event; do n
 priority merely because work already started.
 
 Update the plan when dispatch depends on a new or changed node, and at discovery, semantic
-return/rework, acceptance transfer, integration, blocking, deferral, and close. Reviewer queueing,
-agent/workspace lifecycle, and candidate coordinates are transient runtime/status facts, not plan
-changes. The CTO owns plan edits in the integration tree; workers propose new nodes in reports rather
-than editing the project-wide tracker unless their contract explicitly grants that path.
+return/rework, acceptance, integration, blocking, deferral, and close. Reviewer queueing,
+agent/workspace lifecycle, and candidate coordinates are transient runtime facts, not plan changes.
+
+The CTO is the only writer of the work tree. A worker reads its task file and reports; it does not
+edit that file, because it works from a frozen baseline in an isolated worktree and a state edit
+there would have to be merged before it could be believed. Workers propose new nodes in their
+returns, and the CTO creates them in the integration tree.
 
 The plan is durable project truth in Git. The CTO commits semantic plan changes locally before a
 dispatch that depends on them and at material gates, and keeps the integration tree clean before
-creating worker baselines. Do not create a plan commit solely to record that an unchanged candidate
-entered review or that an agent/workspace changed lifecycle state; runtime and `STATUS.md` own those
-transitions. Apply [Source references](source-references.md) to every commit or repository file that
-supports a plan claim.
+creating worker baselines. Regenerate the work index in the same change that alters a node. Do not
+create a plan commit solely to record that an unchanged candidate entered review or that an
+agent/workspace changed lifecycle state; runtime and the fleet render own those transitions. Apply
+[Source references](source-references.md) to every commit or repository file that supports a plan
+claim.
 
 ## Persist a recoverable checkpoint
 
@@ -147,6 +160,9 @@ runtime checkpoint, old run, or replacement CTO may never overwrite the canonica
 CTO session resets `sessionStartedAt`; compaction in the same session preserves it. If `stateSince`
 is absent, report recovered state time as approximate.
 
-The human-facing status render sits beside the settings and checkpoints at
-`$(git rev-parse --git-common-dir)/paseo-cto/STATUS.md`; the checkpoint is machine truth, and
-[Status and reporting](status-and-reporting.md) defines how the render is produced from it.
+Two different files are easy to confuse and must not be. The **fleet render** sits beside the
+settings and checkpoints at `$(git rev-parse --git-common-dir)/paseo-cto/FLEET.md`: it is the
+runtime snapshot of who is working right now, it is untracked, and
+[Status and reporting](status-and-reporting.md) defines how it is produced from the checkpoint. The
+**work index** is `STATUS.md` in the work root: it is committed, it is generated from the task files
+by `work.py status`, and it shows where the project is rather than which agents are live.

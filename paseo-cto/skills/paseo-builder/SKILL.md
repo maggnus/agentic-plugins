@@ -18,7 +18,11 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    defined in the CTO skill: no first person, no emotion, no evaluation of how significant the
    result is; state the prior assumption, the observed evidence, the effect on the contracted
    outcome, and what remains.
-1. Read only the project instructions, specification sections, and domain skills named by the task.
+1. Read the task file the assignment names, then only the project instructions, specification
+   sections, and domain skills it names. The task file is the contract: its outcome, scope, acceptance
+   checklist and guardrails are what the work is judged against, and it is written to be startable
+   without any conversation history. If it cannot be started from its own text, report that as a
+   blocker instead of reconstructing the intent.
 2. Verify workspace, branch, baseline ancestry, and `git status --short --branch`. Do not fetch,
    pull, rebase, switch branches, clean, reset, or change the baseline.
 3. Complete the contracted outcome only in the write zone. Report cross-zone needs as blockers or
@@ -44,8 +48,11 @@ cited as evidence follows [Source references](../paseo-cto/references/source-ref
 and file paths are not durable references. Disposable logs belong only in an approved ignored or
 external path; leave no tracked or untracked tail.
 
-Do not infer CTO strategy, spawn/message agents, edit the project-wide plan, integrate other work,
-deploy, publish, mutate live systems, install unapproved dependencies, or cross an owner gate.
+Do not infer CTO strategy, spawn/message agents, integrate other work, deploy, publish, mutate live
+systems, install unapproved dependencies, or cross an owner gate. Do not edit the work tree — not the
+task file, not its parents, not the generated index. State, findings and new work units are recorded
+by the CTO in the integration tree; a state edit made on a frozen baseline in an isolated worktree
+could not be believed without a merge. Propose new work units in the return instead.
 
 Return under 2500 characters unless preserving a systemic finding: `done|blocked|error`, source-
 linked commits and changed files, concise diff, each required check with real result, final branch/

@@ -98,7 +98,7 @@ printf '%s\n' 'I checked the path; you should probably rerun it. Great work.' > 
 expect_fail "personal social and hedged status" env REPORTING_LANGUAGE=English \
   "$templates/check-owner-status.sh" "$scratch/status-bad.txt"
 
-cat > "$scratch/STATUS.md" <<'EOF'
+cat > "$scratch/FLEET.md" <<'EOF'
 # Update 2026-08-02 22:30 HKT
 paseo-cto: v8.0.1 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [W5] Recovery readiness
@@ -138,53 +138,53 @@ EOF
 
 expect_pass "current-wave snapshot and semantic card counts" env \
   PASEO_CTO_VERSION=v8.0.1 \
-  STATUS_FILE="$scratch/STATUS.md" PLAN_FILE="$scratch/status-plan.md" \
+  FLEET_FILE="$scratch/FLEET.md" PLAN_FILE="$scratch/status-plan.md" \
   ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
-  "$templates/check-status-render.sh"
+  "$templates/check-fleet-render.sh"
 
-sed 's/ | Context: 201k(15%)//' "$scratch/STATUS.md" > "$scratch/status-no-context.md"
+sed 's/ | Context: 201k(15%)//' "$scratch/FLEET.md" > "$scratch/fleet-no-context.md"
 expect_pass "snapshot may omit unavailable host context" env \
-  PASEO_CTO_VERSION=v8.0.1 STATUS_FILE="$scratch/status-no-context.md" \
+  PASEO_CTO_VERSION=v8.0.1 FLEET_FILE="$scratch/fleet-no-context.md" \
   PLAN_FILE="$scratch/status-plan.md" ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
-  "$templates/check-status-render.sh"
+  "$templates/check-fleet-render.sh"
 
 sed 's/# Update 2026-08-02 22:30 HKT/# Example update 2026-08-02 22:30 HKT/' \
-  "$scratch/STATUS.md" > "$scratch/status-old-header.md"
-expect_fail "old status heading" env STATUS_FILE="$scratch/status-old-header.md" \
-  "$templates/check-status-render.sh"
+  "$scratch/FLEET.md" > "$scratch/fleet-old-header.md"
+expect_fail "old status heading" env FLEET_FILE="$scratch/fleet-old-header.md" \
+  "$templates/check-fleet-render.sh"
 
 awk '{ if ($0 == "| Agent | Task | Status | Time | LOC |") print "## Active fleet"; print }' \
-  "$scratch/STATUS.md" > "$scratch/status-table-heading.md"
-expect_fail "fleet table section heading" env STATUS_FILE="$scratch/status-table-heading.md" \
-  "$templates/check-status-render.sh"
+  "$scratch/FLEET.md" > "$scratch/fleet-table-heading.md"
+expect_fail "fleet table section heading" env FLEET_FILE="$scratch/fleet-table-heading.md" \
+  "$templates/check-fleet-render.sh"
 
-sed 's/Wave: \[W5\]/Wave: W5/' "$scratch/STATUS.md" > "$scratch/status-unbracketed-wave.md"
-expect_fail "unbracketed wave index" env STATUS_FILE="$scratch/status-unbracketed-wave.md" \
-  "$templates/check-status-render.sh"
+sed 's/Wave: \[W5\]/Wave: W5/' "$scratch/FLEET.md" > "$scratch/fleet-unbracketed-wave.md"
+expect_fail "unbracketed wave index" env FLEET_FILE="$scratch/fleet-unbracketed-wave.md" \
+  "$templates/check-fleet-render.sh"
 
 sed 's/paseo-cto: v8\.0\.1/paseo-cto: v8.0.0/' \
-  "$scratch/STATUS.md" > "$scratch/status-wrong-plugin-version.md"
+  "$scratch/FLEET.md" > "$scratch/fleet-wrong-plugin-version.md"
 expect_fail "status plugin version differs from selected release" env \
-  PASEO_CTO_VERSION=v8.0.1 STATUS_FILE="$scratch/status-wrong-plugin-version.md" \
-  "$templates/check-status-render.sh"
+  PASEO_CTO_VERSION=v8.0.1 FLEET_FILE="$scratch/fleet-wrong-plugin-version.md" \
+  "$templates/check-fleet-render.sh"
 
-sed 's/Cards: 3\/5/Cards: 4\/5/' "$scratch/STATUS.md" > "$scratch/status-wrong-count.md"
+sed 's/Cards: 3\/5/Cards: 4\/5/' "$scratch/FLEET.md" > "$scratch/fleet-wrong-count.md"
 expect_fail "status card count differs from plan and acceptance" env \
-  STATUS_FILE="$scratch/status-wrong-count.md" PLAN_FILE="$scratch/status-plan.md" \
+  FLEET_FILE="$scratch/fleet-wrong-count.md" PLAN_FILE="$scratch/status-plan.md" \
   ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
-  "$templates/check-status-render.sh"
+  "$templates/check-fleet-render.sh"
 
 # shellcheck disable=SC2016 # Backticks are literal Markdown syntax.
-sed 's/`cto-sol`/`W5-0-sol-builder`/' "$scratch/STATUS.md" > "$scratch/status-no-cto.md"
-expect_fail "fleet table without CTO first" env STATUS_FILE="$scratch/status-no-cto.md" \
-  "$templates/check-status-render.sh"
+sed 's/`cto-sol`/`W5-0-sol-builder`/' "$scratch/FLEET.md" > "$scratch/fleet-no-cto.md"
+expect_fail "fleet table without CTO first" env FLEET_FILE="$scratch/fleet-no-cto.md" \
+  "$templates/check-fleet-render.sh"
 
 sed -e 's/Wave: \[W5\] Recovery readiness/Wave: [—] —/' -e 's/Cards: 3\/5/Cards: 0\/0/' \
-  "$scratch/STATUS.md" > "$scratch/status-no-wave.md"
+  "$scratch/FLEET.md" > "$scratch/fleet-no-wave.md"
 expect_fail "current plan cards without a current wave" env \
-  STATUS_FILE="$scratch/status-no-wave.md" PLAN_FILE="$scratch/status-plan.md" \
+  FLEET_FILE="$scratch/fleet-no-wave.md" PLAN_FILE="$scratch/status-plan.md" \
   ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
-  "$templates/check-status-render.sh"
+  "$templates/check-fleet-render.sh"
 
 transfer_repo="$scratch/transfer"
 mkdir -p "$transfer_repo"
@@ -277,4 +277,39 @@ expect_fail "removed card without acceptance row" env \
   BASE_REF="$base_ref" PLAN_FILE=EXECUTION.md ACCEPTANCE_FILE=ACCEPTANCE.md \
   bash -c 'cd "$1" && exec "$2"' _ "$transfer_repo" "$templates/check-plan-shape.sh"
 
+fixture="$plugin_root/tests/fixtures/work-tree"
+cat > "$scratch/FLEET-work.md" <<'EOF'
+# Update 2026-08-03 21:00 HKT
+paseo-cto: v9.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+Wave: [W1] Launch readiness
+Cards: 1/2
+
+| Agent | Task | Status | Time | LOC |
+| --- | --- | --- | --- | --- |
+| `cto-sol` | `—` Integrate sandbox boundary | `reviewing` | 8m | — |
+| `W1-LF-04a-sol-builder` | `W1-LF-04a` Sandbox output boundary verified | `running` | 18m | +24 -3 |
+EOF
+
+expect_pass "fleet snapshot counts derived from the work tree" env \
+  FLEET_FILE="$scratch/FLEET-work.md" WORK_ROOT="$fixture" \
+  "$templates/check-fleet-render.sh"
+
+sed 's/Cards: 1\/2/Cards: 2\/2/' "$scratch/FLEET-work.md" > "$scratch/fleet-work-count.md"
+expect_fail "fleet card count differs from the work tree" env \
+  FLEET_FILE="$scratch/fleet-work-count.md" WORK_ROOT="$fixture" \
+  "$templates/check-fleet-render.sh"
+
+sed 's/Wave: \[W1\] Launch readiness/Wave: [W1] Something else/' "$scratch/FLEET-work.md" \
+  > "$scratch/fleet-work-name.md"
+expect_fail "fleet wave name differs from the work tree" env \
+  FLEET_FILE="$scratch/fleet-work-name.md" WORK_ROOT="$fixture" \
+  "$templates/check-fleet-render.sh"
+
+expect_fail "work tree and frozen plan supplied together" env \
+  FLEET_FILE="$scratch/FLEET-work.md" WORK_ROOT="$fixture" \
+  PLAN_FILE="$scratch/status-plan.md" ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
+  "$templates/check-fleet-render.sh"
+
 printf 'test: %s contract checks passed\n' "$passes"
+
+bash "$script_dir/test-work-tree.sh"

@@ -97,16 +97,46 @@ Treat time and distance to the next usable release as engineering constraints.
   reviewer's still-valid inspection and independently selected proof, and require novelty only when
   scope, semantics, or the risk hypothesis materially changes.
 
+## Own the work tree
+
+Work lives in permanent files: one wave, card, task or subtask is one file, created once at a path
+derived from its identifier and never moved. [Work tree](references/work-tree.md) defines the model,
+[Project bootstrap](references/project-bootstrap.md) defines how it is built, and
+[Legacy adoption](references/legacy-adoption.md) defines what happens to a project that already kept
+an execution document.
+
+- **You own the structure.** Decomposition, identifiers, dependencies, states, and closure are CTO
+  work. No separate planning or execution-architect role exists, and none is created.
+- **You do not confirm your own large decomposition.** Before the first card of a new project or a
+  new wave is dispatched, the independent reviewer attacks the tree for missing work, false closure
+  paths, cycles, hidden owner decisions, and unstartable tasks, and returns `ACCEPT` or `RETURN`. The
+  tree check refuses a wave whose work started without that verdict.
+- **A builder works only from its task file.** That file must be executable from a cold context: a
+  worker who has read nothing else must be able to start. Nothing may depend on what an agent
+  remembers. Workers report; the CTO is the only writer of the tree.
+- **An accepted task is not moved.** Its state changes and its closure fields are filled in the same
+  file. Git keeps candidate history, the evidence package keeps transcripts, and the task file keeps
+  the position and the closure record.
+- **`STATUS.md` is an index, not a work journal.** It is generated from the tree, never edited by
+  hand, and carries one row per unit. The runtime fleet snapshot is a different artifact, `FLEET.md`,
+  and it does not belong in the work root.
+- **A finding does not inflate a file.** `Current state` is rewritten and bounded; a finding that can
+  be independently assigned, performed, reviewed, returned and accepted becomes a new file with a new
+  identifier and a declared relation to its parent.
+
 ## The loop
 
 1. **Reconcile** the whole project globally before creating anything. Recover the project-scoped
    settings before any run checkpoint, then adopt or resolve prior agents, workspaces, returned
    commits, disputes, and tails; never duplicate a task or role already active.
-2. **Plan.** Keep one living hierarchy (outcome → epic/wave → atom → discovered child). Every
-   dispatch maps to one stable node; add a truthful child before dispatching newly discovered work.
-   Commit semantic plan changes before dependent dispatch and at material gates so the integration
-   tree stays clean. Agent/workspace lifecycle, reviewer queueing, and candidate coordinates belong
-   in runtime and status; do not create a Git commit solely for those transient transitions.
+2. **Plan.** Keep one living hierarchy of permanent files: wave, card, task, subtask, and no deeper.
+   Every dispatch maps to one stable node; add a truthful child, with its relation to the parent,
+   before dispatching newly discovered work. On a new project or a new wave, build and freeze the
+   tree under [Project bootstrap](references/project-bootstrap.md) before the first dispatch.
+   Regenerate the index in the same change that alters a node, and commit semantic plan changes
+   before dependent dispatch and at material gates so the integration tree stays clean.
+   Agent/workspace lifecycle, reviewer queueing, and candidate coordinates belong in runtime and the
+   fleet snapshot; do not create a Git commit solely for those transient transitions.
 3. **Dispatch.** Recover the persisted operating charter, or confirm and persist it on the first
    run, before the first dispatch — create no agents, workspaces, or heartbeat until this is
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
@@ -116,7 +146,7 @@ Treat time and distance to the next usable release as engineering constraints.
    passes the admission test in Fleet operations — disjoint write zones, no shared regeneration,
    independent acceptance, free review capacity — and hold every other writer while a barrier atom
    touching a canonical contract, schema, shared infrastructure or the centralized theme runs alone.
-4. **Report.** Rewrite the durable status render on every reconcile and material event so the owner
+4. **Report.** Rewrite the durable fleet render on every reconcile and material event so the owner
    can see where the project is at any moment. Every 15-minute heartbeat posts the simplified
    header, separate plugin/CTO-session identity line, current-wave counts, and complete fleet table
    to chat even when no state changed. Between those snapshots, treat chat as a delta stream: report
@@ -126,7 +156,9 @@ Treat time and distance to the next usable release as engineering constraints.
    returned outcome, including report-only research and design outcomes. It is the sole plugin
    authority for risk classification, review depth, landing decisions, falsifiers, integration
    delta, and the author's bounded right of response. Integrate repository writes only after its
-   acceptance gate into a clean tree, rerun invalidated checks, and commit plan truth. After
+   acceptance gate into a clean tree, rerun invalidated checks, and record acceptance in the task's
+   own file: state, `accepted_at`, closure commit, durable evidence, closure record, duration, then
+   the parent's closure test over its `required` children only. After
    `RETURN`, default to the same author and reviewer in their preserved workspaces; create a
    replacement reviewer only under the exceptions in the Review gate. Review rounds are a cost the
    plan pays: after the second return on one card, decide in that turn — accept with residue, split
@@ -243,13 +275,18 @@ gate may add a prose delta, but unchanged prose is never repeated.
 
 Load only what the next action needs; do not read every reference at skill start.
 
-- Project status: [Status and reporting](references/status-and-reporting.md) and the actual plan
-  only.
+- Project status: [Status and reporting](references/status-and-reporting.md) and the work index only.
 - Inspect: [Execution plan](references/execution-plan.md) and
   [Fleet operations](references/fleet-operations.md).
-- Review: the relevant plan node, [Review gate](references/review-gate.md), and
+- Creating or maintaining work units, or generating the index:
+  [Work tree](references/work-tree.md).
+- Starting a project or opening a new wave, and the plan review that gates it:
+  [Project bootstrap](references/project-bootstrap.md).
+- Review: the relevant task file, [Review gate](references/review-gate.md), and
   [Source references](references/source-references.md).
 - Validation planning or any command rerun: [Validation budget](references/validation-budget.md).
+- A project that already keeps an execution document and an acceptance history:
+  [Legacy adoption](references/legacy-adoption.md), read once at adoption.
 - First Operate, in order: read project truth and Execution plan; read
   [Persistent settings](references/persistent-settings.md) and recover or migrate `SETTINGS.json`;
   read [Roles and providers](references/roles-and-providers.md) and complete its plugin-version
@@ -261,7 +298,7 @@ Load only what the next action needs; do not read every reference at skill start
   reconcile — not before the first agent.
 - Archival, cleanup, or close: [Cleanup and close](references/cleanup-and-close.md), read when a
   result is accepted or the fleet is being wound down, not at startup.
-- Creating a project's plan documents, writing a new card, or recording an accepted one:
+- Creating a project's durable documents or maintaining a frozen execution history:
   [Document standard](references/document-standard.md), [Source references](references/source-references.md),
   and the linked templates.
 - Resume Operate or change CTO: recover `SETTINGS.json` first, then the committed plan and runtime
