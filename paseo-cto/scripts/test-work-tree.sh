@@ -146,22 +146,42 @@ raise SystemExit(f"order was {ids}" if ids != expected else 0)
 PY
 
 # the wave overview carries one row per wave with its accepted card count
-expect_pass "waves overview lists every wave" python3 - "$tree" <<'PY'
-import pathlib, re, sys
+expect_pass "waves overview lists every wave with its progress" python3 - "$tree" <<'PY'
+import pathlib, sys
 root = pathlib.Path(sys.argv[1])
-rows = [line for line in (root / "WAVES.md").read_text(encoding="utf-8").split("\n")
-        if line.startswith("| `[")]
+lines = (root / "WAVES.md").read_text(encoding="utf-8").split("\n")
+waves = [line for line in lines if line.startswith("| `[")]
+totals = [line for line in lines if "**Total**" in line]
 expected = [
     "| `[~]` | [`W1`](waves/W1/WAVE.md) | Launch readiness |",
     "| `[ ]` | [`W2`](waves/W2/WAVE.md) | Recovery readiness |",
 ]
-counts = [row.rsplit("|", 2)[1].strip() for row in rows]
 problems = []
-if len(rows) != 2 or not all(row.startswith(head) for row, head in zip(rows, expected)):
-    problems.append(f"rows were {rows}")
-if counts != ["1/2", "0/1"]:
-    problems.append(f"counts were {counts}")
+if len(waves) != 2 or not all(row.startswith(head) for row, head in zip(waves, expected)):
+    problems.append(f"wave rows were {waves}")
+if [row.rsplit("|", 3)[1].strip() for row in waves] != ["1/2", "0/1"]:
+    problems.append(f"card counts were {waves}")
+if [row.rsplit("|", 2)[1].strip() for row in waves] != ["50%", "0%"]:
+    problems.append(f"percentages were {waves}")
+if len(totals) != 1 or totals[0] != lines[len(lines) - 2]:
+    problems.append("the total row is not the last row")
+elif totals[0].rsplit("|", 3)[1].strip() != "1/3" or totals[0].rsplit("|", 2)[1].strip() != "33%":
+    problems.append(f"total row was {totals[0]}")
 raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+# the percentage rounds half up from integers, so it never depends on float repair
+expect_pass "percentage rounding is exact" python3 - "$templates" <<'PY'
+import importlib.util, pathlib, sys
+sys.dont_write_bytecode = True
+spec = importlib.util.spec_from_file_location("work", pathlib.Path(sys.argv[1]) / "work.py")
+work = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(work)
+cases = {(0, 0): "—", (0, 4): "0%", (1, 3): "33%", (2, 3): "67%", (1, 2): "50%",
+         (3, 6): "50%", (95, 156): "61%", (156, 156): "100%"}
+wrong = {case: work.render_percent(*case, "—") for case in cases
+         if work.render_percent(*case, "—") != cases[case]}
+raise SystemExit(f"wrong: {wrong}" if wrong else 0)
 PY
 
 # 20. regenerating an unchanged tree rewrites nothing

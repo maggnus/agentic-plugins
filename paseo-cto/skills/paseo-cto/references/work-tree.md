@@ -173,12 +173,15 @@ actually matters for a wave has nowhere to go. They get their own generated file
 written by the same command:
 
 ```markdown
-| Status | ID | Wave | Outcome | Cards |
+| Status | ID | Wave | Outcome | Cards | Done |
 ```
 
 One row per wave in ascending order, with its state marker, its title, the first line of its
-`Outcome` section, and how many of its cards are accepted. It answers the question the index cannot:
-how many waves exist, in what order, and how far each has come.
+`Outcome` section, how many of its cards are accepted, and that share as a percentage rounded half
+up from integers. The last row totals every wave, so the project's overall progress is one number
+rather than an addition the reader performs. A wave with no cards renders `0/0` and `—`. The file
+answers the question the index cannot: how many waves exist, in what order, and how far each has
+come.
 
 ## Commands
 

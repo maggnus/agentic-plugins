@@ -3,6 +3,15 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.2.0
+
+The wave overview states progress as a share, and totals itself.
+
+- **`Done` and a total row.** `WAVES.md` gains a percentage beside each wave's card count and closes
+  with a row summing every wave, so the project's overall progress is one number rather than an
+  addition the reader performs. The percentage is rounded half up from integers and never depends on
+  float repair; a wave with no cards renders `0/0` and `—`.
+
 ## 9.1.0
 
 The waves became visible again.

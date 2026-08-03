@@ -722,22 +722,38 @@ def first_line(body: str, heading: str) -> str:
     return next((line.strip() for line in section_lines(body, heading) if line.strip()), "")
 
 
+def render_percent(done: int, total: int, empty: str) -> str:
+    """Round half up with integers, so the rendered percentage never depends on float repair."""
+    if total <= 0:
+        return empty
+    return f"{(200 * done + total) // (2 * total)}%"
+
+
 def render_waves(schema: dict, nodes: list[Node]) -> str:
     waves = schema["waves"]
     empty = schema["status"]["empty_cell"]
     rows: list[str] = []
+    total_done = 0
+    total_cards = 0
     for node in nodes:
         if node.kind != "wave":
             continue
         cards = [other for other in nodes
                  if other.kind == "card" and owning_wave(schema, other.id) == node.id]
         done = sum(1 for card in cards if card.state == "accepted")
+        total_done += done
+        total_cards += len(cards)
         marker = schema["markers"].get(node.state, "[ ]")
         outcome = cell(first_line(node.body, "Outcome")) or empty
         rows.append(
             f"| `{marker}` | [`{node.id}`]({node.rel}) | {cell(node.title) or empty} | "
-            f"{outcome} | {done}/{len(cards)} |"
+            f"{outcome} | {done}/{len(cards)} | {render_percent(done, len(cards), empty)} |"
         )
+
+    rows.append(
+        f"| {empty} | {empty} | {waves['total_label']} | {empty} | "
+        f"{total_done}/{total_cards} | {render_percent(total_done, total_cards, empty)} |"
+    )
 
     lines = [
         waves["title"],

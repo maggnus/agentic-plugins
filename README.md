@@ -6,14 +6,14 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.1.0
+PASEO_CTO_TAG=v9.2.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.1.0
+PASEO_CTO_TAG=v9.2.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -92,9 +92,9 @@ path derived from its identifier and never moved: acceptance changes the state a
 fields in that same file rather than transferring text into a history document. Two committed files
 are generated from that tree: `STATUS.md`, the index of every unit, carrying exactly
 `Status | ID | Task | Commit | Start | Time` in tree order, and `WAVES.md`, one row per wave with its
-outcome and its accepted card count. Before the first dispatch on a new project or wave, the CTO
-builds the tree and an independent reviewer attacks the decomposition; a wave whose work started
-without that verdict fails the check.
+outcome, its accepted card count and that share as a percentage, closed by a total row. Before the
+first dispatch on a new project or wave, the CTO builds the tree and an independent reviewer attacks
+the decomposition; a wave whose work started without that verdict fails the check.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
 Every heartbeat rewrites one durable fleet render, `FLEET.md`, and posts the same compact snapshot to
@@ -106,7 +106,7 @@ session to resume without replaying completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.1.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v9.2.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -169,7 +169,7 @@ published release tag. Existing installations migrate by removing the old market
 adding the remote repository at the new tag, and reinstalling:
 
 ```sh
-PASEO_CTO_TAG=v9.1.0
+PASEO_CTO_TAG=v9.2.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
