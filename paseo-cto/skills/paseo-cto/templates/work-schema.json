@@ -1,5 +1,7 @@
 {
   "schema": 1,
+  "tooling_version": "9.4.0",
+  "tooling_digest": "2475e43aedf3e84ee0b8fd2304d31e9eddb1e3b9e142ef9cab9468e38ac2fc5e",
   "root_default": "docs/work",
   "kinds": [
     "wave",

@@ -3,6 +3,20 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.4.0
+
+A project's copy of the work tooling can no longer drift in silence.
+
+- **The tooling is stamped.** `work.py` and `work-schema.json` are copied into each project, so
+  nothing noticed when that copy stayed on an older release or was edited in place — the model would
+  simply behave differently in one project than the plugin describes. The pair now carries the release
+  it came from and a digest over itself, verified on every run: a copy assembled from two releases and
+  a locally modified copy are refused with the reason. `work.py version` prints the stamp, and
+  `check --plugin-templates <dir>` compares the project's stamp with the installed plugin's.
+- **The stamp cannot rot.** `scripts/stamp-work-tooling.py` re-stamps only when the tooling actually
+  changed, and the distribution check refuses a release whose tooling changed without being
+  re-stamped, so a doc-only release never marks every project's copy stale.
+
 ## 9.3.0
 
 The plugin upgrades itself.

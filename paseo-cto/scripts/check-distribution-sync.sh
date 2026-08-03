@@ -53,6 +53,17 @@ if marketplace_path.is_file():
         require(entry.get("description") == claude_manifest.get("description"),
                 "root marketplace and plugin descriptions differ")
 
+sys.path.insert(0, str(root / "skills/paseo-cto/templates"))
+sys.dont_write_bytecode = True
+import work as worklib
+
+work_script = root / "skills/paseo-cto/templates/work.py"
+work_schema = json.loads((root / "skills/paseo-cto/templates/work-schema.json").read_text())
+require(work_schema.get("tooling_version") == worklib.TOOLING_VERSION,
+        "work.py and work-schema.json carry different tooling stamps")
+require(work_schema.get("tooling_digest") == worklib.tooling_digest(work_script, work_schema),
+        "the work tooling changed without being re-stamped; run scripts/stamp-work-tooling.py")
+
 changelog = (root / "CHANGELOG.md").read_text()
 require(f"## {claude_version}" in changelog,
         f"CHANGELOG.md has no {claude_version} release heading")

@@ -6,14 +6,14 @@ dual Claude Code/Codex plugin and behaves identically on both platforms.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.3.0
+PASEO_CTO_TAG=v9.4.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.3.0
+PASEO_CTO_TAG=v9.4.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -106,7 +106,7 @@ session to resume without replaying completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.3.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v9.4.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -120,8 +120,10 @@ Ships:
   charter, living plan, founder status, review gate, fleet lifecycle, provider policy, and the Paseo
   command catalog;
 - **work tree tooling** — one schema that fixes identifiers, vocabularies, field sets and section
-  order, the templates generated from it, and `work.py` with `init`, `new`, `status` and `check`. The
-  validator refuses a duplicate or misplaced identifier, an unknown state or field, an accepted task
+  order, the templates generated from it, and `work.py` with `init`, `new`, `status`, `check` and
+  `version`. The tooling is stamped with the release it came from, so a project's copy cannot fall
+  behind the plugin or be edited in place unnoticed. The validator refuses a duplicate or misplaced
+  identifier, an unknown state or field, an accepted task
   without a closure commit or evidence, a blocked task without a blocker, a rejected or trigger-gated
   task without a return trigger, a dependency cycle, a parent closed over an open required child, a
   hand-edited index or wave overview, a commit reference that is not an immutable full SHA, and one
@@ -162,6 +164,7 @@ tests, refresh the Codex cachebuster, validate the plugin, and verify both distr
 
 ```sh
 bash paseo-cto/scripts/test-plugin-contracts.sh
+python3 paseo-cto/scripts/stamp-work-tooling.py
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
 bash paseo-cto/scripts/check-distribution-sync.sh
@@ -185,7 +188,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v9.3.0
+PASEO_CTO_TAG=v9.4.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

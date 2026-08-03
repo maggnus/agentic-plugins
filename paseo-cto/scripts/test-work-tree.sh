@@ -507,4 +507,51 @@ for key, name in (("status", "STATUS.md"), ("waves", "WAVES.md")):
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+# ---------------------------------------------------------------------------
+# a project's copy of the tooling is stamped, and drift from the plugin is refused
+# ---------------------------------------------------------------------------
+
+copy="$scratch/tools"
+mkdir -p "$copy"
+cp "$work" "$templates/work-schema.json" "$copy/"
+cp -R "$templates/work" "$copy/work"
+copied="$copy/work.py"
+
+expect_pass "a faithful copy validates the tree" \
+  python3 "$copied" --root "$fixture" check
+expect_pass "the copy reports the release it came from" \
+  bash -c 'python3 "$1" version | grep -q "work tooling"' _ "$copied"
+expect_pass "a faithful copy agrees with the plugin" \
+  python3 "$copied" --root "$fixture" check --plugin-templates "$templates"
+
+python3 - "$copy/work-schema.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+schema = json.loads(open(path, encoding="utf-8").read())
+schema["tooling_version"] = "0.0.1"
+open(path, "w", encoding="utf-8").write(json.dumps(schema, indent=2, ensure_ascii=False) + "\n")
+PY
+expect_fail "half-copied tooling" "copy both from one plugin release" \
+  python3 "$copied" --root "$fixture" check
+
+cp "$templates/work-schema.json" "$copy/work-schema.json"
+printf '\n# local edit\n' >> "$copied"
+expect_fail "locally modified tooling" "modified after it was copied" \
+  python3 "$copied" --root "$fixture" check
+
+cp "$work" "$copied"
+reference="$scratch/newer"
+mkdir -p "$reference"
+python3 - "$templates/work-schema.json" "$reference/work-schema.json" <<'PY'
+import json, sys
+schema = json.loads(open(sys.argv[1], encoding="utf-8").read())
+schema["tooling_version"] = "99.0.0"
+open(sys.argv[2], "w", encoding="utf-8").write(json.dumps(schema, indent=2, ensure_ascii=False) + "\n")
+PY
+expect_fail "copy older than the installed plugin" "the installed plugin ships 99.0.0" \
+  python3 "$copied" --root "$fixture" check --plugin-templates "$reference"
+
+expect_fail "plugin templates directory that does not exist" "does not exist" \
+  python3 "$copied" --root "$fixture" check --plugin-templates "$scratch/absent"
+
 printf 'work test: %s work-tree checks passed\n' "$passes"

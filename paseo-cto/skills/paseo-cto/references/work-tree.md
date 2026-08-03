@@ -207,3 +207,16 @@ is live in both the tree and a frozen legacy document.
 Copy `work.py`, `work-schema.json`, and `templates/work/` into the project's own script and template
 home and bind `check` to the project's validation gate. Do not call them from the plugin path, which
 carries a version and differs between hosts.
+
+That copy is the one part of the model that can silently fall behind, so it is stamped. `work.py` and
+`work-schema.json` carry the plugin release in which the tooling last changed, together with a digest
+over the pair. Every run verifies both: a copy assembled from two different releases and a copy edited
+in place are refused with the reason. `work.py version` prints the stamp, and
+
+```sh
+python3 <script home>/work.py check --root <work root> --plugin-templates <plugin>/skills/paseo-cto/templates
+```
+
+additionally compares the project's stamp with the installed plugin's, so a project that stayed on an
+older release learns it from the gate rather than from a surprising behaviour months later. A change
+the project genuinely needs belongs in the plugin, not in the copy.

@@ -91,7 +91,9 @@ sequenceable. The checks are the gate:
 
 - [`templates/work.py`](../templates/work.py) `check` validates the whole tree against
   [`templates/work-schema.json`](../templates/work-schema.json): identifiers, derived paths,
-  vocabularies, field sets, section order, closure rules, dependencies, and the generated index.
+  vocabularies, field sets, section order, closure rules, dependencies, and the generated files. It
+  also verifies its own stamp, so a copy assembled from two releases or edited in place is refused,
+  and with `--plugin-templates` it reports a copy older than the installed plugin.
 - [`templates/check-source-links.sh`](../templates/check-source-links.sh) rejects mechanically
   recognizable bare commit and file evidence in selected durable documents.
 - [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates the runtime

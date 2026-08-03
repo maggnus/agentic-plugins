@@ -20,11 +20,17 @@ an unchanged tree produces an identical file.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+# The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
+# work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
+# locally; the pair is stamped together and verified on every run.
+TOOLING_VERSION = "9.4.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -44,6 +50,34 @@ SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 
 def load_schema(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def tooling_digest(script: Path, schema: dict) -> str:
+    """One digest over the executable and its schema, canonical and independent of formatting."""
+    body = dict(schema)
+    body.pop("tooling_digest", None)
+    material = script.read_bytes() + json.dumps(
+        body, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    return hashlib.sha256(material).hexdigest()
+
+
+def verify_tooling(script: Path, schema: dict) -> list[str]:
+    problems = []
+    stamped = str(schema.get("tooling_version", "")).strip()
+    if stamped != TOOLING_VERSION:
+        problems.append(
+            f"work.py is stamped {TOOLING_VERSION} and work-schema.json is stamped "
+            f"{stamped or 'nothing'}; copy both from one plugin release"
+        )
+    expected = str(schema.get("tooling_digest", "")).strip()
+    actual = tooling_digest(script, schema)
+    if expected and expected != actual:
+        problems.append(
+            "the work tooling was modified after it was copied; restore it from the plugin or "
+            "carry the change into the plugin instead of the copy"
+        )
+    return problems
 
 
 def parse_front_matter(text: str) -> tuple[dict, str, list[str]]:
@@ -1026,11 +1060,27 @@ def command_counts(args, schema: dict) -> int:
     return 0
 
 
+def compare_with_plugin(schema: dict, plugin_templates: Path) -> list[str]:
+    reference_path = plugin_templates / "work-schema.json"
+    if not reference_path.is_file():
+        return [f"{reference_path} does not exist; name the plugin's templates directory"]
+    reference = load_schema(reference_path)
+    stamped = str(reference.get("tooling_version", "")).strip()
+    if stamped != TOOLING_VERSION:
+        return [
+            f"this work tooling is {TOOLING_VERSION} and the installed plugin ships {stamped}; "
+            "copy work.py, work-schema.json and work/ from the plugin"
+        ]
+    return []
+
+
 def command_check(args, schema: dict) -> int:
     root = Path(args.root)
     nodes, load_errors = load_tree(schema, root)
     legacy = Path(args.legacy_plan) if args.legacy_plan else None
     errors = validate(schema, root, nodes, load_errors, legacy)
+    if args.plugin_templates:
+        errors.extend(compare_with_plugin(schema, Path(args.plugin_templates)))
 
     for name, rendered in (
         (schema["status"]["file"], render_status(schema, root, nodes)),
@@ -1066,9 +1116,13 @@ def main(argv: list[str] | None = None) -> int:
     counts = sub.add_parser("counts", help="print one wave's accepted/total card count")
     counts.add_argument("--wave", required=True)
 
+    sub.add_parser("version", help="print the plugin release this tooling was copied from")
+
     check = sub.add_parser("check", help="validate the tree")
     check.add_argument("--legacy-plan", default=None,
                        help="frozen legacy execution document to test for live-id overlap")
+    check.add_argument("--plugin-templates", default=None,
+                       help="the installed plugin's templates directory, to detect an outdated copy")
 
     new = sub.add_parser("new", help="create one node from its template")
     new.add_argument("kind", choices=["wave", "card", "task", "subtask"])
@@ -1084,9 +1138,19 @@ def main(argv: list[str] | None = None) -> int:
     new.add_argument("--now", default=None, help="explicit RFC3339 creation stamp")
 
     args = parser.parse_args(argv)
-    schema = load_schema(Path(args.schema))
+    schema_path = Path(args.schema)
+    schema = load_schema(schema_path)
     if args.root is None:
         args.root = schema["root_default"]
+
+    if args.command == "version":
+        print(f"work tooling {TOOLING_VERSION}")
+        return 0
+    problems = verify_tooling(Path(__file__).resolve(), schema)
+    if problems:
+        for problem in problems:
+            print(f"work: {problem}", file=sys.stderr)
+        return 1
 
     if args.command == "new":
         if args.kind in ("wave", "card") and not args.id:
