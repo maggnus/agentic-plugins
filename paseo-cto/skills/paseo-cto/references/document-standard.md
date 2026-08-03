@@ -88,10 +88,15 @@ So the transfer has three parts, not two:
   trigger, and it does not travel into the history with the rest of the card.
 - **The row then carries only what a reader needs to find the rest.**
 
-Name each preserved file for its identifier so a plain directory listing is ordered: replace `/` and
-`.` with `_`, and pad every run of digits to a fixed width. `LF-08/9b` becomes `LF-08_09b.md`. Without
-the padding a listing puts `10` before `2`; with a directory per segment it puts a parent after its
-own numbered children. One directory, one file per card, and the order reads correctly.
+Store the preserved files as a tree whose shape is the shape of the work: a directory per wave, then
+the card, then its tasks. `LF-08/9b` accepted in wave `W3` becomes `W3/LF-08/9b.md`, beside
+`W3/LF-08.md` for the parent card itself. Each file keeps its identifier verbatim, so the archive is
+walked the way the plan is read, and a reader who knows the wave finds the card without a search.
+
+The wave is not part of the identifier, so a check that must find a preserved body locates it by its
+tail rather than by reconstructing a path. Within one card a plain listing orders tasks lexically,
+which puts a two-digit suffix before a single-digit one; that is a cosmetic cost of keeping the
+identifier verbatim, and a project that minds it pads the suffix in the file name.
 
 Work discovered, planned and accepted between two baselines appears only in the history. That is
 legitimate exactly when the preserved body exists — it is the evidence that a card existed at all — so

@@ -3,6 +3,16 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 8.1.1
+
+The accepted-card archive is a tree, not a flat directory.
+
+- **Wave, card, task.** A preserved card body is stored at `<wave>/<card>/<task>.md`, keeping the
+  identifier verbatim in each segment, so the archive is walked the way the plan is read. The flat
+  padded form introduced in 8.1.0 ordered correctly but hid the structure it was recording; ordering
+  within one card is a cosmetic cost a project can pad away if it minds it. A check locates a
+  preserved body by its tail, since the wave is not part of the identifier.
+
 ## 8.1.0
 
 Four rules earned by a forty-hour run: what an acceptance row cannot hold, when an idle fleet is a
