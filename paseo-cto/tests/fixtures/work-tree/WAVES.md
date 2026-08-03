@@ -4,6 +4,8 @@
 
 | Status | ID | Wave | Outcome | Cards | Done |
 |---|---|---|---|---|---|
+| `[x]` | [`W0`](waves/W0/WAVE.md) | Pre-tree history | The work accepted before this project adopted the tree is readable in the same place as the work | 2/2 | 100% |
 | `[~]` | [`W1`](waves/W1/WAVE.md) | Launch readiness | The product starts, serves one real request end to end, and shuts down without losing work. | 1/2 | 50% |
 | `[ ]` | [`W2`](waves/W2/WAVE.md) | Recovery readiness | An interrupted run recovers to a state the operator can trust without manual repair. | 0/1 | 0% |
-| — | — | **Total** | — | 1/3 | 33% |
+| — | — | **Total** | — | 3/5 | 60% |
+| — | — | **of which imported** | — | 2/5 | — |

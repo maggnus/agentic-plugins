@@ -4,6 +4,8 @@
 
 | Status | ID | Task | Commit | Start | Time |
 |---|---|---|---|---|---|
+| `[x]` | [`W0-LF-01`](waves/W0/W0-LF-01/CARD.md) | LF-02 — Release pipeline reproducible from a clean checkout | [`7f3d2b11`](https://github.com/example/project/commit/7f3d2b110000000000000000000000000000abcd) | — | 20/07 16:40 (3h15m) |
+| `[x]` | [`W0-LF-02`](waves/W0/W0-LF-02/CARD.md) | LF-01 — First runnable end-to-end path | — | — | n/a |
 | `[x]` | [`W1-LF-03`](waves/W1/W1-LF-03/CARD.md) | Launch contract frozen | [`a14fc290`](https://github.com/example/project/commit/a14fc2900000000000000000000000000000abcd) | 01/08 10:20 | 01/08 12:05 (1h45m) |
 | `[x]` | [`W1-LF-03a`](waves/W1/W1-LF-03/tasks/W1-LF-03a.md) | Launch contract frozen | [`a14fc290`](https://github.com/example/project/commit/a14fc2900000000000000000000000000000abcd) | 01/08 10:20 | 01/08 12:05 (1h45m) |
 | `[ ]` | [`W1-LF-03b`](waves/W1/W1-LF-03/tasks/W1-LF-03b.md) | Contract examples published | — | — | — |

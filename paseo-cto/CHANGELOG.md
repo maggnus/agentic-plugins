@@ -3,6 +3,24 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.5.0
+
+A project may import its frozen history into the tree instead of leaving it beside it.
+
+- **Imported acceptance is declared, not inferred.** Freezing the old execution document stays the
+  cheaper path and the default, but a project that wants one continuous view can carry its accepted
+  cards into the tree. `historical_acceptance` marks such a card, and only an accepted card:
+  `started_at` may then be absent, `risk` may be `pre_policy` for work older than the risk policy,
+  `historical_time_record` keeps the time exactly as the old row wrote it including a bare `n/a`, and
+  the wave plan-review gate does not apply, because the cards predate the plan. Measured on a project
+  that imported 186 accepted cards.
+- **The strongest relaxation records a joint absence.** `historical_acceptance_metadata_incomplete`
+  permits an accepted card with neither an acceptance moment nor a closure commit, and requires both
+  to be empty — so it states that the source held neither, and cannot quietly cover one omission.
+- **The rollup says how much of itself is history.** An imported card is real completed work and is
+  counted, but the gate never saw it, so `WAVES.md` closes with one further row stating how many of
+  the counted cards were imported. A project that froze its history sees no such row.
+
 ## 9.4.0
 
 A project's copy of the work tooling can no longer drift in silence.

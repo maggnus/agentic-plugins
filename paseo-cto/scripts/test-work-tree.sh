@@ -137,6 +137,7 @@ ids = [
     if line.startswith("| `[")
 ]
 expected = [
+    "W0-LF-01", "W0-LF-02",
     "W1-LF-03", "W1-LF-03a", "W1-LF-03b",
     "W1-LF-04", "W1-LF-04a", "W1-LF-04b", "W1-LF-04c", "W1-LF-04c.1", "W1-LF-04c.2",
     "W1-LF-04d", "W1-LF-04e",
@@ -153,20 +154,26 @@ lines = (root / "WAVES.md").read_text(encoding="utf-8").split("\n")
 waves = [line for line in lines if line.startswith("| `[")]
 totals = [line for line in lines if "**Total**" in line]
 expected = [
+    "| `[x]` | [`W0`](waves/W0/WAVE.md) | Pre-tree history |",
     "| `[~]` | [`W1`](waves/W1/WAVE.md) | Launch readiness |",
     "| `[ ]` | [`W2`](waves/W2/WAVE.md) | Recovery readiness |",
 ]
 problems = []
-if len(waves) != 2 or not all(row.startswith(head) for row, head in zip(waves, expected)):
+if len(waves) != 3 or not all(row.startswith(head) for row, head in zip(waves, expected)):
     problems.append(f"wave rows were {waves}")
-if [row.rsplit("|", 3)[1].strip() for row in waves] != ["1/2", "0/1"]:
+if [row.rsplit("|", 3)[1].strip() for row in waves] != ["2/2", "1/2", "0/1"]:
     problems.append(f"card counts were {waves}")
-if [row.rsplit("|", 2)[1].strip() for row in waves] != ["50%", "0%"]:
+if [row.rsplit("|", 2)[1].strip() for row in waves] != ["100%", "50%", "0%"]:
     problems.append(f"percentages were {waves}")
-if len(totals) != 1 or totals[0] != lines[len(lines) - 2]:
-    problems.append("the total row is not the last row")
-elif totals[0].rsplit("|", 3)[1].strip() != "1/3" or totals[0].rsplit("|", 2)[1].strip() != "33%":
+imported = [line for line in lines if "of which imported" in line]
+if len(totals) != 1 or totals[0] != lines[len(lines) - 3]:
+    problems.append("the total row does not precede the imported row")
+elif totals[0].rsplit("|", 3)[1].strip() != "3/5" or totals[0].rsplit("|", 2)[1].strip() != "60%":
     problems.append(f"total row was {totals[0]}")
+if len(imported) != 1 or imported[0] != lines[len(lines) - 2]:
+    problems.append("the imported row is not the last row")
+elif imported[0].rsplit("|", 3)[1].strip() != "2/5":
+    problems.append(f"imported row was {imported[0]}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
@@ -484,6 +491,8 @@ expect_pass "scaffold a subtask" python3 "$work" --root "$built" new subtask \
 
 expect_pass "scaffolded tree renders" python3 "$work" --root "$built" status
 expect_pass "scaffolded tree validates" python3 "$work" --root "$built" check
+expect_pass "a tree without imported history carries no imported row" \
+  bash -c '! grep -q "of which imported" "$1/WAVES.md"' _ "$built"
 expect_pass "allocated identifiers are sequential" \
   test -f "$built/waves/W1/W1-LF-01/tasks/W1-LF-01b.md"
 expect_pass "a task with subtasks moved to its directory form" \
@@ -506,6 +515,69 @@ for key, name in (("status", "STATUS.md"), ("waves", "WAVES.md")):
         problems.append(f"{name} head is {example[:6]}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
+
+# ---------------------------------------------------------------------------
+# imported history: accepted before the tree existed, declared rather than inferred
+# ---------------------------------------------------------------------------
+
+fresh
+
+# an imported record keeps the time it was written with, including a bare n/a
+expect_row "imported card keeps its recorded time" \
+  '`\[x\]` | \[`W0-LF-01`\].*| — | 20/07 16:40 (3h15m) |'
+expect_row "imported card without a recorded time renders n/a" \
+  '`\[x\]` | \[`W0-LF-02`\].*| — | n/a |'
+
+# the wave holding imported history needs no plan review, because the cards predate the plan
+expect_pass "imported history is exempt from the plan-review gate" \
+  grep -q '^plan_review_state: pending$' "$tree/waves/W0/WAVE.md"
+
+# the pre-policy risk belongs to imported history only
+fresh
+set_field "$tree/waves/W2/W2-CF-01/CARD.md" risk "pre_policy"
+regenerate
+expect_fail "pre-policy risk on native work" "reserved for imported historical acceptance" \
+  python3 "$work" --root "$tree" check
+
+# the marker is valid on an accepted card only, so it cannot excuse live work
+fresh
+python3 - "$tree/waves/W2/W2-CF-01/tasks/W2-CF-01a.md" <<'PY'
+import sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+open(path, "w", encoding="utf-8").write(
+    text.replace("deliberate_partial: false", "deliberate_partial: false\nhistorical_acceptance: true", 1)
+)
+PY
+expect_fail "historical marker on a task" "valid only on an accepted card" \
+  python3 "$work" --root "$tree" check
+
+# the strongest relaxation cannot be used without declaring the record imported
+fresh
+set_field "$tree/waves/W0/W0-LF-01/CARD.md" historical_acceptance "false"
+regenerate
+expect_fail "incomplete metadata without the imported marker" \
+  "requires historical_acceptance: true" python3 "$work" --root "$tree" check
+
+# it records a joint absence, not one accidental omission
+fresh
+set_field "$tree/waves/W0/W0-LF-02/CARD.md" accepted_at "2026-07-01T10:00:00+08:00"
+regenerate
+expect_fail "incomplete metadata with an acceptance moment present" \
+  "requires both accepted_at" python3 "$work" --root "$tree" check
+
+# a recorded time from the frozen document belongs to an imported record
+fresh
+python3 - "$tree/waves/W1/W1-LF-03/CARD.md" <<'PY'
+import sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+open(path, "w", encoding="utf-8").write(
+    text.replace("return_trigger:", "return_trigger:\nhistorical_time_record: 01/08 12:05 (1h45m)", 1)
+)
+PY
+expect_fail "recorded time without the imported marker" \
+  "historical_time_record requires historical_acceptance" python3 "$work" --root "$tree" check
 
 # ---------------------------------------------------------------------------
 # a project's copy of the tooling is stamped, and drift from the plugin is refused

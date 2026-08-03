@@ -31,6 +31,38 @@ Everything else follows from that:
 - Returning to an old accepted card creates a new `follow_up` or `expansion` task with a new
   identifier. The historical record is never reopened or rewritten.
 
+## Importing the history instead of freezing it
+
+Freezing is the default because it is cheap and because an accepted record is already immutable.
+A project that wants one continuous view — the whole history and the current frontier read the same
+way, in one index — may instead import its accepted cards into the tree. That is a deliberate
+widening of the model, not a correction to it, and it is chosen for that reason rather than because
+freezing failed.
+
+An imported record declares itself:
+
+- `historical_acceptance: true` marks a card as carried over, and is valid only on an accepted
+  **card** — never on a task, a subtask, or open work — so the marker cannot excuse missing evidence
+  on live work, and the import stays as coarse as the old record was.
+- `started_at` may be absent, because the old row did not carry one.
+- `risk: pre_policy` states that the work is older than the project's risk policy.
+- `historical_time_record` keeps the time exactly as the old row wrote it, including a bare `n/a`,
+  and the index renders that string rather than a duration it never measured.
+- `historical_acceptance_metadata_incomplete: true` permits an accepted card with neither an
+  acceptance moment nor a closure commit, and requires **both** to be empty. It therefore states
+  that the source held neither, and cannot be used to cover one accidental omission.
+- The wave plan-review gate does not apply to imported cards, because they were accepted before the
+  plan existed.
+
+The rollup then says how much of itself is history: `WAVES.md` counts imported cards in the total —
+they are real completed work — and closes with one further row stating how many of the counted cards
+were imported. Without that row a large import makes a project read as nearly finished, when the
+number the reader sees is mostly work this tree's gate never saw.
+
+Everything else is unchanged: the identifier is new and wave-prefixed, the body is the old record
+rather than an improved retelling, and returning to an imported card creates a new `follow_up` or
+`expansion` task instead of reopening it.
+
 ## Old identifiers
 
 Identifiers written before adoption need not satisfy the tree's grammar, and forms without a wave

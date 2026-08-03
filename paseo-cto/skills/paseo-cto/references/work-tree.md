@@ -102,6 +102,10 @@ the validator all read it, so a change to the model is one change rather than th
 either a closed vocabulary or a typed scalar; an unknown field, an unknown value, a timestamp
 without an offset, or a negative duration is refused rather than passed through.
 
+A project that imported its frozen history rather than freezing it beside the tree uses the declared
+relaxations in [Legacy adoption](legacy-adoption.md); they apply to an accepted card only, and the
+wave rollup states how much of its total they are.
+
 `risk` and `maturity` live on the file rather than only in the dispatch contract. The contract is
 transient, and the level a result was judged at — `RESEARCH`, `DESIGN`, `BUILD`, or
 `OPERATIONALIZATION` — is what makes a later reading of an accepted outcome correct: an assumption a

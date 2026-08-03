@@ -30,7 +30,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "9.4.0"
+TOOLING_VERSION = "9.5.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -62,6 +62,14 @@ def tooling_digest(script: Path, schema: dict) -> str:
     return hashlib.sha256(material).hexdigest()
 
 
+def in_plugin_tree(script: Path) -> bool:
+    """True for the origin copy inside the plugin, where the stamp is written rather than checked."""
+    return (
+        len(script.parents) > 3
+        and (script.parents[3] / ".claude-plugin/plugin.json").is_file()
+    )
+
+
 def verify_tooling(script: Path, schema: dict) -> list[str]:
     problems = []
     stamped = str(schema.get("tooling_version", "")).strip()
@@ -72,7 +80,7 @@ def verify_tooling(script: Path, schema: dict) -> list[str]:
         )
     expected = str(schema.get("tooling_digest", "")).strip()
     actual = tooling_digest(script, schema)
-    if expected and expected != actual:
+    if expected and expected != actual and not in_plugin_tree(script):
         problems.append(
             "the work tooling was modified after it was copied; restore it from the plugin or "
             "carry the change into the plugin instead of the copy"
@@ -484,8 +492,29 @@ def validate_state_rules(schema: dict, node: Node) -> list[str]:
     errors: list[str] = []
     state = node.state
     relation = node.text("relation")
+    historical = node.text("historical_acceptance") == "true"
+    incomplete = node.text("historical_acceptance_metadata_incomplete") == "true"
 
-    if node.kind != "wave" and state in schema["started_states"] and not node.text("started_at"):
+    if node.text("risk") == "pre_policy" and not historical:
+        errors.append(f"{node.rel}: risk pre_policy is reserved for imported historical acceptance")
+    if historical and (node.kind != "card" or state != "accepted"):
+        errors.append(f"{node.rel}: historical_acceptance is valid only on an accepted card")
+    if node.text("historical_time_record") and not historical:
+        errors.append(f"{node.rel}: historical_time_record requires historical_acceptance: true")
+    if incomplete and not historical:
+        errors.append(
+            f"{node.rel}: historical_acceptance_metadata_incomplete requires "
+            "historical_acceptance: true"
+        )
+    if incomplete and (node.text("accepted_at") or node.text("closure_commit")):
+        errors.append(
+            f"{node.rel}: historical_acceptance_metadata_incomplete requires both accepted_at "
+            "and closure_commit to be empty; it records their joint absence in the source, not one "
+            "accidental omission"
+        )
+
+    if (node.kind != "wave" and state in schema["started_states"]
+            and not node.text("started_at") and not historical):
         errors.append(f"{node.rel}: state {state} requires started_at")
     if state == "blocked" and not node.text("blocker"):
         errors.append(f"{node.rel}: a blocked node must name its blocker")
@@ -500,7 +529,7 @@ def validate_state_rules(schema: dict, node: Node) -> list[str]:
         errors.append(f"{node.rel}: a trigger-gated node must name its return trigger")
 
     if state == "accepted":
-        if not node.text("accepted_at"):
+        if not node.text("accepted_at") and not incomplete:
             errors.append(f"{node.rel}: an accepted node must record accepted_at")
         if node.kind in ("task", "subtask"):
             if not node.text("closure_commit"):
@@ -639,6 +668,7 @@ def validate_plan_review(schema: dict, by_id: dict[str, Node]) -> list[str]:
             if other.kind in ("card", "task", "subtask")
             and owning_wave(schema, other.id) == node.id
             and other.state in schema["started_states"]
+            and other.text("historical_acceptance") != "true"
         ]
         if started and node.text("plan_review_state") != "accepted":
             first = sorted(started, key=lambda item: item.id)[0].id
@@ -723,7 +753,19 @@ def render_status(schema: dict, root: Path, nodes: list[Node]) -> str:
             moment = render_moment(node.text("updated_at"))
         else:
             moment = ""
-        if moment:
+
+        historical_time = node.text("historical_time_record")
+        if historical_time:
+            # The imported record keeps the form it was written in, including a bare `n/a`.
+            if re.match(r"^\d{2}/\d{2}\s+\d{2}:\d{2}", historical_time):
+                time_cell = historical_time
+            elif moment and historical_time != "n/a":
+                time_cell = f"{moment} ({historical_time})"
+            elif moment:
+                time_cell = moment
+            else:
+                time_cell = historical_time
+        elif moment:
             minutes = node.integer("duration_minutes") or 0
             time_cell = f"{moment} ({render_duration(minutes)})"
         else:
@@ -788,6 +830,16 @@ def render_waves(schema: dict, nodes: list[Node]) -> str:
         f"| {empty} | {empty} | {waves['total_label']} | {empty} | "
         f"{total_done}/{total_cards} | {render_percent(total_done, total_cards, empty)} |"
     )
+
+    # Imported history was accepted before the tree existed, so the gate never saw it. The total
+    # still counts it — it is real completed work — but says how much of itself it is.
+    imported = sum(1 for node in nodes
+                   if node.kind == "card" and node.text("historical_acceptance") == "true")
+    if imported:
+        rows.append(
+            f"| {empty} | {empty} | {waves['imported_label']} | {empty} | "
+            f"{imported}/{total_cards} | {empty} |"
+        )
 
     lines = [
         waves["title"],

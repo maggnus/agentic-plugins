@@ -8,9 +8,11 @@
 | `[~]` | [`W2`](waves/W2/WAVE.md) | Recovery readiness | An interrupted run recovers to a state the operator can trust without manual repair. | 3/6 | 50% |
 | `[ ]` | [`W3`](waves/W3/WAVE.md) | Multi-tenant readiness | Two tenants share the deployment without reaching each other's data. | 0/4 | 0% |
 | — | — | **Total** | — | 9/16 | 56% |
+| — | — | **of which imported** | — | 4/16 | — |
 
 This file is an example of the generated shape, not a file anyone writes. `work.py status` emits it
 beside the work index: one row per wave in ascending order, its state marker, its title, the first
 line of its `Outcome` section, how many of its cards are accepted, and that share as a percentage
-rounded half up. The last row totals every wave. Correcting a value means correcting `WAVE.md` and
-regenerating.
+rounded half up. The row before last totals every wave. When the tree holds records imported from a frozen
+history, one further row states how many of the counted cards those are, because the gate never saw
+them. Correcting a value means correcting `WAVE.md` and regenerating.
