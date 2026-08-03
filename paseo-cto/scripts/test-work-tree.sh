@@ -145,11 +145,31 @@ expected = [
 raise SystemExit(f"order was {ids}" if ids != expected else 0)
 PY
 
+# the wave overview carries one row per wave with its accepted card count
+expect_pass "waves overview lists every wave" python3 - "$tree" <<'PY'
+import pathlib, re, sys
+root = pathlib.Path(sys.argv[1])
+rows = [line for line in (root / "WAVES.md").read_text(encoding="utf-8").split("\n")
+        if line.startswith("| `[")]
+expected = [
+    "| `[~]` | [`W1`](waves/W1/WAVE.md) | Launch readiness |",
+    "| `[ ]` | [`W2`](waves/W2/WAVE.md) | Recovery readiness |",
+]
+counts = [row.rsplit("|", 2)[1].strip() for row in rows]
+problems = []
+if len(rows) != 2 or not all(row.startswith(head) for row, head in zip(rows, expected)):
+    problems.append(f"rows were {rows}")
+if counts != ["1/2", "0/1"]:
+    problems.append(f"counts were {counts}")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 # 20. regenerating an unchanged tree rewrites nothing
 expect_pass "regeneration is a no-op" env - PATH="$PATH" bash -c \
-  'before=$(md5 -q "$2/STATUS.md" 2>/dev/null || md5sum "$2/STATUS.md");
-   python3 "$1" --root "$2" status | grep -q "is current";
-   after=$(md5 -q "$2/STATUS.md" 2>/dev/null || md5sum "$2/STATUS.md");
+  'digest() { md5 -q "$1" 2>/dev/null || md5sum "$1"; };
+   before="$(digest "$2/STATUS.md")$(digest "$2/WAVES.md")";
+   test "$(python3 "$1" --root "$2" status | grep -c "is current")" = "2";
+   after="$(digest "$2/STATUS.md")$(digest "$2/WAVES.md")";
    test "$before" = "$after"' _ "$work" "$tree"
 
 # ---------------------------------------------------------------------------
@@ -387,7 +407,13 @@ expect_fail "work started before the plan review" "while the wave plan review is
 fresh
 sed 's/Recovery drill fails on partial state/Recovery drill done/' "$tree/STATUS.md" \
   > "$tree/STATUS.next" && mv "$tree/STATUS.next" "$tree/STATUS.md"
-expect_fail "hand-edited status" "it is generated, not edited" \
+expect_fail "hand-edited status" "STATUS.md disagrees with the tree" \
+  python3 "$work" --root "$tree" check
+
+# a hand edit to the generated wave overview
+fresh
+sed 's/| 0\/1 |/| 1\/1 |/' "$tree/WAVES.md" > "$tree/WAVES.next" && mv "$tree/WAVES.next" "$tree/WAVES.md"
+expect_fail "hand-edited wave overview" "WAVES.md disagrees with the tree" \
   python3 "$work" --root "$tree" check
 
 # 17. one identifier live in both the tree and the frozen legacy document
@@ -446,14 +472,19 @@ expect_pass "an identifier is never reused" \
   bash -c '! python3 "$1" --root "$2" new card --id W1-LF-01 --title "Duplicate" 2>/dev/null' \
   _ "$work" "$built"
 
-expect_pass "status template matches the generated shape" python3 - "$templates" <<'PY'
+expect_pass "generated templates match the generated shape" python3 - "$templates" <<'PY'
 import json, pathlib, sys
 templates = pathlib.Path(sys.argv[1])
-schema = json.loads((templates / "work-schema.json").read_text(encoding="utf-8"))["status"]
-example = (templates / "work" / "STATUS.md").read_text(encoding="utf-8").split("\n")
-expected = [schema["title"], "", schema["generated_marker"], "", schema["header"],
-            schema["separator"]]
-raise SystemExit(f"template head is {example[:6]}" if example[:6] != expected else 0)
+schema = json.loads((templates / "work-schema.json").read_text(encoding="utf-8"))
+problems = []
+for key, name in (("status", "STATUS.md"), ("waves", "WAVES.md")):
+    block = schema[key]
+    example = (templates / "work" / name).read_text(encoding="utf-8").split("\n")
+    expected = [block["title"], "", block["generated_marker"], "", block["header"],
+                block["separator"]]
+    if example[:6] != expected:
+        problems.append(f"{name} head is {example[:6]}")
+raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
 printf 'work test: %s work-tree checks passed\n' "$passes"

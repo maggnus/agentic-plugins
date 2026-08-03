@@ -24,7 +24,8 @@ evidence package carries command transcripts, and the work index carries the one
 
 ```text
 docs/work/
-├── STATUS.md                       generated index; never hand-edited
+├── STATUS.md                       generated index of every unit; never hand-edited
+├── WAVES.md                        generated overview of the waves; never hand-edited
 ├── WORKFLOW.md                     standing rules; no live task ever appears here
 ├── waves/
 │   └── W1/
@@ -166,6 +167,18 @@ exactly:
 
 Rows appear in tree order, ascending by identifier. No value is read from the clock, so regenerating
 an unchanged tree produces an identical file.
+
+Waves are not rows in that table: they would carry no commit, start, or duration, and the count that
+actually matters for a wave has nowhere to go. They get their own generated file instead, `WAVES.md`,
+written by the same command:
+
+```markdown
+| Status | ID | Wave | Outcome | Cards |
+```
+
+One row per wave in ascending order, with its state marker, its title, the first line of its
+`Outcome` section, and how many of its cards are accepted. It answers the question the index cannot:
+how many waves exist, in what order, and how far each has come.
 
 ## Commands
 

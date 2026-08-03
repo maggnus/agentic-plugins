@@ -1,8 +1,9 @@
 # Work rules
 
 Standing rules for this project's execution. This file holds only long-lived rules: it never carries
-the current frontier, a live task list, or a status claim. Current work lives in the wave tree, and
-the index of it is [STATUS.md](STATUS.md).
+the current frontier, a live task list, or a status claim. Current work lives in the wave tree; the
+index of every unit is [STATUS.md](STATUS.md) and the overview of the waves is
+[WAVES.md](WAVES.md). Both are generated.
 
 ## Sources of truth
 
@@ -42,7 +43,8 @@ the index of it is [STATUS.md](STATUS.md).
 ## Status discipline
 
 - `STATUS.md` is an index, not a work journal. It carries exactly `Status | ID | Task | Commit |
-  Start | Time` and nothing else.
+  Start | Time` and nothing else. `WAVES.md` carries `Status | ID | Wave | Outcome | Cards`, one row
+  per wave, and answers how many waves exist and how far each has come.
 - Rows appear in tree order: wave, card, task, subtask, each ascending by identifier. There is no
   priority ordering, because the ordering the reader can trust is the one the tree already fixes.
 - The status token is one of `[ ]` ready, `[~]` active including review and rework, `[?]` blocked,

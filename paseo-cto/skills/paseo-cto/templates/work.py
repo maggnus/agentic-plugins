@@ -713,6 +713,44 @@ def render_status(schema: dict, root: Path, nodes: list[Node]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def cell(value: str) -> str:
+    """A table cell never breaks the table, whatever the source text holds."""
+    return value.replace("|", "\\|").strip()
+
+
+def first_line(body: str, heading: str) -> str:
+    return next((line.strip() for line in section_lines(body, heading) if line.strip()), "")
+
+
+def render_waves(schema: dict, nodes: list[Node]) -> str:
+    waves = schema["waves"]
+    empty = schema["status"]["empty_cell"]
+    rows: list[str] = []
+    for node in nodes:
+        if node.kind != "wave":
+            continue
+        cards = [other for other in nodes
+                 if other.kind == "card" and owning_wave(schema, other.id) == node.id]
+        done = sum(1 for card in cards if card.state == "accepted")
+        marker = schema["markers"].get(node.state, "[ ]")
+        outcome = cell(first_line(node.body, "Outcome")) or empty
+        rows.append(
+            f"| `{marker}` | [`{node.id}`]({node.rel}) | {cell(node.title) or empty} | "
+            f"{outcome} | {done}/{len(cards)} |"
+        )
+
+    lines = [
+        waves["title"],
+        "",
+        waves["generated_marker"],
+        "",
+        waves["header"],
+        waves["separator"],
+    ]
+    lines.extend(rows)
+    return "\n".join(lines) + "\n"
+
+
 # --------------------------------------------------------------------------------------
 # scaffolding
 # --------------------------------------------------------------------------------------
@@ -914,10 +952,13 @@ def command_init(args, schema: dict) -> int:
         if not target.exists():
             target.write_text(read_template(templates, name), encoding="utf-8")
             print(f"work: created {target}")
-    status = root / schema["status"]["file"]
-    if not status.exists():
-        status.write_text(render_status(schema, root, []), encoding="utf-8")
-        print(f"work: created {status}")
+    for target, rendered in (
+        (root / schema["status"]["file"], render_status(schema, root, [])),
+        (root / schema["waves"]["file"], render_waves(schema, [])),
+    ):
+        if not target.exists():
+            target.write_text(rendered, encoding="utf-8")
+            print(f"work: created {target}")
     return 0
 
 
@@ -933,17 +974,20 @@ def command_status(args, schema: dict) -> int:
         for message in load_errors:
             print(f"work status: {message}", file=sys.stderr)
         return 1
-    rendered = render_status(schema, root, nodes)
+    renders = [
+        (root / schema["status"]["file"], render_status(schema, root, nodes)),
+        (root / schema["waves"]["file"], render_waves(schema, nodes)),
+    ]
     if args.print:
-        sys.stdout.write(rendered)
+        sys.stdout.write("\n".join(rendered for _, rendered in renders))
         return 0
-    target = root / schema["status"]["file"]
-    if target.is_file() and target.read_text(encoding="utf-8") == rendered:
-        print(f"work status: {target} is current")
-        return 0
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(rendered, encoding="utf-8")
-    print(f"work status: wrote {target}")
+    for target, rendered in renders:
+        if target.is_file() and target.read_text(encoding="utf-8") == rendered:
+            print(f"work status: {target} is current")
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(rendered, encoding="utf-8")
+        print(f"work status: wrote {target}")
     return 0
 
 
@@ -972,14 +1016,15 @@ def command_check(args, schema: dict) -> int:
     legacy = Path(args.legacy_plan) if args.legacy_plan else None
     errors = validate(schema, root, nodes, load_errors, legacy)
 
-    status_file = root / schema["status"]["file"]
-    rendered = render_status(schema, root, nodes)
-    if not status_file.is_file():
-        errors.append(f"{schema['status']['file']} does not exist; run work.py status")
-    elif status_file.read_text(encoding="utf-8") != rendered:
-        errors.append(
-            f"{schema['status']['file']} disagrees with the tree; it is generated, not edited"
-        )
+    for name, rendered in (
+        (schema["status"]["file"], render_status(schema, root, nodes)),
+        (schema["waves"]["file"], render_waves(schema, nodes)),
+    ):
+        generated = root / name
+        if not generated.is_file():
+            errors.append(f"{name} does not exist; run work.py status")
+        elif generated.read_text(encoding="utf-8") != rendered:
+            errors.append(f"{name} disagrees with the tree; it is generated, not edited")
 
     if errors:
         for message in errors:

@@ -3,6 +3,17 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.1.0
+
+The waves became visible again.
+
+- **`WAVES.md` is generated beside the index.** 9.0.0 left no place where the waves are seen
+  together: the index starts at the cards because a wave row would carry no commit, start or
+  duration, and the wave dashboard that the plan document used to hold went with the document. One
+  row per wave now states its marker, its title, the first line of its outcome, and how many of its
+  cards are accepted. `work.py status` writes both files, `work.py check` rejects a hand edit to
+  either, and `work.py init` creates both.
+
 ## 9.0.0
 
 Work stopped moving between documents. One work unit is now one permanent file, created once and
