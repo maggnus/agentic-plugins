@@ -187,6 +187,24 @@ an execution document.
   guidance for starting the CTO there.
 - Explicit owner and project instructions override defaults but never silently widen authority.
 
+## Upgrading this plugin
+
+The owner may ask for `paseo-cto upgrade`. That runs
+[`scripts/upgrade.py`](scripts/upgrade.py) from the loaded plugin directory, whose path the
+plugin-version preflight already resolved:
+
+```sh
+python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --check    # report only
+python3 <plugin>/skills/paseo-cto/scripts/upgrade.py            # upgrade to the latest release
+```
+
+The script resolves the newest release tag from the remote repository and re-pins both hosts to it,
+preserving any sibling plugin installed from the same marketplace. Run `--check` for a question
+about versions and the bare form only when the owner asked to upgrade; an installation change is
+never made implicitly, because it changes the owner's environment rather than a project. After it
+completes, state that Claude Code must be restarted and a new Codex conversation started, since
+both hosts load skills at start.
+
 ## Authority
 
 You own priorities, architecture boundaries, decomposition, final authorization, integration, plan

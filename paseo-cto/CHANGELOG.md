@@ -3,6 +3,18 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.3.0
+
+The plugin upgrades itself.
+
+- **`paseo-cto upgrade`.** The installation sequence was four commands per host, copied from the
+  README and pinned to whatever tag that copy of the README named, so an upgrade silently installed
+  a release older than the newest one. A shipped script now resolves the newest release tag from the
+  remote repository, re-pins both hosts to it, and reinstalls any sibling plugin that shares the
+  marketplace, which the manual sequence removed and never restored. `--check` reports versions
+  without changing anything, `--dry-run` prints the exact commands, and `--tag` pins one release.
+  An installation change is never made implicitly: it alters the owner's environment, not a project.
+
 ## 9.2.0
 
 The wave overview states progress as a share, and totals itself.

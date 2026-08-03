@@ -310,6 +310,49 @@ expect_fail "work tree and frozen plan supplied together" env \
   PLAN_FILE="$scratch/status-plan.md" ACCEPTANCE_FILE="$scratch/status-acceptance.md" \
   "$templates/check-fleet-render.sh"
 
+expect_pass "upgrade plan, tag grammar and version comparison" python3 - "$plugin_root" <<'PY'
+import importlib.util
+import pathlib
+import sys
+
+sys.dont_write_bytecode = True
+path = pathlib.Path(sys.argv[1]) / "skills/paseo-cto/scripts/upgrade.py"
+spec = importlib.util.spec_from_file_location("upgrade", path)
+upgrade = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(upgrade)
+
+problems = []
+if upgrade.base_version("9.2.0+codex.20260803174558") != "9.2.0":
+    problems.append("the Codex cachebuster suffix is not stripped")
+if upgrade.base_version(None) is not None:
+    problems.append("an absent version is not None")
+for good in ("v9.2.0", "v10.0.1"):
+    if not upgrade.TAG_RE.match(f"refs/tags/{good}"):
+        problems.append(f"{good} rejected")
+for bad in ("v9.2", "main", "v9.2.0-rc1"):
+    if upgrade.TAG_RE.match(f"refs/tags/{bad}"):
+        problems.append(f"{bad} accepted")
+
+state = {"host": "Claude", "ref": None, "version": None, "commit": None,
+         "siblings": ["team@maggnus"]}
+claude = upgrade.claude_plan("v9.2.0", state)
+codex = upgrade.codex_plan("v9.2.0", {**state, "host": "Codex"})
+if ["claude", "plugin", "install", "team@maggnus", "--scope", "user"] != claude[-1]:
+    problems.append("a sibling plugin from the same marketplace is not reinstalled on Claude")
+if ["codex", "plugin", "add", "team@maggnus"] != codex[-1]:
+    problems.append("a sibling plugin from the same marketplace is not reinstalled on Codex")
+if not any("maggnus/claude-plugins@v9.2.0" in command for command in claude):
+    problems.append("the Claude marketplace is not re-pinned to the tag")
+if not any(command[-2:] == ["--ref", "v9.2.0"] for command in codex):
+    problems.append("the Codex marketplace is not re-pinned to the tag")
+if not upgrade.TOLERATED & set(claude[0]) or not upgrade.TOLERATED & set(codex[0]):
+    problems.append("removal failures are not tolerated")
+if upgrade.TOLERATED & set(claude[-1]):
+    problems.append("an install failure would be tolerated")
+
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 printf 'test: %s contract checks passed\n' "$passes"
 
 bash "$script_dir/test-work-tree.sh"
