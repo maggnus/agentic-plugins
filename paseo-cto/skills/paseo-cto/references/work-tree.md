@@ -194,6 +194,7 @@ python3 <script home>/work.py --root <work root> init
 python3 <script home>/work.py --root <work root> new task --parent W1-LF-04 --title "<outcome>"
 python3 <script home>/work.py --root <work root> status
 python3 <script home>/work.py --root <work root> check
+python3 <script home>/work.py --root <work root> fix-links
 ```
 
 Nodes are created by `new` rather than by hand, so an identifier, a path, and a parent listing
@@ -206,7 +207,11 @@ timestamp, a dependency cycle, a dependency without a file, a parent closed over
 child, an acceptance checklist left open without a deliberate partial, a `Current state` that has
 turned into a chronology, an index that disagrees with the tree, a commit reference that is not a
 full immutable SHA, a nested Markdown link, a title that names an activity, and one identifier that
-is live in both the tree and a frozen legacy document.
+is live in both the tree and a frozen legacy document. `fix-links` repairs the one class of these
+defects that has a mechanical answer: a commit link carrying a short SHA and a source link pinned to
+a branch are repinned to the full commit SHA the local repository resolves them to, so the round trip
+from a `check` refusal back through an editing session is spent only on references Git itself cannot
+resolve.
 
 Copy `work.py`, `work-schema.json`, and `templates/work/` into the project's own script and template
 home and bind `check` to the project's validation gate. Do not call them from the plugin path, which

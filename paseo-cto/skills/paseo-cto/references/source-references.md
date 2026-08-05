@@ -60,3 +60,9 @@ and accepted by [a1b2c3d](https://github.com/example/project/commit/a1b2c3d4...)
 The reference check supplied with the document templates catches mechanically recognizable bare
 SHAs and paths. Passing that check does not prove that a link points to the correct revision; the
 reviewer verifies target, SHA, path, and line range as part of the evidence review.
+
+A short SHA or a branch segment inside an otherwise well-formed forge link is a validator refusal
+with a mechanical repair: `work.py fix-links` resolves the reference through the local repository
+and repins the link to the full commit SHA. Run it before `check` instead of spending a correction
+round on a reference Git can expand by itself; only a reference the repository cannot resolve still
+comes back to its author.

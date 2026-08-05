@@ -3,6 +3,36 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.6.0
+
+One measured fleet day spent more of itself on accounting than on product: 59,799 lines of evidence
+against 8,790 lines of product code, 44 bookkeeping commits out of 77, fifteen sequential
+integrations, and three validator refusals over reference form. Four changes return that time
+without lowering a single acceptance bar.
+
+- **Durable evidence is the derivation, not the haul.** Nothing bounded how much raw material an
+  evidence package may hoard, and one card accumulated 257 captured files under a rule that only
+  ever asked for the failing form and its output. The review gate now keeps what was run, its exit,
+  the deciding values, and a script able to re-derive them on the exact revision; a raw capture is
+  retained only where the claim is otherwise unreproducible. Money movement, tenant isolation, the
+  sandbox boundary, and irreversible operations keep their complete raw package — there the capture
+  is the proof.
+- **One decision produces one plan commit.** Two to three plan commits per accepted card — activation,
+  closure, children — were bookkeeping the rule never demanded. The execution plan now states it
+  positively: everything a single acceptance or dispatch changes in the plan lands as one commit,
+  including the regenerated index.
+- **A cleared set lands in one pass.** The integration rule forbade batching absolutely while the
+  validation budget already priced a combined-tree proof for several accepted changes — an internal
+  contradiction resolved in favor of the measurement. Deferring cleared work to accumulate a batch
+  stays forbidden; landing atoms that are already through review at the same reconcile, zones
+  disjoint, in one pass with the gates, index, and push run once on the combined tree, is now the
+  stated form of continuous integration.
+- **A repinnable reference is repaired, not returned.** A branch link or a short SHA inside an
+  otherwise well-formed forge link cost a full correction round three times in one day, though Git
+  can expand both without an author. `work.py fix-links` resolves such references through the local
+  repository and repins them to the full commit SHA; only a reference the repository cannot resolve
+  still returns to its author, and the immutability requirement itself is unchanged.
+
 ## 9.5.0
 
 A project may import its frozen history into the tree instead of leaving it beside it.

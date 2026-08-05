@@ -284,6 +284,11 @@ surface remain unchanged; follow [Validation budget](validation-budget.md).
 - Preserve archive-worthy evidence through source-linked Git references, an approved artifact store,
   CI, runtime state, or a concise durable authorization record. Apply
   [Source references](source-references.md) to every commit or repository file mentioned.
+- Durable evidence is the derivation, not the haul. Keep what was run, its exit, the values that
+  decide the claim, and a script able to re-derive them on the exact revision; retain a raw capture
+  only where the claim is otherwise unreproducible. Money movement, tenant isolation, the sandbox
+  boundary, and irreversible operations keep their complete raw package — there the capture is the
+  proof. A dump nobody will reread is volume, not rigor, and its cost lands on the critical path.
 - Prove generated or deployed artifact ancestry and serialize live changes against evidence runs.
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
 - Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema

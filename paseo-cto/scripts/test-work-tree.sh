@@ -626,4 +626,33 @@ expect_fail "copy older than the installed plugin" "the installed plugin ships 9
 expect_fail "plugin templates directory that does not exist" "does not exist" \
   python3 "$copied" --root "$fixture" check --plugin-templates "$scratch/absent"
 
+# ---------------------------------------------------------------------------
+# fix-links repins short and branch forge references through the local repository
+# ---------------------------------------------------------------------------
+
+fresh
+git -C "$tree" init -q
+git -C "$tree" -c user.email=test@test -c user.name=test add -A
+git -C "$tree" -c user.email=test@test -c user.name=test commit -qm seed
+full_sha=$(git -C "$tree" rev-parse HEAD)
+short_sha=$(git -C "$tree" rev-parse --short HEAD)
+branch=$(git -C "$tree" symbolic-ref --short HEAD)
+target="$tree/waves/W1/W1-LF-03/tasks/W1-LF-03a.md"
+printf '\n[%s](https://github.com/example/project/commit/%s) and\n[`api.md`](https://github.com/example/project/blob/%s/docs/api.md#L1) hold.\n' \
+  "$short_sha" "$short_sha" "$branch" >> "$target"
+regenerate
+expect_fail "check refuses a short commit reference" "does not carry a full 40-character SHA" \
+  python3 "$work" --root "$tree" check
+expect_pass "fix-links repins short and branch references" \
+  python3 "$work" --root "$tree" fix-links
+expect_pass "repinned links carry the full commit SHA" \
+  grep -q "commit/$full_sha" "$target"
+expect_pass "repinned source link is commit-pinned" \
+  grep -q "blob/$full_sha/docs/api.md" "$target"
+expect_pass "the repaired tree validates" python3 "$work" --root "$tree" check
+
+printf '\n[bad](https://github.com/example/project/commit/deadbeef11) stays.\n' >> "$target"
+expect_fail "fix-links reports a reference the repository cannot resolve" "cannot resolve" \
+  python3 "$work" --root "$tree" fix-links
+
 printf 'work test: %s work-tree checks passed\n' "$passes"

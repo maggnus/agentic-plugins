@@ -139,7 +139,10 @@ returns, and the CTO creates them in the integration tree.
 
 The plan is durable project truth in Git. The CTO commits semantic plan changes locally before a
 dispatch that depends on them and at material gates, and keeps the integration tree clean before
-creating worker baselines. Regenerate the work index in the same change that alters a node. Do not
+creating worker baselines. Regenerate the work index in the same change that alters a node. One
+decision produces one plan commit: everything a single acceptance or dispatch changes in the plan —
+states, closure fields, the children it creates, and the regenerated index — lands together, not as
+separate activation, closure, and bookkeeping commits. Do not
 create a plan commit solely to record that an unchanged candidate entered review or that an
 agent/workspace changed lifecycle state; runtime and the fleet render own those transitions. Apply
 [Source references](source-references.md) to every commit or repository file that supports a plan

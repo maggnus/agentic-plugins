@@ -139,12 +139,17 @@ build or test infrastructure, a centralized theme, or anything nearly every file
 barrier: hold the other writers until it is accepted and integrated, then re-baseline the rest.
 Trying to overlap a barrier is the single most expensive scheduling mistake available to a CTO.
 
-**Integrate continuously, never in a batch.** Land each accepted atom as soon as its review clears —
-verified conflict-free fast-forward into a clean tree — and re-baseline the still-running writers'
+**Accepted work never waits.** Land accepted atoms as soon as their review clears — verified
+conflict-free fast-forward into a clean tree — and re-baseline the still-running writers'
 successors on the new accepted `HEAD`. Conflict cost grows with the square of how long branches sit
-apart, so a batch integration at the end of a wave manufactures exactly the conflict storm a wide
-fleet was supposed to avoid. Never resolve a writer's conflict by hand in its workspace; return the
-atom with the new baseline instead.
+apart, so deferring cleared work to accumulate a batch — worst of all a wave-end batch integration —
+manufactures exactly the conflict storm a wide fleet was supposed to avoid. When one reconcile finds
+several atoms already cleared and their write zones disjoint, landing them in one integration pass is
+not such a batch: their branch-apart time is already spent, and nothing unreviewed enters. Verify
+each zone and fast-forward each atom in turn, then run the affected gates, regenerate the index, and
+push once on the combined tree; a red combined gate is attributed by bisecting over that pass before
+anything is returned. Never resolve a writer's conflict by hand in its workspace; return the atom
+with the new baseline instead.
 
 **Plan the lanes before raising the ceiling.** Before widening the fleet, name the independent lanes
 the wave actually has — by subsystem, by service, by surface. If the critical path is one chain of

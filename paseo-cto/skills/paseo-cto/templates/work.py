@@ -12,6 +12,7 @@ Subcommands:
     work.py new wave|card|task|subtask create one node from its template at its derived path
     work.py status                     regenerate STATUS.md deterministically from the tree
     work.py check                      validate the tree and refuse on any structural defect
+    work.py fix-links                  repin short or branch forge references to full commit SHAs
 
 Nothing in `status` reads the clock: every rendered value comes from file metadata, so regenerating
 an unchanged tree produces an identical file.
@@ -23,6 +24,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,7 +32,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "9.5.0"
+TOOLING_VERSION = "9.6.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -486,6 +488,35 @@ def validate_forge_url(rel: str, url: str) -> list[str]:
     if blob and not SHA40_RE.match(blob.group(1)):
         return [f"{rel}: source link {url} is pinned to {blob.group(1)}, not to an immutable commit"]
     return []
+
+
+def resolve_commit(repo: Path, ref: str) -> str | None:
+    """Resolve a ref to its full commit SHA in the repository containing the work root."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
+    sha = result.stdout.strip()
+    if result.returncode != 0 or not SHA40_RE.match(sha):
+        return None
+    return sha
+
+
+def repin_forge_url(repo: Path, url: str) -> str | None:
+    """Rewrite a forge URL whose commit or file segment is not a full SHA; None if unresolvable."""
+    for pattern in (FORGE_COMMIT_RE, FORGE_FILE_RE):
+        match = pattern.search(url)
+        if match and not SHA40_RE.match(match.group(1)):
+            sha = resolve_commit(repo, match.group(1))
+            if not sha:
+                return None
+            return url[: match.start(1)] + sha + url[match.end(1) :]
+    return url
 
 
 def validate_state_rules(schema: dict, node: Node) -> list[str]:
@@ -1152,6 +1183,36 @@ def command_check(args, schema: dict) -> int:
     return 0
 
 
+def command_fix_links(args, schema: dict) -> int:
+    root = Path(args.root)
+    nodes, _ = load_tree(schema, root)
+    repinned = 0
+    unresolved = 0
+    for node in nodes:
+        text = node.path.read_text(encoding="utf-8")
+        replacements: dict[str, str] = {}
+        for match in LINK_RE.finditer(text):
+            url = match.group("target")
+            if not url.startswith(("http://", "https://")):
+                continue
+            if not validate_forge_url(node.rel, url):
+                continue
+            fixed = repin_forge_url(root, url)
+            if fixed and fixed != url:
+                replacements[url] = fixed
+            else:
+                unresolved += 1
+                print(f"work fix-links: {node.rel}: cannot resolve {url}", file=sys.stderr)
+        for old, new in replacements.items():
+            text = text.replace(old, new)
+            repinned += 1
+            print(f"work fix-links: {node.rel}: {old} -> {new}")
+        if replacements:
+            node.path.write_text(text, encoding="utf-8")
+    print(f"work fix-links: {repinned} link(s) repinned, {unresolved} unresolved")
+    return 0 if unresolved == 0 else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="work.py", description=__doc__)
     parser.add_argument("--root", default=None, help="work root (default docs/work)")
@@ -1169,6 +1230,9 @@ def main(argv: list[str] | None = None) -> int:
     counts.add_argument("--wave", required=True)
 
     sub.add_parser("version", help="print the plugin release this tooling was copied from")
+
+    sub.add_parser("fix-links",
+                   help="repin short-SHA or branch forge references to full commit SHAs")
 
     check = sub.add_parser("check", help="validate the tree")
     check.add_argument("--legacy-plan", default=None,
@@ -1222,6 +1286,8 @@ def main(argv: list[str] | None = None) -> int:
         return command_status(args, schema)
     if args.command == "counts":
         return command_counts(args, schema)
+    if args.command == "fix-links":
+        return command_fix_links(args, schema)
     return command_check(args, schema)
 
 
