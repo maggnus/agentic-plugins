@@ -1,7 +1,7 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` is a
-dual Claude Code/Codex plugin and behaves identically on both platforms.
+Personal plugin repository (`maggnus`). The `team` and `russian-speech` plugins target Claude
+Code; `paseo-cto` is a dual Claude Code/Codex plugin and behaves identically on both platforms.
 
 ## Install
 
@@ -10,6 +10,7 @@ PASEO_CTO_TAG=v9.6.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
+claude plugin install russian-speech@maggnus
 ```
 
 ```sh
@@ -155,6 +156,24 @@ References load progressively. Project status reads only the reporting reference
 creating or accepting work loads the work-tree reference; starting a project or a wave loads the
 bootstrap reference; ordinary fleet work uses a compact core-command sheet; archival and close load
 their own reference; the complete command catalog is lookup-only.
+
+### `russian-speech` — literate Russian technical prose
+
+Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first
+translation of engineering terms, no literal calques, exact product/API/resource names preserved,
+no anthropomorphized components, no color metaphors for CI/CD state.
+
+Ships:
+
+- **skill `russian-speech`** — the operating rules: mandatory translation principles, the
+  normative replacement table (lane → контур, identity → сервисная учётная запись,
+  reconcile → синхронизировать, gate → проверка, trigger → событие запуска, …), the engineering
+  status template, and the pre-send self-check. The full glossary — false friends and preferred
+  forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing, with worked examples — loads
+  progressively from `references/glossary.md`.
+- **SessionStart hook** — injects a compact style directive into every session, so the base
+  register applies always; the skill and its glossary load on demand for long-form reports,
+  reviews, ADRs, and documentation.
 
 ## Releasing a change
 
