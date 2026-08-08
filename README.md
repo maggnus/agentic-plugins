@@ -1,7 +1,7 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). The `team` and `russian-speech` plugins target Claude
-Code; `paseo-cto` is a dual Claude Code/Codex plugin and behaves identically on both platforms.
+Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` and
+`russian-speech` are dual Claude Code/Codex plugins.
 
 ## Install
 
@@ -17,6 +17,7 @@ claude plugin install russian-speech@maggnus
 PASEO_CTO_TAG=v9.6.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
+codex plugin add russian-speech@maggnus
 ```
 
 All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
@@ -171,9 +172,12 @@ Ships:
   status template, and the pre-send self-check. The full glossary — false friends and preferred
   forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing, with worked examples — loads
   progressively from `references/glossary.md`.
-- **SessionStart hook** — injects a compact style directive into every session, so the base
-  register applies always; the skill and its glossary load on demand for long-form reports,
-  reviews, ADRs, and documentation.
+- **SessionStart hook** (Claude Code only) — injects a compact style directive into every
+  session, so the base register applies always; the skill and its glossary load on demand for
+  long-form reports, reviews, ADRs, and documentation.
+- **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and `agents/openai.yaml`
+  in the skill directory. Codex has no SessionStart hook, so there the style applies through
+  implicit skill invocation and explicit `$russian-speech:russian-speech`.
 
 ## Releasing a change
 

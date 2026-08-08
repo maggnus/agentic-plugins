@@ -1,0 +1,7 @@
+interface:
+  display_name: "Russian Speech"
+  short_description: "Literate Russian technical prose"
+  default_prompt: "Use $russian-speech:russian-speech to write grammatical Russian technical prose following the normative glossary."
+
+policy:
+  allow_implicit_invocation: true
