@@ -1,0 +1,25 @@
+{
+  "name": "russian-speech",
+  "version": "1.0.1+codex.20260808052006",
+  "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships a full glossary of false friends and preferred forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing.",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Russian Speech",
+    "shortDescription": "Literate Russian technical prose",
+    "longDescription": "Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first translation of engineering terms, no literal calques, exact product/API/resource names preserved, no anthropomorphized components, no color metaphors for CI/CD state. Ships the normative style skill with a full glossary of false friends and preferred forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing.",
+    "developerName": "Maksim Korenev",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Russian technical writing style",
+      "Engineering terminology glossary",
+      "Status and defect report templates"
+    ],
+    "defaultPrompt": [
+      "Use $russian-speech:russian-speech to write grammatical Russian technical prose following the normative glossary."
+    ]
+  }
+}

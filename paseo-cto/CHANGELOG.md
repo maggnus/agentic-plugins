@@ -3,17 +3,22 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.8.0
+
+The merge of the Russian style skill in 9.7.0 addressed the wrong cause. A host could not see that
+skill because it had never been released under a tag, not because it lived in its own package; the
+one host that did install it had silently dropped its tag pin. Owner decision: the two stay separate
+products, and the distribution rule stands on its own — GitHub, pinned to a tag.
+
+- **`skills/russian-speech` and the `SessionStart` hook return to the `russian-speech` plugin.** This
+  plugin ships the method; the prose rules ship beside it and are installed by name.
+
 ## 9.7.0
 
-The Russian prose rules shipped as their own plugin, and a host pinned to a release tag could not see
-them: the standalone package existed only on the branch, so one host installed it and the other
-reported it missing. A style the CTO writes in every message is not a separate product from the
-method that governs those messages.
-
-- **The Russian style skill and its session directive move into this plugin.** `skills/russian-speech`
-  and the `SessionStart` hook now ship with the method itself, so a host that has the CTO has the
-  prose rules it writes under. Nothing about the skill changed; it is no longer separately
-  installable, and the standalone `russian-speech` entry is gone from the marketplace.
+Withdrawn by 9.8.0, and recorded rather than removed. It folded `skills/russian-speech` and the
+`SessionStart` hook into this plugin after a host pinned to `v9.6.0` could not see the standalone
+package, which existed only on the branch. Merging removed the symptom; cutting a release tag was
+the fix.
 
 ## 9.6.0
 

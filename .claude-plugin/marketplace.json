@@ -14,6 +14,11 @@
       "name": "paseo-cto",
       "source": "./paseo-cto",
       "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated builder, reviewer, and researcher agents; review every returned outcome; integrate only source-linked evidence; publish a scheduled current-wave fleet table; and report in the project-configured language using a formal, neutral, impersonal register. Models and reasoning efforts remain owner decisions."
+    },
+    {
+      "name": "russian-speech",
+      "source": "./russian-speech",
+      "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships a full glossary of false friends and preferred forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing."
     }
   ]
 }
