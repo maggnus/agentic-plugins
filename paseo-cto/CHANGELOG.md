@@ -3,6 +3,18 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.7.0
+
+The Russian prose rules shipped as their own plugin, and a host pinned to a release tag could not see
+them: the standalone package existed only on the branch, so one host installed it and the other
+reported it missing. A style the CTO writes in every message is not a separate product from the
+method that governs those messages.
+
+- **The Russian style skill and its session directive move into this plugin.** `skills/russian-speech`
+  and the `SessionStart` hook now ship with the method itself, so a host that has the CTO has the
+  prose rules it writes under. Nothing about the skill changed; it is no longer separately
+  installable, and the standalone `russian-speech` entry is gone from the marketplace.
+
 ## 9.6.0
 
 One measured fleet day spent more of itself on accounting than on product: 59,799 lines of evidence

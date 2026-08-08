@@ -1,9 +1,0 @@
-{
-  "name": "russian-speech",
-  "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships a full glossary of false friends and preferred forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Maksim Korenev",
-    "email": "unzoom@gmail.com"
-  }
-}

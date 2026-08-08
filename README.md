@@ -1,23 +1,21 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` and
-`russian-speech` are dual Claude Code/Codex plugins.
+Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` is a dual
+Claude Code/Codex plugin and carries the Russian prose rules as one of its skills.
 
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.6.0
+PASEO_CTO_TAG=v9.7.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
-claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.6.0
+PASEO_CTO_TAG=v9.7.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
-codex plugin add russian-speech@maggnus
 ```
 
 All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
@@ -109,7 +107,7 @@ session to resume without replaying completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.6.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v9.7.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -158,7 +156,7 @@ creating or accepting work loads the work-tree reference; starting a project or 
 bootstrap reference; ordinary fleet work uses a compact core-command sheet; archival and close load
 their own reference; the complete command catalog is lookup-only.
 
-### `russian-speech` — literate Russian technical prose
+### skill `russian-speech` — literate Russian technical prose
 
 Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first
 translation of engineering terms, no literal calques, exact product/API/resource names preserved,
@@ -175,9 +173,13 @@ Ships:
 - **SessionStart hook** (Claude Code only) — injects a compact style directive into every
   session, so the base register applies always; the skill and its glossary load on demand for
   long-form reports, reviews, ADRs, and documentation.
-- **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and `agents/openai.yaml`
-  in the skill directory. Codex has no SessionStart hook, so there the style applies through
-  implicit skill invocation and explicit `$russian-speech:russian-speech`.
+- **Codex skill metadata** — `agents/openai.yaml` in the skill directory. Codex has no SessionStart
+  hook, so there the style applies through implicit skill invocation and explicit
+  `$paseo-cto:russian-speech`.
+
+It shipped as its own plugin through 1.0.0 and moved into `paseo-cto` in 9.7.0: a host pinned to a
+release tag could not see a package that existed only on the branch, and the register the CTO writes
+in is not separable from the method that governs its messages.
 
 ## Releasing a change
 
@@ -212,7 +214,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v9.6.0
+PASEO_CTO_TAG=v9.7.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
