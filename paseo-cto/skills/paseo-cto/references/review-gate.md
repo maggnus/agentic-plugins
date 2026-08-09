@@ -125,6 +125,15 @@ proof when the invariant can be exercised. The reviewer may own that proof; no s
 role is required. A maintained negative or conformance suite counts only when it demonstrably
 distinguishes the defect.
 
+### Depth follows the classification and does not drift
+
+The risk-required depth is the default and, absent new evidence, the ceiling: adding a falsifier, a
+round, or a suite beyond it is a deliberate spend of the validation budget and carries its explicit
+reason in the review record — never a default precaution. Resolve uncertainty by reclassifying the
+card on evidence, not by silently reviewing at a higher tier. One review may cover several batched
+sibling nodes; it runs once at the highest classification among them, and its evidence must close
+each node individually.
+
 ## When the reviewer shares the author's provider family
 
 An independent review borrows part of its strength from the reviewer not sharing the author's

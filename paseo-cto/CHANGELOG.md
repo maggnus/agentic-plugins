@@ -3,6 +3,32 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.10.0
+
+Two measured costs paid without buying evidence: reviewers re-ran green author command sets whose
+results CI had already recorded for the exact revision, and small homogeneous findings from one
+review each grew a full workspace, dispatch, and review cycle of their own because a work-tree node
+implied a fleet cycle. Review depth also drifted upward silently, since nothing distinguished
+risk-required depth from precautionary depth.
+
+- **Recorded runs are first-class acceptance evidence.** The reviewer inventories CI and pipeline
+  evidence and counts it once verified: pinned to the exact reviewed revision, actually executed —
+  not skipped, permissively ignored, or retried into green — cache-honest, able to distinguish the
+  property it proves, and at least as representative as a local rerun, with no inherent rank over
+  one. The governing rule is symmetric: execute a reviewer-owned check when it adds discriminating
+  information; read and verify existing evidence when execution would only duplicate it.
+  Reviewer-owned checks broaden beyond negative cases to mutation, boundaries, compatibility,
+  ordering, absent invariants, alternate paths, and proving the author's test fails on the defect.
+- **Work decomposition does not imply execution decomposition.** Split-before-dispatch gains its
+  converse, batch-before-dispatch: small homogeneous sibling nodes — one surface, one environment,
+  one verification method, one review context — travel as one contract, one workspace, one review,
+  classified at the highest risk among them, while each node keeps its own identifier, acceptance,
+  closure, and return path. A node that develops independent risk or a return of its own leaves the
+  batch.
+- **Review depth follows the classification and does not drift.** Risk-required depth is the default
+  and, absent new evidence, the ceiling; exceeding it is a deliberate, recorded spend of the
+  validation budget, and uncertainty is resolved by reclassification rather than silent deep review.
+
 ## 9.9.0
 
 Owner decision: the `team` plugin is retired and removed from the marketplace. It was Claude Code

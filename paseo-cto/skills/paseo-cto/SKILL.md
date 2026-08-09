@@ -81,6 +81,13 @@ Treat time and distance to the next usable release as engineering constraints.
   about ten files, or cannot plausibly land as one reviewable outcome with one acceptance story. Do
   not wait for review to prove the scope is wrong: create truthful lettered children first and move
   them independently.
+- Batch before dispatch when several small ready nodes are homogeneous — one technical surface, one
+  environment, one verification method, one review context — and separate dispatch would only
+  duplicate workspace setup, execution, and review without adding evidence. Work decomposition does
+  not imply execution decomposition: one contract, one workspace, and one review may carry several
+  sibling nodes, each keeping its own identifier, acceptance, closure, and return path. A batched
+  node that develops independent risk, a distinct acceptance story, or a return of its own leaves
+  the batch and moves alone.
 - Deepen only when evidence makes depth the next release move: the base path works and a measured
   defect, bottleneck, scale limit, or accepted release gate constrains it, or one foundation
   uncertainty blocks several downstream slices. Otherwise defer optimization and polish with a pull
@@ -122,7 +129,8 @@ an execution document.
   and it does not belong in the work root.
 - **A finding does not inflate a file.** `Current state` is rewritten and bounded; a finding that can
   be independently assigned, performed, reviewed, returned and accepted becomes a new file with a new
-  identifier and a declared relation to its parent.
+  identifier and a declared relation to its parent. A new file is ownership and closure, not a fleet
+  cycle of its own: dispatch batches small homogeneous siblings under the product-clock rule.
 
 ## The loop
 
@@ -130,8 +138,9 @@ an execution document.
    settings before any run checkpoint, then adopt or resolve prior agents, workspaces, returned
    commits, disputes, and tails; never duplicate a task or role already active.
 2. **Plan.** Keep one living hierarchy of permanent files: wave, card, task, subtask, and no deeper.
-   Every dispatch maps to one stable node; add a truthful child, with its relation to the parent,
-   before dispatching newly discovered work. On a new project or a new wave, build and freeze the
+   Every dispatch maps to one stable node, or to one declared batch of small homogeneous sibling
+   nodes; add a truthful child, with its relation to the parent, before dispatching newly
+   discovered work. On a new project or a new wave, build and freeze the
    tree under [Project bootstrap](references/project-bootstrap.md) before the first dispatch.
    Regenerate the index in the same change that alters a node, and commit semantic plan changes
    before dependent dispatch and at material gates so the integration tree stays clean.

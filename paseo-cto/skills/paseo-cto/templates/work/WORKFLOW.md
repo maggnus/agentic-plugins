@@ -76,6 +76,14 @@ The test is one sentence: a separate file is needed when the work can be indepen
 performed, reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside
 the task.
 
+Separation decides ownership and closure, never execution. Small homogeneous sibling nodes — one
+technical surface, one environment, one verification method, one review context — are normally
+implemented and reviewed as one batch under one contract, one workspace, and one review, classified
+at the highest risk among them. Each batched node keeps its own identifier, state, closure record,
+and return path; the shared review evidence must close each node individually, and a node that
+develops independent risk, a separate acceptance story, or a return of its own leaves the batch and
+moves alone.
+
 Every child declares one relation: `required` blocks the parent's closure, `follow_up` does not,
 `expansion` adds a new outcome, and `trigger` may not start before its named event.
 

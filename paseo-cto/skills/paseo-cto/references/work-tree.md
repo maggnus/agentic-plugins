@@ -123,6 +123,15 @@ One sentence decides it: a separate file is needed when the work can be independ
 performed, reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside
 the file they belong to.
 
+Separation decides ownership and closure, never execution. Work decomposition does not imply
+execution decomposition: sibling nodes that are small and homogeneous — one technical surface, one
+environment, one verification method, one review context — are normally implemented and reviewed as
+one batch, under one contract, one workspace, and one review, classified at the highest risk among
+them. Each batched node keeps its own identifier, state, closure record, and return path, and the
+shared review evidence must close each node individually; a node the shared evidence does not cover
+is not closed by the batch. A node that develops independent risk, a separate acceptance story, or a
+return of its own leaves the batch and moves alone.
+
 ## While the work runs
 
 `Current state` is rewritten, never appended to, and holds at most five lines: the position, the

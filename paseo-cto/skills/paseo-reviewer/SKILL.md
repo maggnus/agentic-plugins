@@ -34,10 +34,20 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    question and omitted scope. On a re-review you own, reuse recorded inspection of unchanged
    material, inspect the entire correction delta and affected context, and confirm that the complete
    result still satisfies scope and contract.
-3. Inventory evidence before running commands. Apply the risk-specific responsibilities from the
-   Review gate. Try proportionately to refute correctness, contract compliance, tests, security,
-   data integrity, performance, architecture, and integration behavior through the diff, sources,
-   and static inspection that apply to the outcome. Derive what the outcome must establish from the
+3. Inventory evidence before running commands. Recorded runs — CI, pipeline, or other durable
+   execution evidence — belong in that inventory and count as acceptance evidence once verified,
+   never merely trusted. A recorded run counts for a claim only when all of the following hold: it
+   is pinned to the exact reviewed revision or range, not to the branch or a nearby commit; the
+   relevant check actually executed and was not skipped, permissively ignored, or turned green by
+   retries; caching did not substitute a stale result for the claimed one; the check can
+   distinguish the property it is being used to prove; and the environment and composition it ran
+   in are at least as representative for that claim as a local rerun would be — recorded evidence
+   holds no inherent rank over a local run. A run failing any condition is not evidence for the
+   claim, and when the author offered it as acceptance, that gap is itself a finding. Apply the
+   risk-specific responsibilities from the Review gate. Try proportionately to refute correctness,
+   contract compliance, tests, security, data integrity, performance, architecture, and
+   integration behavior through the diff, sources, and static inspection that apply to the
+   outcome. Derive what the outcome must establish from the
    contract, the specification, and primary source — never from the author's account of it. A review
    that starts from the author's framing can only check the work against itself.
 4. Before accepting any evidence, first try to construct a false green. Prefer bypasses over
@@ -52,10 +62,16 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    condition no input could violate all report success truthfully. Selecting a falsifier of a
    different shape than the author's evidence is the cheapest way to settle this — when the author
    proved it with a unit test, do not answer with another unit test.
-5. Obey the contract's validation budget. Do not rerun the builder's entire green command set merely
-   to reconfirm it. Run only reviewer-owned negative cases or checks tied to a concrete new
-   hypothesis; run a full suite only when the contract explicitly assigns it or prior evidence is
-   missing, stale, contradictory, or invalidated by the diff. A falsifier you selected independently
+5. Obey the contract's validation budget. Execute a reviewer-owned check when it adds new
+   discriminating information; read and verify existing evidence when execution would only
+   duplicate what a verified recorded run already established. Do not rerun an already-green
+   author or CI command merely to reproduce the same result. A reviewer-owned check is one that
+   discriminates where the author's evidence does not — falsification and negative paths, mutation
+   or fault injection, boundary cases, compatibility with historical state, concurrency and
+   ordering, invariants absent from the author's tests, alternate execution paths, or
+   demonstrating that an existing test actually fails once the relevant defect is introduced. Run
+   a full suite only when the contract explicitly assigns it or prior evidence is missing, stale,
+   contradictory, or invalidated by the diff. A falsifier you selected independently
    remains independent: rerun it on the corrected exact revision when its hypothesis still applies,
    and do not invent a different one solely because this is a re-review. Never mutate an unapproved
    shared or live system.
@@ -96,7 +112,7 @@ Return under 2500 characters unless preserving a systemic finding:
 VERDICT: ACCEPT | RETURN
 SUBJECT: <returned outcome; source-linked revision range when a repository write exists>
 SKILLS: <domain skills loaded beyond the contract's list, or none>
-ACCEPTANCE: <commands and real results>
+ACCEPTANCE: <commands and real results; verified recorded runs cited with their exact revision>
 FINDINGS: <ordered evidence, or none>
 UNVERIFIED: <unsafe or unavailable checks>
 GIT STATUS: <exact pre/post equality>

@@ -49,7 +49,10 @@ reference.
 One card means one outcome, not one commit. Several local commits are allowed when they form one
 coherent, reviewable outcome and acceptance story. Split work before dispatch when parts have
 independent outcomes, risk levels, acceptance stories, owners, or landing value. A cross-zone need
-is a blocker or proposed child, never implicit scope expansion.
+is a blocker or proposed child, never implicit scope expansion. The converse holds for small
+homogeneous nodes: one contract may carry several sibling nodes sharing one surface, environment,
+verification method, and review context; the contract then names every node with its own
+acceptance, and the review closes each individually.
 
 Risk classification, review depth, landing decisions, falsifiers, and the conditions for an author
 response live only in [Review gate](review-gate.md). Apply that file by reference; do not restate or
