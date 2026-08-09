@@ -3,6 +3,20 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.11.0
+
+Agent titles diverged across CTO sessions because the format was a prose convention read once at
+first Operate: each model followed it with its own fidelity, and a compacted session reconstructed
+the pattern from habit. Recovery never depended on titles — labels carry machine identity — but the
+fleet table showed a different naming style per model.
+
+- **An agent title is derived, never composed.** The single format is `<plan-id>-<family>-<role>`
+  (`cto-<family>` for the CTO row): a pure function of the labels the agent already carries, so any
+  two CTOs on any host and any model derive the identical string. No descriptive additions, no
+  translation into the reporting language, no model or version in place of the family slug. Every
+  reconcile derives the expected title from the labels and renames any owned agent whose title
+  differs; a mismatch is corrected mechanically, never preserved as style.
+
 ## 9.10.0
 
 Two measured costs paid without buying evidence: reviewers re-ran green author command sets whose

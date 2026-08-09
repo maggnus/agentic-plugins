@@ -43,7 +43,8 @@ that routine project/run-scoped queries miss.
    reading confirms it.
 3. List workspaces with `list_workspaces` (older-daemon fallback in the command catalog).
 4. Inspect known IDs/permissions and match each owned record to its plan node, Git state, evidence,
-   and review state.
+   and review state. Derive each owned agent's expected title from its labels and rename on
+   mismatch — titles follow the single derived format in Roles and providers.
 5. **Collect finished work as a step, not as a by-product.** An agent that completed does not
    announce it; its report sits until someone fetches it. For every recorded agent not currently
    running, fetch and read the return in this reconcile, then move the card to `reviewing` or record

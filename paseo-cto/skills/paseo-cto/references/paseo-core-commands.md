@@ -20,7 +20,7 @@ Before any launch, resolve provider/model/reasoning/`modeId` with `list_provider
 ```text
 create_workspace({isolation:"worktree", path:<repo>, mode:"branch-off",
   worktreeSlug:<slug>, branchName:<branch>, baseBranch:<exact-SHA>})
-create_agent({workspaceId:<id>, title:<max-60>, provider:<provider/model>,
+create_agent({workspaceId:<id>, title:<derived `<plan-id>-<family>-<role>`>, provider:<provider/model>,
   initialPrompt:<contract>, notifyOnFinish:false, labels:<string-map>,
   settings:{modeId:<inspected-role-mode>, thinkingOptionId?:<inspected-effort>}})
 ```

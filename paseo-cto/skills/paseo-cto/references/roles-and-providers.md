@@ -153,11 +153,16 @@ Record material exceptions.
 
 ## Identity, labels, and ownership
 
-Use titles no longer than 60 characters: `<plan-id>-<family>-<role>`, for example
-`A-14-<family>-builder` or `A-14.2-<family>-builder`, and `cto-<family>` for the CTO row. `<family>`
-is the short provider-family slug the charter's `roleAssignments` records for that role — a stable
-lowercase token, not a model name and not a version. Keep the status-table task aligned with the
-plan title.
+An agent title is derived, never composed. The single format is `<plan-id>-<family>-<role>` — for
+example `A-14-<family>-builder` or `A-14.2-<family>-builder` — and `cto-<family>` for the CTO row:
+no other words, no descriptive additions, no translation into the reporting language, and nothing
+in place of `<family>` but the short provider-family slug the charter's `roleAssignments` records
+for that role — a stable lowercase token, not a model name and not a version. The title is a pure
+function of values the agent already carries — `paseo-cto.task`, the assigned family, and
+`paseo-cto.role` — so any two CTOs, on any host and any model, derive the identical string. At
+every reconcile, derive the expected title from the labels and rename any owned agent whose title
+differs (`update_agent`); a title is display output, and a mismatch is corrected mechanically,
+never preserved as style. Keep the status-table task aligned with the plan title.
 
 Set string labels on every agent:
 
