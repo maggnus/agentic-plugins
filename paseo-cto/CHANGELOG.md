@@ -3,6 +3,17 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.9.0
+
+Owner decision: the `team` plugin is retired and removed from the marketplace. It was Claude Code
+only by construction — its roles were Claude Code subagents and its fan-outs used the Workflow
+tool — while every multi-agent need it served runs through this plugin on both hosts. Two operating
+models for the same work meant divided maintenance without a second capability.
+
+- **The marketplace ships `paseo-cto` and `russian-speech` only.** The `team` directory, its
+  marketplace entry, and its install instructions are removed; existing installations keep working
+  from their pinned tags but receive no further releases.
+
 ## 9.8.0
 
 The merge of the Russian style skill in 9.7.0 addressed the wrong cause. A host could not see that

@@ -6,11 +6,6 @@
   },
   "plugins": [
     {
-      "name": "team",
-      "source": "./team",
-      "description": "Virtual-team operating model for Claude Code: a CTO supervises on-demand specialists (builder/reviewer/researcher), runs agile time-boxed sprints as parallel streams with serialized gates, and gates every change on top of an elevated adversarial reviewer. Project-agnostic \u2014 domain knowledge stays in per-project area skills."
-    },
-    {
       "name": "paseo-cto",
       "source": "./paseo-cto",
       "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated builder, reviewer, and researcher agents; review every returned outcome; integrate only source-linked evidence; publish a scheduled current-wave fleet table; and report in the project-configured language using a formal, neutral, impersonal register. Models and reasoning efforts remain owner decisions."

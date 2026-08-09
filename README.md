@@ -1,20 +1,19 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). The `team` plugin targets Claude Code; `paseo-cto` and
-`russian-speech` are dual Claude Code/Codex plugins.
+Personal plugin repository (`maggnus`). `paseo-cto` and `russian-speech` are dual Claude
+Code/Codex plugins.
 
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.8.0
+PASEO_CTO_TAG=v9.9.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
-claude plugin install team@maggnus
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.8.0
+PASEO_CTO_TAG=v9.9.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
@@ -25,36 +24,6 @@ release tag. A local directory, a moving branch, or an unpinned remote marketpla
 installation source. The local repository is used for development and validation only.
 
 ## Plugins
-
-### `team` — the virtual-team operating model
-
-A generic, project-agnostic multi-agent operating model: a **CTO** (the main conversation)
-supervises on-demand specialists, runs work as **agile time-boxed sprints** — a pulled backlog run
-as parallel streams with serialized gates — and **gates every change** on top of an elevated
-adversarial reviewer.
-
-Ships:
-
-- **skill `team`** — the operating model: roles × skills team composition, the sprint lifecycle,
-  the reliability doctrine, risk-tiered ceremony, sizing, founder gates. Detail that is needed only
-  at one moment lives in two progressively loaded references (`execution-rules.md`,
-  `reporting.md`). Project specifics attach through the skill's *Project bindings* slots
-  (validation gate, verification substrate, docs of record, area skills, commit convention, script
-  homes) resolved per repo and recorded there.
-- **agent `builder`** — implements strictly within its assigned scope; leaves changes
-  uncommitted; scoped self-checks.
-- **agent `reviewer`** — adversarial quality gate at max effort; refute-by-default, file:line
-  evidence; runs the project's validation gate; **no write tools** — report-only is structural.
-- **agent `researcher`** — read-only ground / pre-flight / answer; returns digests other agents
-  consume.
-
-Domain knowledge does not live here — it stays in each project's own area skills
-(`.claude/skills/*`). Never copy the skill or the role agents into a project; a local copy
-shadows the plugin and drifts.
-
-This plugin is Claude Code only by construction: its roles are Claude Code subagents and its
-fan-outs use the Workflow tool, neither of which Codex provides. Multi-agent work under Codex runs
-through `paseo-cto`, whose workers are external Paseo agents.
 
 ### `paseo-cto` — the external-agent CTO operating model
 
@@ -109,7 +78,7 @@ session to resume without replaying completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.8.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v9.9.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -216,7 +185,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v9.8.0
+PASEO_CTO_TAG=v9.9.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
