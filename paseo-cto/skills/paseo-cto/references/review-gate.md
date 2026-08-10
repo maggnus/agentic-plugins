@@ -4,6 +4,11 @@ Read this file when any delegated outcome returns, including a report-only resea
 outcome, before the card completes and before any repository integration or push. A project may
 define stricter gates; it must not define a weaker floor.
 
+Review is always delegated. The CTO classifies the risk, dispatches the risk-required review or
+second look to a non-author agent, and decides on the returned evidence; it never performs a review
+or second look itself, at any tier. Landing authority, integration, and the bounded CTO fix remain
+CTO work — producing review evidence does not.
+
 ## Risk classification
 
 Classify the card by the credible consequence of a defect, not by file type, subsystem, diff size,
@@ -102,11 +107,13 @@ would otherwise discover the same thing later.
 
 ### Routine
 
-A non-author integrator or CTO performs a mandatory second look over the complete returned outcome,
-scope, and acceptance evidence. For a repository write this includes the complete final diff and
-final-revision evidence; for a report-only result it includes every load-bearing conclusion and
-source. The second look returns `ACCEPT` or `RETURN`. This is not a formal independent review. It
-requires no separate reviewer, falsifier, author response, or score.
+A delegated non-author agent — the reviewer role under a lightweight second-look contract, or
+another available non-author worker — performs the mandatory second look over the complete returned
+outcome, scope, and acceptance evidence; never the CTO. For a repository write this includes the
+complete final diff and final-revision evidence; for a report-only result it includes every
+load-bearing conclusion and source. The second look returns `ACCEPT` or `RETURN`. This is not a
+formal independent review: it requires no independently selected falsifier, author response, or
+score.
 
 ### Significant
 
@@ -282,7 +289,8 @@ revision range:
 - if it applies without manual edits and its dependency surface is unchanged, reuse valid
   final-revision evidence;
 - if a conflict resolution, integration edit, reordered dependency, or changed dependency surface
-  alters the result, review that delta explicitly and rerun every check it may invalidate.
+  alters the result, dispatch an explicit non-author review of that delta and rerun every check it
+  may invalidate.
 
 Patch identity is optional provenance metadata, never an acceptance criterion. Inspect every commit
 in `<upstream>..HEAD` before push. Do not repeat a leaf suite whose reviewed tree and dependency

@@ -21,7 +21,7 @@ Assign every command or proof to one primary role:
 | Researcher | Primary-source verification, explicit unknowns, and one counterexample for every load-bearing conclusion. |
 | Routine second look | The inspection assigned by the Review gate. |
 | Reviewer | Independent inspection of the returned outcome and any falsifier assigned by the Review gate. |
-| CTO | Final-range ancestry, integration-delta review, collision resolution, and checks invalidated by composition. |
+| CTO | Final-range ancestry, collision resolution, checks invalidated by composition, and dispatching the integration-delta review. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
 
 Do not copy the same green command set across roles. After verifying the exact commit, command,

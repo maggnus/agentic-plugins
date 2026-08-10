@@ -3,6 +3,21 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.12.0
+
+Owner decision, not a new rule: the review-performer option is removed from the CTO seat. The
+Routine tier allowed the CTO to carry the mandatory second look itself, and the integration delta
+named the CTO as its reviewer; both quietly turned the integration authority into a review
+workload.
+
+- **Review is always delegated, at every tier.** The CTO classifies the risk, dispatches the
+  risk-required review or second look to a non-author agent, and decides on the returned evidence;
+  it never produces review evidence itself. The Routine second look goes to a delegated non-author
+  agent under a lightweight contract; an integration delta that alters the result receives a
+  dispatched non-author review. Landing authority, risk classification, integration, rerunning
+  composition-invalidated checks, and the bounded CTO fix remain CTO work — everything else in the
+  gate is unchanged.
+
 ## 9.11.0
 
 Agent titles diverged across CTO sessions because the format was a prose convention read once at

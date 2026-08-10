@@ -27,7 +27,8 @@ index of every unit is [STATUS.md](STATUS.md) and the overview of the waves is
 
 ## Landing discipline
 
-- Every delegated outcome receives the risk-required non-author review before completion; every
+- Every delegated outcome receives the risk-required non-author review — always delegated, never
+  performed by the CTO — before completion; every
   repository write receives it before integration.
 - A task is accepted in place: its state becomes `accepted`, its closure commit and evidence are
   recorded, and its `Closure` section is filled. No text moves to another file.

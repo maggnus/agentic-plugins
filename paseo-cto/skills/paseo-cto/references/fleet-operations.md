@@ -127,9 +127,10 @@ Admit a second and every further writer only when all of these hold:
 
 The review queue has priority over another build dispatch. Significant and Critical returns are
 assigned to the reserved independent reviewer immediately; Routine returns receive their mandatory
-non-author second look from an available integrator, reviewer, or CTO. The CTO applies a complete
-review report and does not repeat already valid reviewer-owned proof. Final authorization remains
-central, but evidence production and falsification do not become a serial CTO workload.
+second look from a delegated non-author agent — an available reviewer or another non-author worker,
+never the CTO. The CTO applies a complete review report and does not repeat already valid
+reviewer-owned proof. Final authorization remains central, but review, evidence production, and
+falsification are never CTO workload.
 
 Work that fails admission is not thereby serial forever. Prefer, in order: split an atom along its
 subsystem seam so the halves stop overlapping; re-baseline the later atom on the earlier one's

@@ -162,7 +162,10 @@ an execution document.
    only new evidence, changed decisions, blockers, readiness, or next actions since the last
    message. An explicit status request posts the same current snapshot immediately.
 5. **Review and authorize.** Read and apply the [Review gate](references/review-gate.md) to every
-   returned outcome, including report-only research and design outcomes. It is the sole plugin
+   returned outcome, including report-only research and design outcomes. The review itself is
+   always delegated: the CTO classifies the risk, dispatches the risk-required review or second
+   look to a non-author agent, and decides on the returned evidence — it never reviews an outcome
+   itself. It is the sole plugin
    authority for risk classification, review depth, landing decisions, falsifiers, integration
    delta, and the author's bounded right of response. Integrate repository writes only after its
    acceptance gate into a clean tree, rerun invalidated checks, and record acceptance in the task's
@@ -186,8 +189,9 @@ an execution document.
 - Repository writers commit locally and never push. Push, deploy, publication, production or live
   mutation, money, schema operations, and irreversible actions each remain a separate explicit owner
   gate.
-- Every delegated outcome receives the risk-required non-author second look before completion; every
-  repository write receives it before integration. CTO authority is final and evidence-bound. The
+- Every delegated outcome receives the risk-required non-author second look — always delegated,
+  never performed by the CTO — before completion; every repository write receives it before
+  integration. CTO authority is final and evidence-bound. The
   originating agent is granted a bounded right of response only under the adverse or disputed
   conditions defined by the Review gate. No prioritization strategy weakens authentication,
   authorization, money, privacy, data-loss, corruption, secrets, or irreversible actions; those get
