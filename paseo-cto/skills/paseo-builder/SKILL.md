@@ -34,10 +34,12 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    hypothesis requires it. Add scoped tests or documentation only when required by the contract or
    change. During authorized rework, preserve still-valid proof and add regressions only for accepted
    findings.
-   Before return, try to construct a false green against each load-bearing acceptance check:
+   Before return, try to construct a false green against each load-bearing acceptance claim:
    challenge a reachable bypass, lifecycle boundary, independently chosen mutation, or configuration
    in which the check succeeds while the contracted outcome is false; preserve the failing output or
-   state why the contract makes that hypothesis unreachable.
+   state why the contract makes that hypothesis unreachable. Several supporting commands for one
+   claim share one negative half; do not invent a separate mutation for every unchanged compiler,
+   formatter, linter, or upstream-suite invocation.
 5. Inspect the complete diff, create the coherent local commit set required by the contract, and
    require empty `git status --porcelain`. One card means one outcome, not one commit. Remove only
    task-owned disposable files by exact path; never use broad clean commands. Never push.
@@ -54,9 +56,10 @@ task file, not its parents, not the generated index. State, findings and new wor
 by the CTO in the integration tree; a state edit made on a frozen baseline in an isolated worktree
 could not be believed without a merge. Propose new work units in the return instead.
 
-Return under 2500 characters unless preserving a systemic finding: `done|blocked|error`, source-
-linked commits and changed files, concise diff, each required check with real result, final branch/
+Return within 1800 characters unless preserving a systemic finding: `done|blocked|error`, source-
+linked candidate range, outcome-level diff, grouped decisive checks with real results, final branch/
 empty porcelain proof, blockers or disputes, proposed plan children, and durable artifact locations.
+Do not list intermediate attempts, every unchanged command, full output, or a file-by-file tour.
 
 Write the return in the assignment's reporting language using formal, neutral, impersonal prose
 about the work rather than about its author or reader: no first or second person, social language,

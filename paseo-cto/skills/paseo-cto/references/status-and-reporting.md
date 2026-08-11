@@ -23,6 +23,13 @@ The scheduled snapshot is the sole exception to the rule against repeating uncha
 Never repeat unchanged prose. State the absolute `FLEET.md` path once when Operate begins; do not
 put it in the snapshot or repeat it in ordinary updates.
 
+Coalesce lifecycle changes discovered in one turn into one report after the reconciliation is
+complete. Between scheduled heartbeats, rewrite `FLEET.md` at every material transition but post no
+full table unless the owner requested status. Post at most one compact prose delta for the turn when
+a landing decision, risk, blocker, critical-path change, or owner gate changed. If several
+heartbeats were missed while one long operation occupied the session, publish only the newest
+current snapshot at the next idle boundary; stale catch-up snapshots carry no useful state.
+
 ## Language and register
 
 Owner-facing prose uses the exact project-local `charter.reportingLanguage`. That setting overrides

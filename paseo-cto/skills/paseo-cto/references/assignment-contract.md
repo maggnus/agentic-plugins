@@ -18,7 +18,7 @@ Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
-Validation budget: <builder-owned checks; review depth; hypothesis-bound falsifier if any; integration checks; exact full-suite trigger>
+Validation budget: <builder-owned checks; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
 Review: <apply Review gate for the declared risk; name only the non-author second-look/review owner>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
@@ -37,9 +37,11 @@ Address the role skill as `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:pas
 Claude, where `<role>` is `builder`, `reviewer`, or `researcher`. Include the preflight-resolved
 `modeId`. The worker verifies its initial state but never fetches, pulls, rebases, switches
 branches, or changes the technical baseline without an explicit follow-up. Exact baseline and final
-revisions are Git/CI/runtime metadata, not plan prose. Its normal report stays below 2500
-characters; systemic security, corruption, race, privacy, or data-loss evidence is never compressed
-away.
+revisions are Git/CI/runtime metadata, not plan prose. Its normal report has a hard ceiling of 1800
+characters. Group commands that establish the same claim, retain only decisive exits and
+measurements, and omit intermediate attempts. Systemic security, corruption, race, privacy, or
+data-loss evidence is never compressed away; its complete capture belongs in the named durable
+artifact while the return links and summarizes it.
 
 Bind the canonical source repository URL before dispatch. Every commit or repository file used as
 evidence in a return, review report, plan update, or acceptance record follows
@@ -68,10 +70,12 @@ contradictory result, or concrete hypothesis invalidates it.
 
 ## Acceptance must demand a check that can fail
 
-Write the `Acceptance` line so a passing result means something. Every contracted check carries its
-negative half — the deliberately broken input, the command, the real non-zero exit, output captured
-— plus what it distinguishes, what it would let through, and why the configuration it runs in is one
-the product reaches. See *A proof must be able to fail* in [Review gate](review-gate.md); the
+Write the `Acceptance` line so a passing result means something. Every load-bearing claim carries a
+negative half — the deliberately broken input, the command, and the real non-zero exit, output
+captured — plus what it distinguishes, what it would let through, and why the configuration it runs
+in is one the product reaches. Supporting commands for the same claim share that negative half;
+standard unchanged compiler, formatter, linter, or upstream-suite invocations do not each require a
+ceremonial mutation. See *A proof must be able to fail* in [Review gate](review-gate.md); the
 contract is where that requirement is priced in, because discovering it at review costs a round.
 
 For a boundary between two components, name in the contract which accepted proof travels the

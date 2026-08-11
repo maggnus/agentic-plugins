@@ -6,14 +6,14 @@ Code/Codex plugins.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.12.0
+PASEO_CTO_TAG=v9.13.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.12.0
+PASEO_CTO_TAG=v9.13.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
@@ -52,6 +52,13 @@ local commits. Every returned outcome receives the risk-required non-author revi
 report-only research and design; repository writes integrate only after acceptance. Every commit or
 repository file used as durable evidence is a source-code link pinned to the exact revision.
 
+Reasoning effort is economical by construction when the owner permits a range: Routine atoms use
+the minimum allowed tier, Significant atoms the middle tier, and Critical atoms the maximum.
+Validation uses one negative half per load-bearing claim, a changed-surface composition preflight
+before an expensive full suite, and one proof owner. Normal worker returns and runtime summaries are
+bounded; unrelated tasks start fresh sessions, while bounded rework reuses the author and reviewer
+context that still carries valid inspection.
+
 Invoke the CTO skill as `$paseo-cto:paseo-cto` in Codex or `/paseo-cto:paseo-cto` in Claude. Worker
 prompts use the same qualified namespace with the platform's own prefix — `$paseo-cto:paseo-<role>`
 in Codex, `/paseo-cto:paseo-<role>` in Claude — for `paseo-builder`, `paseo-reviewer`, and
@@ -78,7 +85,7 @@ session to resume without replaying completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.12.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v9.13.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -185,7 +192,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v9.12.0
+PASEO_CTO_TAG=v9.13.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

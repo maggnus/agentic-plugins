@@ -40,8 +40,9 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
    default.** It offers what the catalog currently exposes and records what the owner chooses; the
    rules for reading, validating, and failing on this field are in
    [Roles and providers](roles-and-providers.md). An entry may fix one effort or allow a range the
-   CTO picks per atom by complexity — when it allows a range, the chosen tier goes in the dispatch
-   contract. A role with no entry is not dispatchable.
+   CTO picks per atom by risk and maturity. A range uses `<minimum>..<maximum>` with exact provider
+   tier IDs; the chosen tier and reason go in the dispatch contract. A role with no entry is not
+   dispatchable.
 3. **Permission policy** — `full-access-writers` (default), `role-safe`, or `always-ask`. The three
    values are defined once in [Roles and providers](roles-and-providers.md); confirm the name here
    and apply that definition. Push, deploy, and the other owner/CTO gates are unchanged by it.

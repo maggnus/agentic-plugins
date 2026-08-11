@@ -200,6 +200,12 @@ status token per agent and reset `stateSince` only when it changes:
 
 Idle is not storage: archive unless a specific follow-up or dispute justifies reuse.
 
+An agent session belongs to one plan atom. Reuse the author and reviewer only for bounded response,
+rework, and re-review of that same atom, where retained context prevents duplicate inspection. An
+unrelated atom always starts a fresh session even when the previous agent is idle; carrying an old
+conversation into new work spends context on irrelevant history and increases instruction drift.
+Archive the old session after its cleanup proof instead of repurposing it.
+
 Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
 meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal/background evidence, and
 permission/capacity/external-wait checks. Two such snapshots require a CTO decision in that

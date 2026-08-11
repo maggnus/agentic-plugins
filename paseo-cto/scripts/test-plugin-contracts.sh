@@ -353,6 +353,45 @@ if upgrade.TOLERATED & set(claude[-1]):
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+expect_pass "token economy policy is shared by every role" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+files = {
+    "assignment": root / "skills/paseo-cto/references/assignment-contract.md",
+    "validation": root / "skills/paseo-cto/references/validation-budget.md",
+    "review": root / "skills/paseo-cto/references/review-gate.md",
+    "runtime": root / "skills/paseo-cto/references/execution-plan.md",
+    "fleet": root / "skills/paseo-cto/references/fleet-operations.md",
+    "roles": root / "skills/paseo-cto/references/roles-and-providers.md",
+    "builder": root / "skills/paseo-builder/SKILL.md",
+    "reviewer": root / "skills/paseo-reviewer/SKILL.md",
+    "researcher": root / "skills/paseo-researcher/SKILL.md",
+}
+text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
+required = {
+    "assignment": ("hard ceiling of 1800 characters", "one negative half per load-bearing claim"),
+    "validation": ("composition preflight runs after integration", "not to every command"),
+    "review": ("not inherited automatically from its parent card", "ceremonial mutation"),
+    "runtime": ("returnSummary", "at most twelve material-event records"),
+    "fleet": ("An unrelated atom always starts a fresh session",),
+    "roles": ("<minimum>..<maximum>", "Critical work and review use the maximum tier"),
+    "builder": ("Return within 1800 characters",),
+    "reviewer": ("Return within 1800 characters",),
+    "researcher": ("Return within 1800 characters",),
+}
+problems = []
+for name, needles in required.items():
+    for needle in needles:
+        if needle not in text[name]:
+            problems.append(f"{name} lacks {needle!r}")
+for name in ("assignment", "builder", "reviewer", "researcher"):
+    if "2500 characters" in text[name]:
+        problems.append(f"{name} retains the old return budget")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 printf 'test: %s contract checks passed\n' "$passes"
 
 bash "$script_dir/test-work-tree.sh"

@@ -55,9 +55,11 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    expected result, the oracle is derived from the implementation, the exercised composition differs
    from the deployed composition, or the claimed negative case cannot actually fail. If any such
    hypothesis survives, RETURN before reviewing further code.
-   Challenge every check offered as acceptance before believing it. Ask whether it could fail at
-   all: has its failing form been observed with real output, which mutations does it distinguish and
-   which would it pass, and is the configuration it ran in one the product actually reaches. A check
+   Challenge every load-bearing claim offered as acceptance before believing it. Ask whether its
+   proof could fail at all: has its failing form been observed with real output, which mutations does
+   it distinguish and which would it pass, and is the configuration it ran in one the product
+   actually reaches. Supporting compiler, formatter, linter, and upstream-suite commands may share
+   the claim's negative half rather than receiving ceremonial mutations. A check
    comparing a subset against itself, a fixture pinned to whatever the code currently emits, and a
    condition no input could violate all report success truthfully. Selecting a falsifier of a
    different shape than the author's evidence is the cheapest way to settle this — when the author
@@ -106,13 +108,15 @@ the outcome rather than about its author or reader: no first or second person, s
 emotion, praise, blame, unsupported hedging, or review narrative. A finding states what breaks,
 under which inputs, and what the correction must be.
 
-Return under 2500 characters unless preserving a systemic finding:
+Return within 1800 characters unless preserving a systemic finding. Group commands by the claim
+they establish, omit intermediate attempts and full transcripts, and link any necessary durable
+capture:
 
 ```text
 VERDICT: ACCEPT | RETURN
 SUBJECT: <returned outcome; source-linked revision range when a repository write exists>
 SKILLS: <domain skills loaded beyond the contract's list, or none>
-ACCEPTANCE: <commands and real results; verified recorded runs cited with their exact revision>
+ACCEPTANCE: <grouped decisive commands and real results; verified recorded runs cited with their exact revision>
 FINDINGS: <ordered evidence, or none>
 UNVERIFIED: <unsafe or unavailable checks>
 GIT STATUS: <exact pre/post equality>

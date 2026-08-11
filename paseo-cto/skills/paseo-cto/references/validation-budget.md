@@ -11,6 +11,13 @@ Do not clear caches or request clean/no-cache builds by default. Use a cold buil
 artifact reproducibility, investigate a concrete cache-invalidation hypothesis, or satisfy an
 explicit release gate.
 
+Before an expensive full suite on an integrated tree, derive the touched surfaces from the exact
+integration range and run the cheapest existing repository checks whose inventories or dependency
+graphs cover those surfaces. This composition preflight runs after integration, not only in the
+writer workspace. If it fails, attribute and correct that failure before spending the full-suite
+budget. Once the preflight passes, run the full suite once at its named gate; do not use the full
+suite to discover a failure a changed-path check could have named first.
+
 ## One owner per proof
 
 Assign every command or proof to one primary role:
@@ -105,6 +112,13 @@ Run a full suite only when at least one condition holds:
 - the change is genuinely cross-cutting and focused checks cannot bound its dependency surface;
 - prior full-suite evidence is absent, stale for the exact tree, contradictory, or red.
 
+The negative half belongs to each load-bearing acceptance claim, not to every command that happens
+to support it. One mutation, fault, or counterexample may distinguish several commands that prove
+the same claim. A standard compiler, linter, formatter, or unchanged upstream suite does not need
+its own artificial mutation unless that check is being introduced or changed, or it is the primary
+proof of a new invariant. Prefer an existing maintained negative suite over constructing a new
+one-off mutation with the same shape.
+
 Security, privacy, authorization, corruption, and data-loss work keeps its safety floor, but still
 uses this ladder: prove the risky boundary with a decisive negative case instead of automatically
 running every unrelated suite.
@@ -112,8 +126,8 @@ running every unrelated suite.
 ## Contract and review behavior
 
 Write one `Validation budget` line in every repository assignment. Name builder-owned commands, the
-Review-gate owner and proof, integration checks, and the exact full-suite trigger. If the contract
-lists a full suite, state why the trigger applies.
+Review-gate owner and proof, the combined-tree composition preflight, integration checks, and the
+exact full-suite trigger. If the contract lists a full suite, state why the trigger applies.
 
 When a returned result is green, reviewers and the CTO first inspect its exact evidence. Repository
 files and commits in that evidence follow [Source references](source-references.md). Rerun only what

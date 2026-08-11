@@ -88,7 +88,10 @@ violate, a script comparing a subset against itself, a fixture pinned to the val
 currently produces, a suite exercising a configuration the deployed system never reaches. Each
 reports success truthfully and means nothing by it.
 
-For every check offered as acceptance evidence, require three things before it counts:
+For every load-bearing claim offered as acceptance evidence, require three things before it counts.
+Several supporting commands may share one negative half when they establish the same claim;
+unchanged compiler, formatter, linter, and upstream-suite commands do not each require a ceremonial
+mutation:
 
 - **The negative half, with its output captured.** Show the check failing on a deliberately broken
   input — the mutation, the command, and the real non-zero exit. A check whose failing form was
@@ -140,6 +143,15 @@ reason in the review record — never a default precaution. Resolve uncertainty 
 card on evidence, not by silently reviewing at a higher tier. One review may cover several batched
 sibling nodes; it runs once at the highest classification among them, and its evidence must close
 each node individually.
+
+A correction is classified by the credible consequence of the correction itself, not inherited
+automatically from its parent card. A mechanical test-inventory, comment, generated-file, or report
+repair may therefore receive a Routine second look even when the product change it supports was
+Critical, provided it cannot alter product behavior or silently weaken the critical proof. If the
+correction changes an oracle, acceptance semantics, production reachability, or the threatened
+invariant, it retains the corresponding Significant or Critical depth. This distinction removes
+expensive independent falsifiers from genuinely mechanical rework without weakening the original
+card's safety floor.
 
 ## When the reviewer shares the author's provider family
 

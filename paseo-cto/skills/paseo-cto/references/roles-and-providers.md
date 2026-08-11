@@ -96,6 +96,29 @@ owner confirmed. Read it, validate it against the live catalog, and dispatch wha
 - **Record the chosen effort in the dispatch contract** whenever the assignment allows a range, so
   the choice is auditable after the fact.
 
+### Spend reasoning effort by risk, not by habit
+
+An `effort` value is either one exact provider tier or an inclusive range written as
+`<minimum>..<maximum>`, using exact tier IDs from that provider's ordered catalog. The owner fixes
+the permissible range; the CTO chooses one exact tier for each dispatched atom and passes only that
+tier to the provider. Never pass the range itself as `thinkingOptionId`.
+
+Within an allowed range, use the lowest tier that meets the contracted risk and maturity:
+
+- Routine research, design, build work, and its lightweight second look use the minimum tier;
+- Significant work and review use the middle available tier, rounded upward when the range has an
+  even number of choices;
+- Critical work and review use the maximum tier;
+- a bounded correction or re-review keeps the prior tier unless the finding changed the risk,
+  exposed a missing semantic model, or produced contradictory evidence.
+
+Escalate one tier only for a named reason: a newly threatened invariant, materially wider
+dependency surface, contradictory primary evidence, or a return showing that the current reasoning
+depth missed the governing model. A long diff, a failed command, elapsed time, or a verbose report
+does not justify escalation by itself. Record the chosen tier and reason in the assignment. This
+policy spends fewer tokens by default without lowering the owner-selected minimum or any safety
+floor.
+
 ## Permission policy
 
 Pass `create_agent.settings.modeId` on every launch; it is mandatory. Resolve its exact value from

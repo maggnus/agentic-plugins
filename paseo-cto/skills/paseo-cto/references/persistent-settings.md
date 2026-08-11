@@ -29,9 +29,9 @@ The minimum schema is:
     "strategy": "alpha",
     "roleAssignments": {
       "cto":        { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier>" },
-      "builder":    { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|range>" },
-      "reviewer":   { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier>" },
-      "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|range>" }
+      "builder":    { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" },
+      "reviewer":   { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" },
+      "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" }
     },
     "permissionPolicy": "full-access-writers",
     "fleetBudget": "conservative",
@@ -56,7 +56,9 @@ The seven charter fields use the values defined by Operating charter. Every angl
 above is a placeholder the owner fills: **the plugin ships no model, no effort tier, and no
 provider preference, and it never supplies one as a fallback.** An `effort` may name one tier or a
 range the CTO picks from per atom; a role absent from `roleAssignments` is not dispatchable.
-`family` is the short lowercase slug used in agent titles and the status table. `modeMap` records
+The range syntax is inclusive and uses exact tier IDs from the provider's ordered catalog, for
+example `medium..xhigh`; the dispatch always resolves it to one exact tier under Roles and
+providers. `family` is the short lowercase slug used in agent titles and the status table. `modeMap` records
 the exact validated provider/role modes and may grow as a new role is first used. `ownerOverrides`
 contains only explicitly confirmed, durable project-specific rules; never infer or migrate an
 authority-expanding override from an old run. Project bindings, gates, and plan truth remain in the

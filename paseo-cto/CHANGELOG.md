@@ -3,6 +3,36 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.13.0
+
+A long Qwibi run measured repeated token costs that did not add evidence: every role used the
+maximum reasoning tier, worker reports reproduced command transcripts, unrelated tasks inherited
+old session context, the runtime checkpoint accumulated full returns, full CI discovered failures
+that a cheap composition check could name, and mechanical corrections inherited the parent card's
+Critical falsifier requirement.
+
+- **Reasoning effort is selected within an owner-approved range.** Ranges use exact provider tier
+  IDs as `<minimum>..<maximum>`. Routine work uses the minimum, Significant work the middle tier,
+  and Critical work the maximum; escalation requires a named new risk or contradiction. The plugin
+  still chooses no model, provider, tier, or range for the owner.
+- **One negative half proves one load-bearing claim.** Supporting compiler, formatter, linter, and
+  unchanged upstream-suite commands share that proof instead of each receiving an artificial
+  mutation. Critical invariants retain their independent falsifier.
+- **Composition preflight precedes a full suite.** The integrated diff first runs the cheapest
+  repository checks that inventory its changed surfaces. The expensive suite then runs once at its
+  named gate instead of discovering an attributable static failure late.
+- **Operational context is bounded.** Normal worker returns are limited to 1800 characters and
+  group evidence by claim. Runtime keeps one 1200-character return summary per live agent and at
+  most twelve material events, never full prompts, reports, transcripts, or repeated snapshots.
+  Unrelated atoms start fresh sessions; author and reviewer context is reused only for bounded
+  rework of the same atom.
+- **Mechanical corrections receive their own risk classification.** They do not inherit Critical
+  depth or an independent falsifier unless they change product behavior, an oracle, acceptance
+  semantics, reachability, or the threatened invariant.
+- **Status updates are coalesced.** Material transitions in one turn produce one delta, while
+  scheduled and explicitly requested snapshots retain the complete fleet table. Missed heartbeat
+  intervals do not produce stale catch-up snapshots.
+
 ## 9.12.0
 
 Owner decision, not a new rule: the review-performer option is removed from the CTO seat. The

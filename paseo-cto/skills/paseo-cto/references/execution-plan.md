@@ -169,3 +169,13 @@ runtime snapshot of who is working right now, it is untracked, and
 [Status and reporting](status-and-reporting.md) defines how it is produced from the checkpoint. The
 **work index** is `STATUS.md` in the work root: it is committed, it is generated from the task files
 by `work.py status`, and it shows where the project is rather than which agents are live.
+
+The runtime checkpoint is current state, not an execution transcript. Store at most one bounded
+`returnSummary` per live agent — verdict, exact candidate, open findings, and unverified gate, no
+more than 1200 characters — and replace it when the decision changes. Never copy full prompts,
+worker reports, command transcripts, repeated snapshots, or completed review dialogue into the
+checkpoint. Keep at most twelve material-event records, each as a timestamp plus one decision or
+state change. When an agent is safely archived, remove its live record after preserving its exact
+Git coordinates and any unresolved tail in the task, durable evidence, or compact tail record.
+Conversation history and an ever-growing JSON file are not recovery mechanisms; the task, Git,
+settings, and this bounded checkpoint are.

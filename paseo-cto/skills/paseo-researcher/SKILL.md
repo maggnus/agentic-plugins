@@ -33,9 +33,9 @@ publication, or decisions for the CTO. Put lasting evidence in the compact retur
 approved durable external artifact; use approved ignored/external paths only for disposable logs
 and leave no tracked or untracked tail.
 
-Return under 2500 characters unless preserving a systemic finding: direct answer, load-bearing
+Return within 1800 characters unless preserving a systemic finding: direct answer, load-bearing
 evidence, risks, unknowns and omitted scope, proposed plan children, and exact pre/post Git equality.
-Do not narrate the search process or copy long passages.
+Do not narrate the search process, list intermediate queries, or copy long passages.
 
 Write the return in the assignment's reporting language using formal, neutral, impersonal prose
 about the subject rather than about its author or reader: no first or second person, social language,
