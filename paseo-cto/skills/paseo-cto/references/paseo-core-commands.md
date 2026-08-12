@@ -18,12 +18,17 @@ Before any launch, resolve provider/model/reasoning/`modeId` with `list_provider
 ## Create isolated work
 
 ```text
-create_workspace({isolation:"worktree", path:<repo>, mode:"branch-off",
-  worktreeSlug:<slug>, branchName:<branch>, baseBranch:<exact-SHA>})
-create_agent({workspaceId:<id>, title:<derived `<plan-id>-<family>-<role>`>, provider:<provider/model>,
+agentTitle = <derived `<plan-id>-<family>-<role>`>
+create_workspace({isolation:"worktree", path:<repo>, title:<agentTitle>, mode:"branch-off",
+  worktreeSlug:<branch-safe-slug>, branchName:<branch>, baseBranch:<exact-SHA>})
+verify returned workspace.title == agentTitle
+create_agent({workspaceId:<id>, title:<agentTitle>, provider:<provider/model>,
   initialPrompt:<contract>, notifyOnFinish:false, labels:<string-map>,
   settings:{modeId:<inspected-role-mode>, thinkingOptionId?:<inspected-effort>}})
 ```
+
+The workspace and agent titles must be byte-identical. If workspace creation returns another title,
+do not create the agent; rename the workspace to `agentTitle`, verify it, and only then continue.
 
 Persist the workspace ID immediately after creation and the agent ID and labels immediately after
 launch. Use `notifyOnFinish:false` for parallel agents; set it true only for a single active agent on

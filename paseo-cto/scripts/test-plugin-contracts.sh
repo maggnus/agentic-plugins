@@ -392,6 +392,49 @@ for name in ("assignment", "builder", "reviewer", "researcher"):
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+expect_pass "workspace and agent titles share one strict identity" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills/paseo-cto/references"
+files = {
+    "roles": " ".join((root / "roles-and-providers.md").read_text().split()),
+    "fleet": " ".join((root / "fleet-operations.md").read_text().split()),
+    "core": " ".join((root / "paseo-core-commands.md").read_text().split()),
+    "catalog": " ".join((root / "paseo-command-catalog.md").read_text().split()),
+}
+required = {
+    "roles": (
+        "create_workspace.title",
+        "create_agent.title",
+        "byte-identical string",
+        "rename_workspace",
+    ),
+    "fleet": (
+        "create_workspace(title:<derived-agent-title>)",
+        "create_agent(workspaceId, title:<the-same-derived-agent-title>)",
+        "This equality is strict",
+    ),
+    "core": (
+        'title:<agentTitle>',
+        'verify returned workspace.title == agentTitle',
+        "must be byte-identical",
+    ),
+    "catalog": (
+        "worktreeSlug:<agentTitle>",
+        "verify returned worktree name == agentTitle",
+        "must equal the agent title exactly",
+    ),
+}
+problems = [
+    f"{name} lacks {needle!r}"
+    for name, needles in required.items()
+    for needle in needles
+    if needle not in files[name]
+]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 printf 'test: %s contract checks passed\n' "$passes"
 
 bash "$script_dir/test-work-tree.sh"

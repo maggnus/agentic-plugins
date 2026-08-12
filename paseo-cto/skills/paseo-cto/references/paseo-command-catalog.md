@@ -25,14 +25,20 @@ never mix branches within a run.
 Compatibility creation:
 
 ```text
-create_worktree({cwd:<repo>, target:{kind:"branch-off", worktreeSlug:<slug>,
+agentTitle = <derived `<plan-id>-<family>-<role>`>
+create_worktree({cwd:<repo>, target:{kind:"branch-off", worktreeSlug:<agentTitle>,
   branchName:<branch>, baseBranch:<exact-SHA>}})
+verify returned worktree name == agentTitle
 create_agent({relationship:{kind:"subagent"},
-  workspace:{kind:"existing", workspaceId:<id>}, title:<max-60>,
+  workspace:{kind:"existing", workspaceId:<id>}, title:<agentTitle>,
   provider:<provider/model>, initialPrompt:<contract>, notifyOnFinish:false,
   labels:<string-map>, settings:{modeId:<inspected-role-mode>,
   thinkingOptionId?:<inspected-effort>}})
 ```
+
+The compatibility API has no separate workspace-title field, so `worktreeSlug` is the workspace
+name and must equal the agent title exactly. Do not launch the agent if inventory reports another
+name.
 
 For `0.1.x` workspace inventory use `list_worktrees({cwd:<known-project-root>})` for every known root;
 `paseo worktree ls --json` is not a global inventory command and may fail without repository context.
@@ -47,7 +53,7 @@ schema only when an uncommon optional field is required.
 | Tool | Main input | Purpose and constraint |
 | --- | --- | --- |
 | `speak` | `text` | Optional voice output; available only when voice tools are enabled. |
-| `create_workspace` | `isolation`, plus `path/projectId/title/mode/worktreeSlug/branchName/baseBranch/branch/prNumber/forge` | Create local or worktree workspace. Prefer exact SHA as `baseBranch`. |
+| `create_workspace` | `isolation`, plus `path/projectId/title/mode/worktreeSlug/branchName/baseBranch/branch/prNumber/forge` | Create local or worktree workspace. Set `title` to the exact derived agent title and prefer exact SHA as `baseBranch`. |
 | `list_workspaces` | none | List active workspaces. |
 | `rename_workspace` | `title`, optional `workspaceId` | Rename current or named workspace. |
 | `archive_workspace` | `workspaceId` | Archives the workspace, every owned agent/terminal, and possibly removes the managed worktree. Use only after cleanup proof. |
@@ -59,7 +65,7 @@ routine create shape is in Paseo core commands; uncommon fields remain in the ex
 
 | Tool | Main input | Purpose and constraint |
 | --- | --- | --- |
-| `create_agent` | `title`, `provider`, `initialPrompt`; optional `workspaceId`, `notifyOnFinish`, `labels`, `settings` | Create a child in an agent-scoped session. Use split workspace creation so its ID can be labeled. |
+| `create_agent` | `title`, `provider`, `initialPrompt`; optional `workspaceId`, `notifyOnFinish`, `labels`, `settings` | Create a child in an agent-scoped session. Use split workspace creation so its ID can be labeled, and require its `title` to equal the workspace title exactly. |
 | `send_agent_prompt` | `agentId`, `prompt`; optional `sessionMode`, `background`, `notifyOnFinish` | Follow up or return rework. Sending into a running agent replaces its turn; do so only deliberately. |
 | `get_agent_status` | `agentId` | Return current snapshot and pending permissions for one known ID. |
 | `list_agents` | optional `includeArchived`, `cwd`, `sinceHours`, `statuses`, `limit` | Compact list. Agent-scoped calls default to caller `cwd`; use known IDs or global CLI recovery for worktrees elsewhere. |

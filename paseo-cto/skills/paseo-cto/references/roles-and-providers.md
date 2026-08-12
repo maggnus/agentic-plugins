@@ -187,6 +187,15 @@ every reconcile, derive the expected title from the labels and rename any owned 
 differs (`update_agent`); a title is display output, and a mismatch is corrected mechanically,
 never preserved as style. Keep the status-table task aligned with the plan title.
 
+The workspace title is not a second naming surface. Before creating an agent, derive its exact
+title once and pass that byte-identical string both as `create_workspace.title` and as
+`create_agent.title`. A newly created workspace whose title differs from its agent title is invalid:
+do not launch the agent in it. During reconciliation, compare every owned agent title with the title
+of its recorded workspace and correct a current-API mismatch with `rename_workspace` before reuse.
+For the older worktree API, which has no separate title field, use the exact derived agent title as
+`worktreeSlug` and verify that the created worktree inventory exposes that name before launch. Do
+not append `workspace`, a role description, a run identifier, or any other qualifier.
+
 Set string labels on every agent:
 
 ```text

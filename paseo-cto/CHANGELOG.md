@@ -3,6 +3,19 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.14.0
+
+Workspace names could diverge from the derived agent names because workspace creation and agent
+creation accepted separate naming fields. That made fleet inventory harder to audit and left two
+names for one execution identity.
+
+- **A workspace has exactly the name of its agent.** The CTO derives the agent title once and uses
+  the byte-identical value for `create_workspace.title` and `create_agent.title`; the older API uses
+  that value as `worktreeSlug`. It verifies the returned workspace name before launch, refuses to
+  create the agent on a mismatch, and corrects a current-API mismatch with `rename_workspace`
+  before reusing an existing workspace. No suffix, run identifier, or descriptive addition is
+  permitted.
+
 ## 9.13.0
 
 A long Qwibi run measured repeated token costs that did not add evidence: every role used the

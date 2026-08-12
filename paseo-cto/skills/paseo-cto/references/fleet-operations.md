@@ -43,8 +43,10 @@ that routine project/run-scoped queries miss.
    reading confirms it.
 3. List workspaces with `list_workspaces` (older-daemon fallback in the command catalog).
 4. Inspect known IDs/permissions and match each owned record to its plan node, Git state, evidence,
-   and review state. Derive each owned agent's expected title from its labels and rename on
-   mismatch — titles follow the single derived format in Roles and providers.
+   and review state. Derive each owned agent's expected title from its labels and rename the agent
+   on mismatch. Require its recorded workspace to have that same title; on the current API, correct
+   a mismatch with `rename_workspace` before the workspace is reused. Names follow the single
+   derived format in Roles and providers.
 5. **Collect finished work as a step, not as a by-product.** An agent that completed does not
    announce it; its report sits until someone fetches it. For every recorded agent not currently
    running, fetch and read the return in this reconcile, then move the card to `reviewing` or record
@@ -74,10 +76,17 @@ otherwise create a replacement workspace rather than rewriting review history.
 
 ## Create isolated work
 
-Freeze an exact baseline and use plan-aligned branch/workspace names:
+Freeze an exact baseline and use a plan-aligned branch name. Derive the agent title before creating
+its workspace, and use that exact string as the workspace title:
 
-- `create_workspace`, then `create_agent(workspaceId)` (older-daemon `create_worktree` +
-  legacy `create_agent` shapes are in the command catalog).
+- `create_workspace(title:<derived-agent-title>)`, verify the returned workspace title, then
+  `create_agent(workspaceId, title:<the-same-derived-agent-title>)`;
+- on the older daemon, use the derived agent title as `worktreeSlug`, verify the created worktree
+  name, then use the same title in the legacy `create_agent` call. The complete compatibility
+  shapes are in the command catalog.
+
+This equality is strict. Do not launch an agent when its newly created workspace has a different
+title, and do not decorate either name with a workspace suffix, run ID, or descriptive text.
 
 **Always branch off an exact SHA into a new branch name.** Pointing a new workspace at a branch that
 already exists moves that branch into the new working copy, and the tree that held it is left
