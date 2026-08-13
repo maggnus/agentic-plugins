@@ -107,65 +107,35 @@ critical path, where there is no concurrent turn to displace and the finish is t
 CTO needs. With more than one agent in flight the flag stays false and the turn-start check plus the
 heartbeat carry discovery.
 
-## Parallel admission — earn concurrency, do not declare it
+## Parallel work — six rules
 
-The fleet budget is a ceiling, not a quota to fill. Concurrency is earned by the shape of the plan:
-dispatch as many writers as there are ready atoms that pass admission, and no more. An idle slot
-costs nothing; two writers colliding in one file cost a rework round and a manual merge.
+The budget limits **tasks in flight, not agents**. A task carries as many agents as its review depth
+requires: an author, its non-author reviewer, and a third only when a disputed finding needs a
+tie-break. Counting agents instead of tasks makes a Critical atom look twice as expensive as a
+Routine one and pushes the fleet toward whichever work is cheapest to count.
 
-**An empty fleet with admissible ready work is a defect, not a state.** An idle slot is cheap only
-while nothing could occupy it. Refill is otherwise easy to lose between reconciles: it happens on the
-heartbeat or on the CTO's own initiative, so a fleet that empties just after one can stay empty until
-the next without anything noticing. Two moments produce it — archiving a finished agent before
-dispatching the next card, and waiting on a check that does not gate the next dispatch. Dispatch
-first, then archive; and never serialise the plan behind a verification whose result the next card
-does not need.
+1. **As many tasks run as have write zones that are pairwise disjoint at file granularity — no
+   more.** The ceiling is a limit, never a target, and an idle slot costs nothing while nothing can
+   occupy it.
+2. **An overlap is split along its subsystem seam; what will not split becomes a successor.**
+   Re-baselining the later atom on the earlier one's accepted `HEAD` is cheaper than resolving a
+   conflict by hand, which is never done in a writer's workspace.
+3. **A task that changes a canonical contract, a schema or shared infrastructure runs alone.** Every
+   other writer waits for its acceptance and re-baselines on it.
+4. **A file any participant regenerates deterministically — a lockfile, formatter output, a
+   generated index — is not shared ownership**; the CTO regenerates it during integration. Shared
+   ownership means an artifact whose downstream is maintained by hand.
+5. **No free review capacity, no new task.** A returned candidate waiting for a reviewer costs the
+   same as an unstarted atom and ages worse, so the review queue outranks a further dispatch.
+6. **Accepted work integrates immediately, and an empty slot with admissible ready work is a
+   defect.** Dispatch the next task first, then archive the finished one; conflict cost grows with
+   the square of how long branches sit apart.
 
-Admit a second and every further writer only when all of these hold:
-
-- **Disjoint write zones at file granularity.** Two live contracts never name the same file, and
-  never the same generated artifact. Sharing a directory is fine; sharing `service.go` is not.
-- **No shared regeneration.** A canonical contract and everything generated from it — protobuf and
-  its bindings, an ORM schema and its generated code, migrations, a design-token file and the theme
-  transcribed from it — has exactly one live owner per wave. A second writer touching the same
-  generator produces a conflict that no review can absorb cheaply.
-- **Independent acceptance.** Each atom proves itself without the other's result. If atom B's tests
-  only pass once A lands, B is not ready — it is A's successor.
-- **Review capacity.** One free review slot per two live writers, rounded up. A returned candidate
-  waiting for a reviewer is the same stall as an unstarted atom, and it ages worse.
-
-The review queue has priority over another build dispatch. Significant and Critical returns are
-assigned to the reserved independent reviewer immediately; Routine returns receive their mandatory
-second look from a delegated non-author agent — an available reviewer or another non-author worker,
-never the CTO. The CTO applies a complete review report and does not repeat already valid
-reviewer-owned proof. Final authorization remains central, but review, evidence production, and
-falsification are never CTO workload.
-
-Work that fails admission is not thereby serial forever. Prefer, in order: split an atom along its
-subsystem seam so the halves stop overlapping; re-baseline the later atom on the earlier one's
-accepted `HEAD`; or, only if neither works, run it as the earlier atom's successor.
-
-**Barrier atoms run alone.** An atom that edits a canonical contract, a schema or migration, shared
-build or test infrastructure, a centralized theme, or anything nearly every file imports is a
-barrier: hold the other writers until it is accepted and integrated, then re-baseline the rest.
-Trying to overlap a barrier is the single most expensive scheduling mistake available to a CTO.
-
-**Accepted work never waits.** Land accepted atoms as soon as their review clears — verified
-conflict-free fast-forward into a clean tree — and re-baseline the still-running writers'
-successors on the new accepted `HEAD`. Conflict cost grows with the square of how long branches sit
-apart, so deferring cleared work to accumulate a batch — worst of all a wave-end batch integration —
-manufactures exactly the conflict storm a wide fleet was supposed to avoid. When one reconcile finds
-several atoms already cleared and their write zones disjoint, landing them in one integration pass is
-not such a batch: their branch-apart time is already spent, and nothing unreviewed enters. Verify
-each zone and fast-forward each atom in turn, then run the affected gates, regenerate the index, and
-push once on the combined tree; a red combined gate is attributed by bisecting over that pass before
-anything is returned. Never resolve a writer's conflict by hand in its workspace; return the atom
-with the new baseline instead.
-
-**Plan the lanes before raising the ceiling.** Before widening the fleet, name the independent lanes
-the wave actually has — by subsystem, by service, by surface. If the critical path is one chain of
-dependent atoms, the honest concurrency is one writer plus, at most, off-path work that touches
-nothing on that chain. Say so in status instead of dispatching overlapping atoms to look busy.
+Name the wave's independent lanes in its wave file when the wave opens, and attach every new node to
+one. A node that fits no lane is split or queued, which is what keeps a finding discovered mid-review
+from landing inside a running writer's zone. If the critical path is one chain of dependent atoms,
+the honest concurrency is one task plus off-path work that touches nothing on that chain; say so in
+status instead of dispatching overlapping atoms to look busy.
 
 ## Recovering from an agent-daemon restart
 

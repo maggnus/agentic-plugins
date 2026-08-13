@@ -34,7 +34,7 @@ The minimum schema is:
       "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" }
     },
     "permissionPolicy": "full-access-writers",
-    "fleetBudget": "conservative",
+    "fleetBudget": { "max_live_tasks": 3 },
     "autonomyHorizon": "until-gate",
     "reviewDepth": "risk-based",
     "reportingLanguage": "<language the owner writes in>",
@@ -92,6 +92,14 @@ them gets updated and the other is left behind, and nothing in the file says whi
    same settings revision. Changing CTO family or identity is not a charter change.
 5. If the file is invalid or partially written, stop before plan mutation, workspace creation, or
    dispatch. Report the exact path and validation error; do not fall back to defaults.
+
+## Migrating a fleet budget that counted agents
+
+An older `fleetBudget` counted live agents: a preset naming writers, or an object with `max_live`.
+The field now counts plan tasks in flight. Convert a writer count one for one, because one writer was
+one task, and halve a bare agent ceiling, rounding down to at least one, because a task then carried
+about two agents. Write the result as `{ "max_live_tasks": <N> }`, raise `revision`, and do not
+reconfirm the rest of the charter.
 
 ## Migrating a `schema: 2` file
 

@@ -149,12 +149,11 @@ an execution document.
 3. **Dispatch.** Recover the persisted operating charter, or confirm and persist it on the first
    run, before the first dispatch — create no agents, workspaces, or heartbeat until this is
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
-   plan-aligned contract with an explicit validation budget to a role-skilled agent. Keep
-   independent ready work moving in parallel while a hard branch deepens; do not manufacture
-   busywork. Concurrency is earned, not declared: dispatch a further writer only when its atom
-   passes the admission test in Fleet operations — disjoint write zones, no shared regeneration,
-   independent acceptance, free review capacity — and hold every other writer while a barrier atom
-   touching a canonical contract, schema, shared infrastructure or the centralized theme runs alone.
+   plan-aligned contract with an explicit validation budget to a role-skilled agent. The budget
+   counts tasks in flight, not agents; a task carries whatever agents its review depth requires.
+   Start another task only when its write zone is disjoint from every running one and a review slot
+   is free, and hold the rest while a task touching a canonical contract, a schema or shared
+   infrastructure runs alone. The six rules are in Fleet operations.
 4. **Report.** Rewrite the durable fleet render on every reconcile and material event so the owner
    can see where the project is at any moment. Every 15-minute heartbeat posts the simplified
    header, separate plugin/CTO-session identity line, current-wave counts, and complete fleet table

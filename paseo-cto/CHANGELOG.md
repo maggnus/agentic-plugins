@@ -3,6 +3,24 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.16.0
+
+The parallel-admission section had grown to four conditions, three fallbacks and five paragraphs of
+justification, and its budget counted agents. Counting agents priced a Critical atom at twice a
+Routine one and pushed dispatch toward whichever work was cheapest to count, while the length made
+the rule expensive to apply at the moment it was needed.
+
+- **The budget counts tasks in flight, not agents.** A task carries as many agents as its review
+  depth requires. The charter field is `max_live_tasks`; an older agent-counting value migrates
+  under Persistent settings.
+- **Six rules replace the section.** Run as many tasks as have pairwise disjoint write zones; split
+  an overlap along its seam or make it a successor; a task touching a canonical contract, a schema or
+  shared infrastructure runs alone; a deterministically regenerated file is not shared ownership and
+  the CTO regenerates it at integration; no free review capacity means no new task; accepted work
+  integrates immediately and an empty slot with ready work is a defect.
+- **Lanes are named when a wave opens.** Every new node attaches to a lane, so a finding discovered
+  mid-review no longer lands inside a running writer's zone.
+
 ## 9.15.0
 
 Every fact one side needed from the other travelled through the CTO. The relay restated context both

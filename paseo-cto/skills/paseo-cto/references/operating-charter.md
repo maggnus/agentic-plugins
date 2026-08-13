@@ -28,7 +28,7 @@ blocks safe operation. The owner may change one field without repeating anything
 persisted before further operation.
 
 ```text
-CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-writers | capacity fleet (max_live <N>, 1 review slot per 2 writers) | until-gate | risk-based review | reports in <language>
+CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-writers | <N> tasks in flight | until-gate | risk-based review | reports in <language>
 ```
 
 ## The seven fields
@@ -46,17 +46,15 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
 3. **Permission policy** — `full-access-writers` (default), `role-safe`, or `always-ask`. The three
    values are defined once in [Roles and providers](roles-and-providers.md); confirm the name here
    and apply that definition. Push, deploy, and the other owner/CTO gates are unchanged by it.
-4. **Fleet budget** — the ceiling on live external agents; the CTO does not count toward it.
-   `capacity` (recommended) takes a positive `max_live` and reserves one review slot per two live
-   writers, rounded up, so a return never queues behind a busy reviewer. `balanced` (3 writers + 1
-   review reserve) and `conservative` (2 writers + 1 review reserve) are fixed small presets for a
-   machine or an account that genuinely cannot carry more.
+4. **Fleet budget** — the ceiling on plan tasks in flight, written as a positive `max_live_tasks`;
+   the CTO does not count toward it. The agents a task carries follow from its review depth, not
+   from the budget, so a Critical atom and a Routine one each occupy exactly one slot.
 
    A ceiling is not a target. The real limit on useful concurrency is the number of ready atoms whose
-   write zones are pairwise disjoint — see *Parallel admission* in
-   [Fleet operations](fleet-operations.md). Raising `max_live` without disjoint work buys nothing and
-   pays for it in merge conflicts, so a charter with a high ceiling obliges the CTO to structure the
-   plan into independent lanes rather than to dispatch overlapping atoms.
+   write zones are pairwise disjoint — see *Parallel work* in
+   [Fleet operations](fleet-operations.md). Raising `max_live_tasks` without disjoint work buys
+   nothing and pays for it in merge conflicts, so a charter with a high ceiling obliges the CTO to
+   structure the plan into independent lanes rather than to dispatch overlapping atoms.
 5. **Autonomy horizon** — `until-gate` (continue safe ready work to completion or a founder/external
    gate), `one-wave` (finish the current wave and stop cleanly), or `named-scope` (only named nodes).
 6. **Independent review depth** — `risk-based` applies the complete floor from
