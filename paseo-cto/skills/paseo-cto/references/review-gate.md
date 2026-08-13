@@ -262,6 +262,40 @@ acceptance cost, and collision risk. A CTO fix is small, obvious, bounded, separ
 rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work when
 author continuity helps.
 
+## Direct exchange between author and reviewer
+
+A fact that only one side holds is asked and answered directly. Routing it through the CTO restates
+context both sides already have, spends a turn on each side, and delays the answer until the next
+reconcile; that relay is the cost this rule removes. The CTO stops carrying messages and remains the
+decision point, auditing the exchange at the material handoff, at the return, and at the scheduled
+reconcile rather than sitting inside it.
+
+The channel carries facts: the exact revision, range and bounded scope; how to reproduce something,
+the command, and its real exit; which finding refers to which line, and the evidence-based response
+to it. One question, one answer. Do not restate what the contract, the report, or the diff already
+carries — the report remains the single record of the result, and the exchange never duplicates it.
+Ask when asking is cheaper than deriving the same fact from the code, and derive it when it is not.
+
+Four things the exchange never does, because they are what the review's cost buys:
+
+- negotiate a verdict, an acceptance, or a classification outside the task contract;
+- request that an adverse check or finding be skipped, weakened, concealed, or reclassified;
+- let the author select or modify a reviewer-owned falsifier, or the reviewer modify the candidate
+  or its acceptance evidence;
+- apply pressure, urgency, praise, blame, or any other social framing to a verdict.
+
+Independence of derivation does not change: the reviewer derives what the change must do from the
+contract, the specification and the code, never from the author's account of it. The exchange
+supplies facts, not the problem statement.
+
+Record each exchange in one line in both the return and the review report — what was asked, what was
+answered. An unrecorded exchange is itself a signal. On any signal, freeze integration, preserve the
+record, and assign an independent replacement or tie-break reviewer; never allege coordination
+without a reproducible message or action.
+
+A project may close this channel and route every handoff through the CTO. It may not widen it: the
+four prohibitions and the recording obligation are the floor.
+
 ## Lean re-review after return
 
 An accepted `RETURN` starts bounded rework inside the same card; it does not reset valid review

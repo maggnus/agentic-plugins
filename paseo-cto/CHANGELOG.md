@@ -3,6 +3,22 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.15.0
+
+Every fact one side needed from the other travelled through the CTO. The relay restated context both
+sides already held, spent a turn on each side, and held the answer until the next reconcile, while
+adding nothing the review depends on.
+
+- **An author and the reviewer of the same node exchange facts directly.** The channel carries the
+  exact revision and bounded scope, reproducible evidence with real command exits, and findings with
+  their evidence-based response; one question, one answer, never a restatement of what the contract,
+  the report or the diff already carries. Each exchange is recorded in one line in both reports, and
+  the CTO audits it at the handoff, at the return and at the scheduled reconcile instead of relaying
+  it. Verdict negotiation, weakening or concealing an adverse check, an author-selected falsifier, a
+  reviewer edit of the candidate, and social framing remain signals; the reviewer still derives what
+  the change must do from the contract, the specification and the code. A project may close the
+  channel but may not widen it.
+
 ## 9.14.0
 
 Workspace names could diverge from the derived agent names because workspace creation and agent

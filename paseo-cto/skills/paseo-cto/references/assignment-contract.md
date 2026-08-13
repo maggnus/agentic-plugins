@@ -87,6 +87,8 @@ cannot — see [Validation budget](validation-budget.md).
 ## Role additions
 
 - Builder: exact write zone, coherent local commit set, reviewed final range, empty final porcelain.
+  It may exchange facts directly with the reviewer of the same node under *Direct exchange between
+  author and reviewer* in [Review gate](review-gate.md), recording each exchange in its return.
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
 - Reviewer: exact returned outcome and acceptance; for a repository write, include the final
@@ -95,7 +97,9 @@ cannot — see [Validation budget](validation-budget.md).
   reviewer/workspace for bounded re-review by default; assign the final correction delta, affected
   context, and the existing independently selected falsifier unless a Review-gate replacement or
   invalidation condition applies. The contract's named domain skills are a floor: load every
-  available skill bearing directly on the outcome and report the additions.
+  available skill bearing directly on the outcome and report the additions. It may ask the author
+  directly for a fact it would otherwise spend a turn deriving, under the same direct-exchange rule,
+  recording each exchange in its report.
 - Researcher: one question and evidence format, identical pre/post porcelain, read-only, followed by
   the risk-required non-author second look before the card completes.
 
