@@ -17,9 +17,8 @@ Resolve these bindings from the repository before operating:
 
 The plan lives in the work tree defined by [Work tree](work-tree.md): one work unit is one permanent
 file under the work root, created once and never moved. The structure below the root is derived from
-the identifier rather than chosen, so a project cannot express the same plan in two shapes. A project
-that already keeps an execution document adopts the tree under [Legacy adoption](legacy-adoption.md);
-its frozen history keeps the shape described in [Document standard](document-standard.md).
+the identifier, so a project cannot express the same plan in two shapes. A frozen history from before
+adoption keeps the shape described in [Document standard](document-standard.md).
 
 Before the first dispatch on a new project or a new wave, build the tree under
 [Project bootstrap](project-bootstrap.md). A wave whose first card has started without an accepted
@@ -80,8 +79,8 @@ Each node carries, in the fields fixed by
 - start time and accumulated active duration;
 - for a discovered child, the evidence or event that spawned it — its reason for existing.
 
-The last one exists so no task reads as random in the index: every node ties back to a parent and,
-when it was not in the original plan, to the finding that created it.
+The last field keeps every node traceable: to its parent, and — when it was not in the original
+plan — to the finding that created it.
 
 The plan state and the agent state are different state machines. The plan's authoritative state is
 the exact machine token in the node's `state` field; these tokens are never translated. The marker is
@@ -132,10 +131,9 @@ Update the plan when dispatch depends on a new or changed node, and at discovery
 return/rework, acceptance, integration, blocking, deferral, and close. Reviewer queueing,
 agent/workspace lifecycle, and candidate coordinates are transient runtime facts, not plan changes.
 
-The CTO is the only writer of the work tree. A worker reads its task file and reports; it does not
-edit that file, because it works from a frozen baseline in an isolated worktree and a state edit
-there would have to be merged before it could be believed. Workers propose new nodes in their
-returns, and the CTO creates them in the integration tree.
+The CTO is the only writer of the work tree. A worker reads its task file and reports; it never
+edits that file, because it works from a frozen baseline in an isolated worktree. Workers propose new
+nodes in their returns, and the CTO creates them in the integration tree.
 
 The plan is durable project truth in Git. The CTO commits semantic plan changes locally before a
 dispatch that depends on them and at material gates, and keeps the integration tree clean before

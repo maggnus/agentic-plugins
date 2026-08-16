@@ -35,20 +35,19 @@ project-scoped queries miss.
    checkpoint. If the runtime snapshot differs, retain the persistent settings and record the
    mismatch; never let an old run or a replacement CTO reset owner choices.
 2. Inventory agents across **every working copy**, not from the integration root alone. Agent
-   listings are scoped by working directory, so a busy fleet reads as empty from the root, and an
-   empty reading is what produces a duplicate agent on a task someone is already building. Enumerate
-   the workspaces first, query per copy, and reconcile the union against runtime. Treat any
-   inventory that returns nothing as unproven until a second reading confirms it.
+   listings are scoped by working directory, so a busy fleet reads as empty from the root, and that
+   empty reading produces a duplicate agent on a task someone is already building. Enumerate the
+   workspaces first, query per copy, and reconcile the union against runtime. Treat any inventory
+   that returns nothing as unproven until a second reading confirms it.
 3. List workspaces with `list_workspaces`.
 4. Inspect known IDs and permissions, and match each owned record to its plan node, Git state,
    evidence, and review state. Derive each agent's expected title from its labels and rename on
    mismatch. Require its recorded workspace to carry the same title, correcting a mismatch with
    `rename_workspace` before reuse. Names follow the single derived format in Roles and providers.
 5. **Collect finished work as a step, not as a by-product.** A completed agent does not announce
-   itself; its report sits until someone fetches it. For every recorded agent not currently running,
-   fetch and read the return in this reconcile, then move the card to `reviewing` or record why it
-   cannot move. An uncollected result costs the whole interval it waits and survives a handover
-   unnoticed.
+   itself. For every recorded agent not currently running, fetch and read the return in this
+   reconcile, then move the card to `reviewing` or record why it cannot move. An uncollected result
+   costs the whole interval it waits.
 6. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded
    workspaces, and dirty or unintegrated tails.
 7. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
@@ -79,9 +78,9 @@ This equality is strict. Do not launch an agent when its newly created workspace
 title, and do not decorate either name with a workspace suffix, run ID, or descriptive text.
 
 **Always branch off an exact SHA into a new branch name.** Pointing a new workspace at an existing
-branch moves that branch into the new working copy, and the tree that held it is left on whatever
-the tool put there, carrying the uncommitted work that was in progress. The damage is silent and
-surfaces later as a commit on the wrong branch or a lost edit.
+branch moves that branch into the new working copy, and the tree that held it is left on whatever the
+tool put there together with its uncommitted work. The damage surfaces later as a commit on the wrong
+branch or a lost edit.
 
 The safe order, before creating any workspace: confirm the integration tree is clean, record the
 exact baseline SHA, choose a branch name no working copy currently holds, and create the workspace

@@ -1,14 +1,13 @@
 # Project bootstrap
 
 Read this file before the first dispatch on a new project and before opening a new large wave. It
-defines how the executable work tree comes into existence and what must be true before a builder may
-take the first task. The charter in [Operating charter](operating-charter.md) configures the
+defines how the executable work tree comes into existence and what must be true before a builder
+takes the first task. The charter in [Operating charter](operating-charter.md) configures the
 organization; this file builds the work.
 
-The CTO owns this. No separate planning role exists, and none is created: decomposition, identifiers,
-dependencies, and the frozen starting shape of a wave are CTO responsibilities. What the CTO may not
-do is confirm the completeness of its own large decomposition — that is what the independent review
-below exists for.
+Decomposition, identifiers, dependencies, and the frozen starting shape of a wave are CTO
+responsibilities, and no separate planning role exists. The CTO may not confirm the completeness of
+its own large decomposition; the independent review below does that.
 
 ## Order for a new project
 
@@ -48,10 +47,9 @@ because the previous wave finished.
 ## Unknowns are gates, never filler
 
 Product direction, pricing, legal exposure, external commitments, publication, live mutation, money,
-and irreversible operations are the owner's. The CTO does not choose one silently in order to
-complete a plan. An unknown of that kind becomes a row in `backlog/OWNER_GATES.md` and, when work
-depends on it, a task in state `blocked` naming that gate as its blocker. A plan that reads as
-complete because a decision was invented is worse than one that shows the gate.
+and irreversible operations are the owner's, and the CTO never chooses one silently to complete a
+plan. Such an unknown becomes a row in `backlog/OWNER_GATES.md` and, when work depends on it, a task
+in state `blocked` naming that gate as its blocker.
 
 ## Independent review of the plan
 
@@ -79,5 +77,5 @@ wave's `plan_review_state`, link the review report as `plan_review_evidence`, an
 ## What "executable from a cold context" means
 
 Each ready task must be dispatchable to a worker who has read nothing but that file and the project
-instructions it names. If the file requires the CTO's memory of a conversation to be understood, it
-is not ready, and the plan review is the last place that can catch it cheaply.
+instructions it names. A file that requires the CTO's memory of a conversation is not ready, and the
+plan review is the last cheap place to catch that.

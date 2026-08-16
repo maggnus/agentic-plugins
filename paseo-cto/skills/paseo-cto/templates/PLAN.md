@@ -2,7 +2,7 @@
 
 **Superseded shape.** Current work lives in the permanent work tree under the project's work root;
 this template describes the document a project kept before adoption and keeps afterwards as frozen
-history. See [Legacy adoption](../references/legacy-adoption.md).
+history.
 
 The only current implementation status and critical path. Product semantics and decisions live in
 their own documents; accepted history lives in the acceptance file. A status claim here carries a

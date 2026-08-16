@@ -11,11 +11,11 @@ Resolve the Git common directory to an absolute path and use exactly:
 $(git rev-parse --git-common-dir)/paseo-cto/SETTINGS.json
 ```
 
-`SETTINGS.json` is the owner-confirmed, project-scoped Paseo CTO configuration. It survives new
-conversations, daemon restarts, worktree changes, run IDs, and a switch between Claude and Codex CTOs
-because every worktree in the repository resolves the same Git common directory. It is not a run
-checkpoint and must never contain a CTO ID, run ID, heartbeat ID, active node, workspace, accepted
-`HEAD`, or other volatile state. Do not put secrets in it.
+`SETTINGS.json` is the owner-confirmed, project-scoped Paseo CTO configuration. Every worktree in
+the repository resolves the same Git common directory, so it survives new conversations, daemon
+restarts, worktree changes, run IDs, and a switch between Claude and Codex CTOs. It is not a run
+checkpoint: it never contains a CTO ID, run ID, heartbeat ID, active node, workspace, accepted
+`HEAD`, other volatile state, or secrets.
 
 The minimum schema is:
 
@@ -66,16 +66,16 @@ project's normal tracked documents.
 
 ## One fact, one key
 
-A setting is written in exactly one place. Two keys carrying the same fact will disagree — one of
-them gets updated and the other is left behind, and nothing in the file says which is current.
+A setting is written in exactly one place. Two keys carrying the same fact eventually disagree, and
+nothing in the file says which is current.
 
 - Never record a charter value in both `charter` and `ownerOverrides`. If an owner directive changes
   a charter field, change that field.
 - Never add a key at the document root beyond the ones the schema names. An owner decision that is
   not a charter field belongs in `ownerOverrides`, under a stable name.
-- Never encode a decision only in a free-text note. A note explains a value; it never carries one.
-  When a note contradicts the field beside it, the field is authoritative and the note is a defect
-  to be corrected in the same edit.
+- Never encode a decision only in a free-text note. A note explains a value and never carries one.
+  When a note contradicts its field, the field is authoritative and the note is corrected in the
+  same edit.
 - Validate on read: a charter field whose value is outside the set its definition allows makes the
   file invalid, and the startup rule below applies. Do not silently accept a value borrowed from
   another field's vocabulary.
@@ -103,17 +103,14 @@ reconfirm the rest of the charter.
 
 ## Migrating a `schema: 2` file
 
-Schema 3 adds the `work` block, because the work root and the project's script home are project
-facts the loop needs before it can read or generate anything, and a value that has no slot ends up
-guessed differently by each session. Migrate by adding the block with the project's actual paths and
-raising `revision`. Nothing else changes, and the charter is not reconfirmed.
+Schema 3 adds the `work` block for the work root and the project's script home, which the loop needs
+before it can read or generate anything. Migrate by adding the block with the project's actual paths
+and raising `revision`. Nothing else changes, and the charter is not reconfirmed.
 
 ## Migrating a `schema: 1` file
 
 Schema 1 carried `gptModel`, `claudeModel`, and a single `reasoningPolicy` string. Schema 2 replaces
-all three with `roleAssignments`, because one string could not express a per-role effort and the
-model fields had no slot for the CTO's own seat — so projects grew private keys to hold what the
-schema could not, and those keys drifted out of agreement with it.
+all three with `roleAssignments`, which expresses a per-role effort and the CTO's own seat.
 
 Migrate in one edit, then raise `revision`:
 

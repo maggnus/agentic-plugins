@@ -1,11 +1,10 @@
 # Assignment contract
 
 Read this file immediately before dispatching work. Give each agent one bounded plan atom in an
-isolated workspace. The atom is one permanent task file: the contract names its path, and the fields
-below either quote that file or bind it to this dispatch. A contract that cannot be written from the
-task file means the file is not yet startable from a cold context, which is a planning defect rather
-than a dispatch detail. The worker never edits that file; state and new work units are recorded by
-the CTO. The first prompt line is a fail-closed role gate; put all other fields in this
+isolated workspace. The atom is one permanent task file: the contract names its path and either
+quotes that file or binds it to this dispatch. A contract that cannot be written from the task file
+means the file is not startable from a cold context, which is a planning defect. The worker never
+edits that file. The first prompt line is a fail-closed role gate; all other fields follow in this
 order:
 
 ```markdown
@@ -26,12 +25,11 @@ Return: <source-linked final range and file evidence, concise diff, real checks,
 Response round: <only when triggered by Review gate; evidence-based and no changes without rework authorization>
 ```
 
-`Maturity` is not optional and is not inferred from the role: a builder can carry a `RESEARCH` card
-and a researcher can carry a `DESIGN` one. It fixes what counts as success before the work starts,
-so a refuted assumption cannot later be read as a failure to deliver. `Outcome` is written to match
-it — a verified answer, a chosen model, a realized contract, or a procedure proved executable by the
-operator who will actually run it. Every return is written in the assignment's reporting language
-using the formal, neutral, impersonal register.
+`Maturity` is mandatory and is never inferred from the role: a builder can carry a `RESEARCH` card
+and a researcher a `DESIGN` one. It fixes what counts as success before the work starts. `Outcome`
+matches it — a verified answer, a chosen model, a realized contract, or a procedure proved
+executable. Every return uses the assignment's reporting language and the formal, neutral,
+impersonal register.
 
 Address the role skill as `$paseo-cto:paseo-<role>` in Codex and `/paseo-cto:paseo-<role>` in
 Claude, where `<role>` is `builder`, `reviewer`, or `researcher`. Include the preflight-resolved
@@ -79,10 +77,8 @@ ceremonial mutation. See *A proof must be able to fail* in [Review gate](review-
 contract is where that requirement is priced in, because discovering it at review costs a round.
 
 For a boundary between two components, name in the contract which accepted proof travels the
-product's own path. A harness that assembles the request and supplies the expected value tests the
-harness; it can report success while the boundary it claims to cover has never been crossed by
-product code. One end-to-end proof through the real path settles what any number of harness runs
-cannot — see [Validation budget](validation-budget.md).
+product's own path. A harness that assembles the request and supplies the expected value tests only
+the harness. See [Validation budget](validation-budget.md).
 
 ## Role additions
 

@@ -1,8 +1,8 @@
 # <project> — Acceptance
 
 **Superseded shape.** Under the work tree an accepted task stays in its own permanent file and no
-row is written; this template describes the history a project kept before adoption and freezes
-afterwards. See [Legacy adoption](../references/legacy-adoption.md).
+row is written. This template describes the history a project kept before adoption and freezes
+afterwards.
 
 Compact history of accepted cards. The plan document owns current work; Git, CI and runtime
 artifacts own detailed evidence.

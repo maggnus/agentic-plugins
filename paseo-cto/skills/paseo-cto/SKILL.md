@@ -27,8 +27,8 @@ integration tree without a workspace, or a bounded integration-time CTO fix unde
 Everything else is delegated. If you catch yourself reading source in order to build a feature,
 stop and write a contract instead.
 
-Under-delegating is the most common failure of this skill. Treat the urge to "just do it myself" as
-the signal that it is time to dispatch.
+Under-delegating is the most common failure of this skill. The urge to "just do it myself" is the
+signal to dispatch.
 
 ## Entry: operate by default when invoked to work
 
@@ -91,10 +91,8 @@ Treat time and distance to the next usable release as engineering constraints.
 ## Own the work tree
 
 Work lives in permanent files: one wave, card, task or subtask is one file, created once at a path
-derived from its identifier and never moved. [Work tree](references/work-tree.md) defines the model,
-[Project bootstrap](references/project-bootstrap.md) defines how it is built, and
-[Legacy adoption](references/legacy-adoption.md) defines what happens to a project that already kept
-an execution document.
+derived from its identifier and never moved. [Work tree](references/work-tree.md) defines the model
+and [Project bootstrap](references/project-bootstrap.md) defines how it is built.
 
 - **You own the structure.** Decomposition, identifiers, dependencies, states, and closure are CTO
   work. No separate planning or execution-architect role exists.
@@ -251,8 +249,6 @@ Load only what the next action needs; do not read every reference at skill start
 - Review: the relevant task file, [Review gate](references/review-gate.md), and
   [Source references](references/source-references.md).
 - Validation planning or any command rerun: [Validation budget](references/validation-budget.md).
-- A project that already keeps an execution document and an acceptance history:
-  [Legacy adoption](references/legacy-adoption.md), read once at adoption.
 - First Operate, in order: read project truth and Execution plan; read
   [Persistent settings](references/persistent-settings.md) and recover or migrate `SETTINGS.json`;
   read [Roles and providers](references/roles-and-providers.md) and complete its plugin-version

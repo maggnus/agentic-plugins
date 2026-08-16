@@ -7,17 +7,14 @@ and the frozen shape a project keeps from before it adopted the tree.
 
 ## One structure, not a convention
 
-The work tree is mandatory while the CTO operates. A project does not keep its own parallel shape
-for current work, and the plugin does not bind to a foreign tracker for it: two shapes for the same
-plan mean two readings, two checks, and eventually two truths. The one adjustable value is the work
-root, recorded once in `SETTINGS.json`.
+The work tree is mandatory while the CTO operates. A project keeps no parallel shape for current
+work, and the plugin binds to no foreign tracker for it. The one adjustable value is the work root,
+recorded once in `SETTINGS.json`.
 
-A project that already keeps an execution document and an acceptance history adopts the tree under
-[Legacy adoption](legacy-adoption.md). Its existing documents are frozen, keep the shape described
-below, and are never converted.
+A project that already keeps an execution document and an acceptance history freezes those
+documents in the shape described below and never converts them. Current work moves to the tree.
 
-The invariant registry remains recommended and unchanged, because its value is at the review gate
-rather than in tracking work.
+The invariant registry remains recommended and unchanged; its value is at the review gate.
 
 ## The card body
 
@@ -61,14 +58,13 @@ The acceptance history holds one compact row per accepted card and nothing else:
 | Time | When the row was written, then the working time the card cost |
 
 `Time` holds `DD/MM HH:MM (<cost>)` — the local-time moment of acceptance, then the active working
-time in parentheses. The parenthesized cost counts every agent turn across build, review and rework
-plus the CTO's own work on that card; waiting is excluded, so the number reads as cost rather than
-calendar duration. A card whose time was never measured records `(n/a)`; a figure is never
-reconstructed after the fact. The work tree carries the same two facts as `accepted_at` and
-`duration_minutes`, and renders them in the same form.
+time. The cost counts every agent turn across build, review and rework plus the CTO's own work on
+that card; waiting is excluded. A card whose time was never measured records `(n/a)`, and a figure is
+never reconstructed after the fact. The work tree carries the same two facts as `accepted_at` and
+`duration_minutes`.
 
-Under the tree, acceptance is not a transfer and there is no archive: the accepted body stays in the
-file it was written in, which is what the transfer rule was trying to preserve.
+Under the tree, acceptance is not a transfer and there is no archive: the accepted body stays in its
+own file.
 
 ## Source links
 
@@ -80,14 +76,12 @@ paths, branch links, and labels such as "Git" are not durable evidence.
 ## The invariant registry (recommended)
 
 A numbered list of contracts no change may break without an explicit decision record. Each entry
-names what must hold and where it is enforced. Its value is at the review gate: `Critical` requires
-a credible threat to a named invariant, and a registry turns that from a judgment call into a
-lookup. Without one, risk classification drifts toward whatever the current reviewer fears most.
+names what must hold and where it is enforced. `Critical` requires a credible threat to a named
+invariant, so the registry turns that classification from a judgment call into a lookup.
 
 ## Make the shape a gate
 
-A document whose form rests on convention drifts, and nobody notices until the plan stops being
-sequenceable. The checks are the gate:
+Form that rests on convention drifts. The checks are the gate:
 
 - [`templates/work.py`](../templates/work.py) `check` validates the whole tree against
   [`templates/work-schema.json`](../templates/work-schema.json): identifiers, derived paths,

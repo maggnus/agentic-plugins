@@ -50,11 +50,10 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
    the CTO does not count toward it. The agents a task carries follow from its review depth, not
    from the budget, so a Critical atom and a Routine one each occupy exactly one slot.
 
-   A ceiling is not a target. The real limit on useful concurrency is the number of ready atoms whose
-   write zones are pairwise disjoint — see *Parallel work* in
-   [Fleet operations](fleet-operations.md). Raising `max_live_tasks` without disjoint work buys
-   nothing and pays for it in merge conflicts, so a charter with a high ceiling obliges the CTO to
-   structure the plan into independent lanes rather than to dispatch overlapping atoms.
+   A ceiling is not a target. Useful concurrency is limited by the number of ready atoms whose write
+   zones are pairwise disjoint — see *Parallel work* in [Fleet operations](fleet-operations.md). A
+   high ceiling obliges the CTO to structure the plan into independent lanes, never to dispatch
+   overlapping atoms.
 5. **Autonomy horizon** — `until-gate` (continue safe ready work to completion or a founder/external
    gate), `one-wave` (finish the current wave and stop cleanly), or `named-scope` (only named nodes).
 6. **Independent review depth** — `risk-based` applies the complete floor from

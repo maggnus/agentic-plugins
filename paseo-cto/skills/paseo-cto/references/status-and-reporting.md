@@ -22,8 +22,7 @@ Compute the snapshot once per reconcile and use those exact values for both sink
    `Fleet steady · <agents-running> running · head <short-sha>` — nothing else.
 
 A material event is a landing decision, a review verdict, a new blocker, a critical-path change, or
-an owner gate. A full unchanged table on every heartbeat restates what the durable file already
-holds and spends context for nothing.
+an owner gate. An unchanged table restates what the durable file already holds.
 
 Coalesce every lifecycle change discovered in one turn into one report, after the reconciliation is
 complete. A turn adds at most one compact prose delta. If several heartbeats were missed while one

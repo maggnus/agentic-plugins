@@ -12,13 +12,12 @@ A work unit is created in its final place and stays there for its whole lifecycl
 planned → active → blocked | paused | rework → accepted | rejected
 ```
 
-Acceptance moves no text. The state changes and the closure fields are filled in the same file. The
-file that was dispatched is the file that is reviewed, the file that is accepted, and the file a
-later reader opens to learn what was decided. Nothing is summarised into a row and nothing is copied
-into an archive, because both losses are invisible afterwards.
+Acceptance moves no text: the state changes and the closure fields are filled in the same file. The
+file that was dispatched is the file that is reviewed and accepted. Nothing is summarised into a row
+or copied into an archive.
 
-The tree carries current work and completed work together. Git carries candidate history, the
-evidence package carries command transcripts, and the work index carries the one-line view.
+The tree carries current and completed work together. Git carries candidate history, the evidence
+package carries command transcripts, and the work index carries the one-line view.
 
 ## Structure
 
@@ -98,18 +97,12 @@ between cards and their wave.
 
 [`templates/work-schema.json`](../templates/work-schema.json) is the single source of truth for
 field sets, vocabularies, section order, and identifier grammar. The templates, the generator, and
-the validator all read it, so a change to the model is one change rather than three. Every field is
-either a closed vocabulary or a typed scalar; an unknown field, an unknown value, a timestamp
-without an offset, or a negative duration is refused rather than passed through.
+the validator all read it. Every field is a closed vocabulary or a typed scalar; an unknown field or
+value, a timestamp without an offset, and a negative duration are refused.
 
-A project that imported its frozen history rather than freezing it beside the tree uses the declared
-relaxations in [Legacy adoption](legacy-adoption.md); they apply to an accepted card only, and the
-wave rollup states how much of its total they are.
-
-`risk` and `maturity` live on the file rather than only in the dispatch contract. The contract is
-transient, and the level a result was judged at — `RESEARCH`, `DESIGN`, `BUILD`, or
-`OPERATIONALIZATION` — is what makes a later reading of an accepted outcome correct: an assumption a
-research card invalidated is a result, and the same text under a build card would be a defect.
+`risk` and `maturity` live on the file, not only in the dispatch contract. The contract is transient,
+and the maturity a result was judged at — `RESEARCH`, `DESIGN`, `BUILD`, `OPERATIONALIZATION` —
+decides whether a later reading is correct.
 
 ## When a finding becomes its own file
 
@@ -119,18 +112,15 @@ when it has a separate outcome, needs separate acceptance, changes scope, carrie
 needs a different specialist, can be independently returned or accepted, can be deferred without
 making the current acceptance dishonest, or waits on a separate owner decision or external trigger.
 
-One sentence decides it: a separate file is needed when the work can be independently assigned,
-performed, reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside
-the file they belong to.
+The test: a separate file is needed when the work can be independently assigned, performed,
+reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside their file.
 
-Separation decides ownership and closure, never execution. Work decomposition does not imply
-execution decomposition: sibling nodes that are small and homogeneous — one technical surface, one
-environment, one verification method, one review context — are normally implemented and reviewed as
-one batch, under one contract, one workspace, and one review, classified at the highest risk among
+Separation decides ownership and closure, never execution. Small homogeneous siblings — one technical
+surface, one environment, one verification method, one review context — are implemented and reviewed
+as one batch under one contract, one workspace, and one review, classified at the highest risk among
 them. Each batched node keeps its own identifier, state, closure record, and return path, and the
-shared review evidence must close each node individually; a node the shared evidence does not cover
-is not closed by the batch. A node that develops independent risk, a separate acceptance story, or a
-return of its own leaves the batch and moves alone.
+shared evidence must close each node individually. A node that develops independent risk, a separate
+acceptance story, or a return of its own leaves the batch.
 
 ## While the work runs
 
@@ -147,9 +137,9 @@ evidence, fill `Closure`, close the acceptance checklist or record `deliberate_p
 update the active duration, regenerate the index, then test whether the parent card and the wave can
 now close. The file stays where it is.
 
-Each evidence entry is a Markdown link. The single literal `Git` is the one permitted exception: it
-records that the commit itself is the whole evidence, and it is written deliberately rather than
-left empty, so an accepted task with nothing behind it cannot pass silently.
+Each evidence entry is a Markdown link. The literal `Git` is the only exception and records that the
+commit itself is the whole evidence; it is written deliberately so an accepted task with nothing
+behind it cannot pass silently.
 
 A partial acceptance is honest only when the headline outcome is genuinely achieved, the limitation
 does not make it false, the return trigger is exact and observable, the residue is reversible or
@@ -181,9 +171,8 @@ exactly:
 Rows appear in tree order, ascending by identifier. No value is read from the clock, so regenerating
 an unchanged tree produces an identical file.
 
-Waves are not rows in that table: they would carry no commit, start, or duration, and the count that
-actually matters for a wave has nowhere to go. They get their own generated file instead, `WAVES.md`,
-written by the same command:
+Waves are not rows in that table; they get their own generated file, `WAVES.md`, written by the same
+command:
 
 ```markdown
 | Status | ID | Wave | Outcome | Cards | Done |

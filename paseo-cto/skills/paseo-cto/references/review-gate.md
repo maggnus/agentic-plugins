@@ -70,10 +70,10 @@ repository file cited as durable evidence. Numerical scores are not used.
 
 ## A proof must be able to fail
 
-A check that cannot fail proves nothing, and it is indistinguishable from a passing check until
-production disagrees with it. The recurring shapes are a gate whose condition no input could
-violate, a script comparing a subset against itself, a fixture pinned to the value the code
-currently produces, and a suite exercising a configuration the deployed system never reaches.
+A check that cannot fail proves nothing and is indistinguishable from a passing check until
+production disagrees. The recurring shapes: a gate whose condition no input could violate, a script
+comparing a subset against itself, a fixture pinned to the value the code currently produces, and a
+suite exercising a configuration the deployed system never reaches.
 
 For every load-bearing claim offered as acceptance evidence, require three things. Several commands
 may share one negative half when they establish the same claim; unchanged compiler, formatter,
@@ -131,8 +131,8 @@ semantics, production reachability, or the threatened invariant, it keeps the co
 ## When the reviewer shares the author's provider family
 
 An independent review borrows part of its strength from the reviewer not sharing the author's blind
-spots. When the assignment puts author and reviewer on the same provider family, that property is
-gone and it goes quietly: the review still reads as independent and still produces findings.
+spots. A same-family assignment removes that property silently: the review still reads as independent
+and still produces findings.
 
 Record in the review that the cross-family property was lost, and compensate in the reviewer's
 contract:
@@ -148,9 +148,8 @@ contract:
 
 ## Accepting with residue
 
-A finding can be real, correctly argued, and still not worth another round, because the product
-behaviour under review is settled and what remains improves the proof or anticipates a condition
-that does not yet exist.
+A finding can be real, correctly argued, and still not worth another round when the product
+behaviour is settled and what remains only improves the proof.
 
 `ACCEPT WITH RESIDUE` lands the work and records the finding as a known fact with a return
 condition. It requires all of:
@@ -187,8 +186,8 @@ corrects the tree.
 
 ## Converge: the second return forces a decision
 
-Each individual round looks justified, which is why a card can keep returning on progressively
-narrower findings after the product behaviour stopped changing.
+Each round looks justified on its own, so a card can keep returning on ever narrower findings after
+the product behaviour stopped changing.
 
 After the **second** return on one card, the CTO decides in that same turn among exactly these:
 
@@ -221,10 +220,9 @@ rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or un
 
 ## Direct exchange between author and reviewer
 
-A fact that only one side holds is asked and answered directly. Routing it through the CTO restates
-context both sides already have and delays the answer until the next reconcile. The CTO remains the
-decision point and audits the exchange at the material handoff, at the return, and at the scheduled
-reconcile.
+A fact that only one side holds is asked and answered directly; routing it through the CTO delays the
+answer until the next reconcile. The CTO remains the decision point and audits the exchange at the
+material handoff, at the return, and at the scheduled reconcile.
 
 The channel carries facts: the exact revision, range and bounded scope; how to reproduce something,
 the command, and its real exit; which finding refers to which line, and the evidence-based response
