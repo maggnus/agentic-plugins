@@ -4,8 +4,13 @@
 
 set -euo pipefail
 
-plugin_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$plugin_root"
+# Find repo root
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$repo_root" ]; then
+    echo "release: not in a git repository" >&2
+    exit 1
+fi
+cd "$repo_root"
 
 # Check for uncommitted changes
 if ! git diff --quiet || ! git diff --cached --quiet; then
