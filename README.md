@@ -23,6 +23,16 @@ All `paseo-cto` installations use the remote GitHub marketplace pinned to the ma
 release tag. A local directory, a moving branch, or an unpinned remote marketplace is not a valid
 installation source. The local repository is used for development and validation only.
 
+## Release
+
+```sh
+bash paseo-cto/scripts/release.sh
+```
+
+Runs all validation, updates Codex cachebuster, creates the immutable tag, and pushes. Requires
+local Codex CLI tools (`~/.codex/skills/.system/plugin-creator/scripts/`), `jq`, and push access
+to `origin`.
+
 ## Plugins
 
 ### `paseo-cto` — the external-agent CTO operating model
@@ -87,7 +97,7 @@ completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.1.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v10.1.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
