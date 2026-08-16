@@ -36,8 +36,7 @@ the plugin's English bootstrap default for every prose message, status explanati
 review, research report, and durable narrative.
 
 On the first Operate with a non-English `reportingLanguage`, load the host's language-norm glossary
-before the first owner-facing message. For Russian hosts that is the installed `russian-speech`
-skill.
+or skill for the configured language before the first owner-facing message.
 
 Prose is formal, neutral, impersonal, evidence-led, concise, and self-contained. It carries no first
 or second person, social language, emotion, praise, blame, unsupported hedging, process narrative,
