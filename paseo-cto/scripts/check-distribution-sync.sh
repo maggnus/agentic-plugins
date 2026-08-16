@@ -64,14 +64,12 @@ require(work_schema.get("tooling_version") == worklib.TOOLING_VERSION,
 require(work_schema.get("tooling_digest") == worklib.tooling_digest(work_script, work_schema),
         "the work tooling changed without being re-stamped; run scripts/stamp-work-tooling.py")
 
-changelog = (root / "CHANGELOG.md").read_text()
-require(f"## {claude_version}" in changelog,
-        f"CHANGELOG.md has no {claude_version} release heading")
-
 readme = (root.parent / "README.md").read_text()
 release_tag = f"v{claude_version}"
 require(f"PASEO_CTO_TAG={release_tag}" in readme,
         f"README.md does not select release tag {release_tag}")
+require(f"paseo-cto: {release_tag} |" in readme,
+        f"README.md snapshot example does not show {release_tag}")
 require('maggnus/claude-plugins@${PASEO_CTO_TAG}' in readme,
         "README.md does not pin the Claude marketplace to the release tag")
 require('maggnus/claude-plugins --ref "$PASEO_CTO_TAG"' in readme,

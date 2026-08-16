@@ -191,10 +191,7 @@ written by the same command:
 
 One row per wave in ascending order, with its state marker, its title, the first line of its
 `Outcome` section, how many of its cards are accepted, and that share as a percentage rounded half
-up from integers. The last row totals every wave, so the project's overall progress is one number
-rather than an addition the reader performs. A wave with no cards renders `0/0` and `—`. The file
-answers the question the index cannot: how many waves exist, in what order, and how far each has
-come.
+up from integers. The last row totals every wave. A wave with no cards renders `0/0` and `—`.
 
 ## Commands
 
@@ -216,20 +213,18 @@ timestamp, a dependency cycle, a dependency without a file, a parent closed over
 child, an acceptance checklist left open without a deliberate partial, a `Current state` that has
 turned into a chronology, an index that disagrees with the tree, a commit reference that is not a
 full immutable SHA, a nested Markdown link, a title that names an activity, and one identifier that
-is live in both the tree and a frozen legacy document. `fix-links` repairs the one class of these
-defects that has a mechanical answer: a commit link carrying a short SHA and a source link pinned to
-a branch are repinned to the full commit SHA the local repository resolves them to, so the round trip
-from a `check` refusal back through an editing session is spent only on references Git itself cannot
-resolve.
+is live in both the tree and a frozen legacy document. `fix-links` repairs the mechanical class:
+a commit link carrying a short SHA and a source link pinned to a branch are repinned to the full
+commit SHA the local repository resolves them to.
 
 Copy `work.py`, `work-schema.json`, and `templates/work/` into the project's own script and template
 home and bind `check` to the project's validation gate. Do not call them from the plugin path, which
 carries a version and differs between hosts.
 
-That copy is the one part of the model that can silently fall behind, so it is stamped. `work.py` and
-`work-schema.json` carry the plugin release in which the tooling last changed, together with a digest
-over the pair. Every run verifies both: a copy assembled from two different releases and a copy edited
-in place are refused with the reason. `work.py version` prints the stamp, and
+That copy can silently fall behind, so it is stamped. `work.py` and `work-schema.json` carry the
+plugin release in which the tooling last changed, together with a digest over the pair. Every run
+verifies both, refusing a copy assembled from two releases or edited in place. `work.py version`
+prints the stamp, and
 
 ```sh
 python3 <script home>/work.py check --root <work root> --plugin-templates <plugin>/skills/paseo-cto/templates

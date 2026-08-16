@@ -1,54 +1,68 @@
 # Status and reporting
 
 Read this file before emitting any status, and on every reconcile while operating. It defines one
-deterministic snapshot so Claude and Codex report the same project state.
+deterministic snapshot so Claude and Codex report the same project state. It is also the single
+owner of the reporting register: `SKILL.md` states the principles and defers here for the rules and
+examples.
 
-This file governs the **fleet snapshot**: the runtime render of who is working right now. It is a
-different artifact from the **work index**, the committed `STATUS.md` that `work.py status`
-generates from the permanent task files and that [Work tree](work-tree.md) defines. The index shows
-where the project is; the snapshot shows what the fleet is doing this minute.
+This file governs the **fleet snapshot**, the runtime render of who is working right now. The
+committed `STATUS.md` that `work.py status` generates is a different artifact, defined by
+[Work tree](work-tree.md). The index shows where the project is; the snapshot shows what the fleet
+is doing this minute.
 
-## One snapshot, two sinks
+## One snapshot, two sinks, two cadences
 
-Compute the snapshot once per reconcile and use those exact values for both sinks:
+Compute the snapshot once per reconcile and use those exact values for both sinks.
 
 1. **Durable file** — rewrite `<git-common-dir>/paseo-cto/FLEET.md` on every reconcile and material
-   event. Resolve the Git common directory; never write the file to an assumed checkout root.
-2. **Chat** — post the exact current-wave header and complete fleet table on every scheduled
-   15-minute heartbeat, even when nothing changed. Post the same snapshot immediately for every
-   explicit status request, including a bare "where are we" request. A material event between
-   scheduled snapshots may add a brief prose delta after the snapshot.
+   event, unconditionally. Resolve the Git common directory; never write the file to an assumed
+   checkout root. The file is cheap; the chat is not.
+2. **Chat** — post the header and complete fleet table when a material event occurred since the last
+   posted snapshot, and immediately for any explicit status request. Otherwise post one quiet line:
+   `Fleet steady · <agents-running> running · head <short-sha>` — nothing else.
 
-The scheduled snapshot is the sole exception to the rule against repeating unchanged information.
-Never repeat unchanged prose. State the absolute `FLEET.md` path once when Operate begins; do not
-put it in the snapshot or repeat it in ordinary updates.
+A material event is a landing decision, a review verdict, a new blocker, a critical-path change, or
+an owner gate. A full unchanged table on every heartbeat restates what the durable file already
+holds and spends context for nothing.
 
-Coalesce lifecycle changes discovered in one turn into one report after the reconciliation is
-complete. Between scheduled heartbeats, rewrite `FLEET.md` at every material transition but post no
-full table unless the owner requested status. Post at most one compact prose delta for the turn when
-a landing decision, risk, blocker, critical-path change, or owner gate changed. If several
-heartbeats were missed while one long operation occupied the session, publish only the newest
-current snapshot at the next idle boundary; stale catch-up snapshots carry no useful state.
+Coalesce every lifecycle change discovered in one turn into one report, after the reconciliation is
+complete. A turn adds at most one compact prose delta. If several heartbeats were missed while one
+long operation held the session, publish only the newest snapshot at the next idle boundary. State
+the absolute `FLEET.md` path once when Operate begins.
 
 ## Language and register
 
 Owner-facing prose uses the exact project-local `charter.reportingLanguage`. That setting overrides
 the plugin's English bootstrap default for every prose message, status explanation, escalation,
-review, research report, and durable narrative. No language is privileged by the plugin after a
-valid local setting exists.
+review, research report, and durable narrative.
 
-Prose is formal, neutral, impersonal, evidence-led, concise, and self-contained. It contains no
-first or second person, social language, emotion, praise, blame, unsupported hedging, process
-narrative, fragments, or commentary on an author or agent. Put the result first.
+On the first Operate with a non-English `reportingLanguage`, load the host's language-norm glossary
+before the first owner-facing message. For Russian hosts that is the installed `russian-speech`
+skill.
 
-The fixed snapshot labels and machine tokens below form a stable interface and are not translated:
+Prose is formal, neutral, impersonal, evidence-led, concise, and self-contained. It carries no first
+or second person, social language, emotion, praise, blame, unsupported hedging, process narrative,
+fragments, or commentary on an author or agent. Put the result first.
+
+The report speaks about the system, never about who performed the work. Not "I found a defect" but
+"the check found a defect". This holds for withdrawing a claim too: state that the claim is wrong
+and what was measured instead, with no apology.
+
+Write complete sentences. A technical term serves a sentence; it never replaces one. Brevity comes
+from tight sentences, not from dropped grammar, so no stacked bare nouns, no semicolon lists
+standing in for clauses, and no arrow chains. Test before sending: would a reader seeing this system
+for the first time understand it on one pass?
+
+Use this sentence order whenever the clauses exist: observed fact and evidence; effect on the
+contracted outcome; required disposition; remaining unknown. Omit a clause that carries no decision.
+
+The fixed snapshot labels and machine tokens are a stable interface and are never translated:
 `Update`, `paseo-cto`, `Model`, `Context`, `Session`, `Wave`, `Cards`, the table headers, plan IDs,
-agent titles, derived-status tokens, commands, and paths. The exact form is independent of the
-configured prose language.
+agent titles, derived-status tokens, commands, and paths.
 
 ## Scheduled snapshot — exact shape
 
-Rewrite `FLEET.md` and post the scheduled chat snapshot in exactly this shape:
+Rewrite `FLEET.md` and post the chat snapshot in exactly this shape:
 
 ```markdown
 # Update <YYYY-MM-DD HH:MM TZ>
@@ -62,27 +76,25 @@ Cards: <done>/<total>
 | `W5-4-<family>-builder` | `W5-4` Complete recovery path | `running` | 18m | +24 -3 |
 ```
 
-Use single spaces exactly as shown. `# Update ...` is the only Markdown heading; the fleet table
-follows `Cards` directly after one blank line and has no `Active fleet` heading. The `paseo-cto` line
-is separate from the Markdown heading. Its version is the base version of the immutable marketplace
-tag loaded by this session; never show the Codex cachebuster suffix. `Model` is the exact
-`provider/model` assignment for the CTO role followed by its configured reasoning effort in
-parentheses. `Context` is the exact context amount and percentage reported by the current host, for
-example `201k(15%)`; do not infer or reinterpret either value. Omit the complete
-`| Context: ...` segment when the host exposes no trustworthy measurement. `Session` is elapsed
-wall-clock time since this CTO session started, rendered as `24m`, `1h`, or `1h24m`. A handover or
-new host conversation starts a new session clock; compaction inside the same session does not.
+Use single spaces exactly as shown. `# Update ...` is the only Markdown heading, and the fleet table
+follows `Cards` after one blank line with no `Active fleet` heading. The `paseo-cto` line is separate
+from that heading. Its version is the base version of the immutable marketplace tag this session
+loaded; never show the Codex cachebuster suffix. `Model` is the exact `provider/model` assignment
+for the CTO role with its configured reasoning effort in parentheses. `Context` is the exact amount
+and percentage the host reports, for example `201k(15%)`; omit the whole `| Context: ...` segment
+when no trustworthy measurement exists. `Session` is elapsed wall-clock time since this CTO session
+started, rendered as `24m`, `1h`, or `1h24m`. A handover or new host conversation starts a new
+session clock; compaction inside the same session does not.
 
-Derive every required identity value from plugin-version preflight, `charter.roleAssignments`, and
-runtime state. If the version, model, effort, or session time is unavailable, or the version
-disagrees with the selected immutable release, fail the status gate instead of inventing it. Context
-is the only optional value. Invoke
-[`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) with
+Derive every identity value from plugin-version preflight, `charter.roleAssignments`, and runtime
+state. If the version, model, effort, or session time is unavailable, or the version disagrees with
+the selected immutable release, fail the status gate instead of inventing it. Context is the only
+optional value. Invoke [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) with
 `PASEO_CTO_VERSION=v<base-version>` to verify the displayed release.
 
 Do not add the run ID, CTO ID, path, strategy, readiness, constraint, fleet counts, project rollup,
-blockers, tails, or next action to this mechanical render. Those facts belong in the plan, runtime
-state, or a material prose delta. Do not put any content after the final fleet row in `FLEET.md`.
+blockers, tails, or next action to this mechanical render. Those belong in the plan, runtime state,
+or a material prose delta. Do not put any content after the final fleet row in `FLEET.md`.
 
 The timestamp uses the machine's local time and a short unambiguous timezone token. Every value is
 derived from current evidence; none is estimated.
@@ -93,7 +105,7 @@ The runtime checkpoint stores the current wave ID and name. Resolve both during 
 
 - The current wave is the wave containing the head of the critical path.
 - When the last card in that wave is accepted, retain the completed wave through its final `N/N`
-  snapshot. Advance only after that snapshot to the wave containing the next critical-path head.
+  snapshot, then advance to the wave holding the next critical-path head.
 - `total` is the number of card files in that wave's directory.
 - `done` is how many of them are in state `accepted`.
 - A discovered card increases `total` as soon as its file exists. A duplicate ID or a tree that does
@@ -109,17 +121,17 @@ two modes are mutually exclusive.
 ## Fleet table — fixed columns and mechanical fields
 
 Use exactly `Agent | Task | Status | Time | LOC`. The table contains every owned non-archived agent,
-even when it belongs to a different wave or a preserved tail. Put the CTO first, then current-wave
-agents, then every other active or preserved agent in stable agent-title order. The CTO row means the
-CTO's current bounded integration or review action; it is never omitted.
+even one belonging to a different wave or a preserved tail. Put the CTO first, then current-wave
+agents, then every other agent in stable agent-title order. The CTO row shows its current bounded
+integration or review action and is never omitted.
 
 - **Agent** — `<plan-id>-<family>-<role>`, where `<family>` is the provider-family slug recorded for
   that role in `charter.roleAssignments`. The CTO row is `cto-<family>`.
 - **Task** — the plan node's outcome title, prefixed with its stable ID in backticks
-  (`` `W5-4` ``). Use `` `—` `` for the CTO's own bounded action. Do not invent a title that cannot
+  (`` `W5-4` ``). Use `` `—` `` for the CTO's own bounded action. Never invent a title that cannot
   be traced to the plan.
 - **Status** — exactly one derived Fleet operations token: `running`, `waiting`, `blocked`, `idle`,
-  `reviewing`, `rework`, `stalled`, `error`, or `done`. Never use a native provider status.
+  `reviewing`, `rework`, `stalled`, `error`, or `done`. Never a native provider status.
 - **Time** — time in the current derived state, not total task age. After recovery without a
   reliable `stateSince`, use the closest defensible timestamp and prefix `~`.
 - **LOC** — textual line delta against the recorded baseline from
@@ -130,30 +142,23 @@ CTO's current bounded integration or review action; it is never omitted.
 
 ## Material prose delta
 
-The snapshot is the state display. Prose is added only when a landing decision, risk, blocker,
-critical-path change, or owner gate materially changed. It follows the snapshot, has no mandated
-heading, and normally consists of one or two short paragraphs. Keep it under 900 characters unless
-an owner decision or critical risk cannot be stated correctly in less.
+Prose is added only when a landing decision, risk, blocker, critical-path change, or owner gate
+materially changed. It follows the snapshot, has no mandated heading, and normally runs one or two
+short paragraphs under 900 characters.
 
-The prose states only:
+The prose states only what limits progress, what changed or was decided, why it matters to the
+product or critical path, and what happens next. Never repeat what has not changed, retell an
+investigation, list intermediate attempts, or include commands, internal function names, exact query
+forms, working-tree cleanliness, or test-harness detail. Mention an adjacent defect only as a
+separate card, and only when it affects the critical path, a risk, or an owner decision.
 
-- what currently limits progress;
-- what materially changed or was decided;
-- why it matters to the product or critical path;
-- what happens next.
-
-Never repeat what has not changed, retell an investigation, list intermediate attempts, or include
-commands, internal function names, exact query forms, working-tree cleanliness, or test-harness
-detail. Translate technical evidence into its product consequence. Mention an adjacent defect only
-as a separate card and only when it affects the critical path, a risk, or an owner decision.
-
-The reader knows the product architecture but has not opened the card, review report, source, or
-previous message. If the delta requires any of those to be understood, rewrite it.
+The reader knows the product architecture but has not opened the card, the review report, the
+source, or the previous message. If the delta requires any of those, rewrite it.
 
 ### Register examples
 
-The examples use the English bootstrap default. Their sentence structure and register, not their
-language, are normative; the configured local language takes precedence.
+The examples use the English bootstrap default. Their structure and register are normative, not
+their language.
 
 Rejected — personal, emotional, process-focused, and hedged:
 
@@ -168,8 +173,6 @@ The recovery path now rejects an incomplete restore. Release authorization remai
 the production recovery measurement passes.
 ```
 
-More consequence-focused rewrites:
-
 | Rejected | Accepted |
 | --- | --- |
 | "The review returned the card, and the false-green hypothesis survived." | "The recovery drill does not prove the procedure because several checks report success independently of system state. The procedure and drill require correction." |
@@ -177,10 +180,9 @@ More consequence-focused rewrites:
 | "Thirteen commits, a clean tree, green checks, and a deleted test environment." | "The contracted behaviour is implemented and the required checks pass on the reviewed revision. Authorization is pending." |
 
 [`templates/check-owner-status.sh`](../templates/check-owner-status.sh) mechanically checks the
-optional prose delta for length, paragraph count, personal language, and banned framing. Invoke it
-with `REPORTING_LANGUAGE` set to the exact charter value. It does not check the structured snapshot;
-use [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) for that. Both checks
-judge form only; semantic truth remains the CTO gate.
+prose delta for length, paragraph count, personal language, and banned framing. Invoke it with
+`REPORTING_LANGUAGE` set to the exact charter value. It judges form only; semantic truth remains the
+CTO gate.
 
 ## Evidence links
 

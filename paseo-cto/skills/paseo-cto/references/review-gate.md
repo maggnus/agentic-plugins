@@ -6,8 +6,7 @@ define stricter gates; it must not define a weaker floor.
 
 Review is always delegated. The CTO classifies the risk, dispatches the risk-required review or
 second look to a non-author agent, and decides on the returned evidence; it never performs a review
-or second look itself, at any tier. Landing authority, integration, and the bounded CTO fix remain
-CTO work — producing review evidence does not.
+itself, at any tier. Landing authority, integration, and the bounded CTO fix remain CTO work.
 
 ## Risk classification
 
@@ -23,43 +22,35 @@ or implementation mechanism:
   completion, public compatibility, or the safety of an irreversible action.
 
 Auth, protocol, migration, storage, deployment, and similar surfaces trigger an explicit
-classification check; they do not automatically make a card Critical. Uncertainty prevents a
-Routine classification but never creates Critical by itself; Critical always requires a credible
-threat to a named critical invariant. Crossing subsystems, changing shared components, dependencies,
-build/test infrastructure, or requiring manual integration raises a card to at least Significant
-unless the diff and consequences are mechanically bounded.
+classification check; they do not automatically make a card Critical. Uncertainty prevents a Routine
+classification but never creates Critical by itself. Crossing subsystems, changing shared components,
+dependencies, or build and test infrastructure raises a card to at least Significant unless the diff
+and consequences are mechanically bounded.
 
 ## Judge at the contracted maturity
 
 Every card carries a maturity level, set when it is written and named in the assignment. Risk says
-what a defect would cost; maturity says what the card promised to produce. Both are needed before a
-landing decision, and a card judged at the wrong maturity is returned for the wrong reason.
+what a defect would cost; maturity says what the card promised to produce.
 
-- `RESEARCH` — the outcome is a verified answer. Refuting the starting hypothesis is a successful
-  result.
+- `RESEARCH` — the outcome is a verified answer. Refuting the starting hypothesis is a success.
 - `DESIGN` — the outcome is a working model. A preliminary plan may change as facts arrive.
-- `BUILD` — the outcome is an already-specified contract, realized. Divergence from that contract
-  is a defect.
-- `OPERATIONALIZATION` — the outcome is proof that a real procedure is executable by a real
-  operator in the environment actually available. A procedure that works only under conditions the
-  operator does not have fails this outcome.
+- `BUILD` — the outcome is an already-specified contract, realized. Divergence is a defect.
+- `OPERATIONALIZATION` — the outcome is proof that a real procedure is executable by a real operator
+  in the environment actually available.
 
-**Judge work at the maturity level contracted by the card. An assumption invalidated during
+**Judge work at the maturity level contracted by the card.** An assumption invalidated during
 research or design is a result, not a defect. Return work only when it fails the outcome promised at
-that maturity level. Newly discovered adjacent defects become separate findings or proposed plan
-children unless they invalidate the contracted outcome.**
+that maturity level.
 
-Depth of investigation surfaces neighbouring problems. Neither the reviewer nor the CTO may load one
-card with everything found next to it. Sort each finding into exactly one kind before deciding the
-landing:
+Depth of investigation surfaces neighbouring problems, and no card carries everything found next to
+it. Sort each finding into exactly one kind before deciding the landing:
 
 - a defect in **this card's contracted outcome** — the only kind that can force a return;
 - a **refinement of the starting hypothesis** — recorded as a result, not charged as a failure;
 - an **independent product defect** — a proposed plan child, reported precisely and left unfixed;
 - **additional work** the finding implies — a separate card, never absorbed into this one.
 
-State the kind alongside each finding. A finding whose kind is unstated makes the review report
-incomplete; no landing decision may use it until the kind is supplied.
+State the kind alongside each finding. No landing decision may use a finding whose kind is unstated.
 
 ## Common evidence floor
 
@@ -75,36 +66,28 @@ For every returned outcome:
 For a repository write, also inspect the final workspace state, complete reviewed revision range,
 ancestry, and actual diff. For a report-only result, verify every source that carries a conclusion
 and the stated omitted scope. Apply [Source references](source-references.md) to every commit or
-repository file cited as durable evidence.
-
-Numerical scores are not used.
+repository file cited as durable evidence. Numerical scores are not used.
 
 ## A proof must be able to fail
 
-A check that cannot fail proves nothing, and it is the most expensive defect this gate exists to
-catch: it is indistinguishable from a passing check until something in production disagrees with it.
-The recurring shape is one defect wearing different clothes — a gate whose condition no input could
+A check that cannot fail proves nothing, and it is indistinguishable from a passing check until
+production disagrees with it. The recurring shapes are a gate whose condition no input could
 violate, a script comparing a subset against itself, a fixture pinned to the value the code
-currently produces, a suite exercising a configuration the deployed system never reaches. Each
-reports success truthfully and means nothing by it.
+currently produces, and a suite exercising a configuration the deployed system never reaches.
 
-For every load-bearing claim offered as acceptance evidence, require three things before it counts.
-Several supporting commands may share one negative half when they establish the same claim;
-unchanged compiler, formatter, linter, and upstream-suite commands do not each require a ceremonial
-mutation:
+For every load-bearing claim offered as acceptance evidence, require three things. Several commands
+may share one negative half when they establish the same claim; unchanged compiler, formatter,
+linter, and upstream-suite commands need no ceremonial mutation.
 
 - **The negative half, with its output captured.** Show the check failing on a deliberately broken
-  input — the mutation, the command, and the real non-zero exit. A check whose failing form was
-  never observed is a claim, not a measurement.
-- **What it catches and what it does not.** Name the mutations the check distinguishes and, just as
-  explicitly, the ones it would pass. A check with no stated blind spot has not been thought about.
+  input — the mutation, the command, and the real non-zero exit.
+- **What it catches and what it does not.** Name the mutations the check distinguishes and the ones
+  it would pass. A check with no stated blind spot has not been thought about.
 - **Reachability of the configuration it ran in.** Argue that the environment, inputs, and code path
-  under test are ones the product actually reaches. Evidence gathered in a configuration production
-  cannot enter is evidence about a system nobody runs.
+  under test are ones the product actually reaches.
 
-This is a property of the evidence, not an extra stage: it costs the author one broken input,
-conflicting source, or bounded counterexample and one sentence, and it removes the review round that
-would otherwise discover the same thing later.
+This is a property of the evidence, not an extra stage. It costs the author one broken input and one
+sentence, and removes the review round that would otherwise discover the same thing later.
 
 ## Review depth
 
@@ -112,136 +95,112 @@ would otherwise discover the same thing later.
 
 A delegated non-author agent — the reviewer role under a lightweight second-look contract, or
 another available non-author worker — performs the mandatory second look over the complete returned
-outcome, scope, and acceptance evidence; never the CTO. For a repository write this includes the
-complete final diff and final-revision evidence; for a report-only result it includes every
-load-bearing conclusion and source. The second look returns `ACCEPT` or `RETURN`. This is not a
-formal independent review: it requires no independently selected falsifier, author response, or
-score.
+outcome, scope, and acceptance evidence. For a repository write that includes the complete final
+diff; for a report-only result, every load-bearing conclusion and source. The second look returns
+`ACCEPT` or `RETURN` and requires no independently selected falsifier or author response.
 
 ### Significant
 
 An independent non-author reviewer inspects the complete returned outcome and evidence. Repository
 writes require the final diff plus targeted success and relevant failure-path checks. Report-only
-results require independent verification of each load-bearing conclusion and its counterexample.
-Add an independent falsifier only when there is a concrete risk hypothesis that existing evidence
-does not settle.
+results require independent verification of each load-bearing conclusion and its counterexample. Add
+an independent falsifier only for a concrete risk hypothesis existing evidence does not settle.
 
 ### Critical
 
 An independent non-author reviewer inspects the complete returned outcome and evidence. At least one
 independently selected executable falsifier, fault-injection proof, conflicting primary source, or
 bounded counterexample must challenge the threatened invariant. Repository writes use executable
-proof when the invariant can be exercised. The reviewer may own that proof; no separate falsifier
-role is required. A maintained negative or conformance suite counts only when it demonstrably
-distinguishes the defect.
+proof when the invariant can be exercised. The reviewer may own that proof. A maintained negative or
+conformance suite counts only when it demonstrably distinguishes the defect.
 
 ### Depth follows the classification and does not drift
 
-The risk-required depth is the default and, absent new evidence, the ceiling: adding a falsifier, a
-round, or a suite beyond it is a deliberate spend of the validation budget and carries its explicit
-reason in the review record — never a default precaution. Resolve uncertainty by reclassifying the
-card on evidence, not by silently reviewing at a higher tier. One review may cover several batched
-sibling nodes; it runs once at the highest classification among them, and its evidence must close
-each node individually.
+The risk-required depth is the default and, absent new evidence, the ceiling. Adding a falsifier, a
+round, or a suite beyond it carries its explicit reason in the review record. Resolve uncertainty by
+reclassifying the card on evidence, never by silently reviewing at a higher tier. One review may
+cover several batched sibling nodes: it runs once at the highest classification among them, and its
+evidence must close each node individually.
 
-A correction is classified by the credible consequence of the correction itself, not inherited
-automatically from its parent card. A mechanical test-inventory, comment, generated-file, or report
-repair may therefore receive a Routine second look even when the product change it supports was
-Critical, provided it cannot alter product behavior or silently weaken the critical proof. If the
-correction changes an oracle, acceptance semantics, production reachability, or the threatened
-invariant, it retains the corresponding Significant or Critical depth. This distinction removes
-expensive independent falsifiers from genuinely mechanical rework without weakening the original
-card's safety floor.
+A correction is classified by the credible consequence of the correction itself, not inherited from
+its parent card. A mechanical test-inventory, comment, generated-file, or report repair may receive a
+Routine second look even when the product change it supports was Critical, provided it cannot alter
+product behaviour or weaken the critical proof. If the correction changes an oracle, acceptance
+semantics, production reachability, or the threatened invariant, it keeps the corresponding depth.
 
 ## When the reviewer shares the author's provider family
 
-An independent review borrows part of its strength from the reviewer not sharing the author's
-blind spots. When the assignment puts author and reviewer on the same provider family — because only
-one is available, or the charter says so — that property is gone, and it goes quietly: the review
-still reads as independent and still produces findings.
+An independent review borrows part of its strength from the reviewer not sharing the author's blind
+spots. When the assignment puts author and reviewer on the same provider family, that property is
+gone and it goes quietly: the review still reads as independent and still produces findings.
 
-Do not treat this as equivalent. Record in the review that the cross-family property was lost, and
-compensate in the reviewer's contract:
+Record in the review that the cross-family property was lost, and compensate in the reviewer's
+contract:
 
 - **Require a falsifier of a different shape than the author's evidence.** If the author proved the
-  behaviour with a unit test, the falsifier is not another unit test: it injects a fault, drives the
-  product path end to end, or attacks the boundary from outside. Same-shape evidence tends to share
-  the same blind spot.
+  behaviour with a unit test, the falsifier injects a fault, drives the product path end to end, or
+  attacks the boundary from outside.
 - **Forbid taking the problem statement from the author.** The reviewer derives what the change must
-  do from the contract, the specification, and the code — never from the author's report of what it
-  does. A review that begins by accepting the author's framing can only check the work against
-  itself.
-- **Findings that survive are worth no less; findings that are missed are more likely.** Weight the
-  absence of findings accordingly, and prefer keeping a `Critical` card's falsifier independently
+  do from the contract, the specification, and the code, never from the author's report.
+- **Weight the absence of findings accordingly.** Findings that survive are worth no less; findings
+  that are missed are more likely. Prefer keeping a `Critical` card's falsifier independently
   selected even when that costs a round.
 
 ## Accepting with residue
 
-Not every true finding has to be fixed before the work lands. A finding can be real, correctly
-argued, and still not worth another round — because the product behaviour under review is already
-settled and what remains improves the proof, hardens a boundary nobody can currently cross, or
-anticipates a condition that does not yet exist.
+A finding can be real, correctly argued, and still not worth another round, because the product
+behaviour under review is settled and what remains improves the proof or anticipates a condition
+that does not yet exist.
 
 `ACCEPT WITH RESIDUE` lands the work and records the finding as a known fact with a return
 condition. It requires all of:
 
 - the outcome the card contracted is met and evidenced;
-- the residue is written down where the project will find it again — a plan node, an invariant entry,
-  or a decision record — never only in review dialogue;
-- the return condition is concrete and observable: the event that makes the residue worth fixing,
-  stated so that anyone can recognise it when it happens;
-- the decision names what is being accepted, not merely that something was.
+- the residue is written where the project will find it again — a plan node, an invariant entry, or a
+  decision record — never only in review dialogue;
+- the return condition is concrete and observable, stated so that anyone can recognise it;
+- the decision names what is being accepted.
 
-**Residue is forbidden when the finding fails either test**, and the decision is `RETURN` or
+**Residue is forbidden when the finding fails either test below**, and the decision is `RETURN` or
 `BLOCKED`:
 
 - **Reversibility.** Could the worst credible failure be undone once noticed? A defect that destroys,
   discloses, or misappropriates something cannot be un-shipped by fixing it later.
-- **Detection.** Would the failure announce itself? A defect that fails silently — wrong data
-  accepted as right, an authorization that quietly permits, a payment that quietly doesn't — has no
-  moment at which the return condition fires.
+- **Detection.** Would the failure announce itself? A defect that fails silently has no moment at
+  which the return condition fires.
 
 Authentication and authorization, tenant isolation, money, privacy and secrets, data loss and
-corruption, and irreversible actions are named because they fail both tests routinely, not because
-the list is complete. A finding outside the list that fails either test is barred just the same; the
-tests decide, the list only saves time on the common cases. When in doubt the card returns — the
-cost of one more round is bounded, and the cost of a wrong residue is not.
+corruption, and irreversible actions fail both tests routinely; the list saves time on common cases
+and does not bound the rule. When in doubt the card returns.
 
 Record the residue in the accepted task's `Closure` section under `Residuals`, set
-`deliberate_partial: true`, and give it an exact `return_trigger`, so the tree check can see it
-exists. When the unachieved part is independent work rather than a limitation, it gets its own task
-identifier instead. A residue with no return trigger is not a decision, it is a defect nobody is
-tracking.
+`deliberate_partial: true`, and give it an exact `return_trigger`. When the unachieved part is
+independent work rather than a limitation, it gets its own task identifier instead.
 
 ## Reviewing a decomposition rather than an outcome
 
 A plan review applies this same gate to a wave's tree before its first card starts. The reviewer is
-the ordinary reviewer role under a plan-review contract; no planning or architecture role exists.
-The subject changes, the posture does not: the reviewer reads the tree, tries to refute its
-completeness, and returns `ACCEPT` or `RETURN` of the same plan. The checklist and the recording
-rules are in [Project bootstrap](project-bootstrap.md). A `RETURN` continues the same review after
-the CTO corrects the tree; it does not rebuild the review.
+the ordinary reviewer role under a plan-review contract. The reviewer reads the tree, tries to refute
+its completeness, and returns `ACCEPT` or `RETURN`. The checklist and recording rules are in
+[Project bootstrap](project-bootstrap.md). A `RETURN` continues the same review after the CTO
+corrects the tree.
 
 ## Converge: the second return forces a decision
 
-Review rounds are not free, and their cost is invisible because each individual round looks
-justified. The failure mode is a card that keeps returning on progressively narrower findings while
-the product behaviour it was about stopped changing several rounds ago.
+Each individual round looks justified, which is why a card can keep returning on progressively
+narrower findings after the product behaviour stopped changing.
 
-After the **second** return on one card, the CTO decides in that same turn — not after one more
-round — among exactly these:
+After the **second** return on one card, the CTO decides in that same turn among exactly these:
 
 - **accept with residue**, under the rule above;
 - **split the card**, moving the unresolved part into its own node with its own risk classification
   and acceptance, and landing the settled part;
-- **name the gate and stop**, recording what is actually blocking convergence — a missing decision,
-  an absent capability, an unstated requirement — and who must resolve it.
+- **name the gate and stop**, recording what blocks convergence and who must resolve it.
 
-Continuing to a third round is available only when the new finding is a blocker that fails the
-reversibility or detection test above, and the reason goes in the record. Track rounds per card, not
-per candidate: a re-dispatch under a new commit is the same card. Record the count in the card's
-`Rounds` field — a card at two or more rounds must also carry `Convergence` naming which of the
-three decisions was taken, so the choice is visible in the plan rather than only in the review.
+A third round is available only when the new finding is a blocker failing the reversibility or
+detection test, and the reason goes in the record. Track rounds per card, not per candidate: a
+re-dispatch under a new commit is the same card. Record the count in the card's `Rounds` field; a
+card at two or more rounds also carries `Convergence` naming which decision was taken.
 
 ## The author's bounded response round
 
@@ -249,34 +208,30 @@ Grant the originating agent one bounded, evidence-based round of response only w
 blocker or major finding, a proposed return, a disputed scope or contract, or a semantic CTO
 integration edit. In that round the agent may agree, partly agree, or defend each disputed finding
 with specification, code, tests, measurements, or a reproducible counterexample. Agreement is not an
-acceptance gate. Clean acceptance and Routine second looks require no response round at all.
+acceptance gate, and clean acceptances and Routine second looks require no response round.
 
 The agent must not edit, recommit, or widen scope during the round unless rework is explicitly
-authorized. Resolve every defense on evidence and withdraw or reclassify disproved findings. A new
+authorized. Resolve every defence on evidence and withdraw or reclassify disproved findings. A new
 adverse finding discovered during the round earns its own bounded round before final authorization.
-Agent silence is recorded but does not create agreement or automatically block an otherwise
-evidence-supported decision.
+Agent silence is recorded but creates no agreement.
 
 Choose return versus CTO repair by severity, blast radius, depth, hot context, correction size,
 acceptance cost, and collision risk. A CTO fix is small, obvious, bounded, separately visible,
-rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work when
-author continuity helps.
+rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work.
 
 ## Direct exchange between author and reviewer
 
 A fact that only one side holds is asked and answered directly. Routing it through the CTO restates
-context both sides already have, spends a turn on each side, and delays the answer until the next
-reconcile; that relay is the cost this rule removes. The CTO stops carrying messages and remains the
-decision point, auditing the exchange at the material handoff, at the return, and at the scheduled
-reconcile rather than sitting inside it.
+context both sides already have and delays the answer until the next reconcile. The CTO remains the
+decision point and audits the exchange at the material handoff, at the return, and at the scheduled
+reconcile.
 
 The channel carries facts: the exact revision, range and bounded scope; how to reproduce something,
 the command, and its real exit; which finding refers to which line, and the evidence-based response
 to it. One question, one answer. Do not restate what the contract, the report, or the diff already
-carries — the report remains the single record of the result, and the exchange never duplicates it.
-Ask when asking is cheaper than deriving the same fact from the code, and derive it when it is not.
+carries. Ask when asking is cheaper than deriving the same fact from the code.
 
-Four things the exchange never does, because they are what the review's cost buys:
+Four things the exchange never does:
 
 - negotiate a verdict, an acceptance, or a classification outside the task contract;
 - request that an adverse check or finding be skipped, weakened, concealed, or reclassified;
@@ -285,20 +240,17 @@ Four things the exchange never does, because they are what the review's cost buy
 - apply pressure, urgency, praise, blame, or any other social framing to a verdict.
 
 Independence of derivation does not change: the reviewer derives what the change must do from the
-contract, the specification and the code, never from the author's account of it. The exchange
-supplies facts, not the problem statement.
+contract, the specification and the code. The exchange supplies facts, not the problem statement.
 
 Record each exchange in one line in both the return and the review report — what was asked, what was
-answered. An unrecorded exchange is itself a signal. On any signal, freeze integration, preserve the
-record, and assign an independent replacement or tie-break reviewer; never allege coordination
-without a reproducible message or action.
-
-A project may close this channel and route every handoff through the CTO. It may not widen it: the
-four prohibitions and the recording obligation are the floor.
+answered. On any signal of a breach, freeze integration, preserve the record, and assign an
+independent replacement or tie-break reviewer; never allege coordination without a reproducible
+message or action. A project may close this channel and route every handoff through the CTO, but it
+may not widen it.
 
 ## Lean re-review after return
 
-An accepted `RETURN` starts bounded rework inside the same card; it does not reset valid review
+An accepted `RETURN` starts bounded rework inside the same card. It does not reset valid review
 evidence or require a new review organization. For a report-only outcome, the preserved author and
 reviewer continue against the same evidence package without a repository fast-forward.
 
@@ -307,22 +259,20 @@ reviewer continue against the same evidence package without a repository fast-fo
 - Before re-review, the CTO may advance a clean preserved reviewer branch to the corrected exact
   revision only by verified conflict-free fast-forward: require empty porcelain, the recorded prior
   reviewed `HEAD`, and ancestry from that `HEAD` to the correction. Record the new exact range.
-  Never rebase, reset, manually edit, or resolve conflicts in the reviewer workspace; use a
-  replacement workspace when fast-forward is impossible.
+  Never rebase, reset, or resolve conflicts in the reviewer workspace; use a replacement workspace
+  when fast-forward is impossible.
 - The reviewer may satisfy complete-final-diff inspection by retaining its own inspection of
   unchanged lines, inspecting the entire rework delta and affected context, and confirming the final
   range, scope, ancestry, and evidence. Do not force a context-free reread of unchanged material.
-- A reviewer-selected falsifier remains independently selected. Rerun it on the corrected exact
-  revision when its hypothesis still applies; do not require a novel or distinct falsifier merely
-  because the commit changed. Add a new proof only for a new risk hypothesis, materially changed
-  semantics or dependency surface, contradictory evidence, or an invalidated prior proof.
-- Use a replacement reviewer only when the prior reviewer is unavailable or errored, independence
-  is compromised, a disputed finding needs an independent tie-break, or the rework materially
-  expands scope, dependencies, or the threatened invariant.
-- When several blocker or major findings are symptoms of one missing model, use the existing author
-  response/rework round to state the shared ownership, lifecycle, serialization, or linearization
-  model and its bounded acceptance matrix before patching. Do not add a separate research stage
-  unless material uncertainty remains.
+- A reviewer-selected falsifier remains independently selected. Rerun it on the corrected revision
+  when its hypothesis still applies. Add a new proof only for a new risk hypothesis, materially
+  changed semantics or dependency surface, contradictory evidence, or an invalidated prior proof.
+- Use a replacement reviewer only when the prior reviewer is unavailable or errored, independence is
+  compromised, a disputed finding needs a tie-break, or the rework materially expands scope,
+  dependencies, or the threatened invariant.
+- When several blocker or major findings are symptoms of one missing model, use the existing
+  response round to state the shared ownership, lifecycle, serialization, or linearization model and
+  its bounded acceptance matrix before patching.
 
 The author response and explicitly authorized rework may be one follow-up when the CTO accepts the
 findings and the repair contract is clear. Never insert a ceremonial `AGREE` round.
@@ -348,11 +298,10 @@ surface remain unchanged; follow [Validation budget](validation-budget.md).
   CI, runtime state, or a concise durable authorization record. Apply
   [Source references](source-references.md) to every commit or repository file mentioned.
 - Durable evidence is the derivation, not the haul. Keep what was run, its exit, the values that
-  decide the claim, and a script able to re-derive them on the exact revision; retain a raw capture
+  decide the claim, and a script able to re-derive them on the exact revision. Retain a raw capture
   only where the claim is otherwise unreproducible. Money movement, tenant isolation, the sandbox
-  boundary, and irreversible operations keep their complete raw package — there the capture is the
-  proof. A dump nobody will reread is volume, not rigor, and its cost lands on the critical path.
+  boundary, and irreversible operations keep their complete raw package.
 - Prove generated or deployed artifact ancestry and serialize live changes against evidence runs.
 - Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
 - Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema
-  operations, and irreversible actions remain separate explicit owner/project gates.
+  operations, and irreversible actions remain separate explicit owner or project gates.

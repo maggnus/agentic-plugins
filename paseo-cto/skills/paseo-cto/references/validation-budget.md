@@ -46,11 +46,10 @@ that `HEAD` changed is not enough by itself.
 
 ## At least one proof travels the product's own path
 
-A test harness is cheap, repeatable, and the easiest place to prove nothing at all. When the harness
-assembles the request, supplies the credential, or fills in the value that product code would have
-produced, it verifies the harness — and it will keep reporting success for as long as the product
-path stays broken, across any number of runs and any amount of live infrastructure. Volume of
-evidence does not correct this; every run shares the same substitution.
+When the harness assembles the request, supplies the credential, or fills in a value product code
+would have produced, it verifies the harness. It keeps reporting success for as long as the product
+path stays broken, and volume of evidence does not correct this: every run shares the same
+substitution.
 
 For any acceptance that concerns a boundary between two components — two services, two language
 planes, product code and an external system, a client and the contract it calls — **at least one
@@ -64,17 +63,14 @@ has not yet proven the thing it claims.
 
 ### The harness assembles what the product assembles
 
-The same failure has a second form, and it is harder to see because nothing is being substituted:
-the harness wires the components differently from the way the running system wires them. A guard the
-product installs but the harness omits, a privileged connection where production uses an ordinary
-one, a client constructed by a shortcut the daemon does not use — each leaves every check green while
-the property under test is absent, or worse, while the change breaks the product outright.
+The same failure has a second form in which nothing is substituted: the harness wires the components
+differently from the running system. A guard the product installs but the harness omits, a
+privileged connection where production uses an ordinary one, or a client built by a shortcut the
+daemon does not use each leaves every check green while the property under test is absent.
 
 **A card that constrains how the system is assembled must be proved on the assembly the product
-uses.** Compare the harness against the production wiring line by line, not against its description;
-"similar" is what produced the defect. Where no such harness exists, building one is part of the
-card, not a prerequisite someone else will supply — and it is worth landing on its own even if the
-constraint it was built for is later replaced.
+uses.** Compare the harness against the production wiring line by line, not against its description.
+Where no such harness exists, building one is part of the card.
 
 **When the product path genuinely cannot be run** — the environment does not exist yet, the external
 system is unavailable, or exercising it would mutate something owner-gated — the rule does not

@@ -373,7 +373,7 @@ text = {name: " ".join(path.read_text().split()) for name, path in files.items()
 required = {
     "assignment": ("hard ceiling of 1800 characters", "one negative half per load-bearing claim"),
     "validation": ("composition preflight runs after integration", "not to every command"),
-    "review": ("not inherited automatically from its parent card", "ceremonial mutation"),
+    "review": ("not inherited from its parent card", "ceremonial mutation"),
     "runtime": ("returnSummary", "at most twelve material-event records"),
     "fleet": ("An unrelated atom always starts a fresh session",),
     "roles": ("<minimum>..<maximum>", "Critical work and review use the maximum tier"),
@@ -421,9 +421,8 @@ required = {
         "must be byte-identical",
     ),
     "catalog": (
-        "worktreeSlug:<agentTitle>",
-        "verify returned worktree name == agentTitle",
-        "must equal the agent title exactly",
+        "Set `title` to the exact derived agent title",
+        "equal the workspace title exactly",
     ),
 }
 problems = [
@@ -432,6 +431,62 @@ problems = [
     for needle in needles
     if needle not in files[name]
 ]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "one snapshot cadence across every document" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+files = {
+    "skill": root / "skills/paseo-cto/SKILL.md",
+    "status": root / "skills/paseo-cto/references/status-and-reporting.md",
+    "fleet": root / "skills/paseo-cto/references/fleet-operations.md",
+    "readme": root.parent / "README.md",
+}
+text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
+required = {
+    "skill": ("otherwise post one quiet liveness line",),
+    "status": ("Fleet steady ·", "unconditionally"),
+    "fleet": ("otherwise post one quiet liveness line",),
+    "readme": ("a single quiet liveness line otherwise",),
+}
+retired = (
+    "even when no state changed",
+    "always posts the snapshot",
+    "deliberately repeated",
+    "even when nothing changed",
+)
+problems = []
+for name, needles in required.items():
+    for needle in needles:
+        if needle not in text[name]:
+            problems.append(f"{name} lacks {needle!r}")
+for name, body in text.items():
+    for needle in retired:
+        if needle in body:
+            problems.append(f"{name} retains the retired rule {needle!r}")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "a retired record is deleted, not archived forever" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills/paseo-cto"
+cleanup = " ".join((root / "references/cleanup-and-close.md").read_text().split())
+skill = " ".join((root / "SKILL.md").read_text().split())
+problems = []
+for needle in (
+    "Delete the record once the card is integrated",
+    "drop both records from the runtime checkpoint",
+    "the working copy goes, the history does not",
+):
+    if needle not in cleanup:
+        problems.append(f"cleanup lacks {needle!r}")
+if "Spend context deliberately" not in skill:
+    problems.append("SKILL.md lacks the context policy section")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 

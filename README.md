@@ -6,14 +6,14 @@ Code/Codex plugins.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v9.16.0
+PASEO_CTO_TAG=v10.0.0
 claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v9.16.0
+PASEO_CTO_TAG=v10.0.0
 codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
@@ -41,8 +41,8 @@ role with no assignment is not dispatchable, and an unavailable model is reporte
 silently substituted. `reportingLanguage` is also project-local and authoritative: any valid local
 value, including Russian, overrides the plugin's English first-run proposal and the host's current
 conversation language. The register remains formal, neutral, impersonal, grammatical, and
-result-first in every configured language. Unchanged prose is omitted; the fixed scheduled status
-snapshot is deliberately repeated.
+result-first in every configured language. Unchanged prose is never repeated, and an unchanged fleet
+table is not reposted either.
 
 The first operating run presents a compact charter for CTO strategy, role assignments, permission
 policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
@@ -76,16 +76,18 @@ first dispatch on a new project or wave, the CTO builds the tree and an independ
 the decomposition; a wave whose work started without that verdict fails the check.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
-Every heartbeat rewrites one durable fleet render, `FLEET.md`, and posts the same compact snapshot to
-chat even when no state changed: local timestamp; plugin version, CTO model/effort, available host
-context and session time; current wave ID and name; accepted/total cards; then the complete fleet
-table with the CTO first. Claude and Codex derive it from the same installed tag, role assignment,
-work tree, and runtime state. Recoverable checkpoints and stable labels allow a fresh or compacted
-session to resume without replaying completed work.
+Every heartbeat rewrites one durable fleet render, `FLEET.md`. The chat receives the full snapshot —
+local timestamp; plugin version, CTO model/effort, available host context and session time; current
+wave ID and name; accepted/total cards; then the complete fleet table with the CTO first — when a
+material event occurred or the owner asks for status, and a single quiet liveness line otherwise, so
+a long session does not spend its context restating an unchanged table. Claude and Codex derive the
+snapshot from the same installed tag, role assignment, work tree, and runtime state. Recoverable
+checkpoints and stable labels allow a fresh or compacted session to resume without replaying
+completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v9.16.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
+paseo-cto: v10.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -125,7 +127,7 @@ Ships:
 Both hosts load the same [skill sources](paseo-cto/skills). Only invocation syntax, the Codex
 cache-busting build suffix, and Codex interface metadata differ. The
 [distribution synchronization check](paseo-cto/scripts/check-distribution-sync.sh) verifies the
-shared descriptions, authors, base versions, marketplace source, skill set, and release heading.
+shared descriptions, authors, base versions, marketplace source, skill set, and release tag.
 The [installed-release check](paseo-cto/scripts/check-installed-release.sh) additionally verifies
 that both host installations resolve the same remote tagged commit.
 
@@ -192,7 +194,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v9.16.0
+PASEO_CTO_TAG=v10.0.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

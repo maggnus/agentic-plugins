@@ -1,13 +1,11 @@
 # Paseo core commands
 
-Read this compact reference before routine fleet mutation. It covers the current Paseo API only
-(`0.2`, checked against main `c97f823` / `0.2.0-beta.1`). Older-daemon `0.1.x` shapes, the full tool
-and CLI index, and recovery recipes live in the [command catalog](paseo-command-catalog.md); load it
-only for an operation not covered here or a failed compatibility branch.
+Read this compact reference before routine fleet mutation. It covers the Paseo API checked against
+main `c97f823` (`0.2.0-beta.1`). The full tool and CLI index and the recovery recipes live in the
+[command catalog](paseo-command-catalog.md); load it only for an operation not covered here.
 
-At startup, inspect the available tool names once and confirm you are on the current API
-(`create_workspace`/`list_workspaces`/`archive_workspace` and `delete_heartbeat` exist). If they do
-not, switch to the catalog's compatibility branch. Never mix branches, and never probe by making
+At startup, inspect the available tool names once and confirm that `create_workspace`,
+`list_workspaces`, `archive_workspace` and `delete_heartbeat` exist. Never probe by making
 speculative write calls.
 
 ## Resolve provider settings first
@@ -47,6 +45,6 @@ the critical path.
 ## Heartbeat and cleanup
 
 Create the CTO heartbeat inside the CTO agent with a stable name, `*/15 * * * *`, `maxRuns:96`, and
-`expiresIn:24h`; persist its ID and delete it with `delete_heartbeat`. Archive only exact
-agents/workspaces after the cleanup proof in Cleanup and close. Never restart the daemon,
+`expiresIn:24h`; persist its ID and delete it with `delete_heartbeat`. Archive and then delete only
+exact agents and workspaces, after the cleanup proof in Cleanup and close. Never restart the daemon,
 bulk-delete, or routinely use `kill_agent`.

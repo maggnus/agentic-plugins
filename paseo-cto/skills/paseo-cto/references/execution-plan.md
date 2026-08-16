@@ -140,13 +140,11 @@ returns, and the CTO creates them in the integration tree.
 The plan is durable project truth in Git. The CTO commits semantic plan changes locally before a
 dispatch that depends on them and at material gates, and keeps the integration tree clean before
 creating worker baselines. Regenerate the work index in the same change that alters a node. One
-decision produces one plan commit: everything a single acceptance or dispatch changes in the plan —
-states, closure fields, the children it creates, and the regenerated index — lands together, not as
-separate activation, closure, and bookkeeping commits. Do not
-create a plan commit solely to record that an unchanged candidate entered review or that an
-agent/workspace changed lifecycle state; runtime and the fleet render own those transitions. Apply
-[Source references](source-references.md) to every commit or repository file that supports a plan
-claim.
+decision produces one plan commit: states, closure fields, new children, and the regenerated index
+land together. Never create a plan commit solely to record that an unchanged candidate entered
+review or that an agent changed lifecycle state; runtime and the fleet render own those transitions.
+Apply [Source references](source-references.md) to every commit or repository file that supports a
+plan claim.
 
 ## Persist a recoverable checkpoint
 
@@ -174,8 +172,8 @@ The runtime checkpoint is current state, not an execution transcript. Store at m
 `returnSummary` per live agent — verdict, exact candidate, open findings, and unverified gate, no
 more than 1200 characters — and replace it when the decision changes. Never copy full prompts,
 worker reports, command transcripts, repeated snapshots, or completed review dialogue into the
-checkpoint. Keep at most twelve material-event records, each as a timestamp plus one decision or
-state change. When an agent is safely archived, remove its live record after preserving its exact
-Git coordinates and any unresolved tail in the task, durable evidence, or compact tail record.
-Conversation history and an ever-growing JSON file are not recovery mechanisms; the task, Git,
-settings, and this bounded checkpoint are.
+checkpoint. Keep at most twelve material-event records, each a timestamp plus one decision or state
+change. When an agent is retired under [Cleanup and close](cleanup-and-close.md), remove its record
+here after preserving its exact Git coordinates and any unresolved tail in the task or durable
+evidence. The checkpoint carries live work only; conversation history and an ever-growing JSON file
+are not recovery mechanisms.
