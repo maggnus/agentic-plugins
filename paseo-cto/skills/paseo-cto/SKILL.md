@@ -83,14 +83,11 @@ Treat time and distance to the next usable release as engineering constraints.
   them independently.
 - Batch before dispatch when several small ready nodes are homogeneous — one technical surface, one
   environment, one verification method, one review context — and separate dispatch would only
-  duplicate workspace setup, execution, and review without adding evidence. Batching is a threshold,
-  not a courtesy: a Routine-risk node estimated under fifteen minutes of work is not dispatched
-  alone; it waits for up to two homogeneous siblings or the next reconcile interval, whichever
-  comes first. The exception is a node on the critical path whose delay blocks other work. Work
-  decomposition does not imply execution decomposition: one contract, one workspace, and one review
-  may carry several sibling nodes, each keeping its own identifier, acceptance, closure, and return
-  path. A batched node that develops independent risk, a distinct acceptance story, or a return of
-  its own leaves the batch and moves alone.
+  duplicate workspace setup, execution, and review without adding evidence. Work decomposition does
+  not imply execution decomposition: one contract, one workspace, and one review may carry several
+  sibling nodes, each keeping its own identifier, acceptance, closure, and return path. A batched
+  node that develops independent risk, a distinct acceptance story, or a return of its own leaves
+  the batch and moves alone.
 - Deepen only when evidence makes depth the next release move: the base path works and a measured
   defect, bottleneck, scale limit, or accepted release gate constrains it, or one foundation
   uncertainty blocks several downstream slices. Otherwise defer optimization and polish with a pull

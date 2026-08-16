@@ -121,11 +121,7 @@ Routine one and pushes the fleet toward whichever work is cheapest to count.
    Re-baselining the later atom on the earlier one's accepted `HEAD` is cheaper than resolving a
    conflict by hand, which is never done in a writer's workspace.
 3. **A task that changes a canonical contract, a schema or shared infrastructure runs alone.** Every
-   other writer waits for its acceptance and re-baselines on it. When two tasks already in flight
-   bump the same versioned artifact (a journal schema, a shared enum), the dispatch that noticed the
-   overlap names one of them the version holder in the runtime record; the other task's contract
-   declares that its merge defers to the holder's bump, so integration resolves one version, not
-   two competing ones.
+   other writer waits for its acceptance and re-baselines on it.
 4. **A file any participant regenerates deterministically — a lockfile, formatter output, a
    generated index — is not shared ownership**; the CTO regenerates it during integration. Shared
    ownership means an artifact whose downstream is maintained by hand.
@@ -238,8 +234,8 @@ workspace sweep. Refill only safe capacity from ready plan nodes; never duplicat
 or role. Resolve the loaded plugin base version, CTO model/effort, any trustworthy host context
 measurement, session elapsed time, current wave, and accepted/total card counts from preflight,
 settings, runtime, plan, and acceptance truth.
-Rewrite the durable FLEET.md render unconditionally. In chat, post the full header and fleet
-table only when a material event occurred since the last posted snapshot or the owner asked for
-status; otherwise post one quiet liveness line (see Status and reporting). Add brief unheaded prose
-only for a material event. Never repeat unchanged prose.
+Rewrite the durable STATUS render unconditionally, then post its identity/current-wave header and
+complete fleet table to chat on every run, even when unchanged. Add brief unheaded prose only for a
+material event — a landing decision, a new risk or constraint, a changed critical path, or something
+the owner must act on. Never repeat unchanged prose.
 ```
