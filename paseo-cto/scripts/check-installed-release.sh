@@ -17,8 +17,8 @@ repo = root.parent
 home = pathlib.Path.home()
 marketplace_name = "maggnus"
 plugin_id = "paseo-cto@maggnus"
-expected_repository = "maggnus/claude-plugins"
-expected_url = "https://github.com/maggnus/claude-plugins.git"
+expected_repository = "maggnus/agentic-plugins"
+expected_url = "https://github.com/maggnus/agentic-plugins.git"
 
 claude_manifest = json.loads((root / ".claude-plugin/plugin.json").read_text())
 codex_manifest = json.loads((root / ".codex-plugin/plugin.json").read_text())

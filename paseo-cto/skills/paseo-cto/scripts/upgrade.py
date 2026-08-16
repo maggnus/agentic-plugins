@@ -28,7 +28,7 @@ import sys
 MARKETPLACE = "maggnus"
 PLUGIN = "paseo-cto"
 PLUGIN_ID = f"{PLUGIN}@{MARKETPLACE}"
-REPOSITORY = "maggnus/claude-plugins"
+REPOSITORY = "maggnus/agentic-plugins"
 REMOTE_URL = f"https://github.com/{REPOSITORY}.git"
 TAG_RE = re.compile(r"^refs/tags/(v(\d+)\.(\d+)\.(\d+))$")
 

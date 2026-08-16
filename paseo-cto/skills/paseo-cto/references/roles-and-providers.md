@@ -18,7 +18,7 @@ changes between releases, and operating from a stale copy silently applies retir
    installed plugin commit must be identical on both hosts. A version label without the same commit
    is not sufficient.
 4. **Reconcile a mismatch before working.** Remove the stale plugin and marketplace registration,
-   then add `maggnus/claude-plugins@v<version>` in Claude or `maggnus/claude-plugins --ref
+   then add `maggnus/agentic-plugins@v<version>` in Claude or `maggnus/agentic-plugins --ref
    v<version>` in Codex and reinstall. Never move a published tag or convert the installation to a
    local directory. A reinstall applies only at the next session start.
 5. **Re-read the changed files.** When the version moved, reload the affected references and

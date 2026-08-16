@@ -70,9 +70,9 @@ require(f"PASEO_CTO_TAG={release_tag}" in readme,
         f"README.md does not select release tag {release_tag}")
 require(f"paseo-cto: {release_tag} |" in readme,
         f"README.md snapshot example does not show {release_tag}")
-require('maggnus/claude-plugins@${PASEO_CTO_TAG}' in readme,
+require('maggnus/agentic-plugins@${PASEO_CTO_TAG}' in readme,
         "README.md does not pin the Claude marketplace to the release tag")
-require('maggnus/claude-plugins --ref "$PASEO_CTO_TAG"' in readme,
+require('maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"' in readme,
         "README.md does not pin the Codex marketplace to the release tag")
 require("plugin marketplace add ~/" not in readme,
         "README.md still permits a local marketplace installation")

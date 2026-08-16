@@ -341,7 +341,7 @@ if ["claude", "plugin", "install", "team@maggnus", "--scope", "user"] != claude[
     problems.append("a sibling plugin from the same marketplace is not reinstalled on Claude")
 if ["codex", "plugin", "add", "team@maggnus"] != codex[-1]:
     problems.append("a sibling plugin from the same marketplace is not reinstalled on Codex")
-if not any("maggnus/claude-plugins@v9.2.0" in command for command in claude):
+if not any("maggnus/agentic-plugins@v9.2.0" in command for command in claude):
     problems.append("the Claude marketplace is not re-pinned to the tag")
 if not any(command[-2:] == ["--ref", "v9.2.0"] for command in codex):
     problems.append("the Codex marketplace is not re-pinned to the tag")

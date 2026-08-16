@@ -7,14 +7,14 @@ Code/Codex plugins.
 
 ```sh
 PASEO_CTO_TAG=v10.1.0
-claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}"
+claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
 PASEO_CTO_TAG=v10.1.0
-codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
+codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
 ```
@@ -44,21 +44,21 @@ Trigger the release workflow from anywhere without a local clone:
 curl -X POST \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/repos/maggnus/claude-plugins/actions/workflows/release.yml/dispatches \
+  https://api.github.com/repos/maggnus/agentic-plugins/actions/workflows/release.yml/dispatches \
   -d '{"ref":"main","inputs":{"version":"10.2.0"}}'
 
 # Without version (reads from plugin manifest)
 curl -X POST \
   -H "Accept: application/vnd.github+json" \
   -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/repos/maggnus/claude-plugins/actions/workflows/release.yml/dispatches \
+  https://api.github.com/repos/maggnus/agentic-plugins/actions/workflows/release.yml/dispatches \
   -d '{"ref":"main"}'
 ```
 
 Or via `gh` CLI:
 ```sh
-gh workflow run release.yml -R maggnus/claude-plugins -f version=10.2.0
-gh workflow run release.yml -R maggnus/claude-plugins  # auto-detect version
+gh workflow run release.yml -R maggnus/agentic-plugins -f version=10.2.0
+gh workflow run release.yml -R maggnus/agentic-plugins  # auto-detect version
 ```
 
 The workflow runs on GitHub Actions: validates, updates Codex cachebuster, commits, tags, and pushes.
@@ -278,12 +278,12 @@ PASEO_CTO_TAG=v10.1.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
-claude plugin marketplace add "maggnus/claude-plugins@${PASEO_CTO_TAG}" --scope user
+claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install paseo-cto@maggnus --scope user
 
 codex plugin remove paseo-cto@maggnus
 codex plugin marketplace remove maggnus
-codex plugin marketplace add maggnus/claude-plugins --ref "$PASEO_CTO_TAG"
+codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 
 bash paseo-cto/scripts/check-installed-release.sh
