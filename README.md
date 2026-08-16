@@ -25,6 +25,8 @@ installation source. The local repository is used for development and validation
 
 ## Release
 
+### Local (requires Codex CLI tools)
+
 ```sh
 bash paseo-cto/scripts/release.sh
 ```
@@ -32,6 +34,35 @@ bash paseo-cto/scripts/release.sh
 Runs all validation, updates Codex cachebuster, creates the immutable tag, and pushes. Requires
 local Codex CLI tools (`~/.codex/skills/.system/plugin-creator/scripts/`), `jq`, and push access
 to `origin`.
+
+### Remote (via GitHub API / curl)
+
+Trigger the release workflow from anywhere without a local clone:
+
+```sh
+# With explicit version
+curl -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://api.github.com/repos/maggnus/claude-plugins/actions/workflows/release.yml/dispatches \
+  -d '{"ref":"main","inputs":{"version":"10.2.0"}}'
+
+# Without version (reads from plugin manifest)
+curl -X POST \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://api.github.com/repos/maggnus/claude-plugins/actions/workflows/release.yml/dispatches \
+  -d '{"ref":"main"}'
+```
+
+Or via `gh` CLI:
+```sh
+gh workflow run release.yml -R maggnus/claude-plugins -f version=10.2.0
+gh workflow run release.yml -R maggnus/claude-plugins  # auto-detect version
+```
+
+The workflow runs on GitHub Actions: validates, updates Codex cachebuster, commits, tags, and pushes.
+Requires a `GITHUB_TOKEN` with `repo` scope (classic PAT or fine-grained with Contents write).
 
 ## Plugins
 
