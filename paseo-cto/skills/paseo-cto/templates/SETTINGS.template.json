@@ -1,0 +1,42 @@
+{
+  "schema": 3,
+  "project": "<project-slug>",
+  "revision": 1,
+  "confirmedAt": "<RFC3339 timestamp>",
+  "charter": {
+    "strategy": "alpha",
+    "roleAssignments": {
+      "cto": {
+        "family": "<slug>",
+        "provider": "<provider/model>",
+        "effort": "<tier>"
+      },
+      "builder": {
+        "family": "<slug>",
+        "provider": "<provider/model>",
+        "effort": "<tier|min..max>"
+      },
+      "reviewer": {
+        "family": "<slug>",
+        "provider": "<provider/model>",
+        "effort": "<tier|min..max>"
+      },
+      "researcher": {
+        "family": "<slug>",
+        "provider": "<provider/model>",
+        "effort": "<tier|min..max>"
+      }
+    },
+    "permissionPolicy": "full-access-writers",
+    "fleetBudget": { "max_live_tasks": 3 },
+    "autonomyHorizon": "until-gate",
+    "reviewDepth": "risk-based",
+    "reportingLanguage": "<language the owner writes in>",
+    "modeMap": {}
+  },
+  "work": {
+    "root": "docs/work",
+    "scriptHome": "scripts"
+  },
+  "ownerOverrides": {}
+}

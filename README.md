@@ -136,6 +136,32 @@ creating or accepting work loads the work-tree reference; starting a project or 
 bootstrap reference; ordinary fleet work uses a compact core-command sheet; archival and close load
 their own reference; the complete command catalog is lookup-only.
 
+### Project onboarding
+
+A new project needs a charter (`SETTINGS.json`) in the Git common directory. Start from the template:
+
+```sh
+cp paseo-cto/skills/paseo-cto/templates/SETTINGS.template.json \
+  "$(git rev-parse --git-common-dir)/paseo-cto/SETTINGS.json"
+# edit: project slug, roleAssignments (family/provider/effort for cto/builder/reviewer/researcher),
+# reportingLanguage, fleetBudget, autonomyHorizon, reviewDepth, permissionPolicy
+```
+
+Copy the work tooling into the project and bind `check` to the validation gate:
+
+```sh
+mkdir -p scripts
+cp paseo-cto/skills/paseo-cto/templates/work.py scripts/
+cp paseo-cto/skills/paseo-cto/templates/work-schema.json scripts/
+cp -r paseo-cto/skills/paseo-cto/templates/work scripts/work
+```
+
+Verify the project's work tooling matches the installed plugin:
+
+```sh
+bash paseo-cto/scripts/check-work-tooling.sh
+```
+
 ### `russian-speech` — literate Russian technical prose
 
 Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first
@@ -165,9 +191,22 @@ separated them again.
 
 For `paseo-cto`, keep the base version in the
 [Claude manifest](paseo-cto/.claude-plugin/plugin.json) and
-[Codex manifest](paseo-cto/.codex-plugin/plugin.json) identical. Before committing, run the contract
-tests, refresh the Codex cachebuster, validate the plugin, and verify both distributions:
+[Codex manifest](paseo-cto/.codex-plugin/plugin.json) identical. The automated release script runs
+all validation steps, updates the Codex cachebuster, creates the tag, and pushes:
 
+```sh
+bash paseo-cto/scripts/release.sh
+```
+
+The script executes (and commits if needed):
+1. Contract tests (`test-plugin-contracts.sh`)
+2. Work tooling stamp (`stamp-work-tooling.py`)
+3. Codex cachebuster update (`update_plugin_cachebuster.py`)
+4. Plugin validation (`validate_plugin.py`)
+5. Distribution sync check (`check-distribution-sync.sh`)
+6. Tag creation and push
+
+To run manually without pushing:
 ```sh
 bash paseo-cto/scripts/test-plugin-contracts.sh
 python3 paseo-cto/scripts/stamp-work-tooling.py

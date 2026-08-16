@@ -26,6 +26,23 @@ changes between releases, and operating from a stale copy silently applies retir
 
 Only then continue to the provider preflight and to creating agents.
 
+## Cross-family review check
+
+After the provider preflight resolves role assignments, verify the independence property for
+risk-gated work:
+
+1. **Read `roleAssignments`** for `builder` and `reviewer` (and `researcher` if it will perform
+   independent review).
+2. **Compare `family` slugs.** If builder and reviewer share the same `family`, the cross-family
+   independence property is lost.
+3. **Record the loss** in the dispatch contract and apply the Review gate's compensation rules
+   (see [Review gate](review-gate.md)). Do not silently proceed.
+4. **Warn the owner** if the charter permits cross-family assignment but the live provider catalog
+   cannot satisfy it — this is an owner decision, not a CTO fallback.
+
+A project that cannot provision cross-family reviewers must accept reduced review independence and
+document it in `ownerOverrides`.
+
 ## Provider preflight
 
 The CTO may run in Codex or Claude; role authority and acceptance do not change by provider. Before
