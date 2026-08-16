@@ -3,6 +3,35 @@
 Each line states the observation the change came from. Rules earn their place by removing a failure
 that was actually measured, not by anticipating one.
 
+## 9.17.0
+
+A 13-hour single-owner session (12 accepted cards, 16 workers, one CTO handover) measured four
+recurring costs of the method that the text did not yet remove: context spent reposting unchanged
+fleet tables, a per-dispatch tax of remembering same-family compensation, a version collision when
+two Critical cards bump one journal schema, and ceremony exceeding the work on sub-fifteen-minute
+nodes.
+
+- **Heartbeats post one quiet liveness line when nothing changed.** `FLEET.md` is still rewritten
+  unconditionally — the file is cheap; the chat is not. A full table returns on any material event
+  or explicit status request. Projects no longer need a private `tokenEconomy` override for this.
+- **Same-family review is a legitimate cost-driven configuration, compensated in writing.** A
+  different provider family for the reviewer remains preferred when the charter already assigns
+  one, but adding a paid provider is never implied. When author and reviewer share a family, the
+  CTO copies the Review gate's compensation block into the assignment contract verbatim; the
+  compensation is a property of the contract, not of the CTO's memory.
+- **The version-holder rule.** When two tasks in flight bump the same versioned artifact, the
+  dispatch that notices names one task the holder; the other's contract declares its merge defers
+  to the holder's bump. One integration resolves one version.
+- **Batching is a threshold, not a courtesy.** A Routine node estimated under fifteen minutes is
+  not dispatched alone; it waits for homogeneous siblings or the next reconcile. Critical-path
+  nodes are exempt.
+- **A non-English reporting language loads its host glossary on first Operate, and connected prose
+  is re-read as sentences after hour four of a session.** Long sessions degrade register toward
+  snapshot telegraphese; the glossary and the re-read are the measured countermeasure.
+- **The runtime checkpoint records `ceremonyMinutes` per live card and `contextPercent` on the CTO
+  row.** Coarse trend numbers, so the next method change is argued from measurements instead of
+  impressions.
+
 ## 9.16.0
 
 The parallel-admission section had grown to four conditions, three fallbacks and five paragraphs of

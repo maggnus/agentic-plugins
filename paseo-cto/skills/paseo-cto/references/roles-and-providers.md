@@ -162,12 +162,17 @@ If the qualified skill is unavailable, the worker must return exactly
 reviewer and integration authority.
 
 Routing follows `roleAssignments`; the plugin states no preference for one provider family over
-another on any kind of work. One structural rule does hold, because it is about independence rather
-than about capability: when the risk gate requires an initial independent review, prefer a reviewer
-from a different provider family than the author, and otherwise use a fresh session. A reviewer of
-the same family as the author is a weaker check — findings that survive it are worth no less, but
-findings it misses are more likely — so when the assignment leaves both on one family, record that
-the cross-family property was lost.
+another on any kind of work. A different provider family for the reviewer than the author's is the
+stronger arrangement and is chosen when the charter already assigns one; it is never a reason to
+add a paid provider the owner has not configured. One family for both roles is a legitimate,
+cost-driven configuration — most single-subscription projects run exactly this way — and it is
+compensated automatically, not by memory: whenever a review assignment puts author and reviewer on
+the same family, the CTO copies the compensation block from the Review gate (falsifier of a
+different shape than the author's evidence; the reviewer derives the task from the contract and the
+code, not from the author's report) into the assignment contract verbatim, and the review report
+records that the cross-family property was lost. Findings that survive a compensated same-family
+review are worth no less; findings it misses are more likely, and the record keeps that fact
+visible.
 
 After an evidence-based return, reuse the same non-author reviewer and session by default under the
 Review gate. Replace it only for unavailability or error, compromised independence, a disputed

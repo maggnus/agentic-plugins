@@ -160,7 +160,10 @@ blind spots. When the assignment puts author and reviewer on the same provider f
 one is available, or the charter says so — that property is gone, and it goes quietly: the review
 still reads as independent and still produces findings.
 
-Do not treat this as equivalent. Record in the review that the cross-family property was lost, and
+Do not treat this as equivalent. This section is the **compensation block**: Roles and providers
+requires the CTO to copy its three rules below into the assignment contract verbatim whenever a
+same-family assignment is dispatched, so the compensation is a property of the written contract
+rather than of the CTO's memory. Record in the review that the cross-family property was lost, and
 compensate in the reviewer's contract:
 
 - **Require a falsifier of a different shape than the author's evidence.** If the author proved the

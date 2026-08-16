@@ -8,20 +8,23 @@ different artifact from the **work index**, the committed `STATUS.md` that `work
 generates from the permanent task files and that [Work tree](work-tree.md) defines. The index shows
 where the project is; the snapshot shows what the fleet is doing this minute.
 
-## One snapshot, two sinks
+## One snapshot, two sinks, two cadences
 
 Compute the snapshot once per reconcile and use those exact values for both sinks:
 
 1. **Durable file** — rewrite `<git-common-dir>/paseo-cto/FLEET.md` on every reconcile and material
-   event. Resolve the Git common directory; never write the file to an assumed checkout root.
-2. **Chat** — post the exact current-wave header and complete fleet table on every scheduled
-   15-minute heartbeat, even when nothing changed. Post the same snapshot immediately for every
-   explicit status request, including a bare "where are we" request. A material event between
-   scheduled snapshots may add a brief prose delta after the snapshot.
+   event, unconditionally. The file is cheap; the chat is not.
+2. **Chat** — post the exact current-wave header and complete fleet table immediately for every
+   explicit status request (including a bare "where are we") and whenever a material event occurred
+   since the last posted snapshot. On a scheduled heartbeat with no material event and no request,
+   post a single quiet line instead: `Fleet steady · <agents-running> running · head <short-sha>`
+   — nothing else. A material event is a landing decision, a verdict, a new blocker, a
+   critical-path change, or an owner gate.
 
-The scheduled snapshot is the sole exception to the rule against repeating unchanged information.
-Never repeat unchanged prose. State the absolute `FLEET.md` path once when Operate begins; do not
-put it in the snapshot or repeat it in ordinary updates.
+A full unchanged table reposted on every heartbeat spends the owner's attention and the CTO's
+context restating what the durable file already holds. The quiet line proves liveness; the file
+carries the state. Never repeat unchanged prose. State the absolute `FLEET.md` path once when
+Operate begins.
 
 Coalesce lifecycle changes discovered in one turn into one report after the reconciliation is
 complete. Between scheduled heartbeats, rewrite `FLEET.md` at every material transition but post no
@@ -36,6 +39,13 @@ Owner-facing prose uses the exact project-local `charter.reportingLanguage`. Tha
 the plugin's English bootstrap default for every prose message, status explanation, escalation,
 review, research report, and durable narrative. No language is privileged by the plugin after a
 valid local setting exists.
+
+On the first Operate with a non-English `reportingLanguage`, load the host's language-norm
+glossary before writing the first owner-facing message (for Russian hosts this is the installed
+`russian-speech` skill); a long session degrades prose register toward the compressed machine
+tokens of snapshots and verdicts, and the glossary is the countermeasure. Before sending any
+connected prose after hour four of a session, re-read it once as sentences: full clauses with
+subjects and verbs, no telegraphic compression inherited from the snapshot format.
 
 Prose is formal, neutral, impersonal, evidence-led, concise, and self-contained. It contains no
 first or second person, social language, emotion, praise, blame, unsupported hedging, process

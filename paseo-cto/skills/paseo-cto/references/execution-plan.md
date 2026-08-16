@@ -175,6 +175,11 @@ The runtime checkpoint is current state, not an execution transcript. Store at m
 more than 1200 characters — and replace it when the decision changes. Never copy full prompts,
 worker reports, command transcripts, repeated snapshots, or completed review dialogue into the
 checkpoint. Keep at most twelve material-event records, each as a timestamp plus one decision or
+state change. Record two running measurements per live card so method cost stays observable:
+`ceremonyMinutes` (workspace setup, dispatch writing, review logistics, integration — everything
+that is not the card's own outcome work) and, on the CTO row only, `contextPercent` at each
+material event. Both are coarse estimates rounded to whole numbers; their value is the trend across
+cards, not any single reading.
 state change. When an agent is safely archived, remove its live record after preserving its exact
 Git coordinates and any unresolved tail in the task, durable evidence, or compact tail record.
 Conversation history and an ever-growing JSON file are not recovery mechanisms; the task, Git,
