@@ -21,48 +21,8 @@ codex plugin add russian-speech@maggnus
 
 All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
 release tag. A local directory, a moving branch, or an unpinned remote marketplace is not a valid
-installation source. The local repository is used for development and validation only.
-
-## Release
-
-### Local (requires Codex CLI tools)
-
-```sh
-bash paseo-cto/scripts/release.sh
-```
-
-Runs all validation, updates Codex cachebuster, creates the immutable tag, and pushes. Requires
-local Codex CLI tools (`~/.codex/skills/.system/plugin-creator/scripts/`), `jq`, and push access
-to `origin`.
-
-### Remote (via GitHub API / curl)
-
-Trigger the release workflow from anywhere without a local clone:
-
-```sh
-# With explicit version
-curl -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/repos/maggnus/agentic-plugins/actions/workflows/release.yml/dispatches \
-  -d '{"ref":"main","inputs":{"version":"10.2.0"}}'
-
-# Without version (reads from plugin manifest)
-curl -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer $GITHUB_TOKEN" \
-  https://api.github.com/repos/maggnus/agentic-plugins/actions/workflows/release.yml/dispatches \
-  -d '{"ref":"main"}'
-```
-
-Or via `gh` CLI:
-```sh
-gh workflow run release.yml -R maggnus/agentic-plugins -f version=10.2.0
-gh workflow run release.yml -R maggnus/agentic-plugins  # auto-detect version
-```
-
-The workflow runs on GitHub Actions: validates, updates Codex cachebuster, commits, tags, and pushes.
-Requires a `GITHUB_TOKEN` with `repo` scope (classic PAT or fine-grained with Contents write).
+installation source. The installation commands can be run from any directory and do not copy
+plugin files into the current project.
 
 ## Plugins
 
@@ -167,11 +127,8 @@ Ships:
   Paseo MCP endpoint.
 
 Both hosts load the same [skill sources](paseo-cto/skills). Only invocation syntax, the Codex
-cache-busting build suffix, and Codex interface metadata differ. The
-[distribution synchronization check](paseo-cto/scripts/check-distribution-sync.sh) verifies the
-shared descriptions, authors, base versions, marketplace source, skill set, and release tag.
-The [installed-release check](paseo-cto/scripts/check-installed-release.sh) additionally verifies
-that both host installations resolve the same remote tagged commit.
+cache-busting build suffix, and Codex interface metadata differ. Both installations resolve the
+same immutable remote release tag.
 
 References load progressively. Project status reads only the reporting reference and the work index;
 creating or accepting work loads the work-tree reference; starting a project or a wave loads the
@@ -183,7 +140,8 @@ their own reference; the complete command catalog is lookup-only.
 A new project needs a charter (`SETTINGS.json`) in the Git common directory. Start from the template:
 
 ```sh
-cp paseo-cto/skills/paseo-cto/templates/SETTINGS.template.json \
+PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/SETTINGS.template.json" \
   "$(git rev-parse --git-common-dir)/paseo-cto/SETTINGS.json"
 # edit: project slug, roleAssignments (family/provider/effort for cto/builder/reviewer/researcher),
 # reportingLanguage, fleetBudget, autonomyHorizon, reviewDepth, permissionPolicy
@@ -193,18 +151,18 @@ Copy the work tooling into the project and bind `check` to the validation gate:
 
 ```sh
 mkdir -p scripts
-cp paseo-cto/skills/paseo-cto/templates/work.py scripts/
-cp paseo-cto/skills/paseo-cto/templates/work-schema.json scripts/
-cp -r paseo-cto/skills/paseo-cto/templates/work scripts/work
-cp paseo-cto/skills/paseo-cto/templates/check_runtime.py scripts/
-cp paseo-cto/skills/paseo-cto/templates/render_fleet.py scripts/
-cp paseo-cto/skills/paseo-cto/templates/check-fleet-render.sh scripts/
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work.py" scripts/
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work-schema.json" scripts/
+cp -r "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work" scripts/work
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/check_runtime.py" scripts/
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/render_fleet.py" scripts/
+cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/check-fleet-render.sh" scripts/
 ```
 
 Verify the project's work tooling matches the installed plugin:
 
 ```sh
-bash paseo-cto/scripts/check-work-tooling.sh
+bash "$PASEO_CTO_PLUGIN/scripts/check-work-tooling.sh" "$(git rev-parse --show-toplevel)"
 ```
 
 ### `russian-speech` — literate Russian technical prose
@@ -232,38 +190,7 @@ It is versioned and installed on its own. It briefly lived inside `paseo-cto` (9
 tag-pinned host could not see it; the cause was a missing release tag, not the packaging, so 9.8.0
 separated them again.
 
-## Releasing a change
-
-For `paseo-cto`, keep the base version in the
-[Claude manifest](paseo-cto/.claude-plugin/plugin.json) and
-[Codex manifest](paseo-cto/.codex-plugin/plugin.json) identical. The automated release script runs
-all validation steps, updates the Codex cachebuster, creates the tag, and pushes:
-
-```sh
-bash paseo-cto/scripts/release.sh
-```
-
-It refuses an existing local or remote tag; bump both manifest base versions before a new release.
-
-The script executes (and commits if needed):
-1. Contract tests (`test-plugin-contracts.sh`)
-2. Work tooling stamp (`stamp-work-tooling.py`)
-3. Codex cachebuster update (`update_plugin_cachebuster.py`)
-4. Plugin validation (`validate_plugin.py`)
-5. Distribution sync check (`check-distribution-sync.sh`)
-6. Tag creation and push
-
-To run manually without pushing:
-```sh
-bash paseo-cto/scripts/test-plugin-contracts.sh
-python3 paseo-cto/scripts/stamp-work-tooling.py
-python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
-python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
-bash paseo-cto/scripts/check-distribution-sync.sh
-```
-
-Commit the validated release, create its immutable tag, and push both. Never move or replace a
-published release tag.
+## Upgrade
 
 An existing installation upgrades itself. The plugin ships
 [`upgrade.py`](paseo-cto/skills/paseo-cto/scripts/upgrade.py), which resolves the newest release tag
@@ -271,10 +198,11 @@ from the remote repository and re-pins both hosts to it, preserving any sibling 
 from the same marketplace. Asking the CTO for `paseo-cto upgrade` runs it:
 
 ```sh
-python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --check      # report versions only
-python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --dry-run    # print the exact commands
-python3 <plugin>/skills/paseo-cto/scripts/upgrade.py              # upgrade to the latest release
-python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one exact release
+PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.2.0
 ```
 
 The same sequence by hand:
@@ -286,13 +214,13 @@ claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install paseo-cto@maggnus --scope user
+claude plugin install russian-speech@maggnus --scope user
 
 codex plugin remove paseo-cto@maggnus
 codex plugin marketplace remove maggnus
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
-
-bash paseo-cto/scripts/check-installed-release.sh
+codex plugin add russian-speech@maggnus
 ```
 
 Restart Claude Code and start a new Codex conversation after reinstalling so both hosts load the
