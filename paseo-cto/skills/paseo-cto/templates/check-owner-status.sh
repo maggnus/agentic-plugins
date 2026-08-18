@@ -59,7 +59,10 @@ fi
 # --- first person -----------------------------------------------------------
 # English and Russian are built in. A project using another language extends the pattern through
 # FIRST_PERSON_PATTERN without modifying its local copy of this check.
-first_person="${FIRST_PERSON_PATTERN:-(^|[^[:alnum:]])([Ii]|[Ww]e|[Oo]ur|[Mm]y|[Mm]ine|[Uu]s|я|мы|наш|наша|наше|наши|нами|нам|мною|меня|мне)([^[:alnum:]]|$)}"
+# Pronouns alone miss "Проверяю"/"Возобновляю"; free endings (-ю, -им) hit ordinary words
+# ("очередью", "необходим"). Keep a bounded process-verb stem list and extend it from observed prose.
+first_person_default='(^|[^[:alnum:]])([Ii]|[Ww]e|[Oo]ur|[Mm]y|[Mm]ine|[Uu]s|я|мы|наш|наша|наше|наши|нами|нам|мною|меня|мне|(проверя|продолжа|возобновля|запуска|созда|обновля|фиксиру|сверя|подтвержда|возвраща|добавля|изменя|заверша|начина|применя|отправля|ожида|прекраща|устраня|сообща|отмеча|выбира|дела|настраива)(ю|юсь|ем|емся)|использ(ую|уем)|переход(им|имся)|перехожу|смотрю|провод(им|имся))([^[:alnum:]]|$)'
+first_person="${FIRST_PERSON_PATTERN:-$first_person_default}"
 if printf '%s' "$text" | grep -qiE "$first_person"; then
   fail "first person present: $(printf '%s' "$text" | grep -oiE "$first_person" | tr -d '\n' | head -c 60)"
 fi
@@ -96,6 +99,9 @@ banned_re=(
   'гипотеза[^.]{0,60}выжил|выжил[^.]{0,30}гипотеза'
   'заслужил|оправдал себя|окупил'
   'приземл|карта ушла|ушла на|ушёл с|ушел с'
+  '(производственн|релизн|выпуск)[^.]{0,30}шлюз|шлюз[^.]{0,30}(готовност|релиз|выпуск)'
+  'готов(ый|ого|ому|ым|ом) фронт|здоров(ый|ого|ому|ым|ом) сигнал|жив(ое|ого|ому|ым|ом) доказательств'
+  'полный прогон[^.]{0,30}от толчка'
   'most (substantial|valuable|important)|strikingly|remarkably|impressive'
   '(un)?fortunately|earned its|survived the|heavy lift|finally,'
 )

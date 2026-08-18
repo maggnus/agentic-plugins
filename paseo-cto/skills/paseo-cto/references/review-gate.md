@@ -1,12 +1,15 @@
 # CTO review gate
 
-Read this file when any delegated outcome returns, including a report-only research or design
-outcome, before the card completes and before any repository integration or push. A project may
-define stricter gates; it must not define a weaker floor.
+Read this file when a delegated repository write returns, a semantic CTO integration fix is made, or
+a delegated report-only result is proposed as plan-node closure, authorization for a `Critical` card, or an
+owner-gate decision. Apply it before closure, integration, or push. Intermediate research or design
+used only to narrow the next contract is source-checked by the CTO and does not receive a separate
+review. Ordinary CTO work-tree and contract edits follow the plan-review rule below rather than a
+per-edit review. A project may define stricter gates; it must not define a weaker floor.
 
-Review is always delegated. The CTO classifies the risk, dispatches the risk-required review or
-second look to a non-author agent, and decides on the returned evidence; it never performs a review
-itself, at any tier. Landing authority, integration, and the bounded CTO fix remain CTO work.
+A gate review is always delegated. The CTO classifies the risk, dispatches the required second look
+to a non-author agent, and decides on the returned evidence; it never performs that review itself.
+Landing authority, integration, and the bounded CTO fix remain CTO work.
 
 ## Risk classification
 
@@ -54,7 +57,7 @@ State the kind alongside each finding. No landing decision may use a finding who
 
 ## Common evidence floor
 
-For every returned outcome:
+For every outcome that crosses this gate:
 
 1. inspect the report, complete evidence package, outcome, scope, and no-touch boundaries;
 2. inventory executable or source-verifiable evidence for the exact returned result; verbal claims
@@ -64,9 +67,9 @@ For every returned outcome:
 5. choose `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN`, or `BLOCKED`.
 
 For a repository write, also inspect the final workspace state, complete reviewed revision range,
-ancestry, and actual diff. For a report-only result, verify every source that carries a conclusion
-and the stated omitted scope. Apply [Source references](source-references.md) to every commit or
-repository file cited as durable evidence. Numerical scores are not used.
+ancestry, and actual diff. For a gated report-only result, verify every source that carries a
+conclusion and the stated omitted scope. Apply [Source references](source-references.md) to every
+commit or repository file cited as durable evidence. Numerical scores are not used.
 
 ## A proof must be able to fail
 
@@ -94,10 +97,10 @@ sentence, and removes the review round that would otherwise discover the same th
 ### Routine
 
 A delegated non-author agent — the reviewer role under a lightweight second-look contract, or
-another available non-author worker — performs the mandatory second look over the complete returned
-outcome, scope, and acceptance evidence. For a repository write that includes the complete final
-diff; for a report-only result, every load-bearing conclusion and source. The second look returns
-`ACCEPT` or `RETURN` and requires no independently selected falsifier or author response.
+another available non-author worker — checks the complete gated outcome, scope, and acceptance
+evidence. For a repository write that includes the complete final diff; for a gated report-only
+result, every load-bearing conclusion and source. The second look returns `ACCEPT` or `RETURN` and
+requires no independently selected falsifier or author response.
 
 ### Significant
 
@@ -178,11 +181,12 @@ independent work rather than a limitation, it gets its own task identifier inste
 
 ## Reviewing a decomposition rather than an outcome
 
-A plan review applies this same gate to a wave's tree before its first card starts. The reviewer is
-the ordinary reviewer role under a plan-review contract. The reviewer reads the tree, tries to refute
-its completeness, and returns `ACCEPT` or `RETURN`. The checklist and recording rules are in
-[Project bootstrap](project-bootstrap.md). A `RETURN` continues the same review after the CTO
-corrects the tree.
+A plan review applies this gate once to a new project's or wave's tree before its first card starts.
+Creating or correcting an individual task contract inside an accepted wave is CTO-owned work and
+does not trigger a separate contract review. Review the tree again only when a later rewrite changes
+closure semantics, dependencies, or owner gates across multiple nodes. A `RETURN` and any such
+re-review continue with the same reviewer and retained evidence under
+[Project bootstrap](project-bootstrap.md).
 
 ## Converge: the second return forces a decision
 

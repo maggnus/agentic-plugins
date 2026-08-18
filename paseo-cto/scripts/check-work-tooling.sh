@@ -15,7 +15,7 @@ if [ -z "$work_root" ] || [ ! -d "$work_root" ]; then
 fi
 
 # Get plugin version
-plugin_version=$(jq -r '.version' paseo-cto/.claude-plugin/plugin.json)
+plugin_version=$(jq -r '.version' "$plugin_root/.claude-plugin/plugin.json")
 if [ -z "$plugin_version" ] || [ "$plugin_version" = "null" ]; then
     echo "cannot read plugin version" >&2
     exit 1
@@ -56,6 +56,6 @@ fi
 
 # Full check with plugin templates
 echo "Running full validation against plugin templates..."
-"$project_work_py" check --root "$work_root" --plugin-templates "paseo-cto/skills/paseo-cto/templates"
+"$project_work_py" check --root "$work_root" --plugin-templates "$plugin_root/skills/paseo-cto/templates"
 
 echo "OK: Work tooling matches plugin version $plugin_version"

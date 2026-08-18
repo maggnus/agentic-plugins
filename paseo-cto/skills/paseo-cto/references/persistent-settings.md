@@ -21,7 +21,7 @@ The minimum schema is:
 
 ```json
 {
-  "schema": 3,
+  "schema": 4,
   "project": "<stable-project-slug>",
   "revision": 1,
   "confirmedAt": "<RFC3339 timestamp>",
@@ -34,7 +34,7 @@ The minimum schema is:
       "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" }
     },
     "permissionPolicy": "full-access-writers",
-    "fleetBudget": { "max_live_tasks": 3 },
+    "fleetBudget": { "max_live_tasks": 3, "max_live_agents": 7 },
     "autonomyHorizon": "until-gate",
     "reviewDepth": "risk-based",
     "reportingLanguage": "<language the owner writes in>",
@@ -98,14 +98,18 @@ nothing in the file says which is current.
 An older `fleetBudget` counted live agents: a preset naming writers, or an object with `max_live`.
 The field now counts plan tasks in flight. Convert a writer count one for one, because one writer was
 one task, and halve a bare agent ceiling, rounding down to at least one, because a task then carried
-about two agents. Write the result as `{ "max_live_tasks": <N> }`, raise `revision`, and do not
-reconfirm the rest of the charter.
+about two agents. Write `max_live_tasks` from that conversion and set `max_live_agents` to
+`2 * max_live_tasks + 1`. Raise `revision` and do not reconfirm the rest of the charter.
+
+## Migrating a `schema: 3` file
+
+Schema 4 adds the independent `max_live_agents` ceiling. Set it to
+`2 * max_live_tasks + 1`, raise `schema` and `revision`, and keep every other owner choice unchanged.
 
 ## Migrating a `schema: 2` file
 
-Schema 3 adds the `work` block for the work root and the project's script home, which the loop needs
-before it can read or generate anything. Migrate by adding the block with the project's actual paths
-and raising `revision`. Nothing else changes, and the charter is not reconfirmed.
+Schema 3 added the `work` block. Add it with the project's actual paths, then apply the schema 3
+migration above and raise `revision` once. Nothing else changes, and the charter is not reconfirmed.
 
 ## Migrating a `schema: 1` file
 
@@ -126,6 +130,7 @@ Migrate in one edit, then raise `revision`:
    notes that now contradict the fields.
 
 A `schema: 1` file is readable but not operable: complete the migration before the first dispatch.
+Apply the schema 2 and 3 migrations in the same atomic edit and write schema 4.
 
 ## First-run and legacy migration
 

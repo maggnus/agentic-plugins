@@ -6,14 +6,14 @@ Code/Codex plugins.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v10.1.0
+PASEO_CTO_TAG=v10.2.0
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v10.1.0
+PASEO_CTO_TAG=v10.2.0
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
@@ -89,9 +89,10 @@ The first operating run presents a compact charter for CTO strategy, role assign
 policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
 project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation or daemon
 restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Writers use isolated workspaces and
-local commits. Every returned outcome receives the risk-required non-author review, including
-report-only research and design; repository writes integrate only after acceptance. Every commit or
-repository file used as durable evidence is a source-code link pinned to the exact revision.
+local commits. Delegated writes, semantic CTO integration fixes, and closure- or
+authorization-bearing reports receive the risk-required non-author review; intermediate research is
+source-checked and folded into the next contract. Every durable source reference is pinned to the
+exact revision.
 
 Reasoning effort is economical by construction when the owner permits a range: Routine atoms use
 the minimum allowed tier, Significant atoms the middle tier, and Critical atoms the maximum.
@@ -117,7 +118,7 @@ first dispatch on a new project or wave, the CTO builds the tree and an independ
 the decomposition; a wave whose work started without that verdict fails the check.
 
 A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
-Every heartbeat rewrites one durable fleet render, `FLEET.md`. The chat receives the full snapshot —
+Every heartbeat generates one durable fleet snapshot, `FLEET.md`. The chat receives the full snapshot —
 local timestamp; plugin version, CTO model/effort, available host context and session time; current
 wave ID and name; accepted/total cards; then the complete fleet table with the CTO first — when a
 material event occurred or the owner asks for status, and a single quiet liveness line otherwise, so
@@ -128,7 +129,7 @@ completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.1.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v10.2.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -157,7 +158,7 @@ Ships:
   paused or trigger-gated, `[!]` withdrawn, `[x]` accepted;
 - **document standard and templates** — the invariant registry, the frozen shape of a pre-adoption
   execution document and its acceptance history, plus checks for source links, the exact current-wave
-  fleet render, and the owner-facing reporting register;
+  fleet render, its bounded runtime checkpoint, and the owner-facing reporting register;
 - **worker role skills** — `paseo-builder`, `paseo-reviewer`, and `paseo-researcher`;
 - **Claude manifest** — [`.claude-plugin/plugin.json`](paseo-cto/.claude-plugin/plugin.json) for
   marketplace installation;
@@ -195,6 +196,9 @@ mkdir -p scripts
 cp paseo-cto/skills/paseo-cto/templates/work.py scripts/
 cp paseo-cto/skills/paseo-cto/templates/work-schema.json scripts/
 cp -r paseo-cto/skills/paseo-cto/templates/work scripts/work
+cp paseo-cto/skills/paseo-cto/templates/check_runtime.py scripts/
+cp paseo-cto/skills/paseo-cto/templates/render_fleet.py scripts/
+cp paseo-cto/skills/paseo-cto/templates/check-fleet-render.sh scripts/
 ```
 
 Verify the project's work tooling matches the installed plugin:
@@ -239,6 +243,8 @@ all validation steps, updates the Codex cachebuster, creates the tag, and pushes
 bash paseo-cto/scripts/release.sh
 ```
 
+It refuses an existing local or remote tag; bump both manifest base versions before a new release.
+
 The script executes (and commits if needed):
 1. Contract tests (`test-plugin-contracts.sh`)
 2. Work tooling stamp (`stamp-work-tooling.py`)
@@ -274,7 +280,7 @@ python3 <plugin>/skills/paseo-cto/scripts/upgrade.py --tag v9.1.0 # pin to one e
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v10.1.0
+PASEO_CTO_TAG=v10.2.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user

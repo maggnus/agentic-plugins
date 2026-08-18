@@ -28,7 +28,7 @@ blocks safe operation. The owner may change one field without repeating anything
 persisted before further operation.
 
 ```text
-CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-writers | <N> tasks in flight | until-gate | risk-based review | reports in <language>
+CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-writers | <N> tasks/<M> agents live | until-gate | risk-based review | reports in <language>
 ```
 
 ## The seven fields
@@ -46,9 +46,10 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
 3. **Permission policy** — `full-access-writers` (default), `role-safe`, or `always-ask`. The three
    values are defined once in [Roles and providers](roles-and-providers.md); confirm the name here
    and apply that definition. Push, deploy, and the other owner/CTO gates are unchanged by it.
-4. **Fleet budget** — the ceiling on plan tasks in flight, written as a positive `max_live_tasks`;
-   the CTO does not count toward it. The agents a task carries follow from its review depth, not
-   from the budget, so a Critical atom and a Routine one each occupy exactly one slot.
+4. **Fleet budget** — separate positive ceilings for plan tasks and external agents, written as
+   `max_live_tasks` and `max_live_agents`; the CTO counts toward neither. The task ceiling protects
+   integration capacity, while the agent ceiling prevents retained research and review sessions from
+   multiplying invisibly.
 
    A ceiling is not a target. Useful concurrency is limited by the number of ready atoms whose write
    zones are pairwise disjoint — see *Parallel work* in [Fleet operations](fleet-operations.md). A
@@ -67,9 +68,9 @@ CTO charter: alpha | roles per SETTINGS.json roleAssignments | full-access-write
    silent rather than repetitive. Machine tokens, plan IDs, commands, paths, commit messages, and
    code retain their source form.
 
-These are standing rules, not choices: every delegated outcome receives at least the required
-non-author second look before completion, and every repository write receives it before integration;
-one 15-minute heartbeat runs while work remains; repository writers commit
+These are standing rules, not choices: every delegated repository write, semantic CTO integration
+fix, and closure- or authorization-bearing result receives the required non-author review; one
+15-minute heartbeat runs while work remains; repository writers commit
 locally and never push; push, deploy, publication, live mutation, money, and irreversible actions
 stay separate gates. Validation is budgeted: one primary owner per proof, final-tree evidence is
 reused, and a full suite runs only at an explicit plan, wave, release, or deploy trigger or when new

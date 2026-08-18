@@ -14,12 +14,17 @@ is doing this minute.
 
 Compute the snapshot once per reconcile and use those exact values for both sinks.
 
-1. **Durable file** — rewrite `<git-common-dir>/paseo-cto/FLEET.md` on every reconcile and material
-   event, unconditionally. Resolve the Git common directory; never write the file to an assumed
-   checkout root. The file is cheap; the chat is not.
+1. **Durable file** — run `render_fleet.py` unconditionally on every reconcile and material event. It
+   obtains the current Paseo inventory, verifies runtime and Git, derives the table from the work
+   tree, validates a temporary file, and atomically replaces
+   `<git-common-dir>/paseo-cto/FLEET.md`. Never edit this file or compose a row from a worker report.
 2. **Chat** — post the header and complete fleet table when a material event occurred since the last
    posted snapshot, and immediately for any explicit status request. Otherwise post one quiet line:
    `Fleet steady · <agents-running> running · head <short-sha>` — nothing else.
+
+For a status or other read-only request, run the same renderer with `--stdout`. It validates the live
+state and table without replacing the durable file. If validation fails, report the mismatch and do
+not publish a table presented as current.
 
 A material event is a landing decision, a review verdict, a new blocker, a critical-path change, or
 an owner gate. An unchanged table restates what the durable file already holds.
@@ -34,6 +39,10 @@ the absolute `FLEET.md` path once when Operate begins.
 Owner-facing prose uses the exact project-local `charter.reportingLanguage`. That setting overrides
 the plugin's English bootstrap default for every prose message, status explanation, escalation,
 review, research report, and durable narrative.
+
+This register governs Paseo-generated operational artifacts and reports. It does not suppress brief
+progress notices required by the host while tools run; those notices are not fleet status, are not
+copied into `FLEET.md` or runtime, and do not create additional reporting cadence.
 
 On the first Operate with a non-English `reportingLanguage`, load the host's language-norm glossary
 or skill for the configured language before the first owner-facing message.
@@ -60,7 +69,7 @@ agent titles, derived-status tokens, commands, and paths.
 
 ## Scheduled snapshot — exact shape
 
-Rewrite `FLEET.md` and post the chat snapshot in exactly this shape:
+Generate `FLEET.md` and post the chat snapshot in exactly this shape:
 
 ```markdown
 # Update <YYYY-MM-DD HH:MM TZ>
@@ -84,11 +93,20 @@ when no trustworthy measurement exists. `Session` is elapsed wall-clock time sin
 started, rendered as `24m`, `1h`, or `1h24m`. A handover or new host conversation starts a new
 session clock; compaction inside the same session does not.
 
-Derive every identity value from plugin-version preflight, `charter.roleAssignments`, and runtime
-state. If the version, model, effort, or session time is unavailable, or the version disagrees with
-the selected immutable release, fail the status gate instead of inventing it. Context is the only
-optional value. Invoke [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) with
-`PASEO_CTO_VERSION=v<base-version>` to verify the displayed release.
+Derive every identity value from plugin-version preflight, `charter.roleAssignments`, and verified
+runtime state. If the version, model, effort, or session time is unavailable, or the version
+disagrees with the selected immutable release, stop instead of inventing it. Context is the only
+optional value. Generate and validate the file in one command:
+
+```sh
+python3 <tools>/render_fleet.py <checkpoint> --project-root <integration-root> \
+  --timezone <local-timezone-token> [--context <amount(percent%)>]
+```
+
+Add `--stdout` when the current request is read-only.
+
+The renderer invokes `check-fleet-render.sh` before replacement; a failed live probe or check leaves
+the prior `FLEET.md` unchanged.
 
 Do not add the run ID, CTO ID, path, strategy, readiness, constraint, fleet counts, project rollup,
 blockers, tails, or next action to this mechanical render. Those belong in the plan, runtime state,
@@ -111,8 +129,10 @@ The runtime checkpoint stores the current wave ID and name. Resolve both during 
 - When no current wave exists, render `Wave: [—] —` and `Cards: 0/0`.
 
 The displayed count must always satisfy `0 <= done <= total`. The reference checker in
-[`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates the shape and,
-with `WORK_ROOT` supplied, recalculates the counts and the wave name from the work tree. A project
+[`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates every field and,
+with `WORK_ROOT` supplied, recalculates the counts and the wave name from the work tree. With
+`RUNTIME_FILE` and `PROJECT_ROOT`, it also requires exact agent coverage, task identity, derived
+status, state time, and workspace line delta. A project
 still reading a frozen execution document supplies `PLAN_FILE` and `ACCEPTANCE_FILE` instead; the
 two modes are mutually exclusive.
 

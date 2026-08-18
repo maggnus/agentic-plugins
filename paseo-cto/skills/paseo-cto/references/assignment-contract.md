@@ -96,8 +96,10 @@ the harness. See [Validation budget](validation-budget.md).
   available skill bearing directly on the outcome and report the additions. It may ask the author
   directly for a fact it would otherwise spend a turn deriving, under the same direct-exchange rule,
   recording each exchange in its report.
-- Researcher: one question and evidence format, identical pre/post porcelain, read-only, followed by
-  the risk-required non-author second look before the card completes.
+- Researcher: one question and evidence format, identical pre/post porcelain, and read-only. A
+  separate review follows only when the report itself is proposed as closure, authorization for a
+  `Critical` card, or an owner-gate decision; otherwise the CTO verifies its sources and folds the
+  result into the next contract.
 
 Evidence needed after archive must be committed, copied to an approved project artifact store, or
 captured concisely in the CTO checkpoint/authorization. Disposable logs use only an approved ignored

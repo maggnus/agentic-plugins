@@ -12,8 +12,8 @@ if [ -z "$repo_root" ]; then
 fi
 cd "$repo_root"
 
-# Check for uncommitted changes
-if ! git diff --quiet || ! git diff --cached --quiet; then
+# Check tracked and untracked changes
+if [ -n "$(git status --porcelain)" ]; then
     echo "release: working tree has uncommitted changes" >&2
     git status --short
     exit 1
@@ -35,6 +35,12 @@ fi
 
 tag="v$version"
 echo "release: preparing $tag"
+
+if git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null || \
+   git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1; then
+    echo "release: tag $tag already exists; bump the manifest version" >&2
+    exit 1
+fi
 
 # Verify Codex manifest base version matches
 codex_version=$(jq -r '.version' paseo-cto/.codex-plugin/plugin.json | cut -d'+' -f1)
@@ -70,16 +76,12 @@ if ! git diff --quiet; then
     git commit -m "chore: update codex cachebuster for $tag"
 fi
 
-# Create/update tag
-if git rev-parse "$tag" >/dev/null 2>&1; then
-    echo "release: tag $tag exists locally, replacing..."
-    git tag -d "$tag"
-fi
+# Create the immutable tag
 git tag "$tag"
 
 echo "release: pushing main and $tag..."
 git push origin main
-git push origin "$tag" --force
+git push origin "$tag"
 
 echo "release: $tag published successfully"
 echo ""

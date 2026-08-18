@@ -90,9 +90,11 @@ Form that rests on convention drifts. The checks are the gate:
   and with `--plugin-templates` it reports a copy older than the installed plugin.
 - [`templates/check-source-links.sh`](../templates/check-source-links.sh) rejects mechanically
   recognizable bare commit and file evidence in selected durable documents.
-- [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates the runtime
-  fleet snapshot and, with `WORK_ROOT`, proves that `Cards: <done>/<total>` and the wave name agree
-  with the tree.
+- [`templates/check_runtime.py`](../templates/check_runtime.py) validates the bounded live checkpoint
+  against the actual Paseo inventory, settings and Git.
+  [`templates/render_fleet.py`](../templates/render_fleet.py) generates the untracked fleet snapshot;
+  [`templates/check-fleet-render.sh`](../templates/check-fleet-render.sh) validates it before
+  replacement and proves that card counts and wave name agree with the tree.
 - [`templates/check-plan-shape.sh`](../templates/check-plan-shape.sh) remains available for a frozen
   execution document from before adoption. It describes the old shape and is not applied to the tree.
 

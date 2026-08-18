@@ -30,8 +30,9 @@ verifiable source or does not enter.
   only in review dialogue.
 - Every acceptance check carries its negative half; a check whose failing form was never observed
   is not evidence.
-- Every delegated outcome receives the risk-required non-author second look before completion; a
-  repository write receives it before integration.
+- Every delegated repository write, semantic CTO integration fix, and delegated result used for
+  closure or authorization receives the risk-required non-author review. Intermediate research is
+  source-checked by the CTO.
 - The validation gate is `<command>`; the full suite runs only at the triggers named per card.
 - This file is updated in the same change that ships the work.
 - Acceptance is an atomic transfer: append the source-linked row to `<acceptance file>` and remove

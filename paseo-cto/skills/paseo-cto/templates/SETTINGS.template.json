@@ -1,5 +1,5 @@
 {
-  "schema": 3,
+  "schema": 4,
   "project": "<project-slug>",
   "revision": 1,
   "confirmedAt": "<RFC3339 timestamp>",
@@ -28,7 +28,7 @@
       }
     },
     "permissionPolicy": "full-access-writers",
-    "fleetBudget": { "max_live_tasks": 3 },
+    "fleetBudget": { "max_live_tasks": 3, "max_live_agents": 7 },
     "autonomyHorizon": "until-gate",
     "reviewDepth": "risk-based",
     "reportingLanguage": "<language the owner writes in>",

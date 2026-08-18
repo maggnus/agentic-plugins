@@ -6,6 +6,7 @@ set -euo pipefail
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 plugin_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
 templates="$plugin_root/skills/paseo-cto/templates"
+work_fixture="$plugin_root/tests/fixtures/work-tree"
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/paseo-cto-contracts.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT INT TERM
 
@@ -76,7 +77,7 @@ expect_pass "formal English status" env REPORTING_LANGUAGE=English \
 
 printf '%s\n' \
   'Восстановление подтверждено измерением отрицательного сценария.' \
-  'Разрешение выпуска ожидает открытия производственного шлюза.' \
+  'Разрешение выпуска ожидает успешной проверки готовности.' \
   > "$scratch/status-ru.txt"
 expect_pass "local Russian language overrides English default" env REPORTING_LANGUAGE=Russian \
   "$templates/check-owner-status.sh" "$scratch/status-ru.txt"
@@ -93,6 +94,25 @@ expect_pass "another project-local language overrides English default" env REPOR
 printf '%s\n' 'Мы проверили восстановление; результат подтверждён.' > "$scratch/status-ru-personal.txt"
 expect_fail "Russian first person" env REPORTING_LANGUAGE=Russian \
   "$templates/check-owner-status.sh" "$scratch/status-ru-personal.txt"
+
+printf '%s\n' 'Разрешение выпуска ожидает открытия производственного шлюза.' \
+  > "$scratch/status-ru-calque.txt"
+expect_fail "Russian quality-gate calque" env REPORTING_LANGUAGE=Russian \
+  "$templates/check-owner-status.sh" "$scratch/status-ru-calque.txt"
+
+# Regression: a session leak showed owner prose built from first-person verbs
+# ("Возобновляю", "Проверяю", "сверяю") with no pronoun at all; the pronoun-only
+# pattern passed it. Ordinary words ending in -ю/-им ("очередью", "необходим")
+# must keep passing.
+printf '%s\n' 'Возобновляю только W0-OP-10. Сначала сверяю состояние Git.' \
+  'Проверяю итог задачи миграции.' > "$scratch/status-ru-verbs.txt"
+expect_fail "Russian first-person verbs without pronouns" env REPORTING_LANGUAGE=Russian \
+  "$templates/check-owner-status.sh" "$scratch/status-ru-verbs.txt"
+
+printf '%s\n' 'Функционал необходим; выпуск идёт одной очередью.' \
+  > "$scratch/status-ru-neutral.txt"
+expect_pass "Russian ordinary -ю/-им words are not first person" env REPORTING_LANGUAGE=Russian \
+  "$templates/check-owner-status.sh" "$scratch/status-ru-neutral.txt"
 
 printf '%s\n' 'I checked the path; you should probably rerun it. Great work.' > "$scratch/status-bad.txt"
 expect_fail "personal social and hedged status" env REPORTING_LANGUAGE=English \
@@ -179,6 +199,27 @@ sed 's/`cto-sol`/`W5-0-sol-builder`/' "$scratch/FLEET.md" > "$scratch/fleet-no-c
 expect_fail "fleet table without CTO first" env FLEET_FILE="$scratch/fleet-no-cto.md" \
   "$templates/check-fleet-render.sh"
 
+# shellcheck disable=SC2016 # Backticks are literal Markdown syntax.
+sed 's/`W5-4-sol-builder`/`W5-5-sol-builder`/' "$scratch/FLEET.md" \
+  > "$scratch/fleet-wrong-agent-title.md"
+expect_fail "fleet agent title differs from task" env FLEET_FILE="$scratch/fleet-wrong-agent-title.md" \
+  "$templates/check-fleet-render.sh"
+
+sed 's/ | 18m | +24 -3 |/ | 18 minutes | +24 -3 |/' "$scratch/FLEET.md" \
+  > "$scratch/fleet-bad-time.md"
+expect_fail "fleet state time grammar" env FLEET_FILE="$scratch/fleet-bad-time.md" \
+  "$templates/check-fleet-render.sh"
+
+sed 's/ | 18m | +24 -3 |/ | 18m | 4 files |/' "$scratch/FLEET.md" \
+  > "$scratch/fleet-bad-loc.md"
+expect_fail "fleet LOC grammar" env FLEET_FILE="$scratch/fleet-bad-loc.md" \
+  "$templates/check-fleet-render.sh"
+
+# shellcheck disable=SC2016 # Backticks are literal Markdown syntax.
+sed 's/`reviewing`/`coordinating`/' "$scratch/FLEET.md" > "$scratch/fleet-native-status.md"
+expect_fail "fleet rejects native provider status" env FLEET_FILE="$scratch/fleet-native-status.md" \
+  "$templates/check-fleet-render.sh"
+
 sed -e 's/Wave: \[W5\] Recovery readiness/Wave: [—] —/' -e 's/Cards: 3\/5/Cards: 0\/0/' \
   "$scratch/FLEET.md" > "$scratch/fleet-no-wave.md"
 expect_fail "current plan cards without a current wave" env \
@@ -228,6 +269,326 @@ EOF
 git -C "$transfer_repo" add EXECUTION.md ACCEPTANCE.md
 git -C "$transfer_repo" commit -qm "base"
 base_ref=$(git -C "$transfer_repo" rev-parse HEAD)
+runtime_branch=$(git -C "$transfer_repo" branch --show-current)
+runtime_workspace="$scratch/runtime-worker"
+git -C "$transfer_repo" worktree add -q -b runtime-worker "$runtime_workspace" "$base_ref"
+
+cat > "$scratch/SETTINGS.json" <<EOF
+{
+  "schema": 4,
+  "project": "runtime-test",
+  "revision": 1,
+  "confirmedAt": "2026-08-02T20:00:00+08:00",
+  "charter": {
+    "strategy": "alpha",
+    "roleAssignments": {
+      "cto": { "family": "sol", "provider": "openai/gpt-5.6-sol", "effort": "xhigh" },
+      "builder": { "family": "sol", "provider": "openai/gpt-5.6-sol", "effort": "high" },
+      "reviewer": { "family": "sol", "provider": "openai/gpt-5.6-sol", "effort": "high" },
+      "researcher": { "family": "sol", "provider": "openai/gpt-5.6-sol", "effort": "high" }
+    },
+    "permissionPolicy": "full-access-writers",
+    "fleetBudget": { "max_live_tasks": 2, "max_live_agents": 3 },
+    "autonomyHorizon": "until-gate",
+    "reviewDepth": "risk-based",
+    "reportingLanguage": "English",
+    "modeMap": {}
+  },
+  "work": { "root": "docs/work", "scriptHome": "scripts" },
+  "ownerOverrides": {}
+}
+EOF
+
+cat > "$scratch/runtime.json" <<EOF
+{
+  "schema": 2,
+  "updatedAt": "2026-08-02T22:30:00+08:00",
+  "project": "runtime-test",
+  "run": "runtime-test-1",
+  "settings": { "path": "$scratch/SETTINGS.json", "revision": 1 },
+  "plugin": { "version": "8.0.1", "commit": "$base_ref" },
+  "cto": {
+    "agentId": "cto-1", "family": "sol", "provider": "openai/gpt-5.6-sol",
+    "effort": "xhigh", "sessionStartedAt": "2026-08-02T21:06:00+08:00",
+    "derivedStatus": "reviewing", "stateSince": "2026-08-02T22:22:00+08:00",
+    "action": "Integrate recovery path"
+  },
+  "integration": { "branch": "$runtime_branch", "head": "$base_ref", "acceptedHead": "$base_ref" },
+  "heartbeat": { "id": "heartbeat-1", "name": "paseo-cto:runtime-test:cto-1", "status": "active" },
+  "releaseClock": {
+    "nearestOutcome": "Recovery readiness", "criticalPath": "W5-4",
+    "currentWave": "W5", "currentWaveName": "Recovery readiness",
+    "targetWindow": "one hour", "nextObservableFinish": "Recovery integrated",
+    "acceptedMovement": "Three cards accepted"
+  },
+  "activeNodes": [
+    { "id": "W5-4", "ceremonyMinutes": 6, "auxiliaryReturnsSinceMovement": 1 }
+  ],
+  "agents": [
+    {
+      "id": "agent-1", "task": "W5-4", "role": "builder", "family": "sol",
+      "title": "W5-4-sol-builder", "workspaceId": "workspace-1", "baseline": "$base_ref",
+      "provider": "openai/gpt-5.6-sol", "effort": "high", "modeId": "full-access",
+      "derivedStatus": "running", "stateSince": "2026-08-02T22:12:00+08:00",
+      "returnSummary": ""
+    }
+  ],
+  "workspaces": [
+    {
+      "id": "workspace-1", "task": "W5-4", "role": "builder",
+      "title": "W5-4-sol-builder", "path": "$runtime_workspace", "branch": "runtime-worker",
+      "baseline": "$base_ref", "state": "active"
+    }
+  ],
+  "tails": [],
+  "materialEvents": []
+}
+EOF
+
+python3 - "$scratch/runtime.json" <<'PY'
+from datetime import datetime, timedelta, timezone
+import json
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+runtime = json.loads(path.read_text())
+now = datetime.now(timezone.utc).replace(microsecond=0)
+runtime["updatedAt"] = now.isoformat()
+runtime["cto"]["sessionStartedAt"] = (now - timedelta(minutes=84)).isoformat()
+runtime["cto"]["stateSince"] = (now - timedelta(minutes=8)).isoformat()
+runtime["agents"][0]["stateSince"] = (now - timedelta(minutes=18)).isoformat()
+path.write_text(json.dumps(runtime, indent=2) + "\n")
+PY
+
+cat > "$scratch/paseo-observation.json" <<EOF
+{
+  "labelledAgentIds": [],
+  "cto": {
+    "id": "cto-1", "title": "cto-test", "provider": "openai/gpt-5.6-sol",
+    "effort": "xhigh", "modeId": "full-access", "nativeStatus": "running",
+    "path": "$transfer_repo", "archived": false, "parentId": null
+  },
+  "agents": [
+    {
+      "id": "agent-1", "title": "W5-4-sol-builder",
+      "provider": "openai/gpt-5.6-sol", "effort": "high",
+      "modeId": "full-access", "nativeStatus": "running",
+      "path": "$runtime_workspace", "archived": false, "parentId": "cto-1"
+    }
+  ],
+  "workspaces": [
+    {
+      "id": "workspace-1", "title": "W5-4-sol-builder",
+      "path": "$runtime_workspace", "isolation": "worktree"
+    }
+  ]
+}
+EOF
+
+cat > "$scratch/fake-paseo" <<'PY'
+#!/usr/bin/env python3
+import json
+import os
+from pathlib import Path
+import sys
+
+source = Path(os.environ["PASEO_CTO_FAKE_OBSERVATION"])
+state = json.loads(source.read_text())
+args = sys.argv[1:]
+if args and args[-1] == "--json":
+    args.pop()
+
+if args[:2] == ["ls", "--global"]:
+    records = [state["cto"], *state["agents"]]
+    ids = state["labelledAgentIds"] if "--label" in args else [item["id"] for item in records]
+    value = [{"id": agent_id} for agent_id in ids]
+elif args[:1] == ["inspect"] and len(args) == 2:
+    records = [state["cto"], *state["agents"]]
+    record = next((item for item in records if item["id"] == args[1]), None)
+    if record is None:
+        raise SystemExit(f"unknown agent: {args[1]}")
+    provider, model = record["provider"].split("/", 1)
+    value = {
+        "Id": record["id"], "Name": record["title"], "Provider": provider,
+        "Model": model, "Thinking": record["effort"], "Mode": record["modeId"],
+        "Status": record["nativeStatus"], "Cwd": record["path"],
+        "Archived": record["archived"], "ParentAgentId": record["parentId"],
+    }
+elif args == ["workspace", "ls"]:
+    value = [
+        {
+            "workspaceId": item["id"], "name": item["title"], "cwd": item["path"],
+            "isolation": item["isolation"],
+        }
+        for item in state["workspaces"]
+    ]
+else:
+    raise SystemExit(f"unsupported paseo arguments: {args}")
+print(json.dumps(value))
+PY
+chmod +x "$scratch/fake-paseo"
+export PASEO_CTO_PASEO_BIN="$scratch/fake-paseo"
+export PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-observation.json"
+
+expect_pass "runtime schema agrees with settings and Git" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"
+expect_fail "unavailable Paseo probe blocks runtime validation" env \
+  PASEO_CTO_PASEO_BIN="$scratch/missing-paseo" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"
+python3 - "$scratch/runtime.json" "$scratch/FLEET.md" "$scratch/FLEET-runtime.md" <<'PY'
+from datetime import datetime
+import json
+from pathlib import Path
+import sys
+
+runtime = json.loads(Path(sys.argv[1]).read_text())
+lines = Path(sys.argv[2]).read_text().replace("+24 -3", "—").splitlines()
+updated = datetime.fromisoformat(runtime["updatedAt"])
+lines[0] = f"# Update {updated:%Y-%m-%d %H:%M} UTC"
+Path(sys.argv[3]).write_text("\n".join(lines) + "\n")
+PY
+expect_pass "fleet covers validated runtime exactly" env \
+  PASEO_CTO_VERSION=v8.0.1 RUNTIME_FILE="$scratch/runtime.json" PROJECT_ROOT="$transfer_repo" \
+  FLEET_FILE="$scratch/FLEET-runtime.md" PLAN_FILE="$scratch/status-plan.md" \
+  ACCEPTANCE_FILE="$scratch/status-acceptance.md" "$templates/check-fleet-render.sh"
+
+sed 's/ | 18m | — |/ | 19m | — |/' "$scratch/FLEET-runtime.md" \
+  > "$scratch/fleet-stale-state-time.md"
+expect_fail "fleet state time is derived from runtime" env \
+  RUNTIME_FILE="$scratch/runtime.json" PROJECT_ROOT="$transfer_repo" \
+  FLEET_FILE="$scratch/fleet-stale-state-time.md" "$templates/check-fleet-render.sh"
+
+sed 's/ | 18m | — |/ | 18m | +1 -0 |/' "$scratch/FLEET-runtime.md" \
+  > "$scratch/fleet-fabricated-loc.md"
+expect_fail "fleet LOC is derived from the workspace" env \
+  RUNTIME_FILE="$scratch/runtime.json" PROJECT_ROOT="$transfer_repo" \
+  FLEET_FILE="$scratch/fleet-fabricated-loc.md" "$templates/check-fleet-render.sh"
+
+python3 - "$scratch/paseo-observation.json" "$scratch" <<'PY'
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+
+observation = json.loads(Path(sys.argv[1]).read_text())
+target = Path(sys.argv[2])
+
+extra = deepcopy(observation)
+agent = deepcopy(extra["agents"][0])
+agent.update(id="agent-extra", title="W5-5-sol-builder")
+extra["agents"].append(agent)
+(target / "paseo-extra-agent.json").write_text(json.dumps(extra))
+
+missing_workspace = deepcopy(observation)
+missing_workspace["workspaces"] = []
+(target / "paseo-missing-workspace.json").write_text(json.dumps(missing_workspace))
+PY
+expect_fail "unlabelled CTO child cannot be omitted from runtime" env \
+  PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-extra-agent.json" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"
+expect_fail "runtime workspace must exist in Paseo" env \
+  PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-missing-workspace.json" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"
+
+python3 - "$scratch/runtime.json" "$scratch/paseo-observation.json" "$scratch" <<'PY'
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+
+runtime = json.loads(Path(sys.argv[1]).read_text())
+observation = json.loads(Path(sys.argv[2]).read_text())
+target = Path(sys.argv[3])
+runtime["activeNodes"] = []
+runtime["agents"] = []
+runtime["workspaces"] = []
+runtime["releaseClock"].update(currentWave="W1", currentWaveName="Launch readiness")
+(target / "runtime-render.json").write_text(json.dumps(runtime))
+observation["agents"] = []
+observation["workspaces"] = []
+(target / "paseo-render.json").write_text(json.dumps(observation))
+PY
+expect_pass "fleet is generated only from verified state" env \
+  PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-render.json" \
+  python3 "$templates/render_fleet.py" "$scratch/runtime-render.json" \
+  --project-root "$transfer_repo" --work-root "$work_fixture" --timezone UTC \
+  --output "$scratch/FLEET-generated.md"
+cp "$scratch/FLEET.md" "$scratch/FLEET-before-status.md"
+expect_pass "read-only status renders without replacing fleet" env \
+  PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-render.json" \
+  python3 "$templates/render_fleet.py" "$scratch/runtime-render.json" \
+  --project-root "$transfer_repo" --work-root "$work_fixture" --timezone UTC --stdout
+expect_pass "read-only status preserves the durable fleet" \
+  cmp "$scratch/FLEET-before-status.md" "$scratch/FLEET.md"
+printf '%s\n' 'previous fleet snapshot' > "$scratch/FLEET-before-failure.md"
+cp "$scratch/FLEET-before-failure.md" "$scratch/FLEET-preserved.md"
+expect_fail "failed live probe cannot replace fleet" env \
+  PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-extra-agent.json" \
+  python3 "$templates/render_fleet.py" "$scratch/runtime-render.json" \
+  --project-root "$transfer_repo" --work-root "$work_fixture" --timezone UTC \
+  --output "$scratch/FLEET-preserved.md"
+expect_pass "failed fleet generation preserves the prior file" \
+  cmp "$scratch/FLEET-before-failure.md" "$scratch/FLEET-preserved.md"
+
+sed 's/"schema": 2/"schema": 1/' "$scratch/runtime.json" > "$scratch/runtime-legacy.json"
+expect_fail "legacy runtime is rebuilt rather than trusted" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime-legacy.json" --project-root "$transfer_repo"
+
+sed 's/"head": "[0-9a-f]*"/"head": "0000000000000000000000000000000000000000"/' \
+  "$scratch/runtime.json" > "$scratch/runtime-stale-head.json"
+expect_fail "runtime head must match the integration tree" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime-stale-head.json" \
+  --project-root "$transfer_repo"
+
+python3 - "$scratch/SETTINGS.json" "$scratch/runtime.json" "$scratch" <<'PY'
+from copy import deepcopy
+import json
+from pathlib import Path
+import sys
+
+settings = json.loads(Path(sys.argv[1]).read_text())
+runtime = json.loads(Path(sys.argv[2]).read_text())
+target = Path(sys.argv[3])
+
+task_settings = deepcopy(settings)
+task_settings["charter"]["fleetBudget"]["max_live_tasks"] = 1
+(target / "SETTINGS-task-cap.json").write_text(json.dumps(task_settings))
+task_runtime = deepcopy(runtime)
+task_runtime["settings"]["path"] = str(target / "SETTINGS-task-cap.json")
+task_runtime["activeNodes"].append(
+    {"id": "W5-5", "ceremonyMinutes": 0, "auxiliaryReturnsSinceMovement": 0}
+)
+(target / "runtime-task-overflow.json").write_text(json.dumps(task_runtime))
+
+agent_settings = deepcopy(settings)
+agent_settings["charter"]["fleetBudget"]["max_live_agents"] = 1
+(target / "SETTINGS-agent-cap.json").write_text(json.dumps(agent_settings))
+agent_runtime = deepcopy(runtime)
+agent_runtime["settings"]["path"] = str(target / "SETTINGS-agent-cap.json")
+agent = deepcopy(agent_runtime["agents"][0])
+agent.update(id="agent-2", role="reviewer", title="W5-4-sol-reviewer", workspaceId="workspace-2")
+workspace = deepcopy(agent_runtime["workspaces"][0])
+workspace.update(id="workspace-2", role="reviewer", title="W5-4-sol-reviewer")
+agent_runtime["agents"].append(agent)
+agent_runtime["workspaces"].append(workspace)
+(target / "runtime-agent-overflow.json").write_text(json.dumps(agent_runtime))
+PY
+expect_fail "runtime enforces the live-task ceiling" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime-task-overflow.json"
+expect_fail "runtime enforces the live-agent ceiling" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime-agent-overflow.json"
+
+sed "s#\"path\": \"$runtime_workspace\"#\"path\": \"$scratch/missing-worktree\"#" \
+  "$scratch/runtime.json" > "$scratch/runtime-stale-worktree.json"
+expect_fail "runtime cannot retain a missing worktree" \
+  python3 "$templates/check_runtime.py" "$scratch/runtime-stale-worktree.json" \
+  --project-root "$transfer_repo"
+
+sed '/W5-4-sol-builder/d' "$scratch/FLEET-runtime.md" > "$scratch/fleet-missing-runtime-agent.md"
+expect_fail "fleet cannot omit a live runtime agent" env \
+  RUNTIME_FILE="$scratch/runtime.json" PROJECT_ROOT="$transfer_repo" \
+  FLEET_FILE="$scratch/fleet-missing-runtime-agent.md" "$templates/check-fleet-render.sh"
 
 cat > "$transfer_repo/EXECUTION.md" <<'EOF'
 # Execution
@@ -374,7 +735,7 @@ required = {
     "assignment": ("hard ceiling of 1800 characters", "one negative half per load-bearing claim"),
     "validation": ("composition preflight runs after integration", "not to every command"),
     "review": ("not inherited from its parent card", "ceremonial mutation"),
-    "runtime": ("returnSummary", "at most twelve material-event records"),
+    "runtime": ("returnSummary", "at most twelve material events", "ceremonyMinutes"),
     "fleet": ("An unrelated atom always starts a fresh session",),
     "roles": ("<minimum>..<maximum>", "Critical work and review use the maximum tier"),
     "builder": ("Return within 1800 characters",),
@@ -389,6 +750,69 @@ for name, needles in required.items():
 for name in ("assignment", "builder", "reviewer", "researcher"):
     if "2500 characters" in text[name]:
         problems.append(f"{name} retains the old return budget")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "review scope prevents orchestration amplification" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import json
+import sys
+
+root = Path(sys.argv[1])
+skill = " ".join((root / "skills/paseo-cto/SKILL.md").read_text().split())
+review = " ".join((root / "skills/paseo-cto/references/review-gate.md").read_text().split())
+bootstrap = " ".join((root / "skills/paseo-cto/references/project-bootstrap.md").read_text().split())
+assignment = " ".join((root / "skills/paseo-cto/references/assignment-contract.md").read_text().split())
+settings = json.loads((root / "skills/paseo-cto/templates/SETTINGS.template.json").read_text())
+problems = []
+required = {
+    "skill": (
+        "Read-only intent always takes precedence",
+        "stop the operating heartbeat",
+        "does not reconfigure an existing run",
+        "without a standalone review",
+        "After two auxiliary research or review returns",
+        "Do not turn a product blocker into a process project",
+    ),
+    "review": (
+        "does not receive a separate review",
+        "Ordinary CTO work-tree and contract edits",
+        "does not trigger a separate contract review",
+        "same reviewer and retained evidence",
+        "a realistic defect could directly violate security",
+        "Uncertainty prevents a Routine classification but never creates Critical by itself",
+    ),
+    "bootstrap": (
+        "not to each task contract",
+        "Repeat it only for a material rewrite",
+    ),
+    "assignment": ("otherwise the CTO verifies its sources",),
+}
+for name, body in (("skill", skill), ("review", review), ("bootstrap", bootstrap), ("assignment", assignment)):
+    for needle in required[name]:
+        if needle not in body:
+            problems.append(f"{name} lacks {needle!r}")
+for body_name, body in (("skill", skill), ("review", review)):
+    if "every returned outcome" in body.lower():
+        problems.append(f"{body_name} retains unconditional returned-outcome review")
+budget = settings.get("charter", {}).get("fleetBudget", {})
+if settings.get("schema") != 4 or set(budget) != {"max_live_tasks", "max_live_agents"}:
+    problems.append("settings template lacks the two schema-4 fleet ceilings")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "release tags remain immutable" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+release = (Path(sys.argv[1]) / "scripts/release.sh").read_text()
+problems = []
+for forbidden in ("git tag -d", 'git push origin "$tag" --force'):
+    if forbidden in release:
+        problems.append(f"release script retains {forbidden!r}")
+for required in ('refs/tags/$tag', "bump the manifest version", "git status --porcelain"):
+    if required not in release:
+        problems.append(f"release script lacks {required!r}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
@@ -481,6 +905,8 @@ problems = []
 for needle in (
     "Delete the record once the card is integrated",
     "drop both records from the runtime checkpoint",
+    "Paseo archival preserves the session journal",
+    "not a substitute for the source-linked evidence",
     "the working copy goes, the history does not",
 ):
     if needle not in cleanup:

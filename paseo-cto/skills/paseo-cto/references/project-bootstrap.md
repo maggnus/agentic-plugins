@@ -74,6 +74,14 @@ the review continues rather than restarting, and no new role appears. Record the
 wave's `plan_review_state`, link the review report as `plan_review_evidence`, and state in the wave's
 `Plan review` section what the review changed.
 
+A corrected plan returns to the same reviewer and retained evidence; use a replacement only under
+the Review gate. Re-review the correction, not the whole tree. After the second `RETURN`, accept with
+a recorded limitation and return trigger, split the disputed scope, or name the gate and stop.
+
+This review applies to the initial project or wave decomposition, not to each task contract or every
+CTO correction inside an accepted wave. Repeat it only for a material rewrite that changes closure,
+dependencies, or owner gates across multiple nodes.
+
 ## What "executable from a cold context" means
 
 Each ready task must be dispatchable to a worker who has read nothing but that file and the project

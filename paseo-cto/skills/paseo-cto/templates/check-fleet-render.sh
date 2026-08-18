@@ -13,6 +13,8 @@ work_root=${WORK_ROOT:-}
 plan_file=${PLAN_FILE:-}
 acceptance_file=${ACCEPTANCE_FILE:-}
 expected_version=${PASEO_CTO_VERSION:-}
+runtime_file=${RUNTIME_FILE:-}
+project_root=${PROJECT_ROOT:-}
 
 if [[ ! -f "$fleet_file" ]]; then
   printf 'fleet render check: missing fleet snapshot: %s\n' "$fleet_file" >&2
@@ -35,8 +37,17 @@ if [[ -n "$plan_file" || -n "$acceptance_file" ]]; then
   fi
 fi
 
+if [[ -n "$runtime_file" && ! -f "$runtime_file" ]]; then
+  printf 'fleet render check: runtime checkpoint is missing: %s\n' "$runtime_file" >&2
+  exit 1
+fi
+if [[ -n "$project_root" && -z "$runtime_file" ]] || [[ -n "$runtime_file" && -z "$project_root" ]]; then
+  printf 'fleet render check: RUNTIME_FILE and PROJECT_ROOT must be supplied together\n' >&2
+  exit 1
+fi
+
 python3 - "$fleet_file" "$plan_file" "$acceptance_file" "$expected_version" "$work_root" \
-  "$script_dir" <<'PY'
+  "$script_dir" "$runtime_file" "$project_root" <<'PY'
 from collections import Counter
 from pathlib import Path
 import re
@@ -64,6 +75,8 @@ acceptance_arg = sys.argv[3]
 expected_version = sys.argv[4]
 work_root = sys.argv[5]
 tools_dir = sys.argv[6]
+runtime_arg = sys.argv[7]
+project_root_arg = sys.argv[8]
 if expected_version.startswith("v"):
     expected_version = expected_version[1:]
 lines = status_path.read_text(encoding="utf-8").splitlines()
@@ -126,21 +139,96 @@ allowed_statuses = {
     "error",
     "done",
 }
-agents = []
-for row in fleet_rows:
+fleet = []
+for index, row in enumerate(fleet_rows):
     row_cells = cells(row)
     if len(row_cells) != 5 or any(not value for value in row_cells):
         fail("every fleet row must contain five non-empty cells")
-    agent = token(row_cells[0])
-    status = token(row_cells[2])
-    agents.append(agent)
+    agent_match = re.fullmatch(r"`([^`]+)`", row_cells[0])
+    status_match = re.fullmatch(r"`([^`]+)`", row_cells[2])
+    task_match = re.fullmatch(r"`([^`]+)` (\S(?:.*\S)?)", row_cells[1])
+    if not agent_match or not status_match or not task_match:
+        fail("Agent, Task, and Status must use the exact backtick-wrapped shape")
+    agent = agent_match.group(1)
+    task_id, task_title = task_match.groups()
+    status = status_match.group(1)
     if status not in allowed_statuses:
         fail(f"unsupported derived status token: {status}")
+    if not re.fullmatch(r"~?(?:\d+h(?:[0-5]?\dm)?|\d+m)", row_cells[3]):
+        fail(f"invalid Time value for {agent}: {row_cells[3]}")
+    if row_cells[4] != "—" and not re.fullmatch(
+        r"(?:\+\d{1,3}|\+[1-9]\d*\.\dk) (?:-\d{1,3}|-[1-9]\d*\.\dk)", row_cells[4]
+    ):
+        fail(f"invalid LOC value for {agent}: {row_cells[4]}")
+    if index == 0:
+        if task_id != "—":
+            fail("the CTO Task token must be —")
+    else:
+        prefix = f"{task_id}-"
+        if task_id == "—" or not agent.startswith(prefix) or not re.fullmatch(
+            r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?-(?:builder|reviewer|researcher)",
+            agent[len(prefix):],
+        ):
+            fail(f"agent title does not derive from its task and role: {agent}")
+    fleet.append({
+        "agent": agent, "task": task_id, "title": task_title, "status": status,
+        "time": row_cells[3], "loc": row_cells[4],
+    })
 
-if not re.fullmatch(r"cto-[a-z0-9][a-z0-9-]*", agents[0]):
+agents = [entry["agent"] for entry in fleet]
+if not re.fullmatch(r"cto-[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", agents[0]):
     fail("the first fleet row must be the CTO")
 if len(set(agents)) != len(agents):
     fail("fleet agent titles must be unique")
+
+if runtime_arg:
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, tools_dir)
+    import check_runtime
+
+    try:
+        validated = check_runtime.validate_runtime(
+            Path(runtime_arg), Path(project_root_arg) if project_root_arg else None
+        )
+    except check_runtime.InvalidRuntime as error:
+        fail(str(error))
+    runtime = validated["runtime"]
+    expected_cto = f"cto-{runtime['cto']['family']}"
+    if runtime["plugin"]["version"] != plugin_version:
+        fail("fleet plugin version differs from runtime")
+    if identity_match.group(2) != runtime["cto"]["provider"] or identity_match.group(3) != runtime["cto"]["effort"]:
+        fail("fleet CTO provider or effort differs from runtime")
+    clock = runtime["releaseClock"]
+    if (wave_id, wave_name) != (clock["currentWave"], clock["currentWaveName"]):
+        fail("fleet current wave differs from runtime")
+    updated = check_runtime.timestamp(runtime["updatedAt"], "runtime.updatedAt")
+    if lines[0][9:25] != updated.strftime("%Y-%m-%d %H:%M"):
+        fail("fleet update minute differs from runtime.updatedAt")
+
+    def elapsed(record):
+        since = check_runtime.timestamp(record["stateSince"], "stateSince")
+        minutes = int((updated - since).total_seconds() // 60)
+        hours, remainder = divmod(minutes, 60)
+        value = f"{hours}h{remainder}m" if hours and remainder else f"{hours}h" if hours else f"{minutes}m"
+        return f"~{value}" if record.get("stateSinceApproximate") else value
+
+    if fleet[0]["agent"] != expected_cto or fleet[0]["status"] != runtime["cto"]["derivedStatus"]:
+        fail("CTO identity or status differs from runtime")
+    if fleet[0]["title"] != runtime["cto"]["action"] or fleet[0]["time"] != elapsed(runtime["cto"]):
+        fail("CTO action or state time differs from runtime")
+    runtime_agents = {agent["title"]: agent for agent in runtime["agents"]}
+    rendered_agents = {entry["agent"]: entry for entry in fleet[1:]}
+    if rendered_agents.keys() != runtime_agents.keys():
+        missing = sorted(runtime_agents.keys() - rendered_agents.keys())
+        extra = sorted(rendered_agents.keys() - runtime_agents.keys())
+        fail(f"fleet/runtime agent coverage differs: missing={missing}, extra={extra}")
+    for title, agent in runtime_agents.items():
+        rendered = rendered_agents[title]
+        if (
+            rendered["task"] != agent["task"] or rendered["status"] != agent["derivedStatus"]
+            or rendered["time"] != elapsed(agent) or rendered["loc"] != validated["loc"][title]
+        ):
+            fail(f"fleet task, status, time, or LOC differs from runtime for {title}")
 
 if wave_id == "—":
     if wave_name != "—" or (done, total) != (0, 0):
@@ -157,6 +245,11 @@ if work_root:
     nodes, load_errors = worklib.load_tree(schema, Path(work_root))
     if load_errors:
         fail("; ".join(load_errors))
+    node_by_id = {node.id: node for node in nodes}
+    for entry in fleet[1:]:
+        node = node_by_id.get(entry["task"])
+        if node is None or node.title != entry["title"]:
+            fail(f"fleet task is absent from the work tree or has the wrong title: {entry['task']}")
     if wave_id == "—":
         started = [node for node in nodes if node.kind == "card"
                    and node.state in schema["open_states"]]

@@ -147,31 +147,41 @@ plan claim.
 ## Persist a recoverable checkpoint
 
 Keep mutable runtime state outside the tracked worktree at the exact resolved path
-`$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Persistent owner choices live separately in
-the canonical `SETTINGS.json` defined by [Persistent settings](persistent-settings.md). Record the
-settings path/revision and a non-authoritative charter snapshot, accepted integration `HEAD`, CTO ID,
-heartbeat ID/name, loaded plugin base version/tag/commit, CTO host and role assignment,
-`sessionStartedAt`, last trustworthy host context measurement when available, last report time,
-current wave ID/name, archived-since-report count, active plan nodes, derived states and `stateSince`,
-every agent/workspace ID with its path, branch, baseline, returned commits, the release clock, and
-preserved tails. Update the runtime file before compaction, at material transitions, and at close. A
-runtime checkpoint, old run, or replacement CTO may never overwrite the canonical settings. A new
-CTO session resets `sessionStartedAt`; compaction in the same session preserves it. If `stateSince`
-is absent, report recovered state time as approximate.
+`$(git rev-parse --git-common-dir)/paseo-cto/<run>.json`. Schema 2 has these required top-level keys:
+`schema`, `updatedAt`, `project`, `run`, `settings`, `plugin`, `cto`, `integration`, `heartbeat`,
+`releaseClock`, `activeNodes`, `agents`, `workspaces`, `tails`, and `materialEvents`. Active nodes
+record `id`, `ceremonyMinutes`, and `auxiliaryReturnsSinceMovement`; agent records use the exact
+derived-status vocabulary and carry one bounded `returnSummary`. The integration record stores both
+current `head` and its ancestor `acceptedHead`.
+
+The closed records are compact: `settings` has `path/revision`; `plugin` has `version/commit`; `cto`
+has identity, assignment, session/state times, derived status, and bounded action; `integration` has
+`branch/head/acceptedHead`; `heartbeat` has `id/name/status`; `releaseClock` has the seven fields
+listed above in *Build the ready frontier*. Each agent has identity, task/role/family/title,
+workspace/baseline, optional candidate, assignment/mode, derived status/time, and summary; its
+workspace has the matching identity plus path, branch, baseline, and state. Tails are bounded strings; material
+events are `{at,event}` records. The checker reports any missing, extra, or invalid field.
+
+Run [`templates/check_runtime.py`](../templates/check_runtime.py) with the checkpoint and integration
+root before dispatch. It obtains the global Paseo inventory itself, including agents labelled for
+the run and otherwise unlabelled children of the exact CTO. It verifies the CTO path and assignment,
+then each agent's native identity, provider, mode, status and active workspace alongside settings,
+Git heads and worktrees. A worker report cannot populate those facts. Any mismatch, legacy
+checkpoint, or unavailable probe stops the operation until a fresh inventory is reconciled and
+schema 2 is atomically rebuilt.
 
 Two different files are easy to confuse and must not be. The **fleet render** sits beside the
 settings and checkpoints at `$(git rev-parse --git-common-dir)/paseo-cto/FLEET.md`: it is the
-runtime snapshot of who is working right now, it is untracked, and
-[Status and reporting](status-and-reporting.md) defines how it is produced from the checkpoint. The
+untracked runtime snapshot of who is working right now. Generate it only with
+[`templates/render_fleet.py`](../templates/render_fleet.py), which probes Paseo and Git, validates
+the checkpoint, builds a temporary render, checks it, and atomically replaces `FLEET.md`. The
+[Status and reporting](status-and-reporting.md) reference defines its exact form. The
 **work index** is `STATUS.md` in the work root: it is committed, it is generated from the task files
 by `work.py status`, and it shows where the project is rather than which agents are live.
 
-The runtime checkpoint is current state, not an execution transcript. Store at most one bounded
-`returnSummary` per live agent — verdict, exact candidate, open findings, and unverified gate, no
-more than 1200 characters — and replace it when the decision changes. Never copy full prompts,
-worker reports, command transcripts, repeated snapshots, or completed review dialogue into the
-checkpoint. Keep at most twelve material-event records, each a timestamp plus one decision or state
-change. When an agent is retired under [Cleanup and close](cleanup-and-close.md), remove its record
-here after preserving its exact Git coordinates and any unresolved tail in the task or durable
-evidence. The checkpoint carries live work only; conversation history and an ever-growing JSON file
-are not recovery mechanisms.
+The checkpoint is current state, not a transcript. Update it atomically after inventory and every
+material transition, before compaction, and at close. A new CTO session resets `sessionStartedAt`;
+compaction preserves it. Keep at most twelve material events and twelve tails; each summary or tail
+is at most 1200 characters. Remove retired agents and workspaces after preserving unresolved Git
+coordinates in durable evidence. Conversation history and an ever-growing JSON file are not
+recovery mechanisms.

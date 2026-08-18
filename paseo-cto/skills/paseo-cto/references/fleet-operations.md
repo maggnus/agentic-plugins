@@ -12,9 +12,9 @@ caller identity). Outside Paseo, allow only inspection and status, and explain h
 off to a Paseo CTO; create no agents, workspaces, or heartbeat.
 
 Bind project root and plan, the canonical settings path and revision, integration branch and
-accepted `HEAD`, CTO/project/run IDs, owner gates, capacity, and heartbeat. Capacity counts external
-agents only. Keep plan truth in Git, persistent owner choices in `SETTINGS.json`, and volatile state
-at the canonical absolute path defined by Execution plan:
+accepted `HEAD`, CTO/project/run IDs, owner gates, both fleet ceilings, and heartbeat. The task and
+external-agent ceilings exclude the CTO. Keep plan truth in Git, persistent owner choices in
+`SETTINGS.json`, and volatile state at the canonical absolute path defined by Execution plan:
 
 ```text
 $(git rev-parse --git-common-dir)/paseo-cto/<run>.json
@@ -31,15 +31,14 @@ Reconcile on startup, resume, context recovery, every heartbeat, and material ev
 recovery, and every fourth heartbeat, also sweep for orphans — unlabeled crash tails that routine
 project-scoped queries miss.
 
-1. Read and validate persistent settings first, then plan, accepted Git state, and runtime
-   checkpoint. If the runtime snapshot differs, retain the persistent settings and record the
-   mismatch; never let an old run or a replacement CTO reset owner choices.
-2. Inventory agents across **every working copy**, not from the integration root alone. Agent
-   listings are scoped by working directory, so a busy fleet reads as empty from the root, and that
-   empty reading produces a duplicate agent on a task someone is already building. Enumerate the
-   workspaces first, query per copy, and reconcile the union against runtime. Treat any inventory
-   that returns nothing as unproven until a second reading confirms it.
-3. List workspaces with `list_workspaces`.
+1. Read persistent settings, plan, accepted Git state, and runtime checkpoint, then run
+   `check_runtime.py <checkpoint> --project-root <integration-root>`. The check obtains the global
+   Paseo inventory and active workspaces itself. If the probe is unavailable or disagrees with the
+   checkpoint, reconcile the reported identities and rebuild legacy state before dispatch.
+2. The probe includes both agents labelled for the exact project/run and every unlabelled agent
+   whose native parent is the exact CTO. This is the authoritative coverage check; a root-scoped
+   listing, an empty first response, or an agent's return is not inventory evidence.
+3. Independently inspect any reported mismatch before adoption, archival, or correction.
 4. Inspect known IDs and permissions, and match each owned record to its plan node, Git state,
    evidence, and review state. Derive each agent's expected title from its labels and rename on
    mismatch. Require its recorded workspace to carry the same title, correcting a mismatch with
@@ -95,9 +94,10 @@ critical path, where no concurrent turn can be displaced.
 
 ## Parallel work — six rules
 
-The budget limits **tasks in flight, not agents**. A task carries as many agents as its review depth
-requires: an author, its non-author reviewer, and a third only for a tie-break. Counting agents
-instead of tasks makes a Critical atom look twice as expensive as a Routine one.
+`max_live_tasks` limits tasks in flight; `max_live_agents` independently limits external sessions.
+A task may carry one live agent per role. A replacement or tie-break reviewer starts only after the
+prior reviewer record and workspace are retired or preserved outside live runtime. Admit work only
+when both ceilings remain satisfied.
 
 1. **As many tasks run as have write zones that are pairwise disjoint at file granularity — no
    more.** The ceiling is a limit, never a target.
@@ -110,9 +110,16 @@ instead of tasks makes a Critical atom look twice as expensive as a Routine one.
    generated index — is not shared ownership**; the CTO regenerates it during integration.
 5. **No free review capacity, no new task.** A returned candidate waiting for a reviewer costs the
    same as an unstarted atom and ages worse.
-6. **Accepted work integrates immediately, and an empty slot with admissible ready work is a
-   defect.** Dispatch the next task first, then retire the finished one; conflict cost grows with
-   the square of how long branches sit apart.
+6. **Accepted work integrates and retires immediately.** Refill an available task and agent slot
+   only with admissible ready work; conflict cost grows with how long branches sit apart.
+
+Track `ceremonyMinutes` and a saturating `0..2` `auxiliaryReturnsSinceMovement` counter per active
+node in runtime. After two research or review returns without accepted product movement or a new
+owner decision, the next action builds or integrates, combines the remaining check with an existing
+review, exposes a gate,
+or stops. It never adds another auxiliary agent layer.
+`ceremonyMinutes` is a whole-minute estimate of workspace, dispatch, review-logistics, and
+integration time, excluding work on the product outcome itself.
 
 Name the wave's independent lanes in its wave file when the wave opens, and attach every new node to
 one. A node that fits no lane is split or queued. If the critical path is one chain of dependent
@@ -200,14 +207,15 @@ Plan: <absolute-plan-path>
 Project/run: <project>/<run>
 CTO/runtime: <cto-id>/<absolute-runtime-json>
 Settings: <absolute-settings-json> revision <revision>
-Read and validate settings first, then plan and runtime state. Reconcile project agents globally,
-process returns and permissions, derive states/stateSince and LOC, diagnose evidence-backed stalls,
+Read and validate settings first, then plan and runtime state with check_runtime.py. Reconcile
+project agents globally, process returns and permissions, derive states/stateSince and LOC, diagnose evidence-backed stalls,
 preserve tails, retire integrated records, and update plan/runtime. Every fourth run perform the
 orphan workspace sweep. Refill only safe capacity from ready plan nodes; never duplicate an existing
-task or role. Resolve the loaded plugin base version, CTO model/effort, any trustworthy host context
+task or role, and never exceed either fleet ceiling. Resolve the loaded plugin base version, CTO
+model/effort, any trustworthy host context
 measurement, session elapsed time, current wave, and accepted/total card counts from preflight,
 settings, runtime, plan, and acceptance truth.
-Rewrite the durable FLEET.md render unconditionally. In chat, post the full header and fleet table
+Generate and validate the durable FLEET.md with render_fleet.py unconditionally. In chat, post the full header and fleet table
 only when a material event occurred since the last posted snapshot or the owner asked for status;
 otherwise post one quiet liveness line (see Status and reporting). Add brief unheaded prose only for
 a material event. Never repeat unchanged prose.

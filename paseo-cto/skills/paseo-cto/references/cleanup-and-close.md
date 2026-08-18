@@ -46,9 +46,11 @@ Delete when all four hold:
 4. the review is closed, so any further work needs a new card rather than a return.
 
 Then archive the agent, archive the workspace so its worktree is removed, and drop both records from
-the runtime checkpoint. The checkpoint carries live work only. What survives deletion is the task
-file, the commits, and the candidate branch, which is retained until the wave is accepted: the
-working copy goes, the history does not.
+the runtime checkpoint. Paseo archival preserves the session journal; deletion here applies only to
+live runtime records and the working copy. The task file, commits, and candidate branch survive, and
+the branch is retained until the wave is accepted: the working copy goes, the history does not.
+The archived journal is diagnostic history, not a substitute for the source-linked evidence that
+step 1 requires before archival.
 
 Anything that fails a condition stays as a visible tail with its blocker recorded. `Archived-since`
 keeps counting retired cards; it is not a count of live records.
