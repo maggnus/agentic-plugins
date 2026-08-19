@@ -140,8 +140,9 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    zone is disjoint from every running one, both ceilings have room, and a review slot is free. Hold
    the rest while a task touching a canonical contract, a schema or shared infrastructure runs
    alone. The rules are in Fleet operations.
-4. **Report.** Generate the durable fleet render with `render_fleet.py` on every reconcile and
-   material event; its live Paseo and Git probe must pass before the file is replaced. Post the full
+4. **Report.** Generate the durable fleet render with `render_fleet.py` on each heartbeat
+   reconcile and on a material event — not after every action; its live Paseo and Git probe must
+   pass before the file is replaced. Post the full
    header and fleet table to chat when a material event occurred since the last posted snapshot, or
    when the owner asks for status; otherwise post one quiet liveness line. Between snapshots, report
    only new evidence, changed decisions, blockers, readiness, or next actions.

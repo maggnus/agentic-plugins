@@ -1,11 +1,14 @@
 # Assignment contract
 
 Read this file immediately before dispatching work. Give each agent one bounded plan atom in an
-isolated workspace. The atom is one permanent task file: the contract names its path and either
-quotes that file or binds it to this dispatch. A contract that cannot be written from the task file
-means the file is not startable from a cold context, which is a planning defect. The worker never
-edits that file. The first prompt line is a fail-closed role gate; all other fields follow in this
-order:
+isolated workspace. The atom is one permanent task file: the contract names its path and binds it
+to this dispatch; it does not restate what the file already says (outcome, scope, acceptance,
+guardrails) — the worker reads the file. A contract that cannot be written from the task file means
+the file is not startable from a cold context, which is a planning defect. The worker never edits
+that file. The first prompt line is a fail-closed role gate; the remaining fields carry only what the
+file cannot: identity, risk and chosen effort, maturity, exact write zone and no-touch, the
+validation budget with its negative halves, the review owner, commit and return rules. Omit a field
+whose value the task file already fixes.
 
 ```markdown
 First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED: role skill unavailable and stop before any repository read or write.
@@ -49,7 +52,10 @@ reference.
 One card means one outcome, not one commit. Several local commits are allowed when they form one
 coherent, reviewable outcome and acceptance story. Split work before dispatch when parts have
 independent outcomes, risk levels, acceptance stories, owners, or landing value. A cross-zone need
-is a blocker or proposed child, never implicit scope expansion. The converse holds for small
+is a blocker or proposed child, never implicit scope expansion — with one exception: a purely
+additive edit to a file no running task owns (a new target in a registry, a call-site update forced
+by a signature change, a test helper) may be made and declared in the return; the CTO ratifies it at
+integration or returns it. The converse holds for small
 homogeneous nodes: one contract may carry several sibling nodes sharing one surface, environment,
 verification method, and review context; the contract then names every node with its own
 acceptance, and the review closes each individually.

@@ -14,13 +14,15 @@ is doing this minute.
 
 Compute the snapshot once per reconcile and use those exact values for both sinks.
 
-1. **Durable file** — run `render_fleet.py` unconditionally on every reconcile and material event. It
+1. **Durable file** — run `render_fleet.py` on each heartbeat reconcile and on a material event,
+   never after every intermediate action. It
    obtains the current Paseo inventory, verifies runtime and Git, derives the table from the work
    tree, validates a temporary file, and atomically replaces
    `<git-common-dir>/paseo-cto/FLEET.md`. Never edit this file or compose a row from a worker report.
 2. **Chat** — post the header and complete fleet table when a material event occurred since the last
    posted snapshot, and immediately for any explicit status request. Otherwise post one quiet line:
-   `Fleet steady · <agents-running> running · head <short-sha>` — nothing else.
+   `Fleet steady · <agents-running> running · head <short-sha>`, followed by one Markdown list
+   item per live agent, `` `<title>` — <derived-status> `` — nothing else.
 
 For a status or other read-only request, run the same renderer with `--stdout`. It validates the live
 state and table without replacing the durable file. If validation fails, report the mismatch and do

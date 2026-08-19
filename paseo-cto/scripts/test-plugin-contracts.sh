@@ -872,7 +872,7 @@ files = {
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
     "skill": ("otherwise post one quiet liveness line",),
-    "status": ("Fleet steady ·", "unconditionally"),
+    "status": ("Fleet steady ·", "on each heartbeat reconcile and on a material event"),
     "fleet": ("otherwise post one quiet liveness line",),
     "readme": ("a single quiet liveness line otherwise",),
 }

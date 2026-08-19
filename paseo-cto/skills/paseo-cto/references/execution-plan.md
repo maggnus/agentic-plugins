@@ -179,8 +179,9 @@ the checkpoint, builds a temporary render, checks it, and atomically replaces `F
 **work index** is `STATUS.md` in the work root: it is committed, it is generated from the task files
 by `work.py status`, and it shows where the project is rather than which agents are live.
 
-The checkpoint is current state, not a transcript. Update it atomically after inventory and every
-material transition, before compaction, and at close. A new CTO session resets `sessionStartedAt`;
+The checkpoint is current state, not a transcript. Update it atomically at each heartbeat
+reconcile, on a material transition (dispatch, return, verdict, integration, block), before
+compaction, and at close — not after every intermediate action. A new CTO session resets `sessionStartedAt`;
 compaction preserves it. Keep at most twelve material events and twelve tails; each summary or tail
 is at most 1200 characters. Remove retired agents and workspaces after preserving unresolved Git
 coordinates in durable evidence. Conversation history and an ever-growing JSON file are not

@@ -88,9 +88,8 @@ it checked out first, then re-verify the integration tree's branch and cleanline
 the workspace exists.
 
 Persist the workspace immediately after creation, then the agent ID and labels immediately after
-launch. Parallel agents use `notifyOnFinish: false`, because a finish injection can replace the CTO
-turn and is lost on daemon restart. Set it true in exactly one case: a single active agent on the
-critical path, where no concurrent turn can be displaced.
+launch. Agents use `notifyOnFinish: true` so a return is handled when it arrives; the heartbeat
+remains the fallback reconcile when a notification is lost.
 
 ## Parallel work — six rules
 

@@ -67,16 +67,16 @@ explicitly invoked Paseo CTO run:
 
 - take every model and effort from the charter's `roleAssignments`, never from
   `~/.paseo/orchestration-preferences.json` or any other global default;
-- set `notifyOnFinish: false` for parallel agents; it may be true only for a single active agent on
-  the critical path (see Fleet operations);
+- set `notifyOnFinish: true` on every agent; the heartbeat is the fallback reconcile;
 - run the bounded 15-minute reconciliation defined by the CTO lifecycle, not ad-hoc polling;
 - agent permission requests are the CTO's to resolve, never the owner's. Check
   `list_pending_permissions` at the start of every turn and every reconcile, and
   `respond_to_permission` immediately within authority. Routine build, read and in-worktree
   approvals the CTO grants or denies itself; only a genuine owner gate — push, deploy, publication,
   live mutation, money, secrets, schema, irreversible action — is escalated. An agent requesting a
-  write outside its worktree or write zone is out of scope: deny with `interrupt: true` and return
-  it to its contract.
+  write outside its worktree is out of scope: deny with `interrupt: true` and return it to its
+  contract. A write outside its write zone but inside its worktree is judged at integration under
+  the additive-edit exception of the Assignment contract.
 
 Retain every other base Paseo safety rule.
 

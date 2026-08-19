@@ -21,7 +21,7 @@ create_workspace({isolation:"worktree", path:<repo>, title:<agentTitle>, mode:"b
   worktreeSlug:<branch-safe-slug>, branchName:<branch>, baseBranch:<exact-SHA>})
 verify returned workspace.title == agentTitle
 create_agent({workspaceId:<id>, title:<agentTitle>, provider:<provider/model>,
-  initialPrompt:<contract>, notifyOnFinish:false, labels:<string-map>,
+  initialPrompt:<contract>, notifyOnFinish:true, labels:<string-map>,
   settings:{modeId:<inspected-role-mode>, thinkingOptionId?:<inspected-effort>}})
 ```
 
@@ -29,8 +29,7 @@ The workspace and agent titles must be byte-identical. If workspace creation ret
 do not create the agent; rename the workspace to `agentTitle`, verify it, and only then continue.
 
 Persist the workspace ID immediately after creation and the agent ID and labels immediately after
-launch. Use `notifyOnFinish:false` for parallel agents; set it true only for a single active agent on
-the critical path.
+launch. Use `notifyOnFinish:true`; the heartbeat is the fallback.
 
 ## Routine reconciliation
 

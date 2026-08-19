@@ -96,18 +96,17 @@ sentence, and removes the review round that would otherwise discover the same th
 
 ### Routine
 
-A delegated non-author agent — the reviewer role under a lightweight second-look contract, or
-another available non-author worker — checks the complete gated outcome, scope, and acceptance
-evidence. For a repository write that includes the complete final diff; for a gated report-only
-result, every load-bearing conclusion and source. The second look returns `ACCEPT` or `RETURN` and
-requires no independently selected falsifier or author response.
+The CTO reads the final diff and the author's acceptance evidence and accepts or returns; no
+separate agent, no falsifier, no author response.
 
 ### Significant
 
-An independent non-author reviewer inspects the complete returned outcome and evidence. Repository
-writes require the final diff plus targeted success and relevant failure-path checks. Report-only
-results require independent verification of each load-bearing conclusion and its counterexample. Add
-an independent falsifier only for a concrete risk hypothesis existing evidence does not settle.
+The CTO reads the final diff and checks the author's acceptance evidence against the task file;
+a delegated non-author reviewer is added only when the change touches authentication,
+authorization, money, privacy, data loss, schema, or a canonical contract, or when the author's
+evidence does not exercise the product path. That reviewer inspects the complete outcome with the
+final diff plus targeted success and failure-path checks, and adds an independent falsifier only
+for a concrete risk hypothesis existing evidence does not settle.
 
 ### Critical
 
