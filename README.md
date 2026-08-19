@@ -1,228 +1,73 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). `paseo-cto` and `russian-speech` are dual Claude
-Code/Codex plugins.
+Personal plugin repository (`maggnus`). Each plugin is packaged for both Claude Code and Codex, is
+versioned on its own, and installs from the remote marketplace pinned to an immutable release tag.
+A local directory, a moving branch, or an unpinned marketplace is not a valid installation source.
 
-## Install
+## `paseo-cto`
+
+A release-driven CTO operating model over isolated Paseo agents: decomposition, delegated work with
+bounded contracts, risk-sized review, and source-linked integration. Models and reasoning effort are
+owner decisions recorded in the project charter. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
 PASEO_CTO_TAG=v10.3.2
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
-claude plugin install russian-speech@maggnus
-claude plugin install team@maggnus
 ```
 
 ```sh
 PASEO_CTO_TAG=v10.3.2
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
-codex plugin add russian-speech@maggnus
+```
+
+## `team`
+
+The same delivery discipline for a project that needs no fleet, in one skill file: outcomes with
+acceptance, checks sized to the risk, a check seen failing before it counts, an independent read of
+the diff before a risky change lands. See [team/README.md](team/README.md).
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v10.3.2"
+claude plugin install team@maggnus
+```
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v10.3.2
 codex plugin add team@maggnus
 ```
 
-All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
-release tag. A local directory, a moving branch, or an unpinned remote marketplace is not a valid
-installation source. The installation commands can be run from any directory and do not copy
-plugin files into the current project.
+## `russian-speech`
 
-## Plugins
-
-### `paseo-cto` — the external-agent CTO operating model
-
-A project-agnostic CTO organization over external Paseo agents, packaged natively for both Claude
-Code and Codex. The CTO delegates by default: it decomposes the work, dispatches isolated
-role-skilled agents, and touches code itself only for a trivial change or a bounded
-integration-time fix. It manages toward outcomes rather than activity, keeps a living hierarchical
-execution plan, moves independent work forward while deepening discovered branches, and preserves
-founder, review, integration, push, deploy, and irreversible-operation gates.
-
-**The plugin names no model, no reasoning effort, and no provider preference, and never supplies a
-default for one.** Which model and which effort carries which role — the CTO's own seat included —
-is the owner's decision, recorded in the project charter's `roleAssignments` and nowhere else. A
-role with no assignment is not dispatchable, and an unavailable model is reported rather than
-silently substituted. `reportingLanguage` is also project-local and authoritative: any valid local
-value, including Russian, overrides the plugin's English first-run proposal and the host's current
-conversation language. The register remains formal, neutral, impersonal, grammatical, and
-result-first in every configured language. Unchanged prose is never repeated, and an unchanged fleet
-table is not reposted either.
-
-The first operating run presents a compact charter for CTO strategy, role assignments, permission
-policy, fleet budget, autonomy horizon, review depth, and reporting language. It is persisted per
-project at `<git-common-dir>/paseo-cto/SETTINGS.json` and reused across conversation or daemon
-restarts, worktrees, run IDs, and Claude/Codex CTO handovers. Writers use isolated workspaces and
-local commits. Delegated writes, semantic CTO integration fixes, and closure- or
-authorization-bearing reports receive the risk-required non-author review; intermediate research is
-source-checked and folded into the next contract. Every durable source reference is pinned to the
-exact revision.
-
-Reasoning effort is economical by construction when the owner permits a range: Routine atoms use
-the minimum allowed tier, Significant atoms the middle tier, and Critical atoms the maximum.
-Validation uses one negative half per load-bearing claim, a changed-surface composition preflight
-before an expensive full suite, and one proof owner. Normal worker returns and runtime summaries are
-bounded; unrelated tasks start fresh sessions, while bounded rework reuses the author and reviewer
-context that still carries valid inspection.
-
-Invoke the CTO skill as `$paseo-cto:paseo-cto` in Codex or `/paseo-cto:paseo-cto` in Claude. Worker
-prompts use the same qualified namespace with the platform's own prefix — `$paseo-cto:paseo-<role>`
-in Codex, `/paseo-cto:paseo-<role>` in Claude — for `paseo-builder`, `paseo-reviewer`, and
-`paseo-researcher`; dispatch fails closed when the plugin is unavailable in the selected worker
-family.
-
-Work lives in a permanent file tree. One wave, card, task or subtask is one file, created once at a
-path derived from its identifier and never moved: acceptance changes the state and fills the closure
-fields in that same file rather than transferring text into a history document. Two committed files
-are generated from that tree: `STATUS.md`, the index of every unit, carrying exactly
-`Status | ID | Task | Commit | Start | Time` in tree order, and `WAVES.md`, one row per wave with its
-outcome, its accepted card count and that share as a percentage, closed by a total row and, when
-history was imported rather than frozen, by how much of that total it is. Before the
-first dispatch on a new project or wave, the CTO builds the tree and an independent reviewer attacks
-the decomposition; a wave whose work started without that verdict fails the check.
-
-A named 15-minute heartbeat reconciles the plan, agents, workspaces, reviews, stalls, and cleanup.
-Every heartbeat generates one durable fleet snapshot, `FLEET.md`. The chat receives the full snapshot —
-local timestamp; plugin version, CTO model/effort, available host context and session time; current
-wave ID and name; accepted/total cards; then the complete fleet table with the CTO first — when a
-material event occurred or the owner asks for status, and a single quiet liveness line otherwise, so
-a long session does not spend its context restating an unchanged table. Claude and Codex derive the
-snapshot from the same installed tag, role assignment, work tree, and runtime state. Recoverable
-checkpoints and stable labels allow a fresh or compacted session to resume without replaying
-completed work.
-
-```text
-# Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.3.2 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
-Wave: [<wave-id>] <wave name>
-Cards: <done>/<total>
-
-| Agent | Task | Status | Time | LOC |
-| --- | --- | --- | --- | |
-```
-
-Ships:
-
-- **skill `paseo-cto`** — the CTO operating loop, outcome discipline, reporting register, onboarding
-  charter, living plan, founder status, review gate, fleet lifecycle, provider policy, and the Paseo
-  command catalog;
-- **work tree tooling** — one schema that fixes identifiers, vocabularies, field sets and section
-  order, the templates generated from it, and `work.py` with `init`, `new`, `status`, `check` and
-  `version`. The tooling is stamped with the release it came from, so a project's copy cannot fall
-  behind the plugin or be edited in place unnoticed. The validator refuses a duplicate or misplaced
-  identifier, an unknown state or field, an accepted task
-  without a closure commit or evidence, a blocked task without a blocker, a rejected or trigger-gated
-  task without a return trigger, a dependency cycle, a parent closed over an open required child, a
-  hand-edited index or wave overview, a commit reference that is not an immutable full SHA, and one
-  identifier that is live in both the tree and a frozen legacy document;
-- **self-upgrade** — [`upgrade.py`](paseo-cto/skills/paseo-cto/scripts/upgrade.py) resolves the
-  newest release tag from the remote repository, re-pins both hosts to it, and reinstalls any
-  sibling plugin sharing the marketplace; `--check` and `--dry-run` change nothing;
-- **status markers** — `[ ]` ready, `[~]` active including review and rework, `[?]` blocked, `[=]`
-  paused or trigger-gated, `[!]` withdrawn, `[x]` accepted;
-- **document standard and templates** — the invariant registry, the frozen shape of a pre-adoption
-  execution document and its acceptance history, plus checks for source links, the exact current-wave
-  fleet render, its bounded runtime checkpoint, and the owner-facing reporting register;
-- **worker role skills** — `paseo-builder`, `paseo-reviewer`, and `paseo-researcher`;
-- **Claude manifest** — [`.claude-plugin/plugin.json`](paseo-cto/.claude-plugin/plugin.json) for
-  marketplace installation;
-- **Codex manifest and skill metadata** — [`.codex-plugin/plugin.json`](paseo-cto/.codex-plugin/plugin.json)
-  and one Codex metadata file in each [shared skill directory](paseo-cto/skills), with no hardcoded
-  Paseo MCP endpoint.
-
-Both hosts load the same [skill sources](paseo-cto/skills). Only invocation syntax, the Codex
-cache-busting build suffix, and Codex interface metadata differ. Both installations resolve the
-same immutable remote release tag.
-
-References load progressively. Project status reads only the reporting reference and the work index;
-creating or accepting work loads the work-tree reference; starting a project or a wave loads the
-bootstrap reference; ordinary fleet work uses a compact core-command sheet; archival and close load
-their own reference; the complete command catalog is lookup-only.
-
-### Project onboarding
-
-A new project needs a charter (`SETTINGS.json`) in the Git common directory. Start from the template:
+Grammatical, engineer-to-engineer Russian technical prose: meaning-first translation of engineering
+terms, no literal calques, exact resource names preserved. See
+[russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/SETTINGS.template.json" \
-  "$(git rev-parse --git-common-dir)/paseo-cto/SETTINGS.json"
-# edit: project slug, roleAssignments (family/provider/effort for cto/builder/reviewer/researcher),
-# reportingLanguage, fleetBudget, autonomyHorizon, reviewDepth, permissionPolicy
+claude plugin marketplace add "maggnus/agentic-plugins@v10.3.2"
+claude plugin install russian-speech@maggnus
 ```
-
-Copy the work tooling into the project and bind `check` to the validation gate:
 
 ```sh
-mkdir -p scripts
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work.py" scripts/
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work-schema.json" scripts/
-cp -r "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/work" scripts/work
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/check_runtime.py" scripts/
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/render_fleet.py" scripts/
-cp "$PASEO_CTO_PLUGIN/skills/paseo-cto/templates/check-fleet-render.sh" scripts/
+codex plugin marketplace add maggnus/agentic-plugins --ref v10.3.2
+codex plugin add russian-speech@maggnus
 ```
 
-Verify the project's work tooling matches the installed plugin:
-
-```sh
-bash "$PASEO_CTO_PLUGIN/scripts/check-work-tooling.sh" "$(git rev-parse --show-toplevel)"
-```
-
-### `russian-speech` — literate Russian technical prose
-
-Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first
-translation of engineering terms, no literal calques, exact product/API/resource names preserved,
-no anthropomorphized components, no color metaphors for CI/CD state.
-
-Ships:
-
-- **skill `russian-speech`** — the operating rules: mandatory translation principles, the
-  normative replacement table (lane → контур, identity → сервисная учётная запись,
-  reconcile → синхронизировать, gate → проверка, trigger → событие запуска, …), the engineering
-  status template, and the pre-send self-check. The full glossary — false friends and preferred
-  forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing, with worked examples — loads
-  progressively from `references/glossary.md`.
-- **SessionStart hook** (Claude Code only) — injects a compact style directive into every
-  session, so the base register applies always; the skill and its glossary load on demand for
-  long-form reports, reviews, ADRs, and documentation.
-- **Codex manifest and skill metadata** — `.codex-plugin/plugin.json` and `agents/openai.yaml`
-  in the skill directory. Codex has no SessionStart hook, so there the style applies through
-  implicit skill invocation and explicit `$russian-speech:russian-speech`.
-
-It is versioned and installed on its own. It briefly lived inside `paseo-cto` (9.7.0) after a
-tag-pinned host could not see it; the cause was a missing release tag, not the packaging, so 9.8.0
-separated them again.
-
-### `team` — the same discipline for a project that needs no fleet
-
-One file, [`skills/team/SKILL.md`](team/skills/team/SKILL.md), and nothing else: no references, no
-templates, no scripts, no state directory. It carries the part of the CTO method that survives
-without isolated agents — work split into outcomes that can be judged, checks sized to the credible
-consequence of a defect, a check that has been seen failing before it counts as evidence, an
-independent read of the diff before a Significant or Critical change lands, and a forced decision
-after the second round of findings.
-
-Its one structural difference from `paseo-cto`: host-native subagents share a single working copy,
-so reading runs in parallel and writing runs one at a time. It is versioned and installed on its
-own, and it is not a smaller configuration of `paseo-cto` — the two are read independently.
+Adding the marketplace once is enough for all three; the command is repeated so each plugin can be
+installed on its own.
 
 ## Release
 
-Both hosts install from the same immutable tag, so a change ships only once a new tag exists. Bump
-the base version in the [Claude manifest](paseo-cto/.claude-plugin/plugin.json) and the
-[Codex manifest](paseo-cto/.codex-plugin/plugin.json) to the same value first; a published tag is
-never moved or replaced.
-
-From a local clone, with the Codex plugin-creator tools available:
+One tag publishes the whole repository, and its name is the `paseo-cto` base version. Bump that
+version in the [Claude](paseo-cto/.claude-plugin/plugin.json) and
+[Codex](paseo-cto/.codex-plugin/plugin.json) manifests to the same value first; a published tag is
+never moved.
 
 ```sh
-bash paseo-cto/scripts/release.sh
-```
-
-Without a clone, through the GitHub Actions workflow:
-
-```sh
-gh workflow run release.yml -R maggnus/agentic-plugins
-gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true   # validation only
+bash paseo-cto/scripts/release.sh                                      # from a local clone
+gh workflow run release.yml -R maggnus/agentic-plugins                 # or on GitHub Actions
+gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true # validation only
 ```
 
 Both paths run the contract and work-tree tests, stamp the work tooling, refresh the Codex
@@ -231,38 +76,18 @@ whose tag already exists.
 
 ## Upgrade
 
-An existing installation upgrades itself. The plugin ships
-[`upgrade.py`](paseo-cto/skills/paseo-cto/scripts/upgrade.py), which resolves the newest release tag
-from the remote repository and re-pins both hosts to it, preserving any sibling plugin installed
-from the same marketplace. Asking the CTO for `paseo-cto upgrade` runs it:
-
-```sh
-PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.3.2
-```
-
-The same sequence by hand:
+Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
 PASEO_CTO_TAG=v10.3.2
-
-claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
-claude plugin install paseo-cto@maggnus --scope user
-claude plugin install russian-speech@maggnus --scope user
-claude plugin install team@maggnus --scope user
+claude plugin install <plugin>@maggnus --scope user
 
-codex plugin remove paseo-cto@maggnus
 codex plugin marketplace remove maggnus
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
-codex plugin add paseo-cto@maggnus
-codex plugin add russian-speech@maggnus
-codex plugin add team@maggnus
+codex plugin add <plugin>@maggnus
 ```
 
-Restart Claude Code and start a new Codex conversation after reinstalling so both hosts load the
-tagged skills and metadata.
+`paseo-cto` can do this itself — see its README. Restart Claude Code and start a new Codex
+conversation afterwards so both hosts load the tagged skills.

@@ -9,6 +9,7 @@ plugin_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
 python3 - "$plugin_root" <<'PY'
 import json
 import pathlib
+import re
 import sys
 
 root = pathlib.Path(sys.argv[1]).resolve()
@@ -64,18 +65,29 @@ require(work_schema.get("tooling_version") == worklib.TOOLING_VERSION,
 require(work_schema.get("tooling_digest") == worklib.tooling_digest(work_script, work_schema),
         "the work tooling changed without being re-stamped; run scripts/stamp-work-tooling.py")
 
-readme = (root.parent / "README.md").read_text()
 release_tag = f"v{claude_version}"
+readme = (root.parent / "README.md").read_text()
+plugin_readme_path = root / "README.md"
+require(plugin_readme_path.is_file(), "paseo-cto/README.md is missing")
+plugin_readme = plugin_readme_path.read_text() if plugin_readme_path.is_file() else ""
+
 require(f"PASEO_CTO_TAG={release_tag}" in readme,
         f"README.md does not select release tag {release_tag}")
-require(f"paseo-cto: {release_tag} |" in readme,
-        f"README.md snapshot example does not show {release_tag}")
+require(f"paseo-cto: {release_tag} |" in plugin_readme,
+        f"paseo-cto/README.md snapshot example does not show {release_tag}")
 require('maggnus/agentic-plugins@${PASEO_CTO_TAG}' in readme,
         "README.md does not pin the Claude marketplace to the release tag")
 require('maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"' in readme,
         "README.md does not pin the Codex marketplace to the release tag")
-require("plugin marketplace add ~/" not in readme,
-        "README.md still permits a local marketplace installation")
+for name, body in (("README.md", readme), ("paseo-cto/README.md", plugin_readme)):
+    require("plugin marketplace add ~/" not in body,
+            f"{name} still permits a local marketplace installation")
+    stale = sorted({tag for tag in re.findall(r"v\d+\.\d+\.\d+", body) if tag != release_tag})
+    require(not stale, f"{name} still names {', '.join(stale)} instead of {release_tag}")
+
+for name in ("team", "russian-speech"):
+    sibling = root.parent / name / "README.md"
+    require(sibling.is_file(), f"{name}/README.md is missing")
 
 if errors:
     for error in errors:

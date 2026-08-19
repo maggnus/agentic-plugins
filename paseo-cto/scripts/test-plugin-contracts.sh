@@ -867,7 +867,7 @@ files = {
     "skill": root / "skills/paseo-cto/SKILL.md",
     "status": root / "skills/paseo-cto/references/status-and-reporting.md",
     "fleet": root / "skills/paseo-cto/references/fleet-operations.md",
-    "readme": root.parent / "README.md",
+    "readme": root / "README.md",
 }
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
