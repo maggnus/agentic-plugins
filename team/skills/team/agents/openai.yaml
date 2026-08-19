@@ -1,0 +1,7 @@
+interface:
+  display_name: "Team"
+  short_description: "Small-project delivery discipline"
+  default_prompt: "Use $team:team to plan this work as judgeable outcomes, size each check to its risk, and review the change before it lands."
+
+policy:
+  allow_implicit_invocation: true

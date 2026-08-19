@@ -1,0 +1,9 @@
+{
+  "name": "team",
+  "description": "Delivery discipline for a small project, in one file and with no fleet machinery: split work into outcomes that can be judged, size each check to what a defect would cost, prove a check can fail before trusting it, delegate reads in parallel and writes one at a time, review a change before it lands, and decide instead of looping after the second return.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  }
+}

@@ -14,6 +14,11 @@
       "name": "russian-speech",
       "source": "./russian-speech",
       "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships a full glossary of false friends and preferred forms for CI/CD, GitOps, Kubernetes, GCP, IAM, Git, and testing."
+    },
+    {
+      "name": "team",
+      "source": "./team",
+      "description": "Delivery discipline for a small project, in one file and with no fleet machinery: split work into outcomes that can be judged, size each check to what a defect would cost, prove a check can fail before trusting it, delegate reads in parallel and writes one at a time, review a change before it lands, and decide instead of looping after the second return."
     }
   ]
 }

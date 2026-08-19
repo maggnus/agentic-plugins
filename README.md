@@ -6,17 +6,19 @@ Code/Codex plugins.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v10.3.1
+PASEO_CTO_TAG=v10.3.2
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
+claude plugin install team@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v10.3.1
+PASEO_CTO_TAG=v10.3.2
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
+codex plugin add team@maggnus
 ```
 
 All `paseo-cto` installations use the remote GitHub marketplace pinned to the matching immutable
@@ -89,7 +91,7 @@ completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.3.1 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v10.3.2 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -190,6 +192,19 @@ It is versioned and installed on its own. It briefly lived inside `paseo-cto` (9
 tag-pinned host could not see it; the cause was a missing release tag, not the packaging, so 9.8.0
 separated them again.
 
+### `team` — the same discipline for a project that needs no fleet
+
+One file, [`skills/team/SKILL.md`](team/skills/team/SKILL.md), and nothing else: no references, no
+templates, no scripts, no state directory. It carries the part of the CTO method that survives
+without isolated agents — work split into outcomes that can be judged, checks sized to the credible
+consequence of a defect, a check that has been seen failing before it counts as evidence, an
+independent read of the diff before a Significant or Critical change lands, and a forced decision
+after the second round of findings.
+
+Its one structural difference from `paseo-cto`: host-native subagents share a single working copy,
+so reading runs in parallel and writing runs one at a time. It is versioned and installed on its
+own, and it is not a smaller configuration of `paseo-cto` — the two are read independently.
+
 ## Release
 
 Both hosts install from the same immutable tag, so a change ships only once a new tag exists. Bump
@@ -226,25 +241,27 @@ PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.3.1
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.3.2
 ```
 
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v10.3.1
+PASEO_CTO_TAG=v10.3.2
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install paseo-cto@maggnus --scope user
 claude plugin install russian-speech@maggnus --scope user
+claude plugin install team@maggnus --scope user
 
 codex plugin remove paseo-cto@maggnus
 codex plugin marketplace remove maggnus
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
+codex plugin add team@maggnus
 ```
 
 Restart Claude Code and start a new Codex conversation after reinstalling so both hosts load the
