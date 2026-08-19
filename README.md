@@ -6,14 +6,14 @@ Code/Codex plugins.
 ## Install
 
 ```sh
-PASEO_CTO_TAG=v10.2.0
+PASEO_CTO_TAG=v10.3.0
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v10.2.0
+PASEO_CTO_TAG=v10.3.0
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 codex plugin add russian-speech@maggnus
@@ -89,7 +89,7 @@ completed work.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.2.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v10.3.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -202,13 +202,13 @@ PASEO_CTO_PLUGIN=/absolute/path/printed-by-the-plugin-install-command
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.2.0
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.3.0
 ```
 
 The same sequence by hand:
 
 ```sh
-PASEO_CTO_TAG=v10.2.0
+PASEO_CTO_TAG=v10.3.0
 
 claude plugin uninstall paseo-cto@maggnus --scope user
 claude plugin marketplace remove maggnus --scope user
