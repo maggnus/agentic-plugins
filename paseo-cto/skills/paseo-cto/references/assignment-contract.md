@@ -2,13 +2,14 @@
 
 Read this file immediately before dispatching work. Give each agent one bounded plan atom in an
 isolated workspace. The atom is one permanent task file: the contract names its path and binds it
-to this dispatch; it does not restate what the file already says (outcome, scope, acceptance,
-guardrails) — the worker reads the file. A contract that cannot be written from the task file means
-the file is not startable from a cold context, which is a planning defect. The worker never edits
-that file. The first prompt line is a fail-closed role gate; the remaining fields carry only what the
-file cannot: identity, risk and chosen effort, maturity, exact write zone and no-touch, the
-validation budget with its negative halves, the review owner, commit and return rules. Omit a field
-whose value the task file already fixes.
+to this dispatch instead of restating it. A contract that cannot be written from the task file
+means the file is not startable from a cold context, which is a planning defect. The worker never
+edits that file. The first prompt line is a fail-closed role gate; every field of the template below
+then follows in order, and none is dropped. A field the task file already fixes — `Read`, `Outcome`,
+`Acceptance` — is carried as a pointer to the section that fixes it plus whatever this dispatch adds,
+never as a paraphrase of it. The dispatch-only fields — identity, risk and chosen effort, maturity,
+write zone, no-touch, the validation budget with its negative halves, the review owner, commit and
+return rules — are always written in full, because the task file cannot know them.
 
 ```markdown
 First action: load <qualified role skill>. If unavailable, reply exactly BLOCKED: role skill unavailable and stop before any repository read or write.
@@ -21,7 +22,7 @@ Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
 Validation budget: <builder-owned checks; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
-Review: <apply Review gate for the declared risk; name only the non-author second-look/review owner>
+Review: <apply Review gate for the declared risk; name the review owner — the CTO where the gate lets it accept, otherwise the non-author reviewer>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
 Return: <source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
@@ -55,7 +56,11 @@ independent outcomes, risk levels, acceptance stories, owners, or landing value.
 is a blocker or proposed child, never implicit scope expansion — with one exception: a purely
 additive edit to a file no running task owns (a new target in a registry, a call-site update forced
 by a signature change, a test helper) may be made and declared in the return; the CTO ratifies it at
-integration or returns it. The converse holds for small
+integration or returns it. The worker cannot see what other tasks hold, so the dispatch closes that
+half: a shared file a running task owns, or one that two admissible tasks would both extend, is named
+in `No-touch`, and at most one running task is admitted per such file. If two returns still extend
+the same unnamed file, the later one re-bases on the accepted earlier one instead of being merged by
+hand. The converse holds for small
 homogeneous nodes: one contract may carry several sibling nodes sharing one surface, environment,
 verification method, and review context; the contract then names every node with its own
 acceptance, and the review closes each individually.

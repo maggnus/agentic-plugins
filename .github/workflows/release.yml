@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g., 10.2.0). If omitted, reads from plugin manifest.'
+        description: 'Expected release version (e.g. 10.3.1). Must match the plugin manifest; omit to use the manifest value.'
         required: false
         type: string
       dry_run:
-        description: 'Run validation only, do not create tag or push'
+        description: 'Run validation only, do not commit, tag or push'
         required: false
         type: boolean
         default: false
@@ -32,73 +32,73 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Install Codex CLI
-        run: |
-          npm install -g @anthropic-ai/codex-cli
-          codex --version
-
-      - name: Determine version
+      - name: Resolve version from the manifests
         id: version
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            version=$(jq -r '.version' paseo-cto/.claude-plugin/plugin.json)
-            echo "version=$version" >> $GITHUB_OUTPUT
+          claude_version=$(python3 -c "import json;print(json.load(open('paseo-cto/.claude-plugin/plugin.json'))['version'])")
+          codex_base=$(python3 -c "import json;print(json.load(open('paseo-cto/.codex-plugin/plugin.json'))['version'].split('+codex.')[0])")
+          if [ "$claude_version" != "$codex_base" ]; then
+            echo "manifest versions differ: Claude $claude_version, Codex $codex_base" >&2
+            exit 1
           fi
-          echo "Release version: ${version}"
+          requested="${{ github.event.inputs.version }}"
+          if [ -n "$requested" ] && [ "$requested" != "$claude_version" ]; then
+            echo "requested $requested but the manifests carry $claude_version; bump the manifests first" >&2
+            exit 1
+          fi
+          if ! printf '%s' "$claude_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "invalid version format: $claude_version" >&2
+            exit 1
+          fi
+          echo "version=$claude_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$claude_version" >> "$GITHUB_OUTPUT"
+          echo "Release version: $claude_version"
 
-      - name: Validate version format
+      - name: Refuse an existing tag
         run: |
-          if ! [[ "${{ steps.version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version format: ${{ steps.version.outputs.version }}"
+          tag="${{ steps.version.outputs.tag }}"
+          if git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null; then
+            echo "tag $tag already exists; a published release tag is never moved" >&2
             exit 1
           fi
 
-      - name: Run contract tests
+      - name: Contract tests
         run: bash paseo-cto/scripts/test-plugin-contracts.sh
 
       - name: Stamp work tooling
         run: python3 paseo-cto/scripts/stamp-work-tooling.py
 
-      - name: Update Codex cachebuster
+      - name: Update the Codex cachebuster
         run: |
-          python3 -m pip install --quiet -e ~/.codex/skills/.system/plugin-creator 2>/dev/null || true
-          python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
+          python3 - "${{ steps.version.outputs.version }}" <<'PY'
+          import json, pathlib, sys, time
+          version = sys.argv[1]
+          path = pathlib.Path("paseo-cto/.codex-plugin/plugin.json")
+          manifest = json.loads(path.read_text())
+          stamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+          manifest["version"] = f"{version}+codex.{stamp}"
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          print(manifest["version"])
+          PY
 
-      - name: Validate plugin
-        run: python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
-
-      - name: Check distribution sync
+      - name: Distribution sync check
         run: bash paseo-cto/scripts/check-distribution-sync.sh
 
-      - name: Commit cachebuster update
-        if: ${{ !github.event.inputs.dry_run }}
+      - name: Commit, tag and push
+        if: ${{ github.event.inputs.dry_run != 'true' }}
         run: |
-          if ! git diff --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add paseo-cto/.codex-plugin/plugin.json
-            git commit -m "chore: update codex cachebuster for v${{ steps.version.outputs.version }}"
-          fi
-
-      - name: Create and push tag
-        if: ${{ !github.event.inputs.dry_run }}
-        run: |
+          tag="${{ steps.version.outputs.tag }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          tag="v${{ steps.version.outputs.version }}"
-          if git rev-parse "$tag" >/dev/null 2>&1; then
-            git tag -d "$tag"
+          if ! git diff --quiet; then
+            git add paseo-cto/.codex-plugin/plugin.json paseo-cto/skills/paseo-cto/templates
+            git commit -m "chore: update codex cachebuster for $tag"
           fi
           git tag "$tag"
-          git push origin main
-          git push origin "$tag" --force
+          git push origin HEAD:main
+          git push origin "$tag"
+          echo "Release $tag published"
 
-      - name: Report result
-        run: |
-          echo "Release v${{ steps.version.outputs.version }} completed successfully"
-          echo "Tag: v${{ steps.version.outputs.version }}"
+      - name: Report a dry run
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: echo "Validation passed for ${{ steps.version.outputs.tag }}; nothing was committed, tagged or pushed"

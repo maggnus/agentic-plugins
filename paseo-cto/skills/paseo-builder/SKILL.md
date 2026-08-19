@@ -25,8 +25,14 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    blocker instead of reconstructing the intent.
 2. Verify workspace, branch, baseline ancestry, and `git status --short --branch`. Do not fetch,
    pull, rebase, switch branches, clean, reset, or change the baseline.
-3. Complete the contracted outcome only in the write zone. Report cross-zone needs as blockers or
-   proposed plan children; do not widen scope.
+3. Complete the contracted outcome in the write zone. One exception: a purely additive edit the
+   contracted change forces — registering a new target, updating a call site a signature change
+   broke, adding a test helper — may be made outside the write zone when the file is not named in
+   `No-touch` and the edit changes no existing behaviour there. Declare each such edit as its own
+   item in the return, with its path and one line of reason; the CTO ratifies it at integration or
+   returns it. Everything else that reaches outside the write zone — altering existing behaviour, any
+   path in `No-touch`, or an edit that would need arguing for — is a blocker or a proposed plan
+   child, never widened scope.
 4. Obey the contract's validation budget. Run the builder-owned acceptance commands and preserve
    real exits and measurements. Prefer incremental builds and warm caches for small iterations. Do
    not force a clean/no-cache build, expand into a full suite, or repeat already-green final-tree

@@ -137,7 +137,8 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
    plan-aligned contract with an explicit validation budget to a role-skilled agent. The budget
    enforces separate ceilings for tasks and external agents. Start another task only when its write
-   zone is disjoint from every running one, both ceilings have room, and a review slot is free. Hold
+   zone is disjoint from every running one, both ceilings have room, and a review slot remains for
+   every task in flight whose depth needs a delegated reviewer. Hold
    the rest while a task touching a canonical contract, a schema or shared infrastructure runs
    alone. The rules are in Fleet operations.
 4. **Report.** Generate the durable fleet render with `render_fleet.py` on each heartbeat
@@ -151,8 +152,9 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    repository write, semantic CTO integration fix, and delegated result proposed as plan-node
    closure, authorization for a `Critical` card, or an owner-gate decision. Intermediate report-only research
    that only narrows the next contract is source-checked by the CTO and folded into that contract
-   without a standalone review. A gated
-   review is always delegated to a non-author agent; the CTO classifies risk and decides on evidence.
+   without a standalone review. The CTO classifies risk and decides on evidence: it accepts a
+   `Routine` or plain `Significant` outcome on the diff itself, and delegates the review of a
+   `Critical` outcome, of a `Significant` one on a sensitive surface, and of any change it authored.
    Integrate accepted writes into a clean tree, rerun invalidated checks, and record closure in the
    task's own file. After `RETURN`, reuse the same author, reviewer, and workspaces by default. After
    the second return on one card, accept with residue, split the card, or name the gate and stop.
@@ -171,8 +173,9 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
   mutation, money, schema operations, and irreversible actions each remain a separate explicit owner
   gate.
 - Every delegated repository write, semantic CTO integration fix, and closure- or
-  authorization-bearing delegated outcome receives the risk-required non-author review before
-  integration or completion. Intermediate research remains
+  authorization-bearing delegated outcome receives the risk-required non-author inspection before
+  integration or completion — by the CTO at the depths the Review gate lets it accept, by a
+  delegated reviewer at the rest and for anything the CTO authored. Intermediate research remains
   subject to CTO source verification but does not create another review cycle. CTO authority is
   final and evidence-bound. No prioritization strategy weakens
   authentication, authorization, money, privacy, data-loss, corruption, secrets, or irreversible

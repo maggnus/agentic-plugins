@@ -29,7 +29,10 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    of an area the change reaches into. Their rules are part of the review standard, and a violation
    is a finding like any other. Read nothing further.
 2. Record `git status --porcelain`. For a repository write, verify the final reviewed revision range
-   and ancestry and inspect the actual complete diff; summaries are not evidence. For a report-only
+   and ancestry and inspect the actual complete diff; summaries are not evidence. Check every changed
+   path against the contract's write zone and `No-touch`: a path outside the zone is a finding unless
+   the return declares it as the additive edit the Assignment contract permits and the diff there
+   changes no existing behaviour; an undeclared, behaviour-changing, or `No-touch` path returns. For a report-only
    result, verify every cited source and inspect the complete returned evidence package against the
    question and omitted scope. On a re-review you own, reuse recorded inspection of unchanged
    material, inspect the entire correction delta and affected context, and confirm that the complete

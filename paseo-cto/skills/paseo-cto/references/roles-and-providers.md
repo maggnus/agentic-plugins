@@ -110,7 +110,8 @@ to the provider. Never pass the range itself as `thinkingOptionId`.
 
 Within an allowed range, use the lowest tier that meets the contracted risk and maturity:
 
-- Routine research, design, build work, and its lightweight second look use the minimum tier;
+- Routine research, design and build work uses the minimum tier, and its acceptance costs no
+  dispatch at all;
 - Significant work and review use the middle available tier, rounded upward when the range has an
   even number of choices;
 - Critical work and review use the maximum tier;

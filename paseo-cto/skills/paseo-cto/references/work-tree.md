@@ -143,7 +143,8 @@ behind it cannot pass silently.
 
 A partial acceptance is honest only when the headline outcome is genuinely achieved, the limitation
 does not make it false, the return trigger is exact and observable, the residue is reversible or
-observable, and the reviewer agreed that a separate required task is not needed. The unachieved
+observable, and the accepting review — the CTO or a delegated reviewer — agreed that a separate
+required task is not needed. The unachieved
 independent part gets its own identifier; it is never left in prose.
 
 ## The index

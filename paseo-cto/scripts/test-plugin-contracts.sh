@@ -916,6 +916,119 @@ if "Spend context deliberately" not in skill:
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+expect_pass "review depth names one performer everywhere" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+files = {
+    "gate": root / "skills/paseo-cto/references/review-gate.md",
+    "skill": root / "skills/paseo-cto/SKILL.md",
+    "contract": root / "skills/paseo-cto/references/assignment-contract.md",
+    "budget": root / "skills/paseo-cto/references/validation-budget.md",
+}
+text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
+required = {
+    "gate": (
+        "The CTO accepts a `Routine` or plain `Significant` outcome itself",
+        "go to a non-author reviewer",
+        "A change the CTO authored",
+        "Whoever performs the inspection",
+    ),
+    "skill": (
+        "it accepts a `Routine` or plain `Significant` outcome on the diff itself",
+        "and of any change it authored",
+    ),
+    "contract": ("name the review owner",),
+    "budget": ("CTO acceptance read",),
+}
+retired = (
+    "A gate review is always delegated",
+    "never performs that review itself",
+    "always delegated to a non-author agent",
+    "Routine second look",
+    "lightweight second look",
+)
+problems = [
+    f"{name} lacks {needle!r}"
+    for name, needles in required.items()
+    for needle in needles
+    if needle not in text[name]
+]
+for path in sorted(root.glob("skills/**/*.md")):
+    body = " ".join(path.read_text().split())
+    problems += [
+        f"{path.name} retains the retired rule {needle!r}"
+        for needle in retired
+        if needle in body
+    ]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "the additive-edit exception is stated on every side" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills"
+text = {
+    name: " ".join((root / path).read_text().split())
+    for name, path in {
+        "contract": "paseo-cto/references/assignment-contract.md",
+        "builder": "paseo-builder/SKILL.md",
+        "reviewer": "paseo-reviewer/SKILL.md",
+        "gate": "paseo-cto/references/review-gate.md",
+        "roles": "paseo-cto/references/roles-and-providers.md",
+    }.items()
+}
+required = {
+    "contract": (
+        "a purely additive edit to a file no running task owns",
+        "is named in `No-touch`",
+        "at most one running task is admitted per such file",
+    ),
+    "builder": (
+        "a purely additive edit the contracted change forces",
+        "Declare each such edit as its own item in the return",
+        "is not named in `No-touch`",
+    ),
+    "reviewer": ("against the contract's write zone and `No-touch`",),
+    "gate": ("checks every changed path against",),
+    "roles": ("A write outside its write zone but inside its worktree",),
+}
+problems = [
+    f"{name} lacks {needle!r}"
+    for name, needles in required.items()
+    for needle in needles
+    if needle not in text[name]
+]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "every role is invocable from both hosts" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+problems = []
+for skill_file in sorted(root.glob("skills/*/SKILL.md")):
+    name = skill_file.parent.name
+    header = " ".join(skill_file.read_text().split())
+    if not (skill_file.parent / "agents/openai.yaml").is_file():
+        problems.append(f"{name} has no Codex interface metadata")
+    if name == "paseo-cto":
+        continue
+    for form in (f"$paseo-cto:{name}", f"/paseo-cto:{name}"):
+        if form not in header:
+            problems.append(f"{name} does not name the {form!r} invocation")
+contract = " ".join(
+    (root / "skills/paseo-cto/references/assignment-contract.md").read_text().split()
+)
+for form in ("`$paseo-cto:paseo-<role>` in Codex", "`/paseo-cto:paseo-<role>` in Claude"):
+    if form not in contract:
+        problems.append(f"the assignment contract does not name {form!r}")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 printf 'test: %s contract checks passed\n' "$passes"
 
 bash "$script_dir/test-work-tree.sh"

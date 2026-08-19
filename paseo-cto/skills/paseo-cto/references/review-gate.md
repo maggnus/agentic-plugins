@@ -7,9 +7,12 @@ used only to narrow the next contract is source-checked by the CTO and does not 
 review. Ordinary CTO work-tree and contract edits follow the plan-review rule below rather than a
 per-edit review. A project may define stricter gates; it must not define a weaker floor.
 
-A gate review is always delegated. The CTO classifies the risk, dispatches the required second look
-to a non-author agent, and decides on the returned evidence; it never performs that review itself.
-Landing authority, integration, and the bounded CTO fix remain CTO work.
+The CTO classifies the risk and owns the decision; the classification decides who performs the
+inspection. The CTO accepts a `Routine` or plain `Significant` outcome itself, on the final diff and
+the author's evidence. A `Critical` outcome, and a `Significant` one on the sensitive surfaces named
+under Review depth, go to a non-author reviewer. A change the CTO authored — a semantic integration
+fix — is always inspected by a non-author agent whatever its risk, because reading one's own diff is
+not a second look. Landing authority, integration, and the bounded CTO fix remain CTO work.
 
 ## Risk classification
 
@@ -94,6 +97,12 @@ sentence, and removes the review round that would otherwise discover the same th
 
 ## Review depth
 
+Whoever performs the inspection — the CTO or a delegated reviewer — checks every changed path against
+the contract's write zone and `No-touch` before judging the content. A path outside the write zone is
+a finding until it is classified: the additive edit the [Assignment contract](assignment-contract.md)
+permits, declared in the return and changing no existing behaviour there, is ratified at integration;
+anything undeclared, behaviour-changing, or inside `No-touch` returns.
+
 ### Routine
 
 The CTO reads the final diff and the author's acceptance evidence and accepts or returns; no
@@ -126,7 +135,7 @@ evidence must close each node individually.
 
 A correction is classified by the credible consequence of the correction itself, not inherited from
 its parent card. A mechanical test-inventory, comment, generated-file, or report repair may receive a
-Routine second look even when the product change it supports was Critical, provided it cannot alter
+Routine acceptance even when the product change it supports was Critical, provided it cannot alter
 product behaviour or weaken the critical proof. If the correction changes an oracle, acceptance
 semantics, production reachability, or the threatened invariant, it keeps the corresponding depth.
 
@@ -210,7 +219,7 @@ Grant the originating agent one bounded, evidence-based round of response only w
 blocker or major finding, a proposed return, a disputed scope or contract, or a semantic CTO
 integration edit. In that round the agent may agree, partly agree, or defend each disputed finding
 with specification, code, tests, measurements, or a reproducible counterexample. Agreement is not an
-acceptance gate, and clean acceptances and Routine second looks require no response round.
+acceptance gate, and a clean acceptance — delegated or CTO-performed — requires no response round.
 
 The agent must not edit, recommit, or widen scope during the round unless rework is explicitly
 authorized. Resolve every defence on evidence and withdraw or reclassify disproved findings. A new

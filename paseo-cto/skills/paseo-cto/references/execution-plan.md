@@ -90,7 +90,7 @@ only its compact render.
 | --- | --- | --- |
 | `ready` | `[ ]` | No agent is required; the node may be dispatched. |
 | `active` | `[~]` | At least one owner is performing useful work. |
-| `review` | `[~]` | A returned outcome is undergoing the required second look. |
+| `review` | `[~]` | A returned outcome is undergoing the inspection its risk requires. |
 | `rework` | `[~]` | The originating author is correcting accepted findings. |
 | `blocked` | `[?]` | A dependency or decision makes continuation objectively impossible. |
 | `deferred` | `[=]` | A deliberate pause, or a named trigger that must occur first. |

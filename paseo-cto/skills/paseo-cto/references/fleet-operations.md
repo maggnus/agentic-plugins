@@ -88,8 +88,10 @@ it checked out first, then re-verify the integration tree's branch and cleanline
 the workspace exists.
 
 Persist the workspace immediately after creation, then the agent ID and labels immediately after
-launch. Agents use `notifyOnFinish: true` so a return is handled when it arrives; the heartbeat
-remains the fallback reconcile when a notification is lost.
+launch. Agents use `notifyOnFinish: true` so a return is handled when it arrives. A finish
+injection can replace the CTO turn in progress and is lost on daemon restart, so treat an
+interrupted turn as expected: re-derive state from the checkpoint and runtime rather than from the
+interrupted turn, and keep the heartbeat as the reconcile that catches a lost notification.
 
 ## Parallel work — six rules
 
@@ -107,8 +109,10 @@ when both ceilings remain satisfied.
    other writer waits for its acceptance and re-baselines on it.
 4. **A file any participant regenerates deterministically — a lockfile, formatter output, a
    generated index — is not shared ownership**; the CTO regenerates it during integration.
-5. **No free review capacity, no new task.** A returned candidate waiting for a reviewer costs the
-   same as an unstarted atom and ages worse.
+5. **No free review capacity, no new task — where the depth needs a reviewer.** A returned
+   candidate waiting for a delegated reviewer costs the same as an unstarted atom and ages worse. An
+   outcome the Review gate lets the CTO accept consumes no review slot; it consumes CTO turn time,
+   so unaccepted returns are still cleared before new work starts.
 6. **Accepted work integrates and retires immediately.** Refill an available task and agent slot
    only with admissible ready work; conflict cost grows with how long branches sit apart.
 

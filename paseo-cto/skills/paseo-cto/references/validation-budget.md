@@ -26,7 +26,7 @@ Assign every command or proof to one primary role:
 | --- | --- |
 | Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces. |
 | Researcher | Primary-source verification, explicit unknowns, and one counterexample for every load-bearing conclusion. |
-| Routine second look | The inspection assigned by the Review gate. |
+| CTO acceptance read | The final diff and the author's evidence at the depths the Review gate lets the CTO accept. |
 | Reviewer | Independent inspection of the returned outcome and any falsifier assigned by the Review gate. |
 | CTO | Final-range ancestry, collision resolution, checks invalidated by composition, and dispatching the integration-delta review. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
