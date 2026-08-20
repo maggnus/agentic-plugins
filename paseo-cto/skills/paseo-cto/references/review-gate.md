@@ -8,9 +8,12 @@ review. Ordinary CTO work-tree and contract edits follow the plan-review rule be
 per-edit review. A project may define stricter gates; it must not define a weaker floor.
 
 The CTO classifies the risk and owns the decision; the classification decides who performs the
-inspection. The CTO accepts a `Routine` or plain `Significant` outcome itself, on the final diff and
-the author's evidence. A `Critical` outcome, and a `Significant` one on the sensitive surfaces named
-under Review depth, go to a non-author reviewer. A change the CTO authored — a semantic integration
+inspection. The CTO accepts a `Routine` outcome itself, and a `Significant` one only when the change
+cannot alter product behaviour — tests, documentation, configuration, generated files, mechanical
+edits. A `Significant` outcome that changes product code, and every `Critical` outcome, go to a
+non-author reviewer: a diff read cannot catch the defect classes that matter at that tier
+(concurrency, authority composition, unexercised paths), because the CTO runs no falsifier of its
+own and reads with the integrator's, not the adversary's, hypothesis. A change the CTO authored — a semantic integration
 fix — is always inspected by a non-author agent whatever its risk, because reading one's own diff is
 not a second look. Landing authority, integration, and the bounded CTO fix remain CTO work.
 
@@ -110,12 +113,16 @@ separate agent, no falsifier, no author response.
 
 ### Significant
 
-The CTO reads the final diff and checks the author's acceptance evidence against the task file;
-a delegated non-author reviewer is added only when the change touches authentication,
-authorization, money, privacy, data loss, schema, or a canonical contract, or when the author's
-evidence does not exercise the product path. That reviewer inspects the complete outcome with the
-final diff plus targeted success and failure-path checks, and adds an independent falsifier only
-for a concrete risk hypothesis existing evidence does not settle.
+A change that cannot alter product behaviour — tests, documentation, configuration, generated
+files, mechanical edits — is accepted by the CTO on the final diff and the author's acceptance
+evidence checked against the task file. Any change to product code receives a delegated non-author
+reviewer, who inspects the complete outcome with the final diff plus targeted success and
+failure-path checks and brings at least one independently selected falsifier of a concrete risk
+hypothesis the author's evidence does not settle; sensitive surfaces (authentication,
+authorization, money, privacy, data loss, schema, canonical contracts) additionally anchor the
+falsifier to the threatened invariant. The reviewer runs in parallel and blocks nothing; the
+saving from skipping it is spent later with interest when an escaped defect is repaired after
+integration.
 
 ### Critical
 

@@ -24,7 +24,7 @@ Assign every command or proof to one primary role:
 
 | Role | Default responsibility |
 | --- | --- |
-| Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces. |
+| Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces — including every cheap repository gate (seconds to a few minutes) whose declared inventory covers the write zone; a gate deferred to the wave-closing suite fails there once per task that skipped it. |
 | Researcher | Primary-source verification, explicit unknowns, and one counterexample for every load-bearing conclusion. |
 | CTO acceptance read | The final diff and the author's evidence at the depths the Review gate lets the CTO accept. |
 | Reviewer | Independent inspection of the returned outcome and any falsifier assigned by the Review gate. |

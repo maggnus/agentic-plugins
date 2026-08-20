@@ -930,7 +930,7 @@ files = {
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
     "gate": (
-        "The CTO accepts a `Routine` or plain `Significant` outcome itself",
+        "The CTO accepts a `Routine` outcome itself",
         "go to a non-author reviewer",
         "A change the CTO authored",
         "Whoever performs the inspection",
