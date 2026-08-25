@@ -12,13 +12,13 @@ source-linked integration. Models and reasoning effort are owner decisions recor
 charter. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
-PASEO_CTO_TAG=v10.5.0
+PASEO_CTO_TAG=v10.5.1
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v10.5.0
+PASEO_CTO_TAG=v10.5.1
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -31,12 +31,12 @@ the diff before a risky change lands, and a reviewer and author who converge on 
 returns. See [team/README.md](team/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v10.5.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v10.5.1"
 claude plugin install team@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v10.5.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v10.5.1
 codex plugin add team@maggnus
 ```
 
@@ -47,12 +47,12 @@ terms, no literal calques, exact resource names preserved. See
 [russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v10.5.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v10.5.1"
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v10.5.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v10.5.1
 codex plugin add russian-speech@maggnus
 ```
 
@@ -81,7 +81,7 @@ whose tag already exists.
 Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
-PASEO_CTO_TAG=v10.5.0
+PASEO_CTO_TAG=v10.5.1
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install <plugin>@maggnus --scope user
