@@ -18,6 +18,9 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TAG_RE = re.compile(r"^v(\d+)\.(\d+)\.(\d+)$")
 TYPE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?(?P<breaking>!)?:")
+# Conventional Commits puts the break in a footer of its own. Prose that merely mentions the words
+# — a commit message explaining how the level is derived, for instance — is not a breaking change.
+BREAKING_FOOTER_RE = re.compile(r"^BREAKING[ -]CHANGE:", re.M)
 VERSION_TAG_RE = re.compile(r"v\d+\.\d+\.\d+")
 README_FILES = ("README.md", "paseo-cto/README.md")
 
@@ -36,7 +39,7 @@ def level_of(subject: str, body: str) -> str:
     match = TYPE_RE.match(subject)
     if not match:
         return "patch"
-    if match.group("breaking") or "BREAKING CHANGE" in body:
+    if match.group("breaking") or BREAKING_FOOTER_RE.search(body):
         return "major"
     return "minor" if match.group("type") == "feat" else "patch"
 

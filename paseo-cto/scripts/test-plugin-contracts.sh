@@ -863,9 +863,36 @@ if not bump.is_file():
     problems.append("the release version is derived by .github/scripts/bump.py, which is missing")
 else:
     body = bump.read_text()
-    for required in ("ensure_ascii=False", "BREAKING CHANGE", "README_FILES"):
+    for required in ("ensure_ascii=False", "BREAKING_FOOTER_RE", "README_FILES"):
         if required not in body:
             problems.append(f"bump.py lacks {required!r}")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "the release level is derived from the commit, not from prose" python3 - "$plugin_root" <<'PY'
+import importlib.util
+import sys
+from pathlib import Path
+
+bump_path = Path(sys.argv[1]).parent / ".github/scripts/bump.py"
+spec = importlib.util.spec_from_file_location("bump", bump_path)
+bump = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bump)
+
+cases = [
+    ("feat: add the convergence loop", "", "minor"),
+    ("fix(review-gate): correct the depth table", "", "patch"),
+    ("feat(team)!: drop the old verdict vocabulary", "", "major"),
+    ("chore: tidy the release script", "BREAKING CHANGE: the verdict field is removed", "major"),
+    # Regression: a message that merely explains how breaks are detected is not itself a break.
+    ("chore(release-tooling): derive the version", "! or BREAKING CHANGE gives a major", "patch"),
+    ("docs: one README per plugin", "", "patch"),
+]
+problems = [
+    f"{subject!r} with body {body!r} derived {bump.level_of(subject, body)}, want {want}"
+    for subject, body, want in cases
+    if bump.level_of(subject, body) != want
+]
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
