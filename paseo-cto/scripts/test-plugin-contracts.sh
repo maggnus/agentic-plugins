@@ -852,9 +852,20 @@ problems = []
 for forbidden in ("git tag -d", 'git push origin "$tag" --force'):
     if forbidden in release:
         problems.append(f"release script retains {forbidden!r}")
-for required in ('refs/tags/$tag', "bump the manifest version", "git status --porcelain"):
+# The property, not one phrasing of it: the tag is checked locally and on the remote before use.
+for required in ("refs/tags/", "git ls-remote --exit-code origin", "bump the manifest version",
+                 "git status --porcelain", ".github/scripts/bump.py", "chore(release): v$version"):
     if required not in release:
         problems.append(f"release script lacks {required!r}")
+
+bump = Path(sys.argv[1]).parent / ".github/scripts/bump.py"
+if not bump.is_file():
+    problems.append("the release version is derived by .github/scripts/bump.py, which is missing")
+else:
+    body = bump.read_text()
+    for required in ("ensure_ascii=False", "BREAKING CHANGE", "README_FILES"):
+        if required not in body:
+            problems.append(f"bump.py lacks {required!r}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 

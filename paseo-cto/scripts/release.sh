@@ -26,18 +26,51 @@ if [ "$branch" != "main" ]; then
     exit 1
 fi
 
+read_version() {
+    jq -r '.version' paseo-cto/.claude-plugin/plugin.json
+}
+
+tag_exists() {
+    git rev-parse --verify --quiet "refs/tags/$1" >/dev/null || \
+        git ls-remote --exit-code origin "refs/tags/$1" >/dev/null 2>&1
+}
+
 # Read base version from Claude manifest (authoritative)
-version=$(jq -r '.version' paseo-cto/.claude-plugin/plugin.json)
+version=$(read_version)
 if [ -z "$version" ] || [ "$version" = "null" ]; then
     echo "release: cannot read version from Claude manifest" >&2
     exit 1
 fi
 
+# The manifest still carries a released version, so derive the next one from the commits since
+# that tag: feat -> minor, ! or BREAKING CHANGE -> major, anything else -> patch. A version raised
+# by hand before calling this script is honoured as-is.
+if tag_exists "v$version"; then
+    if [ ! -f .github/scripts/bump.py ]; then
+        echo "release: .github/scripts/bump.py is missing; it derives the next version" >&2
+        exit 1
+    fi
+    echo "release: v$version is already published; deriving the next version from the commits..."
+    # set -e would abort on the script's non-zero "nothing to release" exit before it is inspected
+    bump_status=0
+    bump_output=$(python3 .github/scripts/bump.py) || bump_status=$?
+    printf '%s\n' "$bump_output"
+    if [ "$bump_status" -eq 2 ]; then
+        echo "release: nothing to release since v$version" >&2
+        exit 1
+    elif [ "$bump_status" -ne 0 ]; then
+        echo "release: bump failed" >&2
+        exit 1
+    fi
+    version=$(read_version)
+    git add -u
+    git commit -qm "chore(release): v$version"
+fi
+
 tag="v$version"
 echo "release: preparing $tag"
 
-if git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null || \
-   git ls-remote --exit-code origin "refs/tags/$tag" >/dev/null 2>&1; then
+if tag_exists "$tag"; then
     echo "release: tag $tag already exists; bump the manifest version" >&2
     exit 1
 fi
