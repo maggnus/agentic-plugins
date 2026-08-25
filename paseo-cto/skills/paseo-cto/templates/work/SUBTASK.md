@@ -22,6 +22,8 @@ blocker:
 pause_reason:
 return_trigger:
 deliberate_partial: false
+review_rounds: 0
+escalation_decision:
 ---
 
 # {{ID}} — {{TITLE}}
@@ -61,6 +63,14 @@ The single next operation.
 ## Findings
 
 Open findings that still belong to this subtask.
+
+## Review rounds
+
+One line per round of the convergence loop, written by the CTO from the two roles' reports:
+`- R1(7/10) RETURN <dd/mm hh:mm> — <finding> → <the author's evidenced answer> → <what changed>`. The
+marker carries the reviewer's ten-point score and the local moment of the verdict. After an
+escalation, one `- CTO <decision> <dd/mm hh:mm> — <reason>` line records what was decided. The review
+dialogue itself stays in the reports and the evidence package.
 
 ## Closure
 

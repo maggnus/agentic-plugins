@@ -52,6 +52,17 @@ expect_fail "marker and current state mismatch" env \
   PLAN_FILE="$scratch/state-mismatch.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
   "$templates/check-plan-shape.sh"
 
+sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 6/;/^\*\*Convergence/d' "$templates/PLAN.md" \
+  > "$scratch/rounds-past-budget.md"
+expect_fail "returns past the reviewer budget without a recorded decision" env \
+  PLAN_FILE="$scratch/rounds-past-budget.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
+  "$templates/check-plan-shape.sh"
+
+sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 9/' "$templates/PLAN.md" > "$scratch/rounds-past-ceiling.md"
+expect_fail "returns past the seven-return ceiling" env \
+  PLAN_FILE="$scratch/rounds-past-ceiling.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
+  "$templates/check-plan-shape.sh"
+
 sed 's/^#### \[ \] EX-1 — <outcome-oriented title>$/#### EX-1 — <outcome-oriented title> — [ ]/' \
   "$templates/PLAN.md" > "$scratch/marker-at-end.md"
 expect_fail "card marker at end of heading" env \
@@ -738,9 +749,24 @@ required = {
     "runtime": ("returnSummary", "at most twelve material events", "ceremonyMinutes"),
     "fleet": ("An unrelated atom always starts a fresh session",),
     "roles": ("<minimum>..<maximum>", "Critical work and review use the maximum tier"),
-    "builder": ("Return within 1800 characters",),
-    "reviewer": ("Return within 1800 characters",),
-    "researcher": ("Return within 1800 characters",),
+    "builder": (
+        "Return within 1800 characters",
+        "A reviewer `RETURN` authorizes exactly the rework it names",
+        "TIME: <dd/mm hh:mm> local, <n>m of work",
+    ),
+    "reviewer": (
+        "Return within 1800 characters",
+        "VERDICT: ACCEPT | RETURN | ESCALATE",
+        "ROUND: R<n>(<score>/10)",
+        "SCORE: code <n>/10, work <n>/10",
+        "TIME: <dd/mm hh:mm> local",
+        "five returns on one work unit",
+        "return `ESCALATE` rather than a sixth `RETURN`",
+    ),
+    "researcher": (
+        "Return within 1800 characters",
+        "TIME: <dd/mm hh:mm> local, <n>m of research",
+    ),
 }
 problems = []
 for name, needles in required.items():
@@ -771,7 +797,10 @@ required = {
         "stop the operating heartbeat",
         "does not reconfigure an existing run",
         "without a standalone review",
-        "After two auxiliary research or review returns",
+        "After two auxiliary research or review layers",
+        "Rounds of the same node's convergence loop are not auxiliary layers",
+        "Do not adjudicate inside the loop",
+        "Seven returns is the ceiling",
         "Do not turn a product blocker into a process project",
     ),
     "review": (
@@ -781,6 +810,16 @@ required = {
         "same reviewer and retained evidence",
         "a realistic defect could directly violate security",
         "Uncertainty prevents a Routine classification but never creates Critical by itself",
+        "The reviewer holds five returns on one work unit",
+        "the reviewer returns `ESCALATE` instead of `RETURN`",
+        "Seven returns is the ceiling on one work unit",
+        "grant a bounded second budget of two returns",
+        "hands the node to the CTO with the journal as it stands",
+        "Each round leaves exactly one line",
+        "carries a score on a ten-point scale",
+        "- R2(5/10) RETURN 25/08 14:20 —",
+        "The marker carries the lower of the two",
+        "The score never decides the verdict",
     ),
     "bootstrap": (
         "not to each task contract",
@@ -872,7 +911,12 @@ files = {
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
     "skill": ("otherwise post one quiet liveness line",),
-    "status": ("Fleet steady ·", "on each heartbeat reconcile and on a material event"),
+    "status": (
+        "Fleet steady ·",
+        "<dd/mm hh:mm> · Fleet steady",
+        "Every owner-facing message carries its moment",
+        "on each heartbeat reconcile and on a material event",
+    ),
     "fleet": ("otherwise post one quiet liveness line",),
     "readme": ("a single quiet liveness line otherwise",),
 }
@@ -936,8 +980,9 @@ required = {
         "Whoever performs the inspection",
     ),
     "skill": (
-        "it accepts a `Routine` or plain `Significant` outcome on the diff itself",
-        "and of any change it authored",
+        "it accepts a `Routine` outcome, and a `Significant` one that cannot alter product "
+        "behaviour, on the diff itself",
+        "any change the CTO authored go to a non-author reviewer",
     ),
     "contract": ("name the review owner",),
     "budget": ("CTO acceptance read",),

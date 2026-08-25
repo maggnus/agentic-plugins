@@ -32,10 +32,22 @@ generated from the tree: `STATUS.md`, the index of every unit, and `WAVES.md`, o
 its accepted share. Before the first dispatch on a new project or wave, an independent reviewer
 attacks the decomposition; a wave whose work started without that verdict fails the check.
 
-Review depth follows risk. The CTO accepts Routine and plain Significant outcomes on the diff and
-the author's evidence; Critical outcomes, Significant ones touching authorization, money, privacy,
-data loss, schema or a canonical contract, and anything the CTO authored go to a non-author
-reviewer. Every durable source reference is pinned to the exact revision.
+Review depth follows risk. The CTO accepts Routine outcomes, and Significant ones that cannot alter
+product behaviour — tests, documentation, configuration, generated files, mechanical edits — on the
+diff and the author's evidence. Every Significant change to product code, every Critical outcome,
+and anything the CTO authored go to a non-author reviewer with its own falsifier. Every durable
+source reference is pinned to the exact revision.
+
+A delegated review then runs as a loop the reviewer and the author own: a return authorizes the
+rework it names, the author answers every finding with evidence, and the two repeat for up to five
+returns while the CTO relays their material and adjudicates nothing. Every verdict carries a
+ten-point score on the code and on the work, and one line per round goes into the node's journal —
+`- R2(5/10) RETURN 25/08 14:20 — finding → answer → what changed`. The score measures the work and
+never decides the verdict; the moment shows what the round cost. Worker returns and chat status
+lines carry the same local `dd/mm hh:mm` stamp. After the fifth return the reviewer escalates, and the CTO decides on that
+record — accept, one bounded budget of two more returns, an independent replacement reviewer inside
+that budget, a split, or a named gate. Seven returns is the ceiling. Independence, evidence and the
+non-negotiation rules hold identically in the fifth round and the first.
 
 ## Status reporting
 
@@ -46,7 +58,7 @@ a long session does not spend its context restating an unchanged table.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.3.3 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v10.4.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -95,7 +107,7 @@ hosts to it, and reinstalls any sibling plugin from the same marketplace. Asking
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check     # report versions only
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run   # print the commands
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"             # upgrade to the latest
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.3.3
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.4.0
 ```
 
 ## What ships

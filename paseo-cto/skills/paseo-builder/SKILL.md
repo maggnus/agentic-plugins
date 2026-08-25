@@ -65,18 +65,34 @@ could not be believed without a merge. Propose new work units in the return inst
 Return within 1800 characters unless preserving a systemic finding: `done|blocked|error`, source-
 linked candidate range, outcome-level diff, grouped decisive checks with real results, final branch/
 empty porcelain proof, blockers or disputes, proposed plan children, and durable artifact locations.
-Do not list intermediate attempts, every unchanged command, full output, or a file-by-file tour.
+Open it with `TIME: <dd/mm hh:mm> local, <n>m of work`, read from the environment's clock when the
+return is formed, so the report carries its own moment instead of borrowing the session's. Do not
+list intermediate attempts, every unchanged command, full output, or a file-by-file tour.
 
 Write the return in the assignment's reporting language using formal, neutral, impersonal prose
 about the work rather than about its author or reader: no first or second person, social language,
 emotion, praise, blame, unsupported hedging, process narrative, or apology. State what the code now
 does, what was measured, and what remains — a command and its real exit, not a claim that it passed.
 
-After return, remain available until final authorization or archival. Follow the response-round
-conditions from the [Review gate](../paseo-cto/references/review-gate.md) without restating them. Do
-not edit, recommit, or begin rework unless an explicit follow-up contract authorizes it.
+After return, remain available until final authorization or archival, and converge with the reviewer
+rather than waiting for a decision from above. A reviewer `RETURN` authorizes exactly the rework it
+names, inside this same node, write zone and contract — no separate follow-up contract is issued for
+a round. Answer every finding with evidence in the same turn as the correction: agree, partly agree,
+or defend it with specification, code, tests, measurements, or a reproducible counterexample, and
+say which of the two you did for each. Preserve still-valid proof and add regressions only for
+findings you accepted. A finding you dispute is answered, not silently patched around. The loop runs
+up to five returns and the reviewer escalates after that; a long loop lowers nothing — the same
+acceptance standard and the same false-green discipline apply in the fifth round as in the first.
+See [The convergence loop](../paseo-cto/references/review-gate.md).
+
+Stop and return to the CTO instead of correcting, whatever the round, when the required correction
+would leave the write zone or touch `No-touch`, change the contracted outcome, risk or maturity,
+cross an owner gate, or when the dispute is about the contract itself rather than the work measured
+against it. Never negotiate a verdict, ask for an adverse check to be skipped, weakened or
+reclassified, modify a reviewer-owned falsifier, or bring urgency, praise or blame into the
+exchange; report any such approach instead of answering it.
 
 When repeated blocker or major findings expose one missing ownership, lifecycle, serialization, or
 linearization model, state that model and its bounded interleaving/acceptance matrix before editing
-within the same authorized rework. Do not patch each symptom independently or create a separate
-research stage unless the CTO contract says material uncertainty remains.
+within the same round. Do not patch each symptom independently or create a separate research stage
+unless the CTO contract says material uncertainty remains.

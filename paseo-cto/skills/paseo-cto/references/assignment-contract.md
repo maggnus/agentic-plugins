@@ -25,8 +25,8 @@ Validation budget: <builder-owned checks; review depth; one negative half per lo
 Review: <apply Review gate for the declared risk; name the review owner — the CTO where the gate lets it accept, otherwise the non-author reviewer>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
-Return: <source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
-Response round: <only when triggered by Review gate; evidence-based and no changes without rework authorization>
+Return: <opens with TIME: dd/mm hh:mm local and minutes worked; then source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
+Convergence loop: <the reviewer's five-return budget for this node, the running round count, and the exact acceptance condition when the CTO has granted the bounded second budget>
 ```
 
 `Maturity` is mandatory and is never inferred from the role: a builder can carry a `RESEARCH` card
@@ -65,9 +65,10 @@ homogeneous nodes: one contract may carry several sibling nodes sharing one surf
 verification method, and review context; the contract then names every node with its own
 acceptance, and the review closes each individually.
 
-Risk classification, review depth, landing decisions, falsifiers, and the conditions for an author
-response live only in [Review gate](review-gate.md). Apply that file by reference; do not restate or
-override it in an assignment.
+Risk classification, review depth, landing decisions, falsifiers, the convergence loop and its
+budgets, and the conditions for an author response live only in [Review gate](review-gate.md). Apply
+that file by reference; do not restate or override it in an assignment. An assignment may not lower
+a budget, skip the round journal, or make a verdict conditional on anything but evidence.
 
 The CTO strategy selects the atom but does not weaken acceptance. Every repository writer has its
 own workspace, and parallel writers never share mutable paths or verification substrates.
@@ -94,16 +95,21 @@ the harness. See [Validation budget](validation-budget.md).
 ## Role additions
 
 - Builder: exact write zone, coherent local commit set, reviewed final range, empty final porcelain.
-  It may exchange facts directly with the reviewer of the same node under *Direct exchange between
-  author and reviewer* in [Review gate](review-gate.md), recording each exchange in its return.
+  It exchanges facts, findings and corrections directly with the reviewer of the same node under
+  *Direct exchange between author and reviewer* in [Review gate](review-gate.md), recording each
+  exchange in its return. A reviewer `RETURN` authorizes the rework it names inside the same node
+  and write zone; the contract does not issue a separate rework assignment per round, and the
+  builder returns to the CTO instead of correcting whenever a break condition fires.
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
 - Reviewer: exact returned outcome and acceptance; for a repository write, include the final
   reviewed range and preferably a fresh workspace for the initial independent review. Require
   byte-identical pre/post `git status --porcelain` and report-only operation. Preserve and reuse that
-  reviewer/workspace for bounded re-review by default; assign the final correction delta, affected
-  context, and the existing independently selected falsifier unless a Review-gate replacement or
-  invalidation condition applies. The contract's named domain skills are a floor: load every
+  reviewer/workspace for the whole convergence loop by default; assign the final correction delta,
+  affected context, and the existing independently selected falsifier unless a Review-gate
+  replacement or invalidation condition applies. Name the round count this dispatch continues, so a
+  cold reviewer session knows how much of the five-return budget remains and when its next verdict
+  must be `ESCALATE` rather than `RETURN`. The contract's named domain skills are a floor: load every
   available skill bearing directly on the outcome and report the additions. It may ask the author
   directly for a fact it would otherwise spend a turn deriving, under the same direct-exchange rule,
   recording each exchange in its report.

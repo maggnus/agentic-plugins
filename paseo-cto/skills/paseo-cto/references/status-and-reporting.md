@@ -21,15 +21,25 @@ Compute the snapshot once per reconcile and use those exact values for both sink
    `<git-common-dir>/paseo-cto/FLEET.md`. Never edit this file or compose a row from a worker report.
 2. **Chat** — post the header and complete fleet table when a material event occurred since the last
    posted snapshot, and immediately for any explicit status request. Otherwise post one quiet line:
-   `Fleet steady · <agents-running> running · head <short-sha>`, followed by one Markdown list
-   item per live agent, `` `<title>` — <derived-status> `` — nothing else.
+   `<dd/mm hh:mm> · Fleet steady · <agents-running> running · head <short-sha>`, followed by one
+   Markdown list item per live agent, `` `<title>` — <derived-status> `` — nothing else.
 
 For a status or other read-only request, run the same renderer with `--stdout`. It validates the live
 state and table without replacing the durable file. If validation fails, report the mismatch and do
 not publish a table presented as current.
 
-A material event is a landing decision, a review verdict, a new blocker, a critical-path change, or
-an owner gate. An unchanged table restates what the durable file already holds.
+A material event is a landing decision, a review verdict that ends the convergence loop — an
+acceptance, an escalation, or a break condition — a new blocker, a critical-path change, or an owner
+gate. A return inside the loop is not one on its own: it belongs to the round journal, and the fleet
+table shows it as the node moving between `reviewing` and `rework`. An unchanged table restates what
+the durable file already holds.
+
+Every owner-facing message carries its moment. The full snapshot has its `# Update` header, the
+quiet line opens with `dd/mm hh:mm`, and a prose delta opens the same way — `25/08 14:20 — W1-LF-04a
+accepted; …`. Read the moment from the machine's local clock at the reconcile that produced it, not
+from an earlier snapshot: a status line whose time is inherited is worse than none, because it reads
+as fresh. The `# Update` header keeps its longer `YYYY-MM-DD HH:MM TZ` form, since the durable file
+outlives the session that wrote it.
 
 Coalesce every lifecycle change discovered in one turn into one report, after the reconciliation is
 complete. A turn adds at most one compact prose delta. If several heartbeats were missed while one

@@ -21,6 +21,8 @@ blocker:
 pause_reason:
 return_trigger:
 deliberate_partial: false
+review_rounds: 0
+escalation_decision:
 ---
 
 # W1-LF-04a — Sandbox output boundary verified

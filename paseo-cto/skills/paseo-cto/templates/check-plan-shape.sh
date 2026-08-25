@@ -21,8 +21,9 @@
 #     Maturity says what the card promised to produce, and a landing decision needs both;
 #   - a card declaring Residue also declares its Return condition, so an accepted defect is tracked
 #     rather than remembered;
-#   - a card at two or more review Rounds also declares Convergence, so the decision the second
-#     return forces is visible in the plan and not only in the review;
+#   - a card past the reviewer's five-return budget also declares Convergence, so the decision that
+#     extended or ended the loop is visible in the plan and not only in the review, and no card
+#     records more returns than the seven-return ceiling allows;
 #   - the acceptance table has a uniform column count and a non-empty time field per row.
 #   - closure and durable-evidence cells are Markdown source links;
 #   - a stable ID cannot exist in both current execution and acceptance history;
@@ -45,6 +46,9 @@ CARD_ID_PATTERN="${CARD_ID_PATTERN:-^[A-Za-z][A-Za-z0-9]*-[0-9][0-9A-Za-z./]*$}"
 # Rows accepted before a policy existed may carry a historical classification.
 RISK_PATTERN="${RISK_PATTERN:-Routine|Significant|Critical|pre-policy}"
 MATURITY_PATTERN="${MATURITY_PATTERN:-RESEARCH|DESIGN|BUILD|OPERATIONALIZATION|pre-policy}"
+# The reviewer's own budget, and the ceiling once the CTO has granted the bounded second budget.
+RETURN_BUDGET="${RETURN_BUDGET:-5}"
+RETURN_CEILING="${RETURN_CEILING:-7}"
 BASE_REF="${BASE_REF:-}"
 
 fail=0
@@ -60,7 +64,8 @@ touch "$work/plan-ids" "$work/acceptance-ids"
 # --- cards -------------------------------------------------------------------------------------
 # A card runs from its heading to the next heading of the same or a higher level.
 awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_PATTERN" \
-    -v maturities="$MATURITY_PATTERN" -v cardsfile="$work/plan-ids" '
+    -v maturities="$MATURITY_PATTERN" -v cardsfile="$work/plan-ids" \
+    -v return_budget="$RETURN_BUDGET" -v return_ceiling="$RETURN_CEILING" '
   function begin_card(card_id, card_state, line_number) {
     id = card_id; state = card_state; start = line_number
     has_outcome = has_risk = has_acceptance = risk_ok = 0
@@ -81,9 +86,12 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if (!has_maturity && state != "todo") missing = missing " Maturity"
     # A residue is an accepted defect: without its return condition nobody is tracking it.
     if (has_residue && !has_return_condition) missing = missing " Return-condition (required by Residue)"
-    # The second return forces a decision; record which one, in the plan, not only in the review.
-    if (rounds >= 2 && !has_convergence) missing = missing " Convergence (required at Rounds >= 2)"
+    # Five returns belong to the reviewer; going past them is a CTO decision, recorded in the plan.
+    if (rounds > return_budget && !has_convergence)
+      missing = missing " Convergence (required above Rounds " return_budget ")"
     if (missing != "") printf "plan shape: card %s (line %d) is missing:%s\n", id, start, missing
+    if (rounds > return_ceiling)
+      printf "plan shape: card %s (line %d) records %d returns; the ceiling is %d\n", id, start, rounds, return_ceiling
     if (has_risk && !risk_ok) printf "plan shape: card %s (line %d) has a risk outside {%s}\n", id, start, risks
     if (has_maturity && !maturity_ok) printf "plan shape: card %s (line %d) has a maturity outside {%s}\n", id, start, maturities
     if (has_current_state && !current_state_ok) printf "plan shape: card %s (line %d) has an invalid or marker-mismatched Current state\n", id, start

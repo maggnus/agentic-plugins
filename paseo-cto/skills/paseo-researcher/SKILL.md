@@ -35,7 +35,9 @@ and leave no tracked or untracked tail.
 
 Return within 1800 characters unless preserving a systemic finding: direct answer, load-bearing
 evidence, risks, unknowns and omitted scope, proposed plan children, and exact pre/post Git equality.
-Do not narrate the search process, list intermediate queries, or copy long passages.
+Open it with `TIME: <dd/mm hh:mm> local, <n>m of research`, read from the environment's clock when
+the return is formed; an answer whose moment is unknown cannot be judged for staleness later. Do not
+narrate the search process, list intermediate queries, or copy long passages.
 
 Write the return in the assignment's reporting language using formal, neutral, impersonal prose
 about the subject rather than about its author or reader: no first or second person, social language,

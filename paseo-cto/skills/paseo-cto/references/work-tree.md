@@ -77,8 +77,9 @@ accumulate by taste.
 | `[x]` | `accepted` | Accepted in place | `accepted_at`, closure commit, evidence |
 
 Review and return are not states of their own. A unit under review stays `[~]`, a returned unit
-stays `[~]`, and which round it is in belongs to its file rather than to the index. `[?]` is only
-for objective impossibility; a deliberate stop is `[=]`.
+stays `[~]`, and which round it is in belongs to its file — `review_rounds` and the `Review rounds`
+journal — rather than to the index. `[?]` is only for objective impossibility; a deliberate stop is
+`[=]`.
 
 ## Relation to the parent
 
@@ -103,6 +104,18 @@ value, a timestamp without an offset, and a negative duration are refused.
 `risk` and `maturity` live on the file, not only in the dispatch contract. The contract is transient,
 and the maturity a result was judged at — `RESEARCH`, `DESIGN`, `BUILD`, `OPERATIONALIZATION` —
 decides whether a later reading is correct.
+
+`review_rounds` and the `Review rounds` section carry the convergence loop: one line per round —
+`- R2(5/10) RETURN 25/08 14:20 — finding → the author's evidenced answer → what changed` — written by
+the CTO from the two roles' reports, never by a worker. The marker carries the reviewer's ten-point
+score and the local `dd/mm hh:mm` moment of the verdict, so the journal shows both whether quality
+moved as the corrections landed and what each round cost in wall-clock time. An escalation adds
+`- CTO <decision> <dd/mm hh:mm> — <reason>`, naming the same value as `escalation_decision`. The reviewer holds five returns
+on one unit; after that its verdict is `ESCALATE`, the CTO decides on that journal, and
+`escalation_decision` records the decision it took. Seven returns is the ceiling. The journal is a
+ledger, not a transcript: the review dialogue itself stays in the reports and the evidence package.
+[Review gate](review-gate.md) owns the rules; the validator only enforces that the count, the
+journal, and the escalation decision agree.
 
 ## When a finding becomes its own file
 

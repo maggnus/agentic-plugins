@@ -169,8 +169,12 @@ so when the assignment leaves both on one family, record that the cross-family p
 apply the Review gate's compensation rules.
 
 After an evidence-based return, reuse the same non-author reviewer and session by default under the
-Review gate. Replace it only for unavailability or error, compromised independence, a disputed
-finding needing a tie-break, or materially expanded scope, dependencies, or threatened invariant.
+Review gate — one reviewer carries the whole convergence loop of one node. Replace it only for
+unavailability or error, compromised independence, a disputed finding needing a tie-break, or
+materially expanded scope, dependencies, or threatened invariant. A replacement assigned on an
+escalation is the one place where family choice matters most: give it a different provider family
+than both the author and the reviewer it replaces whenever the catalog allows, since it exists to
+see what the previous pair could not.
 
 ## Identity, labels, and ownership
 

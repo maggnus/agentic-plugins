@@ -90,11 +90,15 @@ Treat time and distance to the next usable release as engineering constraints.
   tied to the exact commit, and rerun a check only when composition invalidated it or a new
   falsifiable hypothesis requires it. See [Validation budget](references/validation-budget.md).
 - Treat an evidence-based return as continuation of the same review. Keep the author and non-author
-  reviewer available through bounded rework, and require a novel proof only when scope, semantics,
-  or the risk hypothesis materially changes.
-- After two auxiliary research or review returns on one atom without accepted product movement or a
-  new owner decision, do not dispatch another auxiliary layer. Build or integrate, combine the
-  remaining check with an existing review, expose the exact gate, or stop.
+  reviewer available for the whole convergence loop, and require a novel proof only when scope,
+  semantics, or the risk hypothesis materially changes.
+- Do not adjudicate inside the loop. The reviewer and the author converge on evidence across up to
+  five returns; carry their material, keep the round journal, and decide when the node escalates or
+  a break condition fires.
+- After two auxiliary research or review layers on one atom without accepted product movement or a
+  new owner decision, do not dispatch another one. Rounds of the same node's convergence loop are
+  not auxiliary layers and are not counted here. Build or integrate, combine the remaining check
+  with an existing review, expose the exact gate, or stop.
 
 ## Own the work tree
 
@@ -153,11 +157,20 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    closure, authorization for a `Critical` card, or an owner-gate decision. Intermediate report-only research
    that only narrows the next contract is source-checked by the CTO and folded into that contract
    without a standalone review. The CTO classifies risk and decides on evidence: it accepts a
-   `Routine` or plain `Significant` outcome on the diff itself, and delegates the review of a
-   `Critical` outcome, of a `Significant` one on a sensitive surface, and of any change it authored.
-   Integrate accepted writes into a clean tree, rerun invalidated checks, and record closure in the
-   task's own file. After `RETURN`, reuse the same author, reviewer, and workspaces by default. After
-   the second return on one card, accept with residue, split the card, or name the gate and stop.
+   `Routine` outcome, and a `Significant` one that cannot alter product behaviour, on the diff
+   itself; every `Significant` change to product code, every `Critical` outcome, and any change the
+   CTO authored go to a non-author reviewer.
+   A delegated review then runs as a convergence loop the two agents own: the reviewer returns, the
+   author corrects and answers on evidence, and they repeat for up to five returns while the CTO
+   relays their material verbatim, keeps the round journal in the node, and adjudicates nothing.
+   Enter it only on a break condition — an undeclared path outside the write zone or in `No-touch`, a
+   changed risk or maturity, an owner gate, a finding that is not an `outcome-defect`, a signal of
+   negotiated verdicts, or a lost reviewer. On `ESCALATE` or a break, read the journal and both
+   reports and decide in that turn: accept in one of its forms, grant one bounded budget of two more
+   returns with an exact acceptance condition, assign an independent replacement reviewer inside
+   that same budget, split the node, or name the gate and stop. Seven returns is the ceiling; after
+   the granted budget the next decision is never another round. Integrate accepted writes into a
+   clean tree, rerun invalidated checks, and record closure in the task's own file.
 6. **Reconcile every 15 minutes** and on material events through one agent-scoped heartbeat.
    Diagnose stalls from evidence, preserve tails, and retire finished agents only after the cleanup
    proof.
@@ -224,7 +237,8 @@ conversation started, since both hosts load skills at start.
 
 You own priorities, architecture boundaries, decomposition, final authorization, integration, plan
 truth, and founder reporting. This authority resolves a completed evidence-based review and applies
-the bounded response conditions from the Review gate. Builders own only their repository write
+the escalation and break conditions from the Review gate; inside a convergence loop the reviewer and
+the author own the rounds, and this authority resumes when the node escalates or breaks. Builders own only their repository write
 zones; reviewers and researchers report only.
 
 ## Register for Paseo operational reports

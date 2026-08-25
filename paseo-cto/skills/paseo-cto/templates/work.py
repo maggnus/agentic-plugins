@@ -32,7 +32,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "9.6.0"
+TOOLING_VERSION = "10.4.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -327,6 +327,7 @@ def validate(schema: dict, root: Path, nodes: list[Node], load_errors: list[str]
         errors.extend(validate_sections(schema, node))
         errors.extend(validate_body_links(schema, root, node))
         errors.extend(validate_state_rules(schema, node))
+        errors.extend(validate_review_rounds(schema, node))
 
     errors.extend(validate_relations(schema, by_id))
     errors.extend(validate_task_directories(schema, root, by_id))
@@ -365,6 +366,9 @@ def validate_fields(schema: dict, node: Node) -> list[str]:
     review = node.text("plan_review_state")
     if review and review not in schema["plan_review_states"]:
         errors.append(f"{node.rel}: unknown plan_review_state {review!r}")
+    escalation = node.text("escalation_decision")
+    if escalation and escalation not in schema["escalation_decisions"]:
+        errors.append(f"{node.rel}: unknown escalation_decision {escalation!r}")
 
     for key in schema["timestamp_fields"]:
         value = node.text(key)
@@ -413,8 +417,16 @@ def validate_sections(schema: dict, node: Node) -> list[str]:
 
     found_h2 = [line[3:].strip() for line in lines if line.startswith("## ")]
     expected_h2 = schema["sections"][node.kind]["h2"]
-    if found_h2 != expected_h2:
+    optional_h2 = schema["sections"][node.kind].get("optional_h2", [])
+    # An optional section may be absent, so a tree written before it existed still validates; when
+    # present it keeps its place in the fixed order.
+    required_h2 = [name for name in expected_h2 if name not in optional_h2]
+    if ([name for name in found_h2 if name not in optional_h2] != required_h2
+            or not ordered_subsequence(found_h2, expected_h2)):
         errors.append(
+            f"{node.rel}: sections must be exactly {required_h2} in that order, with "
+            f"{optional_h2} optional in place, found {found_h2}"
+            if optional_h2 else
             f"{node.rel}: sections must be exactly {expected_h2} in that order, found {found_h2}"
         )
     for parent, expected_h3 in schema["sections"][node.kind]["h3"].items():
@@ -444,6 +456,126 @@ def validate_title(schema: dict, node: Node) -> list[str]:
                 f"{node.rel}: title {node.title!r} names an activity; state the outcome instead"
             ]
     return []
+
+
+def ordered_subsequence(found: list[str], expected: list[str]) -> bool:
+    """True when `found` appears inside `expected` in order and without repetition."""
+    position = 0
+    for name in found:
+        while position < len(expected) and expected[position] != name:
+            position += 1
+        if position == len(expected):
+            return False
+        position += 1
+    return True
+
+
+# "- R2(5/10) RETURN 25/08 14:20 — ..." — the round, its score, the verdict, and its moment.
+MOMENT = (r"(?P<moment>(?:0[1-9]|[12][0-9]|3[01])/(?:0[1-9]|1[0-2]) (?:[01][0-9]|2[0-3]):[0-5][0-9])")
+ROUND_ENTRY_RE = re.compile(
+    r"^- R(?P<round>[1-9][0-9]*)\((?P<score>10|[1-9])/10\) "
+    r"(?P<verdict>ACCEPT|RETURN|ESCALATE) " + MOMENT + r" "
+)
+ROUND_UNSCORED_RE = re.compile(r"^- R([1-9][0-9]*)[ (]")
+ROUND_DECISION_RE = re.compile(r"^- CTO (?P<decision>[a-z_]+) " + MOMENT + r" ")
+ROUND_DECISION_LOOSE_RE = re.compile(r"^- CTO ")
+
+
+def validate_review_rounds(schema: dict, node: Node) -> list[str]:
+    """The round journal, its count, and the escalation decision must tell the same story.
+
+    The convergence loop is owned by the reviewer and the author; this check only refuses a record
+    that contradicts itself — a count without its journal, a journal that grew into a transcript, a
+    loop past the ceiling, or an extension nobody decided.
+    """
+    sections = schema["sections"].get(node.kind, {})
+    if "Review rounds" not in sections.get("h2", []):
+        return []
+
+    errors: list[str] = []
+    budget = schema["limits"]["review_return_budget"]
+    ceiling = budget + schema["limits"]["escalated_return_budget"]
+    line_limit = schema["limits"]["review_round_line_chars"]
+
+    rounds = node.integer("review_rounds") or 0
+    escalation = node.text("escalation_decision")
+    has_section = "## Review rounds" in node.body
+    body_lines = [line.rstrip() for line in section_lines(node.body, "Review rounds")
+                  if line.strip()]
+    entries = [line for line in body_lines if ROUND_ENTRY_RE.match(line)]
+    decisions = [line for line in body_lines if ROUND_DECISION_RE.match(line)]
+    unscored = [line for line in body_lines
+                if ROUND_UNSCORED_RE.match(line) and not ROUND_ENTRY_RE.match(line)]
+    malformed_decisions = [line for line in body_lines
+                           if ROUND_DECISION_LOOSE_RE.match(line) and line not in decisions]
+    stray = [line for line in body_lines
+             if line.startswith("- ") and line not in entries and line not in decisions
+             and line not in unscored and line not in malformed_decisions]
+
+    if rounds > ceiling:
+        errors.append(
+            f"{node.rel}: review_rounds is {rounds}; the ceiling is {ceiling} "
+            f"({budget} inside the loop plus {ceiling - budget} in the granted budget)"
+        )
+    if rounds and not has_section:
+        errors.append(
+            f"{node.rel}: review_rounds is {rounds} but there is no 'Review rounds' journal"
+        )
+    if rounds != len(entries) and has_section:
+        errors.append(
+            f"{node.rel}: review_rounds is {rounds} but the journal holds {len(entries)} "
+            "'- R<n>' entries; one round is one line"
+        )
+    numbers = [int(ROUND_ENTRY_RE.match(line).group(1)) for line in entries]
+    if numbers != list(range(1, len(entries) + 1)):
+        errors.append(
+            f"{node.rel}: journal rounds must be numbered 1..{len(entries)} in order, "
+            f"found {numbers}"
+        )
+    for line in entries + decisions:
+        if len(line) > line_limit:
+            errors.append(
+                f"{node.rel}: journal line {line[:40]!r} is {len(line)} characters; the limit is "
+                f"{line_limit}. The journal is a ledger, not the review dialogue"
+            )
+    for line in unscored:
+        errors.append(
+            f"{node.rel}: journal entry {line[:40]!r} is not a complete round record; a verdict "
+            "reads '- R<n>(<score>/10) ACCEPT|RETURN|ESCALATE dd/mm hh:mm — ...', with a score of "
+            "1 to 10 and the local moment the verdict arrived"
+        )
+    for line in malformed_decisions:
+        errors.append(
+            f"{node.rel}: decision line {line[:40]!r} must read "
+            "'- CTO <decision> dd/mm hh:mm — <reason>'"
+        )
+    for line in stray:
+        errors.append(
+            f"{node.rel}: journal entry {line[:40]!r} must start with '- R<n>(<score>/10)' "
+            "or '- CTO'"
+        )
+    if rounds > budget and escalation not in ("bounded_retry", "independent_review"):
+        errors.append(
+            f"{node.rel}: {rounds} returns exceed the reviewer's budget of {budget}; only a "
+            "recorded escalation_decision of bounded_retry or independent_review extends it"
+        )
+    if escalation and decisions:
+        last = ROUND_DECISION_RE.match(decisions[-1]).group("decision")
+        if last != escalation:
+            errors.append(
+                f"{node.rel}: the last journal decision is {last!r} but escalation_decision is "
+                f"{escalation!r}; the field records the decision the journal shows"
+            )
+    if escalation and not decisions:
+        errors.append(
+            f"{node.rel}: escalation_decision {escalation!r} needs its '- CTO ...' line in the "
+            "journal, so the decision is readable where the rounds are"
+        )
+    if decisions and not escalation:
+        errors.append(
+            f"{node.rel}: the journal records a CTO decision but escalation_decision is empty"
+        )
+    return errors
 
 
 def section_lines(body: str, heading: str) -> list[str]:

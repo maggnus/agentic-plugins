@@ -93,8 +93,20 @@ Every child declares one relation: `required` blocks the parent's closure, `foll
 - A task under review or in rework stays `[~]`. Review and return are not separate status tokens.
 - The review dialogue is never copied into the task file. Findings that survive become either
   checklist items in the current task or new work units.
-- After the second return on one unit, the decision is made in that turn: accept with residue, split,
-  or name the gate and stop.
+- The reviewer and the author converge on the outcome themselves: a return authorizes the rework it
+  names inside the same unit, the author answers every finding with evidence, and the two repeat.
+  The CTO carries their material and adjudicates nothing until the unit escalates or breaks out of
+  the contract.
+- Each round leaves one line in `## Review rounds` — `- R2(5/10) RETURN 25/08 14:20 — finding →
+  evidenced answer → what changed` — and `review_rounds` carries the count. The moment is local
+  `dd/mm hh:mm`, taken when the verdict arrived. The reviewer scores every verdict on ten
+  points, code and work, and the marker carries the lower of the two; the score measures the work
+  and never decides the verdict.
+- The reviewer holds five returns on one unit. After the fifth its verdict is `ESCALATE`, and the
+  CTO decides on the journal in that turn: accept in one of its forms, grant one bounded budget of
+  two more returns with an exact acceptance condition, assign an independent replacement reviewer
+  inside that budget, split the unit, or name the gate and stop. `escalation_decision` records the
+  decision, and seven returns is the ceiling.
 
 ## Acceptance and closure
 

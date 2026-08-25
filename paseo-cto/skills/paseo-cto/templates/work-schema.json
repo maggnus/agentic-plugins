@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "tooling_version": "9.6.0",
-  "tooling_digest": "e57ba2bb126f461b79b556bdae889ba9f94f7d24b14e9064ecdd50be55590f18",
+  "tooling_version": "10.4.0",
+  "tooling_digest": "16e5265ad3ebe59dde7ed88316467d30407dc5766e1ad03b2d4648cba1f6c869",
   "root_default": "docs/work",
   "kinds": [
     "wave",
@@ -147,7 +147,9 @@
         "blocker",
         "pause_reason",
         "return_trigger",
-        "deliberate_partial"
+        "deliberate_partial",
+        "review_rounds",
+        "escalation_decision"
       ]
     },
     "subtask": {
@@ -176,7 +178,9 @@
         "blocker",
         "pause_reason",
         "return_trigger",
-        "deliberate_partial"
+        "deliberate_partial",
+        "review_rounds",
+        "escalation_decision"
       ]
     }
   },
@@ -187,7 +191,8 @@
     "evidence"
   ],
   "integer_fields": [
-    "duration_minutes"
+    "duration_minutes",
+    "review_rounds"
   ],
   "boolean_fields": [
     "deliberate_partial",
@@ -234,6 +239,7 @@
         "Next action",
         "Guardrails",
         "Findings",
+        "Review rounds",
         "Closure"
       ],
       "h3": {
@@ -246,7 +252,10 @@
           "Residuals",
           "Evidence"
         ]
-      }
+      },
+      "optional_h2": [
+        "Review rounds"
+      ]
     },
     "subtask": {
       "h2": [
@@ -257,6 +266,7 @@
         "Next action",
         "Guardrails",
         "Findings",
+        "Review rounds",
         "Closure"
       ],
       "h3": {
@@ -269,11 +279,17 @@
           "Residuals",
           "Evidence"
         ]
-      }
+      },
+      "optional_h2": [
+        "Review rounds"
+      ]
     }
   },
   "limits": {
-    "current_state_lines": 5
+    "current_state_lines": 5,
+    "review_return_budget": 5,
+    "escalated_return_budget": 2,
+    "review_round_line_chars": 300
   },
   "status": {
     "file": "STATUS.md",
@@ -316,5 +332,14 @@
     "incomplete_metadata_field": "historical_acceptance_metadata_incomplete",
     "time_record_field": "historical_time_record",
     "meaning": "An accepted card imported from a pre-tree record may omit started_at, and may omit both accepted_at and closure_commit only when historical_acceptance_metadata_incomplete is explicitly true. That exception requires both fields to be empty, so it records their joint absence in the source rather than permitting an accidental omission. Imported cards are exempt from the wave plan-review gate, because they predate the plan."
-  }
+  },
+  "escalation_decisions": [
+    "accepted",
+    "accepted_with_residue",
+    "bounded_retry",
+    "independent_review",
+    "split",
+    "gate",
+    "withdrawn"
+  ]
 }

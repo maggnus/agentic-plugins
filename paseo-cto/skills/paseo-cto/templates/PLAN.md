@@ -23,7 +23,9 @@ verifiable source or does not enter.
 ## 2. Rules
 
 - Landing decisions are `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN` or
-  `BLOCKED`, with `blocker | major | minor` findings. Numerical scores are not used.
+  `BLOCKED`, with `blocker | major | minor` findings. Every reviewer verdict also carries its
+  ten-point round score, `R<n>(<score>/10)`; the score measures the work and never decides the
+  verdict.
 - The canonical source repository is `<HTTPS source repository URL>`; every commit or repository
   file used as evidence is a commit-pinned Markdown link.
 - A residue accepted under the review gate lives here as a node with its return condition, never
@@ -81,9 +83,12 @@ trigger>
 
 **Current state.** `active` — <where the work actually is, with commit-pinned source links>
 
-**Rounds.** <review rounds so far — omit until there has been one>
+**Rounds.** <returns so far on this card, with the latest round marker — `3 — R3(6/10)`; omit until
+there has been one. The reviewer holds five, and a CTO-granted budget adds at most two more>
 
-**Convergence.** <required once Rounds reaches two: accept with residue, split, or the named gate>
+**Convergence.** <required once Rounds passes five: the decision taken on the escalated record —
+accept, accept with residue, the granted two-return budget, an independent replacement reviewer,
+split, or the named gate>
 
 **Residue.** <a true finding accepted rather than fixed, stated as what is known to be wrong>
 

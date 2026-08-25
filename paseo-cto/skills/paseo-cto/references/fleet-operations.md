@@ -62,9 +62,12 @@ only when the cheap check shows a return, an error, or a permission needing a de
 Never mutate an unlabeled or foreign record without proving ownership. Never create a duplicate for
 a task or role already `running`, `waiting`, `reviewing`, or `rework` in any run. The CTO is the sole
 lifecycle owner of every agent in the run, recorded as `paseo-cto.parent`. A reviewer that returned
-findings remains the default re-review owner: preserve it with its workspace until the bounded
-rework resolves, unless a Review-gate replacement condition applies. Advance a preserved clean
-reviewer branch only through the Review gate's verified conflict-free fast-forward.
+findings remains the default owner of every later round on that node: preserve it with its workspace
+for the whole convergence loop, unless a Review-gate replacement or break condition applies. Advance
+a preserved clean reviewer branch only through the Review gate's verified conflict-free fast-forward.
+A node inside the loop alternates between `reviewing` and `rework` without a new dispatch; relaying
+the return, the response, and the corrected revision between the two agents is transport, and the
+CTO adds no judgement to it until the node escalates or a break condition fires.
 
 ## Create isolated work
 
@@ -117,10 +120,11 @@ when both ceilings remain satisfied.
    only with admissible ready work; conflict cost grows with how long branches sit apart.
 
 Track `ceremonyMinutes` and a saturating `0..2` `auxiliaryReturnsSinceMovement` counter per active
-node in runtime. After two research or review returns without accepted product movement or a new
-owner decision, the next action builds or integrates, combines the remaining check with an existing
-review, exposes a gate,
-or stops. It never adds another auxiliary agent layer.
+node in runtime. It counts auxiliary layers — a research dispatch or a review organization added
+beyond the node's own convergence loop — not the rounds of that loop, which carry their own budget
+and their own journal. After two such layers without accepted product movement or a new owner
+decision, the next action builds or integrates, combines the remaining check with an existing
+review, exposes a gate, or stops. It never adds another auxiliary agent layer.
 `ceremonyMinutes` is a whole-minute estimate of workspace, dispatch, review-logistics, and
 integration time, excluding work on the product outcome itself.
 
@@ -166,8 +170,8 @@ status token per agent and reset `stateSince` only when it changes:
 
 Idle is not storage: retire the agent unless a specific follow-up or dispute justifies reuse.
 
-An agent session belongs to one plan atom. Reuse the author and reviewer only for bounded response,
-rework, and re-review of that same atom. An unrelated atom always starts a fresh session even when
+An agent session belongs to one plan atom. Reuse the author and reviewer only for the convergence
+loop of that same atom — its responses, rework, and re-reviews. An unrelated atom always starts a fresh session even when
 the previous agent is idle; carrying an old conversation into new work spends context on irrelevant
 history and increases instruction drift.
 

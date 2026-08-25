@@ -21,6 +21,8 @@ blocker:
 pause_reason:
 return_trigger:
 deliberate_partial: false
+review_rounds: 2
+escalation_decision:
 ---
 
 # W1-LF-04e — Harness assembles the product sandbox
@@ -60,6 +62,11 @@ Extend the comparison to the connection the product opens.
 ## Findings
 
 None open beyond the accepted review finding being corrected.
+
+## Review rounds
+
+- R1(4/10) RETURN 03/08 15:10 — harness installed its own guard, so the check could not fail → author rebuilt it from the product assembly → the two now share one path
+- R2(6/10) RETURN 03/08 18:40 — comparison omitted the connection privilege → author agreed on evidence → correction in progress
 
 ## Closure
 

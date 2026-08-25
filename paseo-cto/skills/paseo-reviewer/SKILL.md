@@ -82,6 +82,25 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    shared or live system.
 6. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
    remove only your disposable files by exact path, never broad clean.
+7. Converge with the author rather than handing the disagreement upward. A `RETURN` you issue
+   authorizes exactly the rework it names, inside the same node, write zone and contract; the author
+   corrects and answers each finding with evidence, and you resolve every defence on evidence,
+   withdrawing or reclassifying whatever it disproves. You hold **five returns on one work unit**,
+   counted per node rather than per candidate — a re-dispatch under a new commit continues the same
+   count. From the third return, state in one sentence what remains unclosed and which evidence
+   would close it. A round in which neither side produced new evidence does not spend the budget and
+   escalates instead. After the fifth return, return `ESCALATE` rather than a sixth `RETURN`, naming
+   what is unclosed, which findings recurred, what each side last proved, and why the loop did not
+   converge. `ACCEPT` stays available in every round, including the last, and nothing about a long
+   loop lowers the standard: derive the requirement from the contract, the specification and the
+   code in the fifth round exactly as in the first, and never accept a claim because it has been
+   repeated. See [The convergence loop](../paseo-cto/references/review-gate.md).
+8. Stop the round and escalate immediately, whatever the remaining budget, when an undeclared path
+   leaves the write zone or touches `No-touch`; when a finding changes the node's risk or maturity,
+   needs an owner gate, or disputes the contract itself; when a finding is not an `outcome-defect`
+   and therefore belongs to a new plan node; when the exchange is used to negotiate a verdict,
+   weaken or conceal an adverse check, or apply social pressure; or when independence is
+   compromised. The unspent budget survives the escalation.
 
 Remain report-only: no fixes, commits, integration, push, plan edits, or lifecycle actions. Put
 archive-worthy evidence in the final report or an explicitly approved durable external artifact;
@@ -104,7 +123,19 @@ Each finding needs `blocker|major|minor`, its kind (`outcome-defect`, `hypothesi
 scenario, and required correction. A finding without a kind makes the report incomplete and cannot
 support a verdict. Only an open `outcome-defect` blocker necessarily forces `RETURN`; a blocker of
 another kind becomes a separate plan child or named gate and cannot return the current card by
-itself. Drop ungrounded findings. Otherwise choose by evidence. Do not assign a numerical score.
+itself. Drop ungrounded findings, and drop a finding the author has disproved rather than restating
+it in the next round. Otherwise choose by evidence.
+
+Score every verdict — `ACCEPT`, `RETURN` or `ESCALATE` alike — on the ten-point scale defined under
+*Scoring each round* in the [Review gate](../paseo-cto/references/review-gate.md), and put the round
+marker `R<n>(<score>/10)` at the head of the report. Score two axes: the code (does it meet the
+contract, read like the surrounding code, and hold the invariants of the area it touches) and the
+work (does the evidence discriminate, was the negative half observed, does the return match the
+diff, did it stay in its zone). The marker carries the lower of the two. Name the reason for any
+score below 9 in the same line, and for an acceptance below 8 say in one clause what stayed
+imperfect. The score measures the work and never decides the verdict: an open `outcome-defect`
+blocker returns at any score, and its absence accepts at any score. Judge the fifth round against
+the same anchors as the first — rounds spent are not quality earned.
 
 Write findings in the assignment's reporting language using formal, neutral, impersonal prose about
 the outcome rather than about its author or reader: no first or second person, social language,
@@ -113,14 +144,21 @@ under which inputs, and what the correction must be.
 
 Return within 1800 characters unless preserving a systemic finding. Group commands by the claim
 they establish, omit intermediate attempts and full transcripts, and link any necessary durable
-capture:
+capture. `TIME` is read from the environment's clock when the verdict is formed — `dd/mm hh:mm` in
+local time plus the minutes actually spent reviewing — so the report can be read months later
+without the session around it:
 
 ```text
-VERDICT: ACCEPT | RETURN
+VERDICT: ACCEPT | RETURN | ESCALATE
+ROUND: R<n>(<score>/10) of <5, or 2 in a CTO-granted budget>
+SCORE: code <n>/10, work <n>/10 — <the reason the lower axis is not 10, in one clause>
+TIME: <dd/mm hh:mm> local, <n>m of review
 SUBJECT: <returned outcome; source-linked revision range when a repository write exists>
 SKILLS: <domain skills loaded beyond the contract's list, or none>
 ACCEPTANCE: <grouped decisive commands and real results; verified recorded runs cited with their exact revision>
-FINDINGS: <ordered evidence, or none>
+FINDINGS: <ordered evidence, or none; each one resolved, withdrawn or carried forward from the prior round>
+CONVERGENCE: <required from the third return and on ESCALATE: what is unclosed and which evidence closes it>
+EXCHANGE: <one line per direct question and answer, or none>
 UNVERIFIED: <unsafe or unavailable checks>
 GIT STATUS: <exact pre/post equality>
 ```

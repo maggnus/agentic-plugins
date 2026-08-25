@@ -430,6 +430,162 @@ set_field "$tree/waves/W1/WAVE.md" plan_review_evidence ""
 expect_fail "work started before the plan review" "while the wave plan review is" \
   python3 "$work" --root "$tree" check
 
+# --- the convergence-loop round journal ---------------------------------------------------------
+# The loop belongs to the reviewer and the author; the validator only refuses a record that
+# contradicts itself.
+task="waves/W1/W1-LF-04/tasks/W1-LF-04a.md"
+
+journal() {
+  python3 - "$tree/$task" "$1" <<'PJ'
+import sys
+path, entries = sys.argv[1], sys.argv[2]
+text = open(path, encoding="utf-8").read()
+head, marker, tail = text.partition("## Review rounds\n")
+if marker:
+    _, _, rest = tail.partition("\n## Closure")
+    text = head + marker + "\n" + entries + "\n## Closure" + rest
+else:
+    text = text.replace("## Closure", "## Review rounds\n\n" + entries + "\n## Closure", 1)
+open(path, "w", encoding="utf-8").write(text)
+PJ
+}
+
+# a tree written before the section existed still validates: the journal is optional in place
+fresh
+expect_pass "a task without a round journal validates" python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 3
+journal '- R1(3/10) RETURN 25/08 10:00 — importer accepted a malformed row → author added the guard → guard lands
+- R2(6/10) RETURN 25/08 11:00 — negative half never failed → author captured the real exit 1 → proof can fail
+- R3(9/10) ACCEPT 25/08 12:00 — no open outcome-defect remains
+'
+expect_pass "a journal that matches its count validates" python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 3
+journal '- R1(3/10) RETURN 25/08 10:00 — importer accepted a malformed row → author added the guard → guard lands
+- R2(9/10) ACCEPT 25/08 11:00 — no open outcome-defect remains
+'
+expect_fail "round count disagrees with the journal" "the journal holds 2" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 2
+expect_fail "rounds recorded without a journal" "no 'Review rounds' journal" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 6
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- R2(5/10) RETURN 25/08 11:00 — a → b → c
+- R3(5/10) RETURN 25/08 12:00 — a → b → c
+- R4(5/10) RETURN 25/08 13:00 — a → b → c
+- R5(5/10) RETURN 25/08 14:00 — a → b → c
+- R6(5/10) RETURN 25/08 15:00 — a → b → c
+'
+expect_fail "a sixth return without an escalation decision" "exceed the reviewer's budget of 5" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 6
+set_field "$tree/$task" escalation_decision "bounded_retry"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- R2(5/10) RETURN 25/08 11:00 — a → b → c
+- R3(5/10) RETURN 25/08 12:00 — a → b → c
+- R4(5/10) RETURN 25/08 13:00 — a → b → c
+- R5(5/10) RETURN 25/08 14:00 — a → b → c
+- CTO bounded_retry 25/08 16:30 — two returns granted; acceptance closes on the reachability proof
+- R6(5/10) RETURN 25/08 15:00 — a → b → c
+'
+expect_pass "a granted budget extends the loop to six returns" python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 8
+set_field "$tree/$task" escalation_decision "bounded_retry"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- R2(5/10) RETURN 25/08 11:00 — a → b → c
+- R3(5/10) RETURN 25/08 12:00 — a → b → c
+- R4(5/10) RETURN 25/08 13:00 — a → b → c
+- R5(5/10) RETURN 25/08 14:00 — a → b → c
+- R6(5/10) RETURN 25/08 15:00 — a → b → c
+- R7(5/10) RETURN 25/08 16:00 — a → b → c
+- R8(5/10) RETURN 25/08 17:00 — a → b → c
+- CTO bounded_retry 25/08 19:30 — two returns granted
+'
+expect_fail "returns past the ceiling" "the ceiling is 7" python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+journal '- R1 RETURN 25/08 10:00 — a → b → c
+'
+expect_fail "a verdict recorded without its score" "not a complete round record" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+journal '- R1(11/10) RETURN 25/08 10:00 — a → b → c
+'
+expect_fail "a score outside the ten-point scale" "not a complete round record" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+journal '- R1(5/10) RETURN — a → b → c
+'
+expect_fail "a verdict recorded without its moment" "not a complete round record" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+journal '- R1(5/10) RETURN 25/13 10:00 — a → b → c
+'
+expect_fail "a moment outside the dd/mm hh:mm shape" "not a complete round record" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+set_field "$tree/$task" escalation_decision "split"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- CTO split — the unresolved half moves to its own node
+'
+expect_fail "a decision line without its moment" "must read" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+set_field "$tree/$task" escalation_decision "split"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- CTO gate 25/08 12:00 — the owner owns the remaining question
+'
+expect_fail "the journal decision differs from the recorded field" "records the decision the journal shows" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- the reviewer then wrote three paragraphs of dialogue here
+'
+expect_fail "review dialogue copied into the journal" "must start with" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+set_field "$tree/$task" escalation_decision "split"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+'
+expect_fail "an escalation decision with no decision line" "needs its" \
+  python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/$task" review_rounds 1
+set_field "$tree/$task" escalation_decision "postponed"
+journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
+- CTO postponed 25/08 12:00 — the owner will look at it later
+'
+expect_fail "an escalation decision outside the vocabulary" "unknown escalation_decision" \
+  python3 "$work" --root "$tree" check
+
 # 13. a hand edit to the generated index
 fresh
 sed 's/Recovery drill fails on partial state/Recovery drill done/' "$tree/STATUS.md" \
