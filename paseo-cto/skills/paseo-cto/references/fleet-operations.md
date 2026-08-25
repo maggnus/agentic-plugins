@@ -191,7 +191,11 @@ Stop it the moment that is false — when the ready frontier is empty and every 
 **owner-gated**: immutable branch coordinates, a pull trigger needing a new owner instruction, an
 accepted plan change, or an external event, with no agent, workspace, permission, review, rework, or
 background operation still needing care. In that same turn, persist every tail and the exact resume
-trigger, write the final `FLEET.md` render once, and delete the heartbeat with `delete_heartbeat`.
+trigger, write the final `FLEET.md` render once, delete the heartbeat with `delete_heartbeat`, and
+delete every schedule this run created with `delete_schedule` by exact ID. A heartbeat and a
+schedule are separate records: deleting the first leaves the second waking agents into a finished
+run. The rest of the teardown — terminals, agent records, workspaces, and the proof that none of
+them remain — is [Cleanup and close](cleanup-and-close.md).
 Do not renew it or re-emit an identical scheduled report afterward; a later owner instruction,
 accepted plan change, or matching external event starts a fresh reconciliation.
 

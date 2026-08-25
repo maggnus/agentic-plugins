@@ -183,7 +183,13 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    Diagnose stalls from evidence, preserve tails, and retire finished agents only after the cleanup
    proof.
 7. **Close** when the ready frontier is empty and every remaining tail is owner-gated: persist the
-   exact resume trigger, emit the final status once, and delete the heartbeat in the same turn.
+   exact resume trigger and emit the final status once, then tear the run down completely in that
+   same turn — kill the terminals and scripts the agents left running, archive and delete every
+   child agent record, delete every schedule and the heartbeat, archive every workspace so its
+   worktree goes, and prove absence with a label-scoped inventory before announcing the close.
+   Stopping an agent is not cleanup, and an archived record still answers every inventory. Anything
+   that survives is named in the final status as a tail with its blocker and owner. See
+   [Cleanup and close](references/cleanup-and-close.md).
 
 ## Gates never widened silently
 
@@ -221,8 +227,10 @@ reference. Apply them as one policy rather than remembering them separately.
 - Post the quiet liveness line instead of an unchanged fleet table.
 - Batch homogeneous small nodes into one dispatch instead of paying setup, execution, and review
   three times.
-- Retire a finished agent and its workspace as defined by
-  [Cleanup and close](references/cleanup-and-close.md), so every later inventory reads a short list.
+- Retire a finished agent completely — terminals, agent record, workspace, runtime entry — as
+  defined by [Cleanup and close](references/cleanup-and-close.md), so every later inventory reads a
+  short list. An archived-but-undeleted record costs a read at every reconcile for the rest of the
+  run.
 
 ## Upgrading this plugin
 

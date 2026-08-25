@@ -843,6 +843,43 @@ if settings.get("schema") != 4 or set(budget) != {"max_live_tasks", "max_live_ag
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+expect_pass "closing a run tears down every resource it created" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills/paseo-cto"
+cleanup = " ".join((root / "references/cleanup-and-close.md").read_text().split())
+fleet = " ".join((root / "references/fleet-operations.md").read_text().split())
+skill = " ".join((root / "SKILL.md").read_text().split())
+
+# One requirement per resource an agent can leave behind, plus the proof that none remain.
+required = {
+    "child agents are archived and their records deleted": (
+        cleanup, ("archive the agent", "delete the exact agent record")),
+    "terminals and started processes are killed first": (
+        cleanup, ("kill_terminal", "Stop every workspace script this run started")),
+    "schedules are deleted, not only the heartbeat": (
+        cleanup, ("delete_schedule",)),
+    "the heartbeat and the schedules are separate records": (
+        fleet, ("delete_heartbeat", "delete_schedule")),
+    "workspaces are archived so the worktree goes": (
+        cleanup, ("Every workspace is archived",)),
+    "absence is verified before the close is announced": (
+        cleanup, ("Absence is proved, not assumed", "not announced until step 5 passes")),
+    "stopping is not cleanup": (
+        cleanup, ("Stopping an agent is not cleanup",)),
+    "the loop's close step carries the teardown": (
+        skill, ("delete every schedule and the heartbeat", "prove absence")),
+}
+problems = [
+    f"{label}: missing {needle!r}"
+    for label, (body, needles) in required.items()
+    for needle in needles
+    if needle not in body
+]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 expect_pass "release tags remain immutable" python3 - "$plugin_root" <<'PY'
 from pathlib import Path
 import sys

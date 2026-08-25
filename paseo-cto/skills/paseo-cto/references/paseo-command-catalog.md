@@ -159,7 +159,9 @@ paseo worktree archive <exact-worktree-name> --json
 - Never restart or stop the daemon without explicit owner approval; it can terminate the entire
   active fleet.
 - Never use bulk delete, broad `--cwd` deletion, unresolved globs, or `kill_agent` for routine
-  cleanup.
+  cleanup. Deleting an exact record by its resolved ID at close is not bulk deletion: it is the
+  teardown [Cleanup and close](cleanup-and-close.md) requires, and it covers agents, schedules,
+  heartbeats and terminals.
 - `archive_workspace` can stop agents and terminals and remove a managed working copy. Run the
   cleanup proof in Cleanup and close first.
 - A command being available does not grant authority. Project and founder gates still apply.
