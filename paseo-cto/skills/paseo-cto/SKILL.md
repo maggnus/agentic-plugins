@@ -89,6 +89,14 @@ Treat time and distance to the next usable release as engineering constraints.
 - Treat validation as a release budget. Give every proof one primary owner, reuse green evidence
   tied to the exact commit, and rerun a check only when composition invalidated it or a new
   falsifiable hypothesis requires it. See [Validation budget](references/validation-budget.md).
+- Derive checks from what the change can break, and order them where they can still change a
+  decision. Name the affected surfaces in the contract, choose commands that discriminate a defect
+  in them, and refuse a check that cannot name the defect class it distinguishes. A suite that runs
+  because it always runs measures the suite.
+- Carry every scenario to the surface its consumer meets, and have that walked. The first vertical
+  slice of a wave or epic is reviewed on the real surface — API, CLI, TUI, interface, SDK, event
+  stream — whatever its risk; afterwards the walk follows risk. A card that is correct against its
+  contract and unusable by its consumer has not shipped value.
 - Treat an evidence-based return as continuation of the same review. Keep the author and non-author
   reviewer available for the whole convergence loop, and require a novel proof only when scope,
   semantics, or the risk hypothesis materially changes.

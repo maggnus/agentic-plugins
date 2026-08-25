@@ -41,6 +41,23 @@ Uncertainty rules out Routine; it does not by itself create Critical. Touching a
 a migration, or build and test infrastructure is at least Significant unless the change is
 mechanically bounded.
 
+## Check what the change can break, and run it while it still decides something
+
+Two habits waste more time than any missing test: running everything, and running it too late.
+
+- **Derive the blast radius from the change** — the paths it touches, whoever consumes them, the
+  contracts they publish — and pick checks that can fail for a defect in that set. A check that
+  cannot name the defect class it distinguishes does not earn its runtime, and green on code the
+  change cannot reach measures the suite, not the change.
+- **Prefer the check nearest the change that can still fail for the right reason.** A red full suite
+  says something broke; a targeted check says what.
+- **Order the check that could invalidate the approach before the work that depends on it.** A
+  contract, a boundary, a permission model, a migration path, a consumer path — disprove these at
+  the first slice that reaches them. A check whose result can no longer change what happens next is
+  ceremony; state the earlier run instead of repeating it to look diligent.
+- Cross-cutting changes — a shared component, a schema, build or test infrastructure — have a wide
+  radius by nature. Widening the set there is deriving it correctly, not spending recklessly.
+
 ## Prove the check can fail
 
 A green command proves nothing until its failing form has been seen. Before offering any check as
@@ -71,11 +88,13 @@ review inspects the complete diff, checks that the evidence exercises a path the
 reaches, and returns either `ACCEPT` or `RETURN` with each finding named precisely. A Routine change
 is accepted after its author reads the whole diff once more, deliberately.
 
-Every verdict carries a ten-point score, written as the round marker `R2(5/10)`. Score two axes and
-report both: the **code** — does it meet the outcome, read like the surrounding code, and hold the
-invariants of the area it touches — and the **work** — does the evidence discriminate, was the
-failing form observed, does the report match what the diff does. The marker carries the lower of the
-two. Nine or ten means nothing above a minor finding is open and every load-bearing claim has been
+Every verdict carries a ten-point score, written as the round marker `R2(5/10)`. Score the **code** —
+does it meet the outcome, read like the surrounding code, and hold the invariants of the area it
+touches; the **work** — does the evidence discriminate, was the failing form observed, does the
+report match what the diff does; and, whenever a product surface was changed and walked, the
+**experience** — does the scenario reach its result, do the edges behave, what does the path cost,
+is the consumer better off. Where no consumer can observe the change, experience is `n/a` rather
+than an invented number. The marker carries the lowest axis that applies. Nine or ten means nothing above a minor finding is open and every load-bearing claim has been
 seen failing; five or six means one major finding or evidence that does not distinguish the defect
 it is offered against; one or two means an open blocker in the outcome itself. Name the reason for
 any score below nine, and for an acceptance below eight say in one clause what stayed imperfect.
@@ -87,6 +106,33 @@ against the same anchors as the first — rounds spent are not quality earned.
 Sort every finding before deciding: a defect in the contracted outcome can force a return; a
 neighbouring problem, a refinement, or an idea for later is recorded and left to its own work item.
 A review that grows the scope of the change it reviews has stopped being a review.
+
+## Walk the surface the consumer meets
+
+A diff says what the code does, not what the consumer receives. When a change touches a product
+surface — an HTTP or gRPC API, a CLI, a TUI, a web or mobile interface, an SDK, an event stream, a
+job's output, a configuration contract — someone walks that surface the way its consumer does,
+in an environment the product reaches rather than through a fixture standing in for it.
+
+The first slice that carries a scenario through to its consumer gets this walk whatever its risk:
+that is the cheapest moment at which a wrong path costs one change instead of a release. After that
+the walk follows risk.
+
+Six questions, in order — the first that fails is the finding:
+
+1. Does the scenario reach its result — not `200 OK`, not a rendered page, not an exit status?
+2. What happens at the edges: empty, one, many, slow, partial, unauthorized, repeated, concurrent,
+   malformed, dependency missing? Say which edges were walked and which were not.
+3. What does the path cost in steps, calls, waits and prior knowledge, against the minimum it needs?
+4. Does a failure name what happened and what to do next — a stable code beside a readable message,
+   a truthful exit status, a diagnosis where a script can read it?
+5. Is it consistent with the conventions of that surface and with the neighbouring paths?
+6. Is the consumer better off, judged against their task rather than against the contract?
+
+A finding carries the exact call or step, the real response or captured state, and a reproduction
+path. An impression without a reproducible step is not a finding. The walk grants no licence to
+widen the change: a broken scenario the change promised is a defect that returns it; a rough edge it
+never promised is recorded as its own work item.
 
 ## Converge — the reviewer and the author finish it between them
 

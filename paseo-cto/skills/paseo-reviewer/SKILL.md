@@ -80,9 +80,25 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    remains independent: rerun it on the corrected exact revision when its hypothesis still applies,
    and do not invent a different one solely because this is a re-review. Never mutate an unapproved
    shared or live system.
-6. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
+6. Walk the surface the consumer meets, whenever the card changed one and the contract names it —
+   always on the first vertical slice of a wave or epic, and afterwards by risk, per
+   [Review the surface the consumer meets](../paseo-cto/references/review-gate.md). The surface is
+   whatever the product exposes: an HTTP or gRPC API, a CLI, a TUI, a web or mobile interface, an
+   SDK, an event stream, a job's output, a configuration contract. Reach it the way its consumer
+   does, in an environment the product reaches, never through a fixture standing in for it. Ask, in
+   order: does the scenario reach its result; what happens at the edges (empty, one, many, slow,
+   partial, unauthorized, repeated, concurrent, malformed, dependency missing); what does the path
+   cost in steps, calls, waits and prior knowledge against the minimum it needs; does a failure name
+   what happened and what to do next; is it consistent with the conventions of that surface and with
+   the neighbouring paths; and is the consumer better off. Report the first failure as the finding
+   rather than collecting the rest as decoration. Every finding carries the exact call or step, the
+   real response, exit status or captured state, and a reproduction path — an impression without a
+   reproducible step is not a finding. This walk grants no authority to widen the card: a broken
+   scenario the card contracted is an `outcome-defect`, and a rough edge it never promised is an
+   `independent-defect` or `additional-work` left to its own node.
+7. Require final porcelain output to equal the recorded bytes exactly. Create no project artifact;
    remove only your disposable files by exact path, never broad clean.
-7. Converge with the author rather than handing the disagreement upward. A `RETURN` you issue
+8. Converge with the author rather than handing the disagreement upward. A `RETURN` you issue
    authorizes exactly the rework it names, inside the same node, write zone and contract; the author
    corrects and answers each finding with evidence, and you resolve every defence on evidence,
    withdrawing or reclassifying whatever it disproves. You hold **five returns on one work unit**,
@@ -95,7 +111,7 @@ fault, and a worker that stops on it without attempting the file wastes the whol
    loop lowers the standard: derive the requirement from the contract, the specification and the
    code in the fifth round exactly as in the first, and never accept a claim because it has been
    repeated. See [The convergence loop](../paseo-cto/references/review-gate.md).
-8. Stop the round and escalate immediately, whatever the remaining budget, when an undeclared path
+9. Stop the round and escalate immediately, whatever the remaining budget, when an undeclared path
    leaves the write zone or touches `No-touch`; when a finding changes the node's risk or maturity,
    needs an owner gate, or disputes the contract itself; when a finding is not an `outcome-defect`
    and therefore belongs to a new plan node; when the exchange is used to negotiate a verdict,
@@ -128,12 +144,15 @@ it in the next round. Otherwise choose by evidence.
 
 Score every verdict — `ACCEPT`, `RETURN` or `ESCALATE` alike — on the ten-point scale defined under
 *Scoring each round* in the [Review gate](../paseo-cto/references/review-gate.md), and put the round
-marker `R<n>(<score>/10)` at the head of the report. Score two axes: the code (does it meet the
-contract, read like the surrounding code, and hold the invariants of the area it touches) and the
-work (does the evidence discriminate, was the negative half observed, does the return match the
-diff, did it stay in its zone). The marker carries the lower of the two. Name the reason for any
-score below 9 in the same line, and for an acceptance below 8 say in one clause what stayed
-imperfect. The score measures the work and never decides the verdict: an open `outcome-defect`
+marker `R<n>(<score>/10)` at the head of the report. Score the code (does it meet the contract, read
+like the surrounding code, and hold the invariants of the area it touches), the work (does the
+evidence discriminate, was the negative half observed, does the return match the diff, did it stay
+in its zone), and — whenever the card changed a product surface and you walked it — the experience
+(does the scenario reach its result, do the edges behave, what does the path cost, does a failure
+explain itself, is the consumer better off). Where no consumer can observe the change, experience is
+`n/a` rather than an invented number. The marker carries the lowest axis that applies. Name the
+reason for any score below 9 in the same line, and for an acceptance below 8 say in one clause what
+stayed imperfect. The score measures the work and never decides the verdict: an open `outcome-defect`
 blocker returns at any score, and its absence accepts at any score. Judge the fifth round against
 the same anchors as the first — rounds spent are not quality earned.
 
@@ -151,12 +170,13 @@ without the session around it:
 ```text
 VERDICT: ACCEPT | RETURN | ESCALATE
 ROUND: R<n>(<score>/10) of <5, or 2 in a CTO-granted budget>
-SCORE: code <n>/10, work <n>/10 — <the reason the lower axis is not 10, in one clause>
+SCORE: code <n>/10, work <n>/10, experience <n>/10 or n/a — <the reason the lowest axis is not 10, in one clause>
 TIME: <dd/mm hh:mm> local, <n>m of review
 SUBJECT: <returned outcome; source-linked revision range when a repository write exists>
 SKILLS: <domain skills loaded beyond the contract's list, or none>
 ACCEPTANCE: <grouped decisive commands and real results; verified recorded runs cited with their exact revision>
 FINDINGS: <ordered evidence, or none; each one resolved, withdrawn or carried forward from the prior round>
+SURFACE: <the consumer path walked, the role it was walked as, the edges covered and skipped; or none, with the reason>
 CONVERGENCE: <required from the third return and on ESCALATE: what is unclosed and which evidence closes it>
 EXCHANGE: <one line per direct question and answer, or none>
 UNVERIFIED: <unsafe or unavailable checks>

@@ -21,8 +21,9 @@ Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
-Validation budget: <builder-owned checks; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
+Validation budget: <the affected surfaces this change can break; builder-owned checks chosen to discriminate a defect in them; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
 Review: <apply Review gate for the declared risk; name the review owner — the CTO where the gate lets it accept, otherwise the non-author reviewer>
+Consumer surface: <only when the card changes one: the surface (API, CLI, TUI, web or mobile interface, SDK, event stream, configuration contract), the consumer role to walk it as, how to reach it in an environment the product reaches, the data or credentials needed, and the edges that matter here; `none` when no consumer can observe the change>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
 Return: <opens with TIME: dd/mm hh:mm local and minutes worked; then source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
@@ -103,7 +104,10 @@ the harness. See [Validation budget](validation-budget.md).
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
 - Reviewer: exact returned outcome and acceptance; for a repository write, include the final
-  reviewed range and preferably a fresh workspace for the initial independent review. Require
+  reviewed range and preferably a fresh workspace for the initial independent review. When the card
+  changes a product surface, the contract fills `Consumer surface` and the reviewer walks it — always
+  on a wave's or epic's first vertical slice, afterwards by risk — reporting the path, the role, and
+  the edges it covered and skipped. Require
   byte-identical pre/post `git status --porcelain` and report-only operation. Preserve and reuse that
   reviewer/workspace for the whole convergence loop by default; assign the final correction delta,
   affected context, and the existing independently selected falsifier unless a Review-gate

@@ -18,6 +18,46 @@ writer workspace. If it fails, attribute and correct that failure before spendin
 budget. Once the preflight passes, run the full suite once at its named gate; do not use the full
 suite to discover a failure a changed-path check could have named first.
 
+## Check what this change can break, and nothing else
+
+A suite that runs because it always runs is not validation; it is a habit with a build time. Before
+assigning or running anything, derive the blast radius from the change itself: the paths the diff
+touches, the components that consume them, the contracts they publish, and the environments in which
+those contracts are met. Then pick the checks that can distinguish a defect **in that set**.
+
+- **Name the affected surfaces before naming commands.** The contract's validation budget states
+  them, so a reviewer can tell whether a check was chosen or inherited. "Everything" is not a
+  surface; if the radius truly cannot be bounded, that is the finding, and the full suite is its
+  named consequence rather than its substitute.
+- **A check that cannot name the defect class it distinguishes does not enter the budget.** Not
+  "run the tests" but "this one fails if the importer accepts a malformed row". A command whose
+  answer would be the same whatever this change did buys nothing but latency.
+- **Prefer the check nearest the change that can still fail for the right reason.** Distance costs
+  attribution: a red full suite says something broke, a targeted check says what.
+- **Unaffected suites are not reassurance.** Green on code this change cannot reach measures the
+  suite, not the change, and it dilutes the evidence a reviewer must weigh.
+
+Cross-cutting changes — a shared component, a schema, build or test infrastructure — have a wide
+radius by nature. Widening the check set there is deriving it correctly, not spending recklessly.
+
+## Run a check while it can still change a decision
+
+Timing decides what a check is worth. The same command is cheap when it can still redirect the work
+and near-worthless once the only remaining option is to accept or rewrite.
+
+- **Put the check that could invalidate the approach before the work that depends on it.** A
+  contract, a boundary, a permission model, a migration path and a consumer path are cheapest to
+  disprove at the first vertical slice — see *Review the surface the consumer meets* in
+  [Review gate](review-gate.md). Discovering at acceptance that the path was wrong spends the whole
+  card.
+- **A check ordered after the decision it informs is ceremony.** If its result cannot change what
+  happens next, it belongs at the named gate that does act on it, or nowhere.
+- **Release-shaped checks stay at the release gate,** but their *hypotheses* do not: when a defect
+  class only the full suite would catch is plausible in this change, buy the smallest early check
+  that discriminates it instead of waiting for the gate to find it.
+- **Do not re-time a check to look diligent.** Repeating a green command at a later stage adds
+  nothing but the illusion of care; state the earlier run, its exact revision, and its result.
+
 ## One owner per proof
 
 Assign every command or proof to one primary role:
@@ -27,7 +67,7 @@ Assign every command or proof to one primary role:
 | Builder | Targeted tests, static checks, type/build checks, and negative cases for changed surfaces — including every cheap repository gate (seconds to a few minutes) whose declared inventory covers the write zone; a gate deferred to the wave-closing suite fails there once per task that skipped it. |
 | Researcher | Primary-source verification, explicit unknowns, and one counterexample for every load-bearing conclusion. |
 | CTO acceptance read | The final diff and the author's evidence at the depths the Review gate lets the CTO accept. |
-| Reviewer | Independent inspection of the returned outcome and any falsifier assigned by the Review gate. |
+| Reviewer | Independent inspection of the returned outcome, any falsifier assigned by the Review gate, and the consumer-path walk when the card changed a product surface. |
 | CTO | Final-range ancestry, collision resolution, checks invalidated by composition, and dispatching the integration-delta review. |
 | Release gate | Full repository, end-to-end, deployment, migration, or production-like suites. |
 

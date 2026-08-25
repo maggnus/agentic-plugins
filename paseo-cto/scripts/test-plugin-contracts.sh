@@ -758,7 +758,8 @@ required = {
         "Return within 1800 characters",
         "VERDICT: ACCEPT | RETURN | ESCALATE",
         "ROUND: R<n>(<score>/10)",
-        "SCORE: code <n>/10, work <n>/10",
+        "SCORE: code <n>/10, work <n>/10, experience <n>/10 or n/a",
+        "Walk the surface the consumer meets",
         "TIME: <dd/mm hh:mm> local",
         "five returns on one work unit",
         "return `ESCALATE` rather than a sixth `RETURN`",
@@ -818,7 +819,9 @@ required = {
         "Each round leaves exactly one line",
         "carries a score on a ten-point scale",
         "- R2(5/10) RETURN 25/08 14:20 —",
-        "The marker carries the lower of the two",
+        "The marker carries the lowest axis that applies",
+        "Review the surface the consumer meets",
+        "The first vertical slice always gets this walk",
         "The score never decides the verdict",
     ),
     "bootstrap": (
@@ -985,7 +988,11 @@ required = {
         "any change the CTO authored go to a non-author reviewer",
     ),
     "contract": ("name the review owner",),
-    "budget": ("CTO acceptance read",),
+    "budget": (
+        "CTO acceptance read",
+        "Check what this change can break, and nothing else",
+        "Run a check while it can still change a decision",
+    ),
 }
 retired = (
     "A gate review is always delegated",

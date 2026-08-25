@@ -117,8 +117,10 @@ anything undeclared, behaviour-changing, or inside `No-touch` returns.
 ### Routine
 
 The CTO reads the final diff and the author's acceptance evidence and accepts or returns; no
-separate agent and no falsifier. A return goes to the author as the correction it names, and the
-author argues back only where it disputes a finding on evidence — no ceremonial response round.
+separate agent and no falsifier. On a first vertical slice it also walks the consumer surface itself
+under *Review the surface the consumer meets* — the walk is required, the extra agent is not. A
+return goes to the author as the correction it names, and the author argues back only where it
+disputes a finding on evidence — no ceremonial response round.
 
 ### Significant
 
@@ -312,13 +314,66 @@ preserved and remains available to whatever the CTO decides.
   a reproducible message or action.
 - A reviewer or author that is unavailable, errored, or no longer independent.
 
+## Review the surface the consumer meets
+
+A diff says what the code does. It does not say what the consumer receives, and a card can be
+correct against its contract while the path through the product stays broken, slow, or
+unintelligible. On a card that changes a product surface, the review includes walking that surface
+the way its consumer does.
+
+The surface is whatever the product presents to whoever consumes it: an HTTP or gRPC API, a CLI, a
+TUI, a web or mobile interface, an SDK, an event stream, a scheduled job's output, a configuration
+contract. The consumer is whoever meets it: a person, an integrating system, an operator, an
+administrator, an anonymous caller, the engineer on call at 03:00. The contract names both, and the
+walk happens on the surface the product actually exposes, in an environment the product reaches —
+never against a fixture that stands in for it.
+
+**The first vertical slice always gets this walk.** The first card of a wave or epic that carries a
+scenario through to its consumer surface is reviewed this way whatever its risk, because that is the
+cheapest moment at which a wrong path costs one card instead of a wave. After that, the walk follows
+risk: a `Significant` or higher change to the surface, to its error or permission behaviour, or to
+the contract a consumer depends on. A change that no consumer can observe does not get one.
+
+The walk belongs to whoever inspects the card at its risk-required depth — the CTO where this gate
+lets it accept, the delegated reviewer everywhere else. It adds no agent by itself: a `Routine`
+first slice is walked by the CTO, not turned into a delegated review because the surface moved.
+
+Six questions, in this order. The first that fails is the finding; do not collect the rest as
+decoration.
+
+1. **Does the scenario reach its result?** Not `200 OK`, not a rendered page, not an exit status —
+   the thing the consumer came for, observed after the fact.
+2. **What happens at the edges?** Empty, one, many, slow, partial, unauthorized, repeated,
+   concurrent, malformed, dependency missing. Name which edges were walked and which were not.
+3. **What does the path cost?** Steps, calls, fields, waits, and prior knowledge required, against
+   the minimum the scenario needs. A path that works but costs three avoidable round trips is a
+   finding with a number attached.
+4. **Does a failure explain itself?** A refusal names what happened and what to do next; an API
+   carries a stable machine-readable code beside the human-readable message; a CLI sets a truthful
+   exit status and writes the diagnosis where a script can read it.
+5. **Is it consistent with what already exists?** The conventions of the surface — error shapes,
+   pagination, flag grammar, the project's design-system sources for a visual interface — and the
+   behaviour of the neighbouring paths a consumer already learned.
+6. **Is the consumer better off?** State plainly what improved, what did not, and what the change
+   left unsolved. This is judged against the consumer's task, not against the contract, and it is
+   the one question the diff can never answer.
+
+Evidence rules do not relax here. A finding carries the exact call or step, the real response, exit
+status or captured state, and a reproduction path someone else can follow. An impression without a
+reproducible step is not a finding and does not enter the report.
+
+This walk grants no authority to widen the card. Sort each finding by kind as usual: a broken
+scenario the card contracted is an `outcome-defect` and can return the work; a rough edge the card
+never promised is an `independent-defect` or `additional-work`, reported precisely and left to its
+own node. A review that redesigns the product it was asked to check has stopped being a review.
+
 ## Scoring each round
 
 Every verdict the reviewer issues — `ACCEPT`, `RETURN`, or `ESCALATE` — carries a score on a ten-point
 scale, written as the round marker `R<n>(<score>/10)`. The score answers one question: how good is
 this work, judged at the contracted maturity, on the evidence in front of the reviewer.
 
-Score two axes and report both:
+Score these axes and report each one that applies:
 
 - **Code** — does the change do what the contract requires, does it read like the surrounding code,
   does it hold the invariants its area already holds, and does it leave the tree in a state the next
@@ -326,22 +381,27 @@ Score two axes and report both:
 - **Work** — does the evidence discriminate, was the negative half observed, does the return match
   what the diff actually does, did the work stay inside its zone, and is the result reproducible
   from the report alone.
+- **Experience** — scored whenever the card changed a product surface and the review walked it: does
+  the scenario reach its result, do the edges behave, what does the path cost, does a failure
+  explain itself, is it consistent with what exists, and is the consumer better off. Where no
+  consumer can observe the change, this axis is `n/a` and is not invented to fill the line.
 
-**The marker carries the lower of the two.** A clean implementation proved by a check that cannot
-fail scores on its evidence, and a thoroughly evidenced change that ignores the conventions of the
-area it edits scores on its code. For a report-only outcome the code axis reads as the answer
-itself: its correctness, its completeness against the question asked, and whether its sources carry
-the conclusion drawn from them.
+**The marker carries the lowest axis that applies.** A clean implementation proved by a check that
+cannot fail scores on its evidence; a thoroughly evidenced change that ignores the conventions of
+the area it edits scores on its code; and a correct, well-proved change that leaves its consumer
+worse off scores on experience, because that is what shipped. For a report-only outcome the code
+axis reads as the answer itself: its correctness, its completeness against the question asked, and
+whether its sources carry the conclusion drawn from them.
 
 The anchors are observable, not felt:
 
 | Score | What it means |
 | --- | --- |
-| 9–10 | The contracted outcome is met, nothing above `minor` is open, and every load-bearing claim has an observed failing form and a stated blind spot. |
-| 7–8 | The outcome is met with only `minor` findings open; one check is narrower than the claim it carries, or the configuration it ran in is a step away from the one the product reaches. |
-| 5–6 | One `major` finding, or evidence that does not distinguish the defect it is offered against. The product probably behaves, but the proof does not establish it. |
-| 3–4 | Several `major` findings, a false green, or a divergence from the contract at the declared maturity. |
-| 1–2 | An open `blocker` in the contracted outcome, evidence that does not reproduce, or work that does not run. |
+| 9–10 | The contracted outcome is met, nothing above `minor` is open, and every load-bearing claim has an observed failing form and a stated blind spot. On experience: the scenario reaches its result, the walked edges behave, and a failure explains itself. |
+| 7–8 | The outcome is met with only `minor` findings open; one check is narrower than the claim it carries, or the configuration it ran in is a step away from the one the product reaches. On experience: the path works with avoidable cost or an inconsistency a consumer will notice once. |
+| 5–6 | One `major` finding, or evidence that does not distinguish the defect it is offered against. The product probably behaves, but the proof does not establish it. On experience: an edge misbehaves, or a failure gives the consumer nothing to act on. |
+| 3–4 | Several `major` findings, a false green, or a divergence from the contract at the declared maturity. On experience: the scenario reaches its result only along a path the consumer would not find. |
+| 1–2 | An open `blocker` in the contracted outcome, evidence that does not reproduce, or work that does not run. On experience: the scenario does not complete. |
 
 Four rules keep the number honest:
 
