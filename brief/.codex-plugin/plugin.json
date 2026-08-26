@@ -1,0 +1,26 @@
+{
+  "name": "brief",
+  "version": "0.9.0+codex.20260826171751",
+  "description": "Product setup before any code exists: state the product in one claim and state its refusals, test it against unlike uses so that no capability enters for a single case, turn it into a numbered proof a stranger can run, order the slices so the first one carries a consumer end to end, and lay the entry point, product document, decision records and invariant registry every later decision is read from.",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Brief",
+    "shortDescription": "Product setup before the first line of code",
+    "longDescription": "The phase that ends before any code exists: a concept stated as one claim with the refusals that bound it, tested against unlike uses so that a capability enters the product only when two of them require it, turned into a numbered proof a stranger can run, and ordered into slices whose first one carries a consumer end to end. It leaves behind the four documents every later decision is read from — one entry point, the normative product document, decision records with their rejected alternatives, and an invariant registry — with the authority order between them fixed. It tracks no work and lands no change; the delivery method takes the first slice from here.",
+    "developerName": "Maksim Korenev",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Product concept and refusals",
+      "Decomposition into slices",
+      "Owner decision gating",
+      "Documentation frame"
+    ],
+    "defaultPrompt": [
+      "Use $brief:brief to state this product and its refusals, order the slices that reach it, and lay the documents the rest of the project is read from."
+    ]
+  }
+}

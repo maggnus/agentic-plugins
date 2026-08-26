@@ -4,6 +4,25 @@ Personal plugin repository (`maggnus`). Each plugin is packaged for both Claude 
 versioned on its own, and installs from the remote marketplace pinned to an immutable release tag.
 A local directory, a moving branch, or an unpinned marketplace is not a valid installation source.
 
+## `brief`
+
+The phase before the first line of code: the product stated as one claim with the refusals that
+bound it, tested against unlike uses so that no capability enters for a single case, turned into a
+numbered proof a stranger can run, and ordered into slices whose first one carries a consumer end to
+end — leaving the entry point, product document, decision records and invariant registry every later
+decision is read from. It tracks no work and lands no change: whoever executes takes the first slice
+from it. See [brief/README.md](brief/README.md).
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v10.7.1"
+claude plugin install brief@maggnus
+```
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v10.7.1
+codex plugin add brief@maggnus
+```
+
 ## `paseo-cto`
 
 A release-driven CTO operating model over isolated Paseo agents: decomposition, delegated work with
@@ -27,7 +46,7 @@ codex plugin add paseo-cto@maggnus
 
 The same delivery discipline for a project that needs no fleet, in one skill file: outcomes with
 acceptance, checks sized to the risk, a check seen failing before it counts, an independent read of
-the diff before a risky change lands, and a reviewer and author who converge on it across up to five
+the diff before a risky change lands, and a reviewer and author who converge on it across up to two
 returns. See [team/README.md](team/README.md).
 
 ```sh
@@ -56,7 +75,7 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v10.7.1
 codex plugin add russian-speech@maggnus
 ```
 
-Adding the marketplace once is enough for all three; the command is repeated so each plugin can be
+Adding the marketplace once is enough for all four; the command is repeated so each plugin can be
 installed on its own.
 
 ## Release

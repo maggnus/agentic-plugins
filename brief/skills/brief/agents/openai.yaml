@@ -1,0 +1,7 @@
+interface:
+  display_name: "Brief"
+  short_description: "Product setup before the first line of code"
+  default_prompt: "Use $brief:brief to state this product and its refusals, order the slices that reach it, and lay the documents the rest of the project is read from."
+
+policy:
+  allow_implicit_invocation: true

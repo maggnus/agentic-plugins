@@ -6,6 +6,11 @@
   },
   "plugins": [
     {
+      "name": "brief",
+      "source": "./brief",
+      "description": "Product setup before any code exists: state the product in one claim and state its refusals, test it against unlike uses so that no capability enters for a single case, turn it into a numbered proof a stranger can run, order the slices so the first one carries a consumer end to end, and lay the entry point, product document, decision records and invariant registry every later decision is read from."
+    },
+    {
       "name": "paseo-cto",
       "source": "./paseo-cto",
       "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated agents; budget reasoning effort, validation, context, and reporting without weakening risk-based review; integrate only source-linked evidence; and report in the project-configured language. Models and effort ranges remain owner decisions."

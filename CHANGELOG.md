@@ -3,6 +3,29 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## v10.7.2 — brief 1.0.0, paseo-cto 10.7.2
+
+The phase before the first line of code became its own plugin.
+
+- `brief` sets a product up before any code exists: the product stated as one claim with the
+  refusals that bound it, a shortest already-useful path, an observable measure and the assumptions
+  still unproven.
+- A capability enters the product only when at least two genuinely unlike uses require it, or when
+  it is a safety or consistency invariant nothing but the product itself can enforce; everything
+  else stays one use's own work behind a named escape hatch.
+- The concept becomes a numbered proof a stranger can run on published artifacts, and that proof
+  generates the order of slices — the first of which carries a consumer end to end.
+- Decisions that belong to the owner are written down as open decisions with the work that waits on
+  them, never filled in to make the concept read as complete.
+- The decomposition is read by someone who did not write it against ten questions, `ACCEPT` or
+  `RETURN` on the same plan, two returns and then a decision.
+- The phase leaves a documentation frame with a fixed authority order: one entry point that every
+  environment instruction file points at, the normative product document, decision records that keep
+  their rejected alternatives, and a numbered invariant registry.
+- The distribution check now holds every sibling package to the Codex contract it holds `paseo-cto`
+  to: matching manifests, a shared skills directory, `agents/openai.yaml` beside every skill, and one
+  resolving marketplace entry.
+
 ## v10.7.1 — paseo-cto 10.7.1
 
 Runs and tokens became an owned budget rather than a side effect.
