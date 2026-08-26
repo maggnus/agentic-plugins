@@ -85,9 +85,50 @@ for name, body in (("README.md", readme), ("paseo-cto/README.md", plugin_readme)
     stale = sorted({tag for tag in re.findall(r"v\d+\.\d+\.\d+", body) if tag != release_tag})
     require(not stale, f"{name} still names {', '.join(stale)} instead of {release_tag}")
 
-for name in ("team", "russian-speech"):
-    sibling = root.parent / name / "README.md"
-    require(sibling.is_file(), f"{name}/README.md is missing")
+# Sibling plugins ship in the same tag and must be as installable on Codex as on Claude.
+for name in ("brief", "team", "russian-speech"):
+    sibling_root = root.parent / name
+    require((sibling_root / "README.md").is_file(), f"{name}/README.md is missing")
+
+    sibling_claude_path = sibling_root / ".claude-plugin/plugin.json"
+    sibling_codex_path = sibling_root / ".codex-plugin/plugin.json"
+    if not (sibling_claude_path.is_file() and sibling_codex_path.is_file()):
+        require(sibling_claude_path.is_file(), f"{name} has no Claude manifest")
+        require(sibling_codex_path.is_file(), f"{name} has no Codex manifest")
+        continue
+
+    sibling_claude = json.loads(sibling_claude_path.read_text())
+    sibling_codex = json.loads(sibling_codex_path.read_text())
+    require(sibling_claude.get("name") == name, f"{name} Claude manifest name does not match")
+    require(sibling_codex.get("name") == name, f"{name} Codex manifest name does not match")
+    require(sibling_claude.get("version", "") ==
+            sibling_codex.get("version", "").split("+codex.", 1)[0],
+            f"{name} Claude and Codex base versions differ")
+    require(sibling_claude.get("description") == sibling_codex.get("description"),
+            f"{name} Claude and Codex descriptions differ")
+    require(sibling_claude.get("author") == sibling_codex.get("author"),
+            f"{name} Claude and Codex authors differ")
+    require(sibling_codex.get("skills") == "./skills/",
+            f"{name} Codex manifest must expose the shared skills directory")
+
+    sibling_skills = sorted(path.parent for path in (sibling_root / "skills").glob("*/SKILL.md"))
+    require(bool(sibling_skills), f"{name} ships no skills")
+    for skill_dir in sibling_skills:
+        require((skill_dir / "agents/openai.yaml").is_file(),
+                f"Codex metadata missing for {name}/{skill_dir.name}")
+
+    if marketplace_path.is_file():
+        sibling_entries = [item for item in marketplace.get("plugins", [])
+                           if item.get("name") == name]
+        require(len(sibling_entries) == 1,
+                f"root marketplace must contain exactly one {name} entry")
+        if sibling_entries:
+            sibling_entry = sibling_entries[0]
+            require((marketplace_path.parent.parent / sibling_entry.get("source", "")).resolve()
+                    == sibling_root.resolve(),
+                    f"root marketplace {name} source does not resolve to that plugin")
+            require(sibling_entry.get("description") == sibling_claude.get("description"),
+                    f"root marketplace and {name} descriptions differ")
 
 if errors:
     for error in errors:
