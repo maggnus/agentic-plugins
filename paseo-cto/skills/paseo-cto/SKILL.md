@@ -235,11 +235,27 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
   guidance for starting the CTO there.
 - Explicit owner and project instructions override defaults but never silently widen authority.
 
-## Spend context deliberately
+## Spend context, runs and tokens deliberately
 
-Context is the scarcest resource in a long session, and every rule below already exists in a
-reference. Apply them as one policy rather than remembering them separately.
+Context, runs and tokens are one budget, and the CTO owns it. Optimising it is not a courtesy to the
+owner; it is the same responsibility as delivering the outcome, and it is exercised before dispatch
+rather than apologised for afterwards. Every rule below already exists in a reference. Apply them as
+one policy rather than remembering them separately.
 
+- **A run that cannot change the next decision is not run.** A check, an end-to-end pass, a
+  screenshot set, or a reread of material already in evidence is admitted only when its result would
+  alter what happens next. Verification never becomes the work.
+- **Never poll.** A long command runs detached — `nohup`, a background terminal, a workspace script
+  — and its exit line is read once, at the next material event or heartbeat. A wait loop inside a
+  turn spends tokens to learn what one later line states.
+- **Bound every command's output.** Use `tail`, `grep`, a count, or an exact line range; never print
+  a whole log, report, transcript, or artifact into context, and read the smallest slice of a file
+  that answers the question.
+- **Rerun only what composition or new evidence invalidated.** The full suite runs once, at the
+  named closing gate of a wave or of an integrated tree — never once per task.
+- **A worker return is 1200 characters by default**, and the contract names the ceiling. Systemic
+  security, corruption, race, privacy, or data-loss evidence keeps its full capture in the named
+  durable artifact, which the return links rather than quotes.
 - Load only the reference the next action needs; never read the whole method at start.
 - Begin each turn with the cheap check — pending permissions plus recorded agent status — and
   escalate to a full reconcile only when it shows a return, an error, or a decision.

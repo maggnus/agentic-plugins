@@ -58,6 +58,33 @@ and near-worthless once the only remaining option is to accept or rewrite.
 - **Do not re-time a check to look diligent.** Repeating a green command at a later stage adds
   nothing but the illusion of care; state the earlier run, its exact revision, and its result.
 
+## End-to-end runs are rationed
+
+An end-to-end run is the most expensive evidence the project can buy and the least discriminating
+per minute spent. It is admitted only when the defect is observable **solely** on the consumer
+surface. Everything provable at unit or component level is proven there, including every negative
+half: the rule that a proof must be able to fail does not relax, it moves to the cheapest level that
+still distinguishes the defect.
+
+- **One scenario per task**, desktop only, unless the contracted outcome is itself about the mobile
+  presentation. No route matrices, no surface matrices, no per-theme repetitions unless the outcome
+  is about themes.
+- **No screenshot matrices.** Screenshots exist for exactly one purpose — owner approval of a user
+  interface change — and then as one set of the changed surface (desktop and mobile × light and
+  dark), captured once. A screenshot that no owner decision waits on is not evidence.
+- **The reviewer does not rerun the author's end-to-end pass.** It reads the captured logs and exit
+  lines, and runs at most one independently selected falsifier, at the cheapest level that
+  discriminates its hypothesis. An independent falsifier stays independent without being expensive.
+- **Lint and type checks run per package, in touched packages only.** The iteration gate — the
+  project's fast composite check — runs once before return, not per edit.
+- **A negative half is never bought with a repeated full run.** Break the input at the level the
+  claim lives on, capture the real non-zero exit, and state what that mutation distinguishes.
+
+The CTO prices this into the contract before dispatch. A contract listing end-to-end passes on
+desktop and mobile, screenshots in both themes, and negative halves obtained by rerunning, without a
+stated reason for each, is a planning defect and is corrected before the agent starts — not
+discovered in the return.
+
 ## One owner per proof
 
 Assign every command or proof to one primary role:

@@ -21,7 +21,7 @@ Outcome: <one testable result; frozen decisions>
 Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
-Validation budget: <the affected surfaces this change can break; builder-owned checks chosen to discriminate a defect in them; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
+Validation budget: <the affected surfaces this change can break; builder-owned checks chosen to discriminate a defect in them; unit/component proofs carrying one negative half per load-bearing claim, at the cheapest level that discriminates it; e2e: none | one scenario <the reason the defect is observable only on the consumer surface>; screenshots: none | one approval set <surface>; review depth; combined-tree composition preflight; integration checks; exact full-suite trigger; return ceiling <chars>>
 Review: <apply Review gate for the declared risk; the reviewer is always a non-author agent, and the risk fixes the depth of its inspection, never who performs it>
 Consumer surface: <only when the card changes one: the surface (API, CLI, TUI, web or mobile interface, SDK, event stream, configuration contract), the consumer role to walk it as, how to reach it in an environment the product reaches, the data or credentials needed, and the edges that matter here; `none` when no consumer can observe the change>
 Observation: <expected silence/long operations and safe liveness proof>
@@ -96,6 +96,8 @@ the harness. See [Validation budget](validation-budget.md).
 ## Role additions
 
 - Builder: exact write zone, coherent local commit set, reviewed final range, empty final porcelain.
+  No full suite, no end-to-end pass belonging to another task, and no repeated run bought to produce
+  a negative half — the mutation happens at the level the claim lives on.
   It exchanges facts, findings and corrections directly with the reviewer of the same node under
   *Direct exchange between author and reviewer* in [Review gate](review-gate.md), recording each
   exchange in its return. A reviewer `RETURN` authorizes the rework it names inside the same node
@@ -104,7 +106,9 @@ the harness. See [Validation budget](validation-budget.md).
   A builder producing user-facing design artifacts must receive the project's design-system skill
   sources in Read; visual values come from those sources' tokens, never invented ad hoc.
 - Reviewer: exact returned outcome and acceptance; for a repository write, include the final
-  reviewed range and preferably a fresh workspace for the initial independent review. When the card
+  reviewed range and preferably a fresh workspace for the initial independent review. It reads the
+  author's captured evidence, reruns nothing already green, and runs at most one independently
+  selected falsifier at the cheapest level that discriminates its hypothesis. When the card
   changes a product surface, the contract fills `Consumer surface` and the reviewer walks it — always
   on a wave's or epic's first vertical slice, afterwards by risk — reporting the path, the role, and
   the edges it covered and skipped. Require

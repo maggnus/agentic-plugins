@@ -116,8 +116,10 @@ anything undeclared, behaviour-changing, or inside `No-touch` returns.
 ### Routine
 
 A non-author reviewer reads the final diff and the author's acceptance evidence against the task
-file and accepts or returns. No falsifier is required and the review runs at the lowest effort tier
-the assignment allows; several homogeneous Routine nodes normally share one review under the
+file and accepts or returns. No run at all beyond reading: no falsifier, no reproduction, no command
+of its own. The single exception is the consumer-surface walk a wave's first vertical slice requires
+under *Review the surface the consumer meets*, which is one scenario and stays required at this
+depth. The review runs at the lowest effort tier the assignment allows; several homogeneous Routine nodes normally share one review under the
 batching rule, so the floor costs a dispatch, not a ceremony. A return goes to the author as the
 correction it names, and the author argues back only where it disputes a finding on evidence — no
 ceremonial response round.
@@ -127,9 +129,10 @@ ceremonial response round.
 A change that cannot alter product behaviour — tests, documentation, configuration, generated files,
 mechanical edits — is reviewed at the Routine depth above: the final diff and the author's evidence
 against the task file, no falsifier. Any change to product code receives the full Significant depth:
-the complete outcome with the final diff plus targeted success and failure-path checks, and at least
-one independently selected falsifier of a concrete risk hypothesis the author's evidence does not
-settle; sensitive surfaces (authentication, authorization, money, privacy, data loss, schema,
+the complete outcome with the final diff, the success and failure paths read from the author's
+captured logs and exit lines rather than reproduced, and one independently selected falsifier of a
+concrete risk hypothesis the author's evidence does not settle — the reviewer's own execution is
+that falsifier and nothing else, at the cheapest level that discriminates it; sensitive surfaces (authentication, authorization, money, privacy, data loss, schema,
 canonical contracts) additionally anchor the falsifier to the threatened invariant. The reviewer runs
 in parallel and blocks nothing; the saving from skipping it is spent later with interest when an
 escaped defect is repaired after integration.

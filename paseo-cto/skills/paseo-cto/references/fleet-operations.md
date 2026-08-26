@@ -176,6 +176,11 @@ loop of that same atom — its responses, rework, and re-reviews. An unrelated a
 the previous agent is idle; carrying an old conversation into new work spends context on irrelevant
 history and increases instruction drift.
 
+The cheap check reads statuses; it never runs work. A long background operation is observed by its
+exit line at the next material event or heartbeat, never by a wait loop inside the CTO turn: waiting
+in-turn spends tokens to learn what one later line states, and blocks every other decision while it
+does. Start long commands detached, record where their exit line will appear, and move on.
+
 Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
 meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal or background evidence,
 and permission, capacity and external-wait checks. Two such snapshots require a CTO decision in that

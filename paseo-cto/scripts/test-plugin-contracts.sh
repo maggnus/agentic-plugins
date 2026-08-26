@@ -843,6 +843,45 @@ if settings.get("schema") != 4 or set(budget) != {"max_live_tasks", "max_live_ag
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
+expect_pass "runs and tokens are rationed across the method" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills/paseo-cto"
+text = {name: " ".join((root / path).read_text().split()) for name, path in {
+    "skill": "SKILL.md",
+    "budget": "references/validation-budget.md",
+    "contract": "references/assignment-contract.md",
+    "gate": "references/review-gate.md",
+    "fleet": "references/fleet-operations.md",
+    "status": "references/status-and-reporting.md",
+}.items()}
+required = {
+    "skill": ("Context, runs and tokens are one budget", "Never poll",
+              "The full suite runs once, at the named closing gate"),
+    "budget": ("End-to-end runs are rationed", "observable **solely** on the consumer surface",
+               "No screenshot matrices", "does not rerun the author's end-to-end pass",
+               "a planning defect"),
+    "contract": ("e2e: none | one scenario", "screenshots: none | one approval set",
+                 "return ceiling", "reruns nothing already green"),
+    "gate": ("No run at all beyond reading",
+             "read from the author's captured logs and exit lines rather than reproduced"),
+    "fleet": ("never by a wait loop inside the CTO turn",),
+    "status": ("never carries command output beyond one decisive line",),
+}
+# The cheapest level is where the negative half moves to; it never disappears.
+kept = {
+    "budget": ("the rule that a proof must be able to fail does not relax",),
+    "contract": ("one negative half per load-bearing claim",),
+}
+problems = [f"{name} lacks {needle!r}"
+            for group in (required, kept)
+            for name, needles in group.items()
+            for needle in needles
+            if needle not in text[name]]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 expect_pass "closing a run tears down every resource it created" python3 - "$plugin_root" <<'PY'
 from pathlib import Path
 import sys
@@ -1033,8 +1072,14 @@ for needle in (
 ):
     if needle not in cleanup:
         problems.append(f"cleanup lacks {needle!r}")
-if "Spend context deliberately" not in skill:
-    problems.append("SKILL.md lacks the context policy section")
+for needle in (
+    "Spend context, runs and tokens deliberately",
+    "A run that cannot change the next decision is not run",
+    "Never poll",
+    "Bound every command's output",
+):
+    if needle not in skill:
+        problems.append(f"SKILL.md lacks {needle!r}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 

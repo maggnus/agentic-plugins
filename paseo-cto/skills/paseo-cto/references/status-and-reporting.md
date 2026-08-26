@@ -75,6 +75,11 @@ for the first time understand it on one pass?
 Use this sentence order whenever the clauses exist: observed fact and evidence; effect on the
 contracted outcome; required disposition; remaining unknown. Omit a clause that carries no decision.
 
+A status message never carries command output beyond one decisive line. Exit lines, measurements,
+transcripts and captures belong in the review report and the evidence package, which the status
+links rather than quotes. Repeating a fact, a conclusion, or a next step already sent costs the
+owner's attention and the run's tokens for nothing; say nothing instead.
+
 The fixed snapshot labels and machine tokens are a stable interface and are never translated:
 `Update`, `paseo-cto`, `Model`, `Context`, `Session`, `Wave`, `Cards`, the table headers, plan IDs,
 agent titles, derived-status tokens, commands, and paths.
