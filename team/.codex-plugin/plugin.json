@@ -1,6 +1,6 @@
 {
   "name": "team",
-  "version": "1.2.0+codex.20260819150955",
+  "version": "1.3.0+codex.20260826013847",
   "description": "Delivery discipline for a small project, in one file and with no fleet machinery: split work into outcomes that can be judged, size each check to what a defect would cost, prove a check can fail before trusting it, delegate reads in parallel and writes one at a time, review a change before it lands, and let the reviewer and the author converge across up to two returns before deciding on that record.",
   "author": {
     "name": "Maksim Korenev",
