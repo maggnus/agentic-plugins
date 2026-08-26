@@ -110,9 +110,9 @@ decides whether a later reading is correct.
 the CTO from the two roles' reports, never by a worker. The marker carries the reviewer's ten-point
 score and the local `dd/mm hh:mm` moment of the verdict, so the journal shows both whether quality
 moved as the corrections landed and what each round cost in wall-clock time. An escalation adds
-`- CTO <decision> <dd/mm hh:mm> — <reason>`, naming the same value as `escalation_decision`. The reviewer holds five returns
+`- CTO <decision> <dd/mm hh:mm> — <reason>`, naming the same value as `escalation_decision`. The reviewer holds two returns
 on one unit; after that its verdict is `ESCALATE`, the CTO decides on that journal, and
-`escalation_decision` records the decision it took. Seven returns is the ceiling. The journal is a
+`escalation_decision` records the decision it took. Four returns is the ceiling. The journal is a
 ledger, not a transcript: the review dialogue itself stays in the reports and the evidence package.
 [Review gate](review-gate.md) owns the rules; the validator only enforces that the count, the
 journal, and the escalation decision agree.

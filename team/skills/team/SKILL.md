@@ -100,7 +100,7 @@ it is offered against; one or two means an open blocker in the outcome itself. N
 any score below nine, and for an acceptance below eight say in one clause what stayed imperfect.
 
 The score measures the work and never decides the verdict: a defect in the contracted outcome
-returns the change at any score, and its absence accepts it at any score. Judge the fifth round
+returns the change at any score, and its absence accepts it at any score. Judge the last round
 against the same anchors as the first — rounds spent are not quality earned.
 
 Sort every finding before deciding: a defect in the contracted outcome can force a return; a
@@ -142,25 +142,25 @@ evidence. Let them run that loop instead of adjudicating each round yourself.
 - A return authorizes exactly the rework it names, inside the same outcome and the same files. The
   author answers every finding with evidence — agreement, or a defence built from the specification,
   the code, a test, a measurement, or a reproducible counterexample — and corrects in the same turn.
-- The reviewer holds **five returns on one outcome**, counted across the whole outcome rather than
-  per attempt. From the third return it states in one sentence what remains unclosed and which
-  evidence would close it. A round in which neither side produced anything new does not spend the
+- The reviewer holds **two returns on one outcome**, counted across the whole outcome rather than
+  per attempt. The second return states in one sentence what remains unclosed and which evidence
+  would close it. A round in which neither side produced anything new does not spend the
   budget; it ends the loop.
 - Keep one line per round where the work is tracked — `R2(5/10) RETURN 25/08 14:20 — finding →
   evidenced answer → what changed`, the moment in local `dd/mm hh:mm`. That ledger, not the
   transcript, is what the decision below is read from; the scores show whether the corrections are
   reaching the problem, and the moments show what each round cost.
 - Nothing about a long loop lowers the standard. The reviewer derives what the change must do from
-  the outcome, the specification and the code in the fifth round exactly as in the first, and
+  the outcome, the specification and the code in the last round exactly as in the first, and
   neither side may trade a verdict, skip an adverse check, or lean on the other socially.
 
 End the round immediately and decide yourself, whatever the budget left, when the correction would
 leave the agreed scope, change the outcome or its risk, need an owner gate, or when the finding is a
 neighbouring problem rather than a defect in this outcome.
 
-## Decide on the record after the fifth return
+## Decide on the record after the second return
 
-After the fifth return the loop stops and you decide, reading the round ledger and both sides' last
+After the second return the loop stops and you decide, reading the round ledger and both sides' last
 reports — what was found, what was answered, and whether the two were still arguing about the same
 fact. Choose exactly one:
 
@@ -174,7 +174,7 @@ fact. Choose exactly one:
   land the settled part;
 - **name the blocker and stop** — say what prevents convergence and who must resolve it.
 
-Seven returns is the ceiling: five in the loop and two in the granted budget. After that the next
+Four returns is the ceiling: two in the loop and two in the granted budget. After that the next
 decision is never another round. Residue stays forbidden when the failure could not be undone once
 noticed, or would not announce itself. Authentication, money, privacy, data loss and irreversible
 actions fail both tests routinely: those block instead.

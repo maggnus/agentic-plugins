@@ -158,13 +158,13 @@ The assignment prompt's first instruction must invoke the exact qualified skill 
 | Researcher | `$paseo-cto:paseo-researcher` | `/paseo-cto:paseo-researcher` | Read-only bounded investigation; no project decisions. |
 
 If the qualified skill is unavailable, the worker must return exactly
-`BLOCKED: role skill unavailable` before any repository read or write. The CTO remains final
-reviewer and integration authority.
+`BLOCKED: role skill unavailable` before any repository read or write. The CTO remains the final
+authority on what lands and integrates; it performs no inspection itself, so every outcome carries a
+reviewer assignment.
 
 Routing follows `roleAssignments`; the plugin states no preference for one provider family over
-another. One structural rule holds, because it is about independence rather than capability: when
-the risk gate requires an initial independent review, prefer a reviewer from a different provider
-family than the author, and otherwise use a fresh session. A same-family reviewer is a weaker check,
+another. One structural rule holds, because it is about independence rather than capability: prefer a reviewer
+from a different provider family than the author, and otherwise use a fresh session. A same-family reviewer is a weaker check,
 so when the assignment leaves both on one family, record that the cross-family property was lost and
 apply the Review gate's compensation rules.
 

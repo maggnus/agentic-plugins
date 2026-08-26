@@ -7,19 +7,17 @@ used only to narrow the next contract is source-checked by the CTO and does not 
 review. Ordinary CTO work-tree and contract edits follow the plan-review rule below rather than a
 per-edit review. A project may define stricter gates; it must not define a weaker floor.
 
-The CTO classifies the risk and owns the decision; the classification decides who performs the
-inspection. The CTO accepts a `Routine` outcome itself, and a `Significant` one only when the change
-cannot alter product behaviour — tests, documentation, configuration, generated files, mechanical
-edits. A `Significant` outcome that changes product code, and every `Critical` outcome, go to a
-non-author reviewer: a diff read cannot catch the defect classes that matter at that tier
-(concurrency, authority composition, unexercised paths), because the CTO runs no falsifier of its
-own and reads with the integrator's, not the adversary's, hypothesis. A change the CTO authored — a semantic integration
-fix — is always inspected by a non-author agent whatever its risk, because reading one's own diff is
-not a second look. Landing authority, integration, and the bounded CTO fix remain CTO work.
+**The CTO does not inspect.** Every outcome that crosses this gate is inspected by a non-author
+reviewer, whatever its risk. The CTO classifies the risk, which fixes how deep that inspection goes;
+it decides what lands, integrates, and answers for the result — but it does not read the diff in
+place of a reviewer. A CTO that inspects reads with the integrator's hypothesis rather than the
+adversary's, runs no falsifier of its own, and spends on one card the attention the whole fleet
+needs; and a change the CTO authored cannot be checked by the agent that wrote it. Landing
+authority, integration, and the bounded CTO fix remain CTO work.
 
 Once an outcome is under inspection, the author and its reviewer converge on it themselves: the
 reviewer returns, the author corrects, and the two repeat until the reviewer accepts or its
-five-return budget is spent. The CTO stays outside that loop and decides on the record when it
+two-return budget is spent. The CTO stays outside that loop and decides on the record when it
 escalates or breaks. *The convergence loop* and *Escalation* below define both.
 
 ## Risk classification
@@ -108,7 +106,8 @@ sentence, and removes the review round that would otherwise discover the same th
 
 ## Review depth
 
-Whoever performs the inspection — the CTO or a delegated reviewer — checks every changed path against
+Depth says how far the inspection goes, never who performs it: that is always a non-author reviewer.
+The reviewer checks every changed path against
 the contract's write zone and `No-touch` before judging the content. A path outside the write zone is
 a finding until it is classified: the additive edit the [Assignment contract](assignment-contract.md)
 permits, declared in the return and changing no existing behaviour there, is ratified at integration;
@@ -116,24 +115,24 @@ anything undeclared, behaviour-changing, or inside `No-touch` returns.
 
 ### Routine
 
-The CTO reads the final diff and the author's acceptance evidence and accepts or returns; no
-separate agent and no falsifier. On a first vertical slice it also walks the consumer surface itself
-under *Review the surface the consumer meets* — the walk is required, the extra agent is not. A
-return goes to the author as the correction it names, and the author argues back only where it
-disputes a finding on evidence — no ceremonial response round.
+A non-author reviewer reads the final diff and the author's acceptance evidence against the task
+file and accepts or returns. No falsifier is required and the review runs at the lowest effort tier
+the assignment allows; several homogeneous Routine nodes normally share one review under the
+batching rule, so the floor costs a dispatch, not a ceremony. A return goes to the author as the
+correction it names, and the author argues back only where it disputes a finding on evidence — no
+ceremonial response round.
 
 ### Significant
 
-A change that cannot alter product behaviour — tests, documentation, configuration, generated
-files, mechanical edits — is accepted by the CTO on the final diff and the author's acceptance
-evidence checked against the task file. Any change to product code receives a delegated non-author
-reviewer, who inspects the complete outcome with the final diff plus targeted success and
-failure-path checks and brings at least one independently selected falsifier of a concrete risk
-hypothesis the author's evidence does not settle; sensitive surfaces (authentication,
-authorization, money, privacy, data loss, schema, canonical contracts) additionally anchor the
-falsifier to the threatened invariant. The reviewer runs in parallel and blocks nothing; the
-saving from skipping it is spent later with interest when an escaped defect is repaired after
-integration.
+A change that cannot alter product behaviour — tests, documentation, configuration, generated files,
+mechanical edits — is reviewed at the Routine depth above: the final diff and the author's evidence
+against the task file, no falsifier. Any change to product code receives the full Significant depth:
+the complete outcome with the final diff plus targeted success and failure-path checks, and at least
+one independently selected falsifier of a concrete risk hypothesis the author's evidence does not
+settle; sensitive surfaces (authentication, authorization, money, privacy, data loss, schema,
+canonical contracts) additionally anchor the falsifier to the threatened invariant. The reviewer runs
+in parallel and blocks nothing; the saving from skipping it is spent later with interest when an
+escaped defect is repaired after integration.
 
 ### Critical
 
@@ -216,10 +215,10 @@ re-review continue with the same reviewer and retained evidence under
 [Project bootstrap](project-bootstrap.md).
 
 A plan review converges the same way, with the CTO as the author of the tree: the reviewer returns,
-the CTO corrects the tree, and the loop repeats under the same five-return budget and the same
+the CTO corrects the tree, and the loop repeats under the same two-return budget and the same
 journal, kept in the wave file. Because the CTO is the corrected party there, an exhausted budget
 goes to the owner as a named gate rather than to another CTO decision — a decomposition the reviewer
-cannot accept after five rounds is a scope question, not a review question.
+cannot accept after two rounds is a scope question, not a review question.
 
 ## The convergence loop
 
@@ -238,23 +237,21 @@ holds unchanged in every round.
   evidence — agreement, partial agreement, or a defence built from specification, code, tests,
   measurements, or a reproducible counterexample. The reviewer resolves each defence on evidence and
   withdraws or reclassifies whatever it disproves. Silence is recorded and creates no agreement.
-- **The reviewer holds five returns on one work unit.** Rounds are counted per dispatched node, not
-  per candidate: a re-dispatch under a new commit continues the same count. The fifth return is the
-  last the reviewer may issue on its own authority.
-- **From the third return each return carries a convergence condition** — one sentence naming what
-  remains unclosed and which evidence would close it. A return that cannot name that condition is an
-  escalation, not another attempt.
+- **The reviewer holds two returns on one work unit.** Rounds are counted per dispatched node, not
+  per candidate: a re-dispatch under a new commit continues the same count. The second return is the
+  last the reviewer may issue on its own authority, and it carries a convergence condition — one
+  sentence naming what remains unclosed and which evidence would close it. A return that cannot name
+  that condition is an escalation, not another attempt.
 - **A round carrying no new evidence on either side does not spend the budget; it escalates.**
   Repeating a finding without new material, or resubmitting a candidate whose evidence did not
   change, means the loop has stopped converging and further rounds only spend time.
-- **After the fifth return the reviewer returns `ESCALATE` instead of `RETURN`.** That verdict carries
-  what remains unclosed, which findings recurred across rounds, what each side last proved, and the
+- **After the second return the reviewer returns `ESCALATE` instead of `RETURN`.** That verdict
+  carries what remains unclosed, which findings recurred, what each side last proved, and the
   reviewer's stated hypothesis for why the loop did not converge. `ACCEPT` remains available at every
   round, including the last.
 
-When the Review gate lets the CTO accept the outcome itself, the CTO is the inspector and runs the
-same loop against the author under the same five-return budget and the same journal. It has nobody
-to escalate to: after the fifth return it takes one of the escalation outcomes below in that turn.
+The CTO never enters the loop as a participant. It relays, keeps the journal, and decides when the
+node escalates or breaks — there is no depth at which it becomes the inspector instead.
 
 ## Escalation: the CTO decides on the record
 
@@ -268,7 +265,7 @@ findings repeat says the review has drifted from its anchors.
 A node that arrived through a break condition rather than an exhausted budget is a different case:
 resolve what broke — ratify or return the out-of-zone edit, reclassify the node, open the owner
 gate, create the plan child, replace a compromised reviewer — and hand the node back to the loop
-with the budget it had left. The bounded second budget is spent only after the five returns are.
+with the budget it had left. The bounded second budget is spent only after the two returns are.
 
 Otherwise the CTO decides in that same turn among exactly these:
 
@@ -290,7 +287,7 @@ reviewer share a provider family and the disputed finding sits exactly where tha
 first act is deriving the requirement from the contract, the specification and the code rather than
 from either prior report.
 
-Seven returns is the ceiling on one work unit — five inside the loop and two inside the granted
+Four returns is the ceiling on one work unit — two inside the loop and two inside the granted
 budget. Once the second budget is spent, the next CTO decision cannot be another round: accept,
 accept with residue, split, or name the gate. A finding that fails the reversibility or detection
 test cannot be accepted with residue at any round count; that node blocks or is withdrawn instead.
@@ -334,9 +331,9 @@ cheapest moment at which a wrong path costs one card instead of a wave. After th
 risk: a `Significant` or higher change to the surface, to its error or permission behaviour, or to
 the contract a consumer depends on. A change that no consumer can observe does not get one.
 
-The walk belongs to whoever inspects the card at its risk-required depth — the CTO where this gate
-lets it accept, the delegated reviewer everywhere else. It adds no agent by itself: a `Routine`
-first slice is walked by the CTO, not turned into a delegated review because the surface moved.
+The walk belongs to the reviewer inspecting the card, at whatever depth its risk requires. It adds no
+agent by itself — the reviewer that would review the card anyway also walks the surface — and on a
+batched dispatch one walk covers the sibling nodes that share that surface.
 
 Six questions, in this order. The first that fails is the finding; do not collect the rest as
 decoration.
@@ -411,9 +408,9 @@ Four rules keep the number honest:
 - **Every score below 9 names its reason** in the same line — which finding, which missing proof,
   which convention. An accepted outcome scored below 8 says in one clause what stayed imperfect, so
   the number is never mute.
-- **The scale does not move with the round.** Effort spent across five rounds earns nothing; the
-  fifth round is scored against the same anchors as the first, and a score that rises without the
-  work changing is a review that has started grading the author.
+- **The scale does not move with the round.** Rounds spent earn nothing; the last round is scored
+  against the same anchors as the first, and a score that rises without the work changing is a
+  review that has started grading the author.
 - **No strategy, urgency, or provider changes it.** `alpha` and `stable` change what is contracted,
   not what a seven means.
 
@@ -480,7 +477,7 @@ Four things the exchange never does:
 - apply pressure, urgency, praise, blame, or any other social framing to a verdict.
 
 Independence of derivation does not change with the number of rounds: the reviewer derives what the
-change must do from the contract, the specification and the code, in the fifth round exactly as in
+change must do from the contract, the specification and the code, in the last round exactly as in
 the first. The exchange supplies facts, not the problem statement. Familiarity built over rounds is
 not evidence, and neither side may accept the other's conclusion because the loop is long.
 

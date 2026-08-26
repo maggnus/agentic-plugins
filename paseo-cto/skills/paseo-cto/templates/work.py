@@ -32,7 +32,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "10.4.0"
+TOOLING_VERSION = "10.6.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"

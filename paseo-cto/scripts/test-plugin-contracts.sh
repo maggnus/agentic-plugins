@@ -52,14 +52,14 @@ expect_fail "marker and current state mismatch" env \
   PLAN_FILE="$scratch/state-mismatch.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
   "$templates/check-plan-shape.sh"
 
-sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 6/;/^\*\*Convergence/d' "$templates/PLAN.md" \
+sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 3/;/^\*\*Convergence/d' "$templates/PLAN.md" \
   > "$scratch/rounds-past-budget.md"
 expect_fail "returns past the reviewer budget without a recorded decision" env \
   PLAN_FILE="$scratch/rounds-past-budget.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
   "$templates/check-plan-shape.sh"
 
-sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 9/' "$templates/PLAN.md" > "$scratch/rounds-past-ceiling.md"
-expect_fail "returns past the seven-return ceiling" env \
+sed 's/^\*\*Rounds\.\*\*.*/**Rounds.** 6/' "$templates/PLAN.md" > "$scratch/rounds-past-ceiling.md"
+expect_fail "returns past the four-return ceiling" env \
   PLAN_FILE="$scratch/rounds-past-ceiling.md" ACCEPTANCE_FILE="$scratch/ACCEPTANCE.md" \
   "$templates/check-plan-shape.sh"
 
@@ -761,8 +761,8 @@ required = {
         "SCORE: code <n>/10, work <n>/10, experience <n>/10 or n/a",
         "Walk the surface the consumer meets",
         "TIME: <dd/mm hh:mm> local",
-        "five returns on one work unit",
-        "return `ESCALATE` rather than a sixth `RETURN`",
+        "two returns on one work unit",
+        "return `ESCALATE` rather than a third `RETURN`",
     ),
     "researcher": (
         "Return within 1800 characters",
@@ -801,7 +801,7 @@ required = {
         "After two auxiliary research or review layers",
         "Rounds of the same node's convergence loop are not auxiliary layers",
         "Do not adjudicate inside the loop",
-        "Seven returns is the ceiling",
+        "Four returns is the ceiling",
         "Do not turn a product blocker into a process project",
     ),
     "review": (
@@ -811,9 +811,9 @@ required = {
         "same reviewer and retained evidence",
         "a realistic defect could directly violate security",
         "Uncertainty prevents a Routine classification but never creates Critical by itself",
-        "The reviewer holds five returns on one work unit",
+        "The reviewer holds two returns on one work unit",
         "the reviewer returns `ESCALATE` instead of `RETURN`",
-        "Seven returns is the ceiling on one work unit",
+        "Four returns is the ceiling on one work unit",
         "grant a bounded second budget of two returns",
         "hands the node to the CTO with the journal as it stands",
         "Each round leaves exactly one line",
@@ -1052,19 +1052,19 @@ files = {
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
     "gate": (
-        "The CTO accepts a `Routine` outcome itself",
-        "go to a non-author reviewer",
-        "A change the CTO authored",
-        "Whoever performs the inspection",
+        "**The CTO does not inspect.**",
+        "inspected by a non-author reviewer, whatever its risk",
+        "Depth says how far the inspection goes, never who performs it",
     ),
     "skill": (
-        "it accepts a `Routine` outcome, and a `Significant` one that cannot alter product "
-        "behaviour, on the diff itself",
-        "any change the CTO authored go to a non-author reviewer",
+        "You coordinate; you do not implement and you do not inspect",
+        "a non-author reviewer performs every inspection, at every tier",
+        "Always know the arithmetic",
+        "Refuse stagnation",
     ),
-    "contract": ("name the review owner",),
+    "contract": ("the reviewer is always a non-author agent",),
     "budget": (
-        "CTO acceptance read",
+        "the consumer-path walk when the card changed a product surface",
         "Check what this change can break, and nothing else",
         "Run a check while it can still change a decision",
     ),

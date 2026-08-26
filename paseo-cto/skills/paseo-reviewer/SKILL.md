@@ -101,15 +101,15 @@ fault, and a worker that stops on it without attempting the file wastes the whol
 8. Converge with the author rather than handing the disagreement upward. A `RETURN` you issue
    authorizes exactly the rework it names, inside the same node, write zone and contract; the author
    corrects and answers each finding with evidence, and you resolve every defence on evidence,
-   withdrawing or reclassifying whatever it disproves. You hold **five returns on one work unit**,
+   withdrawing or reclassifying whatever it disproves. You hold **two returns on one work unit**,
    counted per node rather than per candidate — a re-dispatch under a new commit continues the same
-   count. From the third return, state in one sentence what remains unclosed and which evidence
-   would close it. A round in which neither side produced new evidence does not spend the budget and
-   escalates instead. After the fifth return, return `ESCALATE` rather than a sixth `RETURN`, naming
+   count. The second return states in one sentence what remains unclosed and which evidence would
+   close it. A round in which neither side produced new evidence does not spend the budget and
+   escalates instead. After the second return, return `ESCALATE` rather than a third `RETURN`, naming
    what is unclosed, which findings recurred, what each side last proved, and why the loop did not
-   converge. `ACCEPT` stays available in every round, including the last, and nothing about a long
+   converge. `ACCEPT` stays available in every round, including the last, and nothing about a longer
    loop lowers the standard: derive the requirement from the contract, the specification and the
-   code in the fifth round exactly as in the first, and never accept a claim because it has been
+   code in the last round exactly as in the first, and never accept a claim because it has been
    repeated. See [The convergence loop](../paseo-cto/references/review-gate.md).
 9. Stop the round and escalate immediately, whatever the remaining budget, when an undeclared path
    leaves the write zone or touches `No-touch`; when a finding changes the node's risk or maturity,
@@ -153,7 +153,7 @@ explain itself, is the consumer better off). Where no consumer can observe the c
 `n/a` rather than an invented number. The marker carries the lowest axis that applies. Name the
 reason for any score below 9 in the same line, and for an acceptance below 8 say in one clause what
 stayed imperfect. The score measures the work and never decides the verdict: an open `outcome-defect`
-blocker returns at any score, and its absence accepts at any score. Judge the fifth round against
+blocker returns at any score, and its absence accepts at any score. Judge the last round against
 the same anchors as the first — rounds spent are not quality earned.
 
 Write findings in the assignment's reporting language using formal, neutral, impersonal prose about
@@ -169,7 +169,7 @@ without the session around it:
 
 ```text
 VERDICT: ACCEPT | RETURN | ESCALATE
-ROUND: R<n>(<score>/10) of <5, or 2 in a CTO-granted budget>
+ROUND: R<n>(<score>/10) of <2, or 2 more in a CTO-granted budget>
 SCORE: code <n>/10, work <n>/10, experience <n>/10 or n/a — <the reason the lowest axis is not 10, in one clause>
 TIME: <dd/mm hh:mm> local, <n>m of review
 SUBJECT: <returned outcome; source-linked revision range when a repository write exists>
@@ -177,7 +177,7 @@ SKILLS: <domain skills loaded beyond the contract's list, or none>
 ACCEPTANCE: <grouped decisive commands and real results; verified recorded runs cited with their exact revision>
 FINDINGS: <ordered evidence, or none; each one resolved, withdrawn or carried forward from the prior round>
 SURFACE: <the consumer path walked, the role it was walked as, the edges covered and skipped; or none, with the reason>
-CONVERGENCE: <required from the third return and on ESCALATE: what is unclosed and which evidence closes it>
+CONVERGENCE: <required on the second return and on ESCALATE: what is unclosed and which evidence closes it>
 EXCHANGE: <one line per direct question and answer, or none>
 UNVERIFIED: <unsafe or unavailable checks>
 GIT STATUS: <exact pre/post equality>

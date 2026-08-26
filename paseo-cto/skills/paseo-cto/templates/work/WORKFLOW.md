@@ -102,7 +102,7 @@ Every child declares one relation: `required` blocks the parent's closure, `foll
   `dd/mm hh:mm`, taken when the verdict arrived. The reviewer scores every verdict on ten
   points, code and work, and the marker carries the lower of the two; the score measures the work
   and never decides the verdict.
-- The reviewer holds five returns on one unit. After the fifth its verdict is `ESCALATE`, and the
+- The reviewer holds two returns on one unit. After the second its verdict is `ESCALATE`, and the
   CTO decides on the journal in that turn: accept in one of its forms, grant one bounded budget of
   two more returns with an exact acceptance condition, assign an independent replacement reviewer
   inside that budget, split the unit, or name the gate and stop. `escalation_decision` records the

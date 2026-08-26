@@ -32,11 +32,11 @@ generated from the tree: `STATUS.md`, the index of every unit, and `WAVES.md`, o
 its accepted share. Before the first dispatch on a new project or wave, an independent reviewer
 attacks the decomposition; a wave whose work started without that verdict fails the check.
 
-Review depth follows risk. The CTO accepts Routine outcomes, and Significant ones that cannot alter
-product behaviour — tests, documentation, configuration, generated files, mechanical edits — on the
-diff and the author's evidence. Every Significant change to product code, every Critical outcome,
-and anything the CTO authored go to a non-author reviewer with its own falsifier. Every durable
-source reference is pinned to the exact revision.
+Review depth follows risk, but never the performer: every outcome is inspected by a non-author
+reviewer, at Routine on the diff and the author's evidence, at Significant on product code with an
+independently selected falsifier, at Critical with an executable proof of the threatened invariant.
+The CTO classifies, decides and integrates; it does not read a diff in place of a reviewer. Every
+durable source reference is pinned to the exact revision.
 
 Review is not only a diff read. When a card changes a product surface — an API, a CLI, a TUI, an
 interface, an SDK, an event stream — the reviewer walks that surface as its consumer does, and the
@@ -45,16 +45,18 @@ change can break and ordered where they can still change a decision, rather than
 always run.
 
 A delegated review then runs as a loop the reviewer and the author own: a return authorizes the
-rework it names, the author answers every finding with evidence, and the two repeat for up to five
-returns while the CTO relays their material and adjudicates nothing. Every verdict carries a
+rework it names, the author answers every finding with evidence, and the two repeat for up to two
+returns while the CTO relays their material and adjudicates nothing. The CTO never inspects: every
+review at every risk tier is delegated to a non-author reviewer, and the CTO decides on that
+reviewer's evidence. Every verdict carries a
 ten-point score on the code, the work, and — where a consumer can observe the change — the
 experience, and one line per round goes into the node's journal —
 `- R2(5/10) RETURN 25/08 14:20 — finding → answer → what changed`. The score measures the work and
 never decides the verdict; the moment shows what the round cost. Worker returns and chat status
-lines carry the same local `dd/mm hh:mm` stamp. After the fifth return the reviewer escalates, and the CTO decides on that
+lines carry the same local `dd/mm hh:mm` stamp. After the second return the reviewer escalates, and the CTO decides on that
 record — accept, one bounded budget of two more returns, an independent replacement reviewer inside
-that budget, a split, or a named gate. Seven returns is the ceiling. Independence, evidence and the
-non-negotiation rules hold identically in the fifth round and the first.
+that budget, a split, or a named gate. Four returns is the ceiling. Independence, evidence and the
+non-negotiation rules hold identically in the last round and the first.
 
 ## Status reporting
 

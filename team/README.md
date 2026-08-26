@@ -8,7 +8,7 @@ It carries the part of a CTO method that survives without isolated agents: work 
 that can be judged rather than steps, checks sized to the credible consequence of a defect, a check
 that has been seen failing before it counts as evidence, an independent read of the diff before a
 Significant or Critical change lands, a reviewer and an author who converge on the change themselves
-across up to five returns — each verdict scored out of ten on the code, the work and the consumer's
+across up to two returns — each verdict scored out of ten on the code, the work and the consumer's
 experience — a walk of the surface the consumer actually meets, and a
 decision on that record: accept with residue, two more returns, a different reviewer, a split, or
 the named blocker, once the loop stops converging.

@@ -84,9 +84,9 @@ trigger>
 **Current state.** `active` — <where the work actually is, with commit-pinned source links>
 
 **Rounds.** <returns so far on this card, with the latest round marker — `3 — R3(6/10)`; omit until
-there has been one. The reviewer holds five, and a CTO-granted budget adds at most two more>
+there has been one. The reviewer holds two, and a CTO-granted budget adds at most two more>
 
-**Convergence.** <required once Rounds passes five: the decision taken on the escalated record —
+**Convergence.** <required once Rounds passes two: the decision taken on the escalated record —
 accept, accept with residue, the granted two-return budget, an independent replacement reviewer,
 split, or the named gate>
 

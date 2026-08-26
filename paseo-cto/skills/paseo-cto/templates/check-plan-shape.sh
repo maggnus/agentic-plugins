@@ -21,9 +21,9 @@
 #     Maturity says what the card promised to produce, and a landing decision needs both;
 #   - a card declaring Residue also declares its Return condition, so an accepted defect is tracked
 #     rather than remembered;
-#   - a card past the reviewer's five-return budget also declares Convergence, so the decision that
+#   - a card past the reviewer's two-return budget also declares Convergence, so the decision that
 #     extended or ended the loop is visible in the plan and not only in the review, and no card
-#     records more returns than the seven-return ceiling allows;
+#     records more returns than the four-return ceiling allows;
 #   - the acceptance table has a uniform column count and a non-empty time field per row.
 #   - closure and durable-evidence cells are Markdown source links;
 #   - a stable ID cannot exist in both current execution and acceptance history;
@@ -47,8 +47,8 @@ CARD_ID_PATTERN="${CARD_ID_PATTERN:-^[A-Za-z][A-Za-z0-9]*-[0-9][0-9A-Za-z./]*$}"
 RISK_PATTERN="${RISK_PATTERN:-Routine|Significant|Critical|pre-policy}"
 MATURITY_PATTERN="${MATURITY_PATTERN:-RESEARCH|DESIGN|BUILD|OPERATIONALIZATION|pre-policy}"
 # The reviewer's own budget, and the ceiling once the CTO has granted the bounded second budget.
-RETURN_BUDGET="${RETURN_BUDGET:-5}"
-RETURN_CEILING="${RETURN_CEILING:-7}"
+RETURN_BUDGET="${RETURN_BUDGET:-2}"
+RETURN_CEILING="${RETURN_CEILING:-4}"
 BASE_REF="${BASE_REF:-}"
 
 fail=0
@@ -86,7 +86,7 @@ awk -v level="$CARD_HEADING_LEVEL" -v idpat="$CARD_ID_PATTERN" -v risks="$RISK_P
     if (!has_maturity && state != "todo") missing = missing " Maturity"
     # A residue is an accepted defect: without its return condition nobody is tracking it.
     if (has_residue && !has_return_condition) missing = missing " Return-condition (required by Residue)"
-    # Five returns belong to the reviewer; going past them is a CTO decision, recorded in the plan.
+    # Two returns belong to the reviewer; going past them is a CTO decision, recorded in the plan.
     if (rounds > return_budget && !has_convergence)
       missing = missing " Convergence (required above Rounds " return_budget ")"
     if (missing != "") printf "plan shape: card %s (line %d) is missing:%s\n", id, start, missing

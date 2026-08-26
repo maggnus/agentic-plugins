@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "tooling_version": "10.4.0",
-  "tooling_digest": "16e5265ad3ebe59dde7ed88316467d30407dc5766e1ad03b2d4648cba1f6c869",
+  "tooling_version": "10.6.0",
+  "tooling_digest": "49c84ad465bca3fd9330e3091e68bfd441db5097f5a3b5524d7baa73d7269cd3",
   "root_default": "docs/work",
   "kinds": [
     "wave",
@@ -287,7 +287,7 @@
   },
   "limits": {
     "current_state_lines": 5,
-    "review_return_budget": 5,
+    "review_return_budget": 2,
     "escalated_return_budget": 2,
     "review_round_line_chars": 300
   },

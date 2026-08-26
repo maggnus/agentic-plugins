@@ -112,10 +112,11 @@ when both ceilings remain satisfied.
    other writer waits for its acceptance and re-baselines on it.
 4. **A file any participant regenerates deterministically — a lockfile, formatter output, a
    generated index — is not shared ownership**; the CTO regenerates it during integration.
-5. **No free review capacity, no new task — where the depth needs a reviewer.** A returned
-   candidate waiting for a delegated reviewer costs the same as an unstarted atom and ages worse. An
-   outcome the Review gate lets the CTO accept consumes no review slot; it consumes CTO turn time,
-   so unaccepted returns are still cleared before new work starts.
+5. **No free review capacity, no new task.** Every outcome needs a non-author reviewer, so a task
+   admitted without a review slot for it is a candidate that will sit waiting, costing the same as
+   an unstarted atom and ageing worse. Batching homogeneous Routine siblings into one review is how
+   that capacity is stretched; skipping the review is not available. Clear unaccepted returns before
+   starting new work.
 6. **Accepted work integrates and retires immediately.** Refill an available task and agent slot
    only with admissible ready work; conflict cost grows with how long branches sit apart.
 

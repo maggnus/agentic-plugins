@@ -455,19 +455,17 @@ fresh
 expect_pass "a task without a round journal validates" python3 "$work" --root "$tree" check
 
 fresh
-set_field "$tree/$task" review_rounds 3
+set_field "$tree/$task" review_rounds 2
 journal '- R1(3/10) RETURN 25/08 10:00 — importer accepted a malformed row → author added the guard → guard lands
-- R2(6/10) RETURN 25/08 11:00 — negative half never failed → author captured the real exit 1 → proof can fail
-- R3(9/10) ACCEPT 25/08 12:00 — no open outcome-defect remains
+- R2(9/10) ACCEPT 25/08 11:00 — negative half now fails on the broken input; no open outcome-defect remains
 '
 expect_pass "a journal that matches its count validates" python3 "$work" --root "$tree" check
 
 fresh
-set_field "$tree/$task" review_rounds 3
+set_field "$tree/$task" review_rounds 2
 journal '- R1(3/10) RETURN 25/08 10:00 — importer accepted a malformed row → author added the guard → guard lands
-- R2(9/10) ACCEPT 25/08 11:00 — no open outcome-defect remains
 '
-expect_fail "round count disagrees with the journal" "the journal holds 2" \
+expect_fail "round count disagrees with the journal" "the journal holds 1" \
   python3 "$work" --root "$tree" check
 
 fresh
@@ -476,44 +474,35 @@ expect_fail "rounds recorded without a journal" "no 'Review rounds' journal" \
   python3 "$work" --root "$tree" check
 
 fresh
-set_field "$tree/$task" review_rounds 6
+set_field "$tree/$task" review_rounds 3
 journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
 - R2(5/10) RETURN 25/08 11:00 — a → b → c
 - R3(5/10) RETURN 25/08 12:00 — a → b → c
-- R4(5/10) RETURN 25/08 13:00 — a → b → c
-- R5(5/10) RETURN 25/08 14:00 — a → b → c
-- R6(5/10) RETURN 25/08 15:00 — a → b → c
 '
-expect_fail "a sixth return without an escalation decision" "exceed the reviewer's budget of 5" \
+expect_fail "a third return without an escalation decision" "exceed the reviewer's budget of 2" \
   python3 "$work" --root "$tree" check
 
 fresh
-set_field "$tree/$task" review_rounds 6
+set_field "$tree/$task" review_rounds 3
 set_field "$tree/$task" escalation_decision "bounded_retry"
 journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
 - R2(5/10) RETURN 25/08 11:00 — a → b → c
-- R3(5/10) RETURN 25/08 12:00 — a → b → c
-- R4(5/10) RETURN 25/08 13:00 — a → b → c
-- R5(5/10) RETURN 25/08 14:00 — a → b → c
-- CTO bounded_retry 25/08 16:30 — two returns granted; acceptance closes on the reachability proof
-- R6(5/10) RETURN 25/08 15:00 — a → b → c
+- CTO bounded_retry 25/08 12:30 — two returns granted; acceptance closes on the reachability proof
+- R3(5/10) RETURN 25/08 13:00 — a → b → c
 '
-expect_pass "a granted budget extends the loop to six returns" python3 "$work" --root "$tree" check
+expect_pass "a granted budget extends the loop to three returns" python3 "$work" --root "$tree" check
 
 fresh
-set_field "$tree/$task" review_rounds 8
+set_field "$tree/$task" review_rounds 5
 set_field "$tree/$task" escalation_decision "bounded_retry"
 journal '- R1(5/10) RETURN 25/08 10:00 — a → b → c
 - R2(5/10) RETURN 25/08 11:00 — a → b → c
 - R3(5/10) RETURN 25/08 12:00 — a → b → c
 - R4(5/10) RETURN 25/08 13:00 — a → b → c
 - R5(5/10) RETURN 25/08 14:00 — a → b → c
-- R6(5/10) RETURN 25/08 15:00 — a → b → c
-- R7(5/10) RETURN 25/08 16:00 — a → b → c
-- R8(5/10) RETURN 25/08 17:00 — a → b → c
-- CTO bounded_retry 25/08 19:30 — two returns granted
+- CTO bounded_retry 25/08 12:30 — two returns granted
 '
-expect_fail "returns past the ceiling" "the ceiling is 7" python3 "$work" --root "$tree" check
+expect_fail "returns past the ceiling" "the ceiling is 4" python3 "$work" --root "$tree" check
 
 fresh
 set_field "$tree/$task" review_rounds 1

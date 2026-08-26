@@ -81,8 +81,8 @@ a round. Answer every finding with evidence in the same turn as the correction: 
 or defend it with specification, code, tests, measurements, or a reproducible counterexample, and
 say which of the two you did for each. Preserve still-valid proof and add regressions only for
 findings you accepted. A finding you dispute is answered, not silently patched around. The loop runs
-up to five returns and the reviewer escalates after that; a long loop lowers nothing — the same
-acceptance standard and the same false-green discipline apply in the fifth round as in the first.
+up to two returns and the reviewer escalates after that; a longer loop lowers nothing — the same
+acceptance standard and the same false-green discipline apply in the last round as in the first.
 See [The convergence loop](../paseo-cto/references/review-gate.md).
 
 Stop and return to the CTO instead of correcting, whatever the round, when the required correction

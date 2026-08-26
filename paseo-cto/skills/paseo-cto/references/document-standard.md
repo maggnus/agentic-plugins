@@ -31,7 +31,7 @@ section order the schema fixes. Every field below has a home in the tree:
 | Acceptance | `## Acceptance`, as a checklist with its negative half |
 | Validation budget | The contract, or `## Guardrails` when it is a standing limit |
 | Current state | `## Current state`, at most five lines, rewritten rather than appended to |
-| Rounds and convergence | `## Review rounds`, one scored and timestamped line per round (`- R2(5/10) RETURN 25/08 14:20 — …`), plus `review_rounds`; the escalation decision after the fifth return is recorded there and in `escalation_decision` |
+| Rounds and convergence | `## Review rounds`, one scored and timestamped line per round (`- R2(5/10) RETURN 25/08 14:20 — …`), plus `review_rounds`; the escalation decision after the second return is recorded there and in `escalation_decision` |
 | Residue | `## Closure` → `### Residuals`, with `deliberate_partial: true` |
 | Return condition | `return_trigger` |
 

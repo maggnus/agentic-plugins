@@ -22,7 +22,7 @@ Write zone: <exclusive paths>
 No-touch: <paths, operations, other streams, plan/integration/deploy/live boundaries>
 Acceptance: <commands, expected exits/measurements, the negative half with its captured output, what each check catches and what it would pass, why its configuration is one the product reaches, durable artifacts>
 Validation budget: <the affected surfaces this change can break; builder-owned checks chosen to discriminate a defect in them; review depth; one negative half per load-bearing claim; combined-tree composition preflight; integration checks; exact full-suite trigger>
-Review: <apply Review gate for the declared risk; name the review owner — the CTO where the gate lets it accept, otherwise the non-author reviewer>
+Review: <apply Review gate for the declared risk; the reviewer is always a non-author agent, and the risk fixes the depth of its inspection, never who performs it>
 Consumer surface: <only when the card changes one: the surface (API, CLI, TUI, web or mobile interface, SDK, event stream, configuration contract), the consumer role to walk it as, how to reach it in an environment the product reaches, the data or credentials needed, and the edges that matter here; `none` when no consumer can observe the change>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
