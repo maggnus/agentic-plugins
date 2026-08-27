@@ -26,6 +26,44 @@ The phase before the first line of code became its own plugin.
   to: matching manifests, a shared skills directory, `agents/openai.yaml` beside every skill, and one
   resolving marketplace entry.
 
+## v10.8.2 — paseo-cto 10.8.2
+
+Six tooling defects from a field run of 10.8.1 (four nodes, three builders, three reviewers, one
+CTO restart), plus the method changes that run argued for. Nothing in the review gate, the
+pre-dispatch contract check, the builder return, the direct author–reviewer exchange or the ledger's
+sole authorship of events changed — those carried the run.
+
+- **A1 — a short SHA was accepted.** `candidate --commit 0fa0fe80` succeeded, the render then failed,
+  and the node carried a bare SHA against the source-reference rule. *Now:* `--commit` and
+  `--closure-commit` take a 40-character SHA or a commit-pinned URL and refuse anything else before
+  writing; a SHA becomes `<sourceRepository>/commit/<sha>` from the project's settings.
+  *Test:* `test-ledger.sh` A1 — fails on 10.8.1, passes on 10.8.2.
+- **A2 — two decision vocabularies.** `escalate --decision split` wrote a line the validator then
+  rejected. *Now:* one table in `work-schema.json` — `bounded_retry`, `independent_review`,
+  `accept_with_corrections`, `split`, `stop` — each saying whether it extends the loop; the ledger
+  refuses a decision outside it; `review-gate.md` documents the table. *Test:* A2 — fails on 10.8.1.
+- **A3 — the journal limit was enforced after the write.** *Now:* the ledger trims `--finding` and
+  `--reason-text` to the schema limit before writing and says so. *Test:* A3.
+- **A4 — a reviewer's dirty tree blocked FLEET.md for the whole review.** *Now:* uncommitted files in
+  a report-only workspace are a warning; a builder's stay an error. *Test:* `test-plugin-contracts.sh`
+  A4, both cases.
+- **A5 — inventory by directory lost worktree agents** and a restarted CTO dispatched a duplicate.
+  *Now:* `fleet-operations.md` and `paseo-core-commands.md` inventory by the `paseo-cto.run` label
+  and by checkpoint IDs, never by path.
+- **A6 — after a CTO restart the agents' parent pointed at the dead session.** *Now:* resume begins
+  with adoption (`update_agent`, parent = this session) before any dispatch, and the validator's
+  message names that step.
+- **B1 — the deployment window is a resource.** Plan commits queue and push with `[skip ci]` in a
+  quiet window; code merges go one at a time after the previous promotion completes; the window
+  check is a named pre-push step.
+- **B2 — `measurement-gaming` is a finding kind.** Changing how a claim is measured instead of what
+  the product does returns the work; a second such finding against the same author breaks the loop
+  and reassigns the node.
+- **B3 — window expiry is a command.** The author returns a candidate within twenty minutes with
+  `deliberate_partial` declared and the remainder under `UNVERIFIED` and `FINDINGS`.
+- **B4 — the pre-dispatch contract check covers Routine nodes on shared infrastructure**; other
+  Routine nodes keep it optional per settings.
+
 ## v10.8.1 — paseo-cto 10.8.1
 
 Three defects in `ledger.py`, found on its first real day (Qwibi, 27 August 2026), and three small

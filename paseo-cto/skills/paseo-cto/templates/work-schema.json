@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "tooling_version": "10.8.1",
-  "tooling_digest": "88b64fd44c227b55f7ebcdfae528e8cd3391482f6301cf3c73808be99b19bf90",
+  "tooling_version": "10.8.2",
+  "tooling_digest": "83bef15d3a55df37ce3fd6074cb66b1b5553f2baa6069fc3f01ca7722eb7566e",
   "root_default": "docs/work",
   "kinds": [
     "wave",
@@ -333,13 +333,26 @@
     "time_record_field": "historical_time_record",
     "meaning": "An accepted card imported from a pre-tree record may omit started_at, and may omit both accepted_at and closure_commit only when historical_acceptance_metadata_incomplete is explicitly true. That exception requires both fields to be empty, so it records their joint absence in the source rather than permitting an accidental omission. Imported cards are exempt from the wave plan-review gate, because they predate the plan."
   },
-  "escalation_decisions": [
-    "accepted",
-    "accepted_with_residue",
-    "bounded_retry",
-    "independent_review",
-    "split",
-    "gate",
-    "withdrawn"
-  ]
+  "escalation_decisions": {
+    "bounded_retry": {
+      "extends_loop": true,
+      "meaning": "the CTO grants the bounded second budget; the loop resumes with an exact acceptance condition"
+    },
+    "independent_review": {
+      "extends_loop": true,
+      "meaning": "a replacement reviewer inspects inside the granted budget"
+    },
+    "accept_with_corrections": {
+      "extends_loop": false,
+      "meaning": "the outcome lands; named corrections are made before merge and read as a delta"
+    },
+    "split": {
+      "extends_loop": false,
+      "meaning": "the settled part lands; the unresolved part becomes its own node"
+    },
+    "stop": {
+      "extends_loop": false,
+      "meaning": "the gate is named and the node blocks or is withdrawn"
+    }
+  }
 }

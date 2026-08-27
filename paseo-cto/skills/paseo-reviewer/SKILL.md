@@ -135,7 +135,7 @@ observable return trigger. Cite the task file and line for each finding as the s
 evidence. `RETURN` continues the same review after the CTO corrects the tree.
 
 Each finding needs `blocker|major|minor`, its kind (`outcome-defect`, `hypothesis-refinement`,
-`independent-defect`, `additional-work`), source-linked file/line or command evidence, failure
+`independent-defect`, `additional-work`, `measurement-gaming`), source-linked file/line or command evidence, failure
 scenario, and required correction. A finding without a kind makes the report incomplete and cannot
 support a verdict. Only an open `outcome-defect` blocker necessarily forces `RETURN`; a blocker of
 another kind becomes a separate plan child or named gate and cannot return the current card by

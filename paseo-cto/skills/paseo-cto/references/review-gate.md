@@ -60,9 +60,16 @@ it. Sort each finding into exactly one kind before deciding the landing:
 - a defect in **this card's contracted outcome** — the only kind that can force a return;
 - a **refinement of the starting hypothesis** — recorded as a result, not charged as a failure;
 - an **independent product defect** — a proposed plan child, reported precisely and left unfixed;
-- **additional work** the finding implies — a separate card, never absorbed into this one.
+- **additional work** the finding implies — a separate card, never absorbed into this one;
+- **measurement gaming** — the author changed how a claim is measured rather than what the product
+  does: a tightened data limit, a layout that leaves one row visible, a viewport stretched before the
+  reading, a fixture pinned to the current output. It is an `outcome-defect` in the proof, it returns
+  the work, and it is named as its own kind because its second occurrence changes what happens next.
 
 State the kind alongside each finding. No landing decision may use a finding whose kind is unstated.
+A second `measurement-gaming` finding against the same author on one node is a break condition: the
+loop stops, the CTO reassigns the node to a different author, and the record says why. Another round
+with the same author buys a third way to measure, not a corrected product.
 
 ## Common evidence floor
 
@@ -262,9 +269,30 @@ before the builder starts, in five minutes or less, against exactly this list:
 5. Does the write zone overlap a task already running?
 
 The answer is one line: `ACCEPT` or `RETURN` with the item that fails and the correction. The CTO
-corrects and re-issues; this is not a review of the plan and creates no round in any journal. A
-project may switch the check off for `Routine` nodes in its settings; it may not switch it off for
-the tiers above.
+corrects and re-issues; this is not a review of the plan and creates no round in any journal.
+
+The check is required for `Significant` and `Critical`, and for any `Routine` node whose write zone
+touches shared infrastructure — build and test tooling, a shared configuration, a schema, a
+canonical contract, a stand another task uses — because a wrong contract there costs every task that
+shares the surface. For the remaining `Routine` nodes it is optional, and a project's settings say
+which way; the settings may not switch it off for the tiers above.
+
+## Escalation decisions are one vocabulary
+
+The decision the CTO records after an escalation is one of exactly these, and the work-tree schema
+is where the list lives:
+
+| Decision | Extends the loop | Meaning |
+| --- | --- | --- |
+| `bounded_retry` | yes | the bounded second budget is granted with an exact acceptance condition |
+| `independent_review` | yes | a replacement reviewer inspects inside that granted budget |
+| `accept_with_corrections` | no | the outcome lands; the named corrections are read as a delta |
+| `split` | no | the settled part lands; the unresolved part becomes its own node |
+| `stop` | no | the gate is named; the node blocks or is withdrawn |
+
+Only a decision that extends the loop makes a further return legal. A decision that does not extend
+it closes the loop where it stands: a return recorded after `split` or `stop` is an overrun, not a
+round. The ledger refuses a decision outside this table before writing it.
 
 ## The convergence loop
 
@@ -356,6 +384,7 @@ preserved and remains available to whatever the CTO decides.
   record is preserved, and an independent replacement is assigned; never allege coordination without
   a reproducible message or action.
 - A reviewer or author that is unavailable, errored, or no longer independent.
+- A second `measurement-gaming` finding against the same author on this node.
 
 ## Review the surface the consumer meets
 

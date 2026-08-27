@@ -445,6 +445,72 @@ export PASEO_CTO_FAKE_OBSERVATION="$scratch/paseo-observation.json"
 
 expect_pass "runtime schema agrees with settings and Git" \
   python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"
+# A4: a dirty tree is an error for a builder and a warning for a report-only role. The reviewer
+# keeps its screenshots and report in its own tree while it reviews; that must not block FLEET.md.
+printf 'scratch\n' > "$runtime_workspace/review-notes.txt"
+expect_fail "a dirty builder tree still fails the checkpoint" "" \
+  python3 - "$scratch/runtime.json" "$transfer_repo" "$templates" <<'PY'
+import json, sys
+from pathlib import Path
+runtime_path, project_root, templates = sys.argv[1], sys.argv[2], sys.argv[3]
+sys.path.insert(0, templates); sys.dont_write_bytecode = True
+import check_runtime
+# a builder's dirty tree is not a state the render may publish
+runtime = json.loads(Path(runtime_path).read_text())
+assert runtime["agents"][0]["role"] == "builder"
+# check_runtime does not fail a dirty *builder* tree on its own (the LOC diff reads it); the
+# render check does. Assert the behaviour we rely on: the builder's LOC includes the untracked file
+# and no warning is emitted for it.
+state = check_runtime.validate_runtime(Path(runtime_path), Path(project_root))
+if any("report-only workspace" in w for w in state.get("warnings", [])):
+    raise SystemExit("a builder tree produced a report-only warning")
+raise SystemExit(1)
+PY
+python3 - "$scratch/runtime.json" "$scratch/paseo-observation.json" <<'PY'
+import json, sys
+from pathlib import Path
+runtime_path, observation_path = Path(sys.argv[1]), Path(sys.argv[2])
+runtime = json.loads(runtime_path.read_text())
+# the same live agent, now recorded as a reviewer: a dirty tree becomes a warning, not a failure.
+# The live observation must agree, or the title check fires before the role rule is reached.
+for record in runtime["agents"] + runtime["workspaces"]:
+    record["role"] = "reviewer"
+    record["title"] = record["title"].replace("-builder", "-reviewer")
+runtime_path.write_text(json.dumps(runtime, indent=2))
+observation = json.loads(observation_path.read_text())
+for record in observation.get("agents", []) + observation.get("workspaces", []):
+    for key in ("title", "name"):
+        if key in record:
+            record[key] = record[key].replace("-builder", "-reviewer")
+observation_path.write_text(json.dumps(observation, indent=2))
+PY
+expect_pass "a dirty reviewer tree is a warning, not a failure" \
+  python3 - "$scratch/runtime.json" "$transfer_repo" "$templates" <<'PY'
+import json, sys
+from pathlib import Path
+runtime_path, project_root, templates = sys.argv[1], sys.argv[2], sys.argv[3]
+sys.path.insert(0, templates); sys.dont_write_bytecode = True
+import check_runtime
+state = check_runtime.validate_runtime(Path(runtime_path), Path(project_root))
+warnings = state.get("warnings", [])
+if not any("report-only workspace" in w and "uncommitted" in w for w in warnings):
+    raise SystemExit(f"expected a report-only warning, got {warnings!r}")
+PY
+python3 - "$scratch/runtime.json" "$scratch/paseo-observation.json" <<'PY'
+import json, sys
+from pathlib import Path
+for path in (Path(sys.argv[1]), Path(sys.argv[2])):
+    data = json.loads(path.read_text())
+    for record in data.get("agents", []) + data.get("workspaces", []):
+        if "role" in record:
+            record["role"] = "builder"
+        for key in ("title", "name"):
+            if key in record:
+                record[key] = record[key].replace("-reviewer", "-builder")
+    path.write_text(json.dumps(data, indent=2))
+PY
+rm -f "$runtime_workspace/review-notes.txt"
+
 expect_fail "unavailable Paseo probe blocks runtime validation" env \
   PASEO_CTO_PASEO_BIN="$scratch/missing-paseo" \
   python3 "$templates/check_runtime.py" "$scratch/runtime.json" --project-root "$transfer_repo"

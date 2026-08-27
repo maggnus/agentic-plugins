@@ -33,7 +33,12 @@ launch. Use `notifyOnFinish:true`; the heartbeat is the fallback.
 
 ## Routine reconciliation
 
-- Global recovery: `paseo ls --global --label paseo-cto.project=<project> --json`.
+- Global recovery and every inventory:
+  `paseo ls --global --label paseo-cto.project=<project> --label paseo-cto.run=<run> --json`. A
+  listing without `--global` or without the labels is scoped to one directory and does not see
+  worktree agents; it is never the coverage set.
+- Resume: inspect each checkpoint agent by ID with `get_agent_status`, then `update_agent` to adopt
+  live agents whose parent is the previous CTO session, before any dispatch.
 - Workspaces: `list_workspaces`.
 - One agent: `get_agent_status`; recent evidence: `get_agent_activity(limit:10–20)`; bounded CLI
   fallback: `paseo logs <id> --tail 20`.

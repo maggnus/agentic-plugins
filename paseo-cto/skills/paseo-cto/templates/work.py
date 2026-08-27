@@ -32,7 +32,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "10.8.1"
+TOOLING_VERSION = "10.8.2"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -369,7 +369,10 @@ def validate_fields(schema: dict, node: Node) -> list[str]:
         errors.append(f"{node.rel}: unknown plan_review_state {review!r}")
     escalation = node.text("escalation_decision")
     if escalation and escalation not in schema["escalation_decisions"]:
-        errors.append(f"{node.rel}: unknown escalation_decision {escalation!r}")
+        errors.append(
+            f"{node.rel}: unknown escalation_decision {escalation!r}; the vocabulary is "
+            f"{sorted(schema['escalation_decisions'])}"
+        )
 
     for key in schema["timestamp_fields"]:
         value = node.text(key)
@@ -587,10 +590,13 @@ def validate_review_rounds(schema: dict, node: Node) -> list[str]:
             f"{node.rel}: journal entry {line[:40]!r} must start with '- R<n>(<score>/10)' "
             "or '- CTO'"
         )
-    if rounds > budget and escalation not in ("bounded_retry", "independent_review"):
+    extending = sorted(
+        name for name, spec in schema["escalation_decisions"].items() if spec["extends_loop"]
+    )
+    if rounds > budget and escalation not in extending:
         errors.append(
             f"{node.rel}: {rounds} returns exceed the reviewer's budget of {budget}; only a "
-            "recorded escalation_decision of bounded_retry or independent_review extends it. "
+            f"recorded escalation_decision in {extending} extends it. "
             "fix: record the decision and its '- CTO <decision> dd/mm hh:mm — <reason>' line"
         )
     if escalation and decisions:

@@ -281,7 +281,6 @@ def validate_paseo_observation(
             or observed["provider"] != agent["provider"]
             or observed["effort"] != agent["effort"]
             or observed["modeId"] != agent["modeId"]
-            or observed["parentId"] != expected_cto["agentId"]
             or Path(observed["path"]).resolve() != Path(workspace["path"]).resolve()
             or observed["archived"]
             or observed["nativeStatus"] == "closed"
@@ -292,6 +291,13 @@ def validate_paseo_observation(
             )
         ):
             fail(f"runtime agent differs from live Paseo state: {agent['title']}")
+        if observed["parentId"] != expected_cto["agentId"]:
+            fail(
+                f"live agent {agent['title']} names parent {observed['parentId']!r}, not this "
+                f"CTO {expected_cto['agentId']!r}. After a CTO restart the run's agents still "
+                "point at the previous session: adopt them with update_agent (parent = this CTO) "
+                "during resume, matching them by the paseo-cto.run label, not by directory"
+            )
         if live_workspace is None or (
             live_workspace["title"] != workspace["title"]
             or Path(live_workspace["path"]).resolve() != Path(workspace["path"]).resolve()
@@ -565,6 +571,7 @@ def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
         text(event["event"], f"materialEvents[{index}].event", limit=500)
 
     loc_by_title = {}
+    warnings: list[str] = []
     observation = None
     if project_root is not None:
         root = project_root.resolve()
@@ -590,8 +597,15 @@ def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
         for agent in agents:
             workspace = workspace_by_id[agent["workspaceId"]]
             workspace_root = Path(workspace["path"])
-            if agent["role"] != "builder" and git(workspace_root, "status", "--porcelain"):
-                fail(f"report-only workspace is dirty: {agent['title']}")
+            dirty = git(workspace_root, "status", "--porcelain")
+            if dirty and agent["role"] != "builder":
+                # A reviewer keeps its screenshots and report in its own tree while the review
+                # runs; that is not contamination, so it does not block the render. The final
+                # byte-identical porcelain is still required at the reviewer's return.
+                warnings.append(
+                    f"report-only workspace {agent['title']} holds uncommitted files "
+                    f"({len(dirty.splitlines())} paths); required clean at its return"
+                )
             additions = deletions = 0
             if agent["role"] == "builder":
                 for line in git(workspace_root, "diff", "--numstat", agent["baseline"], "--").splitlines():
@@ -613,7 +627,8 @@ def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
         )
 
     return {
-        "runtime": runtime, "settings": settings, "loc": loc_by_title,
+        "runtime": runtime,
+        "warnings": warnings, "settings": settings, "loc": loc_by_title,
         "observation": observation,
     }
 
@@ -630,6 +645,7 @@ def main() -> int:
         return 1
     runtime = state["runtime"]
     print(
+        *(f"runtime check: warning: {item}" for item in state.get("warnings", [])),
         f"runtime check: valid schema 3 with {len(runtime['activeNodes'])} active nodes "
         f"and {len(runtime['agents'])} live agents"
         f"{' verified against Paseo and Git' if args.project_root else ''}"

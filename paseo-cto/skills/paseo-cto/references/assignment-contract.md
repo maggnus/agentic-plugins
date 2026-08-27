@@ -25,6 +25,7 @@ Validation budget: <the affected surfaces this change can break; builder-owned c
 Review: <apply Review gate for the declared risk; the reviewer is always a non-author agent, and the risk fixes the depth of its inspection, never who performs it>
 Consumer surface: <only when the card changes one: the surface (API, CLI, TUI, web or mobile interface, SDK, event stream, configuration contract), the consumer role to walk it as, how to reach it in an environment the product reaches, the data or credentials needed, and the edges that matter here; `none` when no consumer can observe the change>
 Observation: <expected silence/long operations and safe liveness proof>
+Window: <target window; on expiry the author returns a candidate within twenty minutes with deliberate_partial declared and the remainder under UNVERIFIED and FINDINGS>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
 Resources: <shared stands, ports, datastores, shared specification or index files this task touches, each with its mode — consumable or exclusive; `none` when the task shares nothing>
 Return: <the structure in [Builder return](builder-return.md), in full, within the stated character ceiling>

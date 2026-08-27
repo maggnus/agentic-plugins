@@ -64,7 +64,7 @@ fresh() {
   "updatedAt": "2026-08-27T09:00:00+08:00",
   "project": "demo",
   "run": "r1",
-  "settings": {"path": "/tmp/SETTINGS.json", "revision": 1},
+  "settings": {"path": "SETTINGS_PATH", "revision": 1},
   "plugin": {"version": "10.8.0", "commit": "0000000000000000000000000000000000000000"},
   "cto": {},
   "integration": {"branch": "main", "head": "0000000000000000000000000000000000000000"},
@@ -77,6 +77,10 @@ fresh() {
   "materialEvents": []
 }
 JSON
+  cat > "$scratch/SETTINGS.json" <<'JSON'
+{"schema": 4, "sourceRepository": "https://github.com/example/project", "charter": {}}
+JSON
+  sed -i '' "s|SETTINGS_PATH|$scratch/SETTINGS.json|" "$scratch/runtime.json"
 }
 
 ledger() {
@@ -273,6 +277,66 @@ passes=$((passes + 1))
 expect_fail "rendering without a timezone is refused" "timezone is required" \
   python3 "$templates/ledger.py" --checkpoint "$scratch/runtime.json" --work-root "$scratch/work" \
   candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111"
+
+# --- A1: a short SHA is refused; a full SHA becomes a commit-pinned link ------------------------
+fresh
+before=$(field "$node" candidate_commit)
+expect_fail "a short SHA is refused at the door" "neither a 40-character lowercase SHA" \
+  ledger candidate --task "$task" --commit 0fa0fe80
+[ "$(field "$node" candidate_commit)" = "$before" ] || { echo "a refused candidate was written" >&2; exit 1; }
+passes=$((passes + 1))
+expect_pass "a full SHA is accepted" ledger candidate --task "$task" \
+  --commit 0fa0fe80aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+[ "$(field "$node" candidate_commit)" = "$commit_url/0fa0fe80aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ] \
+  || { echo "candidate_commit is not the canonical link: $(field "$node" candidate_commit)" >&2; exit 1; }
+passes=$((passes + 1))
+ledger verdict --task "$task" --verdict ACCEPT --score 9 --finding "clean" > /dev/null
+expect_fail "a short closure SHA is refused too" "neither a 40-character lowercase SHA" \
+  ledger merge --task "$task" --closure-commit 3333333
+expect_pass "a full closure SHA becomes a link" ledger merge --task "$task" \
+  --closure-commit 3333333333333333333333333333333333333333
+[ "$(field "$node" closure_commit)" = "$commit_url/3333333333333333333333333333333333333333" ] \
+  || { echo "closure_commit is not the canonical link" >&2; exit 1; }
+passes=$((passes + 1))
+fresh
+python3 - "$scratch/SETTINGS.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+data = json.loads(open(path, encoding="utf-8").read())
+data.pop("sourceRepository")
+open(path, "w", encoding="utf-8").write(json.dumps(data))
+PY
+expect_fail "a bare SHA without a repository URL names the missing setting" "sourceRepository" \
+  ledger candidate --task "$task" --commit 0fa0fe80aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+# --- A2: the decision vocabulary is one, and it lives in the schema ---------------------------------
+fresh
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+ledger verdict --task "$task" --verdict RETURN --score 4 --finding "first" > /dev/null
+ledger verdict --task "$task" --verdict RETURN --score 4 --finding "second" > /dev/null 2>&1
+expect_fail "an unknown decision is refused before writing" "is not a decision" \
+  ledger escalate --task "$task" --decision postponed --reason-text "later"
+expect_pass "split is a decision the schema knows" \
+  ledger escalate --task "$task" --decision split --reason-text "the settled half lands"
+expect_pass "the tree accepts a split after a spent budget" \
+  python3 "$templates/work.py" --root "$scratch/work" check
+fresh
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+ledger verdict --task "$task" --verdict RETURN --score 4 --finding "first" > /dev/null
+ledger verdict --task "$task" --verdict RETURN --score 4 --finding "second" > /dev/null 2>&1
+ledger escalate --task "$task" --decision split --reason-text "the settled half lands" > /dev/null
+ledger candidate --task "$task" --commit "$commit_url/2222222222222222222222222222222222222222" > /dev/null
+expect_fail "split does not extend the loop: a third return still exceeds the budget" \
+  "exceed the reviewer's budget" \
+  ledger verdict --task "$task" --verdict RETURN --score 4 --finding "third"
+
+# --- A3: an over-long finding is trimmed before it reaches the file ---------------------------------
+fresh
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+long=$(printf 'the harness rebuilt the stand and the measurement window moved %.0s' $(seq 1 12))
+expect_output "the finding is trimmed and the trim is announced" "was trimmed to fit the journal" \
+  ledger verdict --task "$task" --verdict RETURN --score 5 --finding "$long"
+expect_pass "the tree is valid after the trimmed write" python3 "$templates/work.py" --root "$scratch/work" check
 
 # --- B: five defects, one run --------------------------------------------------------------------
 fresh

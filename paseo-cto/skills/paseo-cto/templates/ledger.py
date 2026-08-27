@@ -68,9 +68,13 @@ def load_settings(runtime: dict) -> dict:
     if not path.is_file():
         return {}
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        settings = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
+    # The canonical repository may sit at the top level or under work; either is accepted.
+    if "sourceRepository" not in settings:
+        settings["sourceRepository"] = settings.get("work", {}).get("sourceRepository", "")
+    return settings
 
 
 def load_runtime(path: Path) -> dict:
@@ -222,6 +226,43 @@ def edit_node(node, mutate) -> None:
 
 LINK_RE = worklib.LINK_RE
 URL_RE = re.compile(r"^https?://\S+$")
+FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
+def commit_link(value: str, schema: dict, settings: dict, runtime: dict, what: str) -> str:
+    """Accept a full SHA or a commit-pinned URL; refuse everything else before it is written.
+
+    A short SHA passes a glance and fails the render one step later, and a bare SHA in a node
+    violates the source-reference rule. The canonical repository URL comes from the project's
+    settings (`sourceRepository`) or the checkpoint (`integration.sourceRepository`).
+    """
+    value = value.strip()
+    if re.match(schema["commit_url_pattern"], value):
+        return value
+    if FULL_SHA_RE.fullmatch(value):
+        base = (settings.get("sourceRepository")
+                or runtime.get("integration", {}).get("sourceRepository", "")).rstrip("/")
+        if not base:
+            raise LedgerError(
+                f"{what} {value[:12]} needs the canonical repository URL to become a link; set "
+                "`sourceRepository` in SETTINGS.json (https://<forge>/<owner>/<repo>)"
+            )
+        return f"{base}/commit/{value}"
+    raise LedgerError(
+        f"{what} {value!r} is neither a 40-character lowercase SHA nor a commit-pinned URL; "
+        "a short or abbreviated SHA is refused because the render and the source-reference "
+        "rule both require the full one"
+    )
+
+
+def bounded_line(line: str, limit: int, what: str) -> str:
+    """Trim a journal line to the schema limit before it reaches a file, and say so."""
+    if len(line) <= limit:
+        return line
+    trimmed = worklib.trim_journal_line(line, limit)
+    print(f"ledger: {what} exceeded {limit} characters and was trimmed to fit the journal",
+          file=sys.stderr)
+    return trimmed
 
 
 def evidence_links(values: list[str], candidate: str, label: str) -> list[str]:
@@ -334,6 +375,8 @@ def budget_notice(context, tasks: list[str], *, spent_now: bool = False) -> None
 
 def event_candidate(args, context) -> str:
     runtime, moment = context["runtime"], context["moment"]
+    args.commit = commit_link(args.commit, context["schema"], context["settings"], runtime,
+                              "--commit")
     for task in args.task:
         edit_node(context["nodes"][task], lambda text: ensure_started(set_field(
             set_field(text, "candidate_commit", args.commit), "state", "review"), moment))
@@ -367,7 +410,8 @@ def event_verdict(args, context) -> str:
             detail += f" → {args.answer}"
         if args.changed:
             detail += f" → {args.changed}"
-        line = f"{marker}— {'[delta] ' if args.delta else ''}{detail}"
+        line = bounded_line(f"{marker}— {'[delta] ' if args.delta else ''}{detail}", limit,
+                            f"--finding for {task}")
         state = "accepted" if args.verdict == "ACCEPT" else "rework"
         edit_node(node, lambda text: append_journal(
             ensure_started(
@@ -395,7 +439,14 @@ def event_verdict(args, context) -> str:
 def event_escalate(args, context) -> str:
     runtime, moment, schema = context["runtime"], context["moment"], context["schema"]
     limit = schema["limits"]["review_round_line_chars"]
-    line = f"- CTO {args.decision} {stamp(moment)} — {args.reason}"
+    vocabulary = schema["escalation_decisions"]
+    if args.decision not in vocabulary:
+        raise LedgerError(
+            f"--decision {args.decision!r} is not a decision; the vocabulary is "
+            f"{sorted(vocabulary)}"
+        )
+    line = bounded_line(f"- CTO {args.decision} {stamp(moment)} — {args.reason}", limit,
+                        "--reason-text")
     for task in args.task:
         edit_node(context["nodes"][task], lambda text: append_journal(
             set_field(text, "escalation_decision", args.decision), line, limit))
@@ -448,6 +499,8 @@ def event_merge(args, context) -> str:
     runtime, moment, settings = context["runtime"], context["moment"], context["settings"]
     merge_accepts = bool(settings.get("charter", {}).get("acceptance", {}).get(
         "mergeIsAcceptance", False))
+    args.closure_commit = commit_link(args.closure_commit, context["schema"], settings, runtime,
+                                      "--closure-commit")
     links = evidence_links(args.evidence, "", args.evidence_label)
     for task in args.task:
         node = context["nodes"][task]

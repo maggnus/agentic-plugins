@@ -139,6 +139,40 @@ one. A node that fits no lane is split or queued. If the critical path is one ch
 atoms, the honest concurrency is one task plus off-path work; say so in status instead of
 dispatching overlapping atoms to look busy.
 
+## Inventory by label, never by directory
+
+A directory listing sees the agents whose working directory is the project root. Worktree agents —
+every builder, every reviewer in its own isolated copy — live elsewhere, and a listing scoped to the
+root does not show them even when archived records are included. A CTO that inventories by
+directory after a restart concludes its live builder and reviewer are lost, dispatches a duplicate
+into the same tree, and learns of the collision only when the checkpoint validator refuses the
+state.
+
+Inventory is therefore by the run's own labels and IDs, never by path:
+
+- `paseo ls --global --label paseo-cto.project=<project> --label paseo-cto.run=<run> --json` is
+  the coverage set; a root-scoped listing is not.
+- Every agent ID the checkpoint records is inspected by ID (`get_agent_status`), whatever its
+  directory reports.
+- An agent that the label set holds and the checkpoint does not is an orphan to adopt or retire —
+  never a reason to create another.
+
+## Resume: adopt the run's agents before anything else
+
+A restarted or handed-over CTO is a new session with a new agent ID. The run's live agents still
+carry the previous session as their parent, and the checkpoint validator refuses the state until
+that is corrected — deliberately, because an agent nobody owns is an agent nobody retires.
+
+The first mutation of a resumed session is adoption, before any dispatch:
+
+1. Inventory by the run label as above.
+2. For each live agent of this run whose parent is the previous CTO session, `update_agent` with
+   this session as the parent; record the new parent in the checkpoint's `cto.agentId`.
+3. Re-run the checkpoint validator; only a clean result unlocks dispatch.
+
+A same-run predecessor session is the one parent an agent may legitimately have carried; any other
+parent is a foreign agent and is not adopted.
+
 ## Recovering from an agent-daemon restart
 
 A restart of the agent daemon does not preserve running work. Every agent session and the scheduled
@@ -191,11 +225,34 @@ exit line at the next material event or heartbeat, never by a wait loop inside t
 in-turn spends tokens to learn what one later line states, and blocks every other decision while it
 does. Start long commands detached, record where their exit line will appear, and move on.
 
+When an atom's target window expires with work still open, the CTO does not wait for the next
+reconcile: it instructs the author to return a candidate within a short fixed period — twenty
+minutes is the default — carrying an honest remainder. The return is the ordinary builder return with
+`deliberate_partial` declared, the unachieved part written under `UNVERIFIED` and `FINDINGS`, and no
+claim the candidate does not establish. A partial candidate that states its gap is reviewable and
+landable with residue; a complete candidate that arrives after the window has already cost the
+decision it was meant to inform.
+
 Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
 meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal or background evidence,
 and permission, capacity and external-wait checks. Two such snapshots require a CTO decision in that
 reconcile: narrow, split, reassign, return, expose the gate, or stop. Do not prompt a genuinely
 running turn. For confirmed stalls, preserve Git and workspace state before cancellation.
+
+## The deployment window is a resource
+
+Where a push to the integration branch starts a build and a promotion, the branch is busy for the
+whole window: a promoter that requires its source at exactly the promoted revision fails when a
+later commit — any commit, a plan file included — lands in the middle, and the failure reads as a
+rollback. The window is a shared resource with one owner at a time, and `mainAdvanceWindowMinutes`
+is its length.
+
+- **Plan and documentation commits queue.** They are batched and pushed with `[skip ci]` in a quiet
+  window, never between a code push and the end of its promotion.
+- **Code merges go one at a time.** Before a push, confirm the previous promotion completed; a push
+  into a running window is refused, not retried.
+- **The window check is a named step before every push**, recorded like any other pre-push check.
+  A push made without it is a process finding against the CTO.
 
 ## One heartbeat, one invariant
 
