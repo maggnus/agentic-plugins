@@ -108,13 +108,22 @@ expect_pass "accept" ledger verdict --task "$task" --verdict ACCEPT --score 9 \
   --finding "no open outcome-defect remains" --minutes 11
 expect_pass "merge" ledger merge --task "$task" \
   --closure-commit "$commit_url/3333333333333333333333333333333333333333" \
-  --evidence "[range]($commit_url/3333333333333333333333333333333333333333)" \
+  --evidence "$commit_url/3333333333333333333333333333333333333333" \
   --accepted "The boundary rejects an unauthorized caller." --minutes 6
-expect_pass "retire" ledger retire --task "$task"
-expect_pass "the tree is valid after six calls" python3 "$templates/work.py" --root "$scratch/work" check
+# Defect 1: merging integrates; it does not accept on the owner's behalf.
+[ "$(field "$node" state)" = "review" ] || { echo "merge changed state to $(field "$node" state), want review" >&2; exit 1; }
+[ -z "$(field "$node" accepted_at)" ] || { echo "merge filled accepted_at" >&2; exit 1; }
+expect_pass "the tree is valid after merge" python3 "$templates/work.py" --root "$scratch/work" check
+expect_pass "accept" ledger accept --task "$task"
 [ "$(field "$node" state)" = "accepted" ] || { echo "state was not accepted" >&2; exit 1; }
+[ -n "$(field "$node" accepted_at)" ] || { echo "accept left accepted_at empty" >&2; exit 1; }
 [ "$(field "$node" review_rounds)" = "2" ] || { echo "rounds were not recorded" >&2; exit 1; }
 passes=$((passes + 1))
+expect_pass "retire" ledger retire --task "$task"
+expect_pass "the tree is valid after the cycle" python3 "$templates/work.py" --root "$scratch/work" check
+# Defect 2: a bare URL becomes one Markdown link the validator accepts.
+expect_output "evidence is a single Markdown link" '^evidence:$' cat "$scratch/work/$node"
+expect_output "the link carries the candidate caption" '  - \[Candidate 222222222222\](' cat "$scratch/work/$node"
 
 # the checkpoint migrated itself and kept the accounting
 expect_output "checkpoint migrated to schema 3" '"schema": 3' cat "$scratch/runtime.json"
@@ -132,8 +141,14 @@ expect_output "a delta round is journalled" '\[delta\]' cat "$scratch/work/$node
 fresh
 ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
 ledger verdict --task "$task" --verdict RETURN --score 4 --finding "first" --minutes 9 > /dev/null
-expect_output "the ledger warns when the budget is spent" "the next verdict is ESCALATE" \
+expect_output "the ledger warns when the budget is spent" "returns spent 2/2: next verdict is ESCALATE" \
   ledger verdict --task "$task" --verdict RETURN --score 4 --finding "second" --minutes 9
+expect_output "the next candidate repeats the warning" "returns spent 2/2" \
+  ledger candidate --task "$task" --commit "$commit_url/7777777777777777777777777777777777777777"
+expect_pass "a bounded retry is recorded before the next round" \
+  ledger escalate --task "$task" --decision bounded_retry --reason-text "acceptance closes on the reachability proof"
+expect_pass "the third return is legal after the decision" \
+  ledger verdict --task "$task" --verdict RETURN --score 5 --finding "third" --reset-from 1 --minutes 9
 
 # --- F: a batch of three nodes moves in one set of calls -------------------------------------------
 fresh
@@ -150,6 +165,7 @@ expect_pass "batch accept" ledger verdict --task "$a" --task "$b" --task "$c" --
   --score 9 --finding "all three nodes seed and render" --minutes 8
 expect_pass "batch merge" ledger merge --task "$a" --task "$b" --task "$c" \
   --closure-commit "$commit_url/6666666666666666666666666666666666666666" --minutes 5
+expect_pass "batch accept" ledger accept --task "$a" --task "$b" --task "$c"
 expect_pass "batch retire" ledger retire --task "$a" --task "$b" --task "$c"
 for id in "$a" "$b" "$c"; do
   path=$(python3 - "$scratch/work" "$id" <<'PY'
@@ -178,6 +194,85 @@ expect_fail "second task on an exclusive resource stops" "is held by" \
   ledger dispatch --task W1-LF-04b --resource local-stand
 expect_pass "an acknowledged overlap is recorded" ledger dispatch --task W1-LF-04b \
   --resource local-stand --acknowledge
+
+# --- Defect 2: several evidence links, and an invalid one refused -----------------------------
+fresh
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+ledger verdict --task "$task" --verdict ACCEPT --score 9 --finding "clean" > /dev/null
+expect_pass "merge with two evidence links" ledger merge --task "$task" \
+  --closure-commit "$commit_url/3333333333333333333333333333333333333333" \
+  --evidence "$commit_url/3333333333333333333333333333333333333333" \
+  --evidence "[review report](https://example.com/reports/1)"
+expect_output "front matter carries the first link only" '^  - \[Candidate 111111111111\](' cat "$scratch/work/$node"
+count=$(sed -n '/^### Evidence/,/^## /p' "$scratch/work/$node" | grep -c '^- \[')
+[ "$count" = "2" ] || { echo "Closure › Evidence holds $count links, want 2" >&2; exit 1; }
+passes=$((passes + 1))
+expect_pass "the tree is valid with two links" python3 "$templates/work.py" --root "$scratch/work" check
+fresh
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+expect_fail "an evidence value that is neither URL nor link is refused" "neither a URL nor a Markdown link" \
+  ledger merge --task "$task" --closure-commit "$commit_url/3333333333333333333333333333333333333333" \
+  --evidence "see the report"
+expect_pass "the refused merge wrote nothing" python3 "$templates/work.py" --root "$scratch/work" check
+[ "$(field "$node" state)" = "review" ] || { echo "a refused merge changed state" >&2; exit 1; }
+passes=$((passes + 1))
+
+# --- Defect 1: a project may declare that merging is accepting ----------------------------------
+fresh
+cat > "$scratch/SETTINGS.json" <<'JSON'
+{"schema": 4, "charter": {"acceptance": {"mergeIsAcceptance": true}}}
+JSON
+python3 - "$scratch/runtime.json" "$scratch/SETTINGS.json" <<'PY'
+import json, sys
+path, settings = sys.argv[1], sys.argv[2]
+data = json.loads(open(path, encoding="utf-8").read())
+data["settings"]["path"] = settings
+open(path, "w", encoding="utf-8").write(json.dumps(data, indent=2))
+PY
+ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111" > /dev/null
+ledger verdict --task "$task" --verdict ACCEPT --score 9 --finding "clean" > /dev/null
+expect_pass "merge under mergeIsAcceptance" ledger merge --task "$task" \
+  --closure-commit "$commit_url/3333333333333333333333333333333333333333"
+[ "$(field "$node" state)" = "accepted" ] || { echo "mergeIsAcceptance did not accept" >&2; exit 1; }
+passes=$((passes + 1))
+
+# --- 5: a batch verdict may carry one node's own finding ----------------------------------------
+fresh
+ledger candidate --task "$a" --task "$b" --commit "$commit_url/4444444444444444444444444444444444444444" > /dev/null
+expect_pass "batch verdict with a per-node finding" ledger verdict --task "$a" --task "$b" \
+  --verdict RETURN --score 5 --finding "seed rows missing" \
+  --task-finding "$b=index page omits the new entry"
+expect_output "the shared finding reached the first node" "seed rows missing" \
+  cat "$scratch/work/waves/W1/W1-LF-04/tasks/W1-LF-04c/subtasks/W1-LF-04c.1.md"
+expect_output "the node-specific finding reached the second" "index page omits the new entry" \
+  cat "$scratch/work/waves/W1/W1-LF-04/tasks/W1-LF-04c/subtasks/W1-LF-04c.2.md"
+expect_fail "a per-node finding for a task outside the batch is refused" "must read <task>=<finding>" \
+  ledger verdict --task "$a" --verdict RETURN --score 5 --finding "x" --task-finding "W9-XX-99a=y"
+
+# --- 6: the event prints one result line per node --------------------------------------------------
+fresh
+expect_output "the result names state, round and candidate" "W1-LF-04a: review · R0 · candidate 111111111111" \
+  ledger candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111"
+
+# --- Defect 3: a missing renderer is an error, never a skip ------------------------------------------
+fresh
+mkdir -p "$scratch/tools"
+cp "$templates/ledger.py" "$templates/work.py" "$templates/work-schema.json" "$scratch/tools/"
+render_missing() {
+  HOME="$scratch/nohome" python3 "$scratch/tools/ledger.py" --checkpoint "$scratch/runtime.json" \
+    --work-root "$scratch/work" --timezone HKT candidate --task "$task" \
+    --commit "$commit_url/1111111111111111111111111111111111111111"
+}
+expect_fail "no renderer beside the tooling and none installed is an error" \
+  "render_fleet.py is not in" render_missing
+if grep -q "skipped" "$scratch/output"; then
+  echo "ledger test: a missing renderer was reported as skipped" >&2
+  exit 1
+fi
+passes=$((passes + 1))
+expect_fail "rendering without a timezone is refused" "timezone is required" \
+  python3 "$templates/ledger.py" --checkpoint "$scratch/runtime.json" --work-root "$scratch/work" \
+  candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111"
 
 # --- B: five defects, one run --------------------------------------------------------------------
 fresh

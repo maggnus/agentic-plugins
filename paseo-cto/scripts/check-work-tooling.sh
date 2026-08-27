@@ -44,9 +44,17 @@ if [ ! -f "$project_schema" ]; then
 fi
 
 # Run version check
-if [ ! -f "$project_ledger" ]; then
-    echo "FAIL: ledger.py not found at $project_ledger" >&2
-    echo "Run: cp paseo-cto/skills/paseo-cto/templates/ledger.py $project_ledger" >&2
+# Everything ledger.py and the check-*.sh scripts call must live beside work.py: a copy that
+# lacks one of these renders nothing and validates nothing until someone finds out why.
+missing=""
+for tool in ledger.py render_fleet.py check_runtime.py check-fleet-render.sh; do
+    [ -f "$work_root/scripts/$tool" ] || missing="$missing $tool"
+done
+if [ -n "$missing" ]; then
+    echo "FAIL: tooling incomplete in $work_root/scripts:$missing" >&2
+    for tool in $missing; do
+        echo "Run: cp paseo-cto/skills/paseo-cto/templates/$tool $work_root/scripts/$tool" >&2
+    done
     exit 1
 fi
 

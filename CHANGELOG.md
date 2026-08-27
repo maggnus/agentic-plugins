@@ -26,6 +26,39 @@ The phase before the first line of code became its own plugin.
   to: matching manifests, a shared skills directory, `agents/openai.yaml` beside every skill, and one
   resolving marketplace entry.
 
+## v10.8.1 — paseo-cto 10.8.1
+
+Three defects in `ledger.py`, found on its first real day (Qwibi, 27 August 2026), and three small
+additions in the same patch. Nothing in the review gate or the owner gates changed.
+
+- **Defect 1 — `merge` accepted on the owner's behalf.** After `merge` a node carried
+  `state: accepted` and a filled `accepted_at`, although landing on the integration branch is
+  integration and the owner's acceptance is a separate pass. *Now:* `merge` records
+  `closure_commit` and the evidence and leaves the node in `review`; a new `accept` event sets
+  `accepted` and `accepted_at` from the clock, with `--task` repeatable for a batch; a project where
+  merging is accepting sets `acceptance.mergeIsAcceptance: true`. *Accepted:* after `merge` the
+  state is `review` and `accepted_at` is empty; after `accept` both are set; `work check` is green in
+  both states.
+- **Defect 2 — `merge --evidence` broke the front matter.** A bare URL was written as a list item
+  the validator cannot read, and every later check refused the file until it was edited by hand.
+  *Now:* `--evidence` accepts a URL — captioned `Candidate <short-sha>` or `--evidence-label` — or a
+  ready Markdown link, and is repeatable: the first link goes into the front matter, all of them into
+  `Closure › Evidence`. A value that is neither is refused before anything is written. *Accepted:*
+  clean front matter with one and with two links; the invalid value fails with a message and no
+  file changes.
+- **Defect 3 — the fleet render was silently skipped.** The tooling copy lacked `render_fleet.py`
+  and `check_runtime.py`, and the ledger printed `fleet render skipped`. *Now:* a missing renderer
+  is an error with a non-zero exit; the ledger looks beside itself first, then in the installed
+  plugin at the checkpoint's `plugin.version` and says where it took the script from;
+  `check-work-tooling.sh` requires the whole set. *Accepted:* on a complete copy `candidate` ends in
+  a written `FLEET.md`; on a missing renderer the command fails and the word "skipped" never appears.
+- `candidate` and `verdict` say `returns spent 2/2: next verdict is ESCALATE unless
+  bounded_retry/independent_review is recorded` while the next round can still be planned, and
+  `escalate --decision bounded_retry` is accepted before that round.
+- `verdict --task-finding <task>=<text>` gives one node of a batch its own journal line.
+- Every event prints one result line per touched node — state, round, candidate, head — so the CTO
+  reads the outcome instead of the files.
+
 ## v10.8.0 — paseo-cto 10.8.0
 
 Bookkeeping moved from the CTO's turns into a command, and the round loop lost its avoidable latency.

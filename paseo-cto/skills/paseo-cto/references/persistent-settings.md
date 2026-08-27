@@ -35,6 +35,7 @@ The minimum schema is:
     },
     "resourcePolicy": { "defaultMode": "exclusive|consumable", "consumable": ["<resource id>"] },
     "contractCheck": { "significant": true, "critical": true, "routine": false },
+    "acceptance": { "mergeIsAcceptance": false },
     "mainAdvanceWindowMinutes": 0
     },
     "permissionPolicy": "full-access-writers",
@@ -66,7 +67,10 @@ its ports, a datastore, a storefront, a shared specification or index file. `exc
 default: a second task on a held resource stops for a decision. Naming a resource under `consumable`
 records the owner's judgement that rebuilding it under another task is acceptable and no waiting is
 required. `contractCheck` switches the pre-dispatch contract check per risk tier; it may be false
-for `routine` and not for the tiers above. `mainAdvanceWindowMinutes` is how long a release build
+for `routine` and not for the tiers above. `acceptance.mergeIsAcceptance` is false by default: merging a candidate into the integration
+branch records its closure commit and leaves the node in `review` until the owner accepts, which
+`ledger.py accept` records. A project where landing on the branch is the acceptance sets it to
+true, and `merge` then does both. `mainAdvanceWindowMinutes` is how long a release build
 takes, so a heartbeat can say that pushes to the integration branch are arriving faster than that
 window and are starving the automatic advance; zero disables the warning.
 The range syntax is inclusive and uses exact tier IDs from the provider's ordered catalog, for

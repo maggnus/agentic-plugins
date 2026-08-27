@@ -45,7 +45,10 @@
       "critical": true,
       "routine": false
     },
-    "mainAdvanceWindowMinutes": 0
+    "mainAdvanceWindowMinutes": 0,
+    "acceptance": {
+      "mergeIsAcceptance": false
+    }
   },
   "work": {
     "root": "docs/work",

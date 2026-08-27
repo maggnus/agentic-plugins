@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -58,6 +59,18 @@ def stamp(moment: datetime) -> str:
 
 def iso(moment: datetime) -> str:
     return moment.isoformat(timespec="seconds")
+
+
+def load_settings(runtime: dict) -> dict:
+    """The project's SETTINGS.json, reached through the checkpoint; absent settings mean defaults."""
+    reference = runtime.get("settings", {})
+    path = Path(str(reference.get("path", "")))
+    if not path.is_file():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
 
 
 def load_runtime(path: Path) -> dict:
@@ -207,6 +220,52 @@ def edit_node(node, mutate) -> None:
 # ------------------------------------------------------------------------------------------
 
 
+LINK_RE = worklib.LINK_RE
+URL_RE = re.compile(r"^https?://\S+$")
+
+
+def evidence_links(values: list[str], candidate: str, label: str) -> list[str]:
+    """Turn each --evidence into one Markdown link the validator accepts, or refuse it.
+
+    A bare URL gets a caption built from the candidate; a ready link passes through; anything else
+    is a mistake to report before it reaches a file, because a broken front matter blocks every
+    later check until someone edits it by hand.
+    """
+    links = []
+    for value in values:
+        value = value.strip()
+        if LINK_RE.fullmatch(value):
+            links.append(value)
+            continue
+        if URL_RE.fullmatch(value):
+            short = candidate.rsplit("/", 1)[-1][:12] if candidate else "commit"
+            caption = label or f"Candidate {short}"
+            links.append(f"[{caption}]({value})")
+            continue
+        raise LedgerError(
+            f"--evidence {value!r} is neither a URL nor a Markdown link; write it as "
+            "https://… or [caption](https://…)"
+        )
+    return links
+
+
+def node_summary(context, tasks: list[str]) -> list[str]:
+    """One line per touched node, so the CTO reads the result instead of the files."""
+    schema = context["schema"]
+    fresh = load_nodes(schema, context["work_root"])
+    head = context["runtime"].get("integration", {}).get("head", "")[:12] or "—"
+    lines = []
+    for task in tasks:
+        node = fresh.get(task)
+        if node is None:
+            lines.append(f"  {task}: retired · head {head}")
+            continue
+        rounds = node.integer("review_rounds") or 0
+        candidate = node.text("candidate_commit").rsplit("/", 1)[-1][:12] or "—"
+        lines.append(f"  {task}: {node.state} · R{rounds} · candidate {candidate} · head {head}")
+    return lines
+
+
 def event_dispatch(args, context) -> str:
     runtime, moment = context["runtime"], context["moment"]
     for task in args.task:
@@ -250,6 +309,29 @@ def claim_resources(runtime: dict, resources: list[str], task: str, acknowledged
     return ""
 
 
+def budget_notice(context, tasks: list[str], *, spent_now: bool = False) -> None:
+    """Say the budget is spent while the next round can still be planned.
+
+    `spent_now` counts the return being written in this call. The notice names the two decisions
+    that extend the loop, because recording one of them *before* the next round is what makes it
+    legal; recording it afterwards only documents an overrun.
+    """
+    schema = context["schema"]
+    budget = schema["limits"]["review_return_budget"]
+    for task in tasks:
+        node = context["nodes"][task]
+        if node.text("escalation_decision"):
+            continue
+        spent = (node.integer("review_rounds") or 0) + (1 if spent_now else 0)
+        if spent >= budget:
+            print(
+                f"ledger: {task}: returns spent {spent}/{budget}: next verdict is ESCALATE "
+                "unless bounded_retry/independent_review is recorded — "
+                "`ledger.py escalate --decision bounded_retry` before the next round",
+                file=sys.stderr,
+            )
+
+
 def event_candidate(args, context) -> str:
     runtime, moment = context["runtime"], context["moment"]
     for task in args.task:
@@ -261,19 +343,26 @@ def event_candidate(args, context) -> str:
             agent["candidate"] = args.commit.rsplit("/", 1)[-1]
             agent["derivedStatus"] = "reviewing"
             agent["stateSince"] = iso(moment)
+    budget_notice(context, args.task)
     return f"candidate {args.commit.rsplit('/', 1)[-1][:12]} on {' '.join(args.task)}"
 
 
 def event_verdict(args, context) -> str:
     runtime, moment, schema = context["runtime"], context["moment"], context["schema"]
     limit = schema["limits"]["review_round_line_chars"]
+    per_task = {}
+    for item in args.task_finding:
+        task_id, sep, text = item.partition("=")
+        if not sep or task_id not in args.task:
+            raise LedgerError(f"--task-finding {item!r} must read <task>=<finding> for a task in --task")
+        per_task[task_id] = text
     for task in args.task:
         node = context["nodes"][task]
         rounds = (node.integer("review_rounds") or 0) + 1
         marker = f"- R{rounds}({args.score}/10) {args.verdict} {stamp(moment)} "
         if args.reset_from:
             marker += f"[reset R{args.reset_from}] "
-        detail = args.finding
+        detail = per_task.get(task, args.finding)
         if args.answer:
             detail += f" → {args.answer}"
         if args.changed:
@@ -298,16 +387,7 @@ def event_verdict(args, context) -> str:
         if agent["task"] in args.task:
             agent["derivedStatus"] = "rework" if args.verdict == "RETURN" else "reviewing"
             agent["stateSince"] = iso(moment)
-    budget = schema["limits"]["review_return_budget"]
-    for task in args.task:
-        spent = context["nodes"][task].integer("review_rounds") or 0
-        spent += 1
-        if args.verdict == "RETURN" and not args.delta and spent >= budget:
-            print(
-                f"ledger: {task} has spent the reviewer's budget of {budget} returns; the next "
-                "verdict is ESCALATE and the decision is the CTO's",
-                file=sys.stderr,
-            )
+    budget_notice(context, args.task, spent_now=args.verdict == "RETURN" and not args.delta)
     delta = " (delta)" if args.delta else ""
     return f"{args.verdict}{delta} R{args.score}/10 on {' '.join(args.task)}"
 
@@ -360,29 +440,63 @@ def subsection(text: str, heading: str, body: str) -> str:
 
 
 def event_merge(args, context) -> str:
-    runtime, moment = context["runtime"], context["moment"]
+    """Integration: the candidate is on the integration branch and waits for acceptance.
+
+    Merging is not accepting. Unless the project's settings say the two coincide, the node stays
+    `review` with its closure commit recorded, and `accept` moves it on when the owner does.
+    """
+    runtime, moment, settings = context["runtime"], context["moment"], context["settings"]
+    merge_accepts = bool(settings.get("charter", {}).get("acceptance", {}).get(
+        "mergeIsAcceptance", False))
+    links = evidence_links(args.evidence, "", args.evidence_label)
     for task in args.task:
+        node = context["nodes"][task]
+        candidate = node.text("candidate_commit")
+        links = evidence_links(args.evidence, candidate, args.evidence_label)
+
         def mutate(text: str) -> str:
-            text = set_field(text, "state", "accepted")
-            text = set_field(text, "accepted_at", iso(moment))
             text = set_field(text, "closure_commit", args.closure_commit)
-            text = set_list_field(text, "evidence", [args.evidence or "Git"])
-            if args.residue:
-                text = set_field(text, "deliberate_partial", "true")
-                text = set_field(text, "return_trigger", args.return_trigger)
-                text = subsection(text, "Residuals", f"- {args.residue}")
-            else:
-                text = close_acceptance(text)
+            text = set_list_field(text, "evidence", [links[0] if links else "Git"])
+            text = subsection(text, "Evidence", "\n".join(f"- {link}" for link in links) or "- Git")
             if args.accepted:
                 text = subsection(text, "Accepted outcome", args.accepted)
-            evidence_line = args.evidence or "Git"
-            return subsection(text, "Evidence", f"- {evidence_line}")
-        edit_node(context["nodes"][task], mutate)
+            if merge_accepts:
+                text = accept_text(text, moment, args)
+            else:
+                text = set_field(text, "state", "review")
+            return text
+        edit_node(node, mutate)
         for record in (active_node(runtime, task)["accounting"], totals(runtime)):
             record["roleMinutes"]["cto"] = record["roleMinutes"].get("cto", 0) + args.minutes
     if args.head:
         runtime.setdefault("integration", {})["head"] = args.head
-    return f"merged {' '.join(args.task)}"
+    verb = "merged and accepted" if merge_accepts else "merged"
+    return f"{verb} {' '.join(args.task)}"
+
+
+def accept_text(text: str, moment: datetime, args) -> str:
+    text = set_field(text, "state", "accepted")
+    text = set_field(text, "accepted_at", iso(moment))
+    residue = getattr(args, "residue", "")
+    if residue:
+        text = set_field(text, "deliberate_partial", "true")
+        text = set_field(text, "return_trigger", getattr(args, "return_trigger", ""))
+        text = subsection(text, "Residuals", f"- {residue}")
+    else:
+        text = close_acceptance(text)
+    return text
+
+
+def event_accept(args, context) -> str:
+    """The owner accepted the integrated outcome; the node becomes `accepted` from the clock."""
+    moment = context["moment"]
+    for task in args.task:
+        node = context["nodes"][task]
+        if not node.text("closure_commit"):
+            raise LedgerError(f"{task} has no closure_commit; merge it before accepting it")
+        edit_node(node, lambda text: accept_text(text, moment, args))
+        active_node(context["runtime"], task)
+    return f"accepted {' '.join(args.task)}"
 
 
 def event_retire(args, context) -> str:
@@ -404,6 +518,7 @@ EVENTS = {
     "escalate": event_escalate,
     "block": event_block,
     "merge": event_merge,
+    "accept": event_accept,
     "retire": event_retire,
 }
 
@@ -425,16 +540,57 @@ def regenerate(schema: dict, work_root: Path) -> list[str]:
     return []
 
 
-def render_fleet(args) -> str:
+def locate_tool(name: str, runtime: dict) -> Path:
+    """Find a plugin script beside this file, or in the installed plugin the checkpoint names.
+
+    The project copy is authoritative when it exists. When the copy is missing, the installed
+    plugin at the checkpoint's `plugin.version` is used and the choice is reported, so a run never
+    depends on which host happened to be current. A script found nowhere is an error, not a skip.
+    """
+    local = SCRIPT_DIR / name
+    if local.is_file():
+        return local
+    version = runtime.get("plugin", {}).get("version", "")
+    candidates = []
+    home = Path.home()
+    for root in (
+        home / ".claude/plugins/marketplaces/maggnus/paseo-cto/skills/paseo-cto/templates",
+        home / ".codex/plugins/marketplaces/maggnus/paseo-cto/skills/paseo-cto/templates",
+    ):
+        candidate = root / name
+        if candidate.is_file():
+            candidates.append(candidate)
+    for candidate in candidates:
+        manifest = candidate.parents[3] / ".claude-plugin/plugin.json"
+        try:
+            installed = json.loads(manifest.read_text(encoding="utf-8")).get("version", "")
+        except (OSError, ValueError):
+            installed = ""
+        if not version or installed == version:
+            print(f"ledger: {name} taken from the installed plugin at {candidate.parent}",
+                  file=sys.stderr)
+            return candidate
+    raise LedgerError(
+        f"{name} is not in {SCRIPT_DIR} and no installed plugin at version {version or '?'} "
+        f"provides it; copy it from the plugin's templates directory beside work.py"
+    )
+
+
+def render_fleet(args, runtime: dict) -> str:
+    """Render FLEET.md through the plugin renderer; a render that cannot run fails the event."""
+    renderer = locate_tool("render_fleet.py", runtime)
+    locate_tool("check_runtime.py", runtime)
+    locate_tool("check-fleet-render.sh", runtime)
     command = [
-        sys.executable, str(SCRIPT_DIR / "render_fleet.py"), str(args.checkpoint),
+        sys.executable, str(renderer), str(args.checkpoint),
         "--project-root", str(args.project_root), "--work-root", str(args.work_root),
         "--timezone", args.timezone,
     ]
     result = subprocess.run(command, capture_output=True, text=True)
-    return result.stdout.strip() if result.returncode == 0 else (
-        f"fleet render skipped: {result.stderr.strip().splitlines()[-1] if result.stderr else 'failed'}"
-    )
+    if result.returncode != 0:
+        detail = result.stderr.strip().splitlines()[-1] if result.stderr.strip() else "failed"
+        raise LedgerError(f"fleet render failed: {detail}")
+    return result.stdout.strip()
 
 
 def main() -> int:
@@ -475,6 +631,8 @@ def main() -> int:
     verdict.add_argument("--verdict", required=True, choices=("ACCEPT", "RETURN", "ESCALATE"))
     verdict.add_argument("--score", required=True, type=int, choices=range(1, 11))
     verdict.add_argument("--finding", required=True)
+    verdict.add_argument("--task-finding", action="append", default=[],
+                         help="<task>=<finding> for one node of a batch; repeatable")
     verdict.add_argument("--answer", default="")
     verdict.add_argument("--changed", default="")
     verdict.add_argument("--delta", action="store_true")
@@ -490,11 +648,17 @@ def main() -> int:
 
     merge = common("merge")
     merge.add_argument("--closure-commit", required=True)
-    merge.add_argument("--evidence", default="")
+    merge.add_argument("--evidence", action="append", default=[],
+                       help="a URL, or a ready [caption](url); repeatable")
+    merge.add_argument("--evidence-label", default="")
     merge.add_argument("--accepted", default="")
     merge.add_argument("--residue", default="")
     merge.add_argument("--return-trigger", default="")
     merge.add_argument("--head")
+
+    accept = common("accept")
+    accept.add_argument("--residue", default="")
+    accept.add_argument("--return-trigger", default="")
 
     common("retire")
 
@@ -507,8 +671,11 @@ def main() -> int:
         for task in args.task:
             if task not in nodes and args.event != "retire":
                 raise LedgerError(f"{task} is not a node in {args.work_root}")
-        context = {"runtime": runtime, "moment": moment, "nodes": nodes, "schema": schema}
+        settings = load_settings(runtime)
+        context = {"runtime": runtime, "moment": moment, "nodes": nodes, "schema": schema,
+                   "settings": settings, "work_root": args.work_root}
         description = EVENTS[args.event](args, context)
+        summary = node_summary(context, args.task)
         record_event(runtime, moment, description)
         save_runtime(args.checkpoint, runtime, moment)
         errors = regenerate(schema, args.work_root)
@@ -519,8 +686,18 @@ def main() -> int:
         return 1
 
     print(f"ledger: {description} at {stamp(moment)}")
-    if not args.no_fleet and args.timezone:
-        print(f"ledger: {render_fleet(args)}")
+    for line in summary:
+        print(line)
+    if not args.no_fleet:
+        if not args.timezone:
+            print("ledger: --timezone is required to render FLEET.md (or pass --no-fleet)",
+                  file=sys.stderr)
+            return 1
+        try:
+            print(f"ledger: {render_fleet(args, runtime)}")
+        except LedgerError as error:
+            print(f"ledger: {error}", file=sys.stderr)
+            return 1
     check = subprocess.run(
         [sys.executable, str(SCRIPT_DIR / "work.py"), "--root", str(args.work_root),
          "--schema", str(args.schema), "check", "--fix"],

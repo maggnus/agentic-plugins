@@ -146,7 +146,13 @@ not reset the start.
 ## The ledger writes the events
 
 `templates/ledger.py`, copied beside `work.py`, performs each lifecycle event as one call:
-`dispatch`, `candidate`, `verdict`, `merge`, `retire`, `block`, `escalate`. It writes the runtime
+`dispatch`, `candidate`, `verdict`, `merge`, `accept`, `retire`, `block`, `escalate`. `merge`
+records integration — the closure commit and the evidence, the node staying `review` — and
+`accept` records the owner's acceptance from the clock; a project whose merge *is* its acceptance
+says so with `acceptance.mergeIsAcceptance` in its settings, and then `merge` does both. The
+project's tooling directory carries the whole set the ledger calls — `work.py`,
+`work-schema.json`, `ledger.py`, `render_fleet.py`, `check_runtime.py`, `check-fleet-render.sh` —
+and a render that cannot run fails the event rather than being skipped. It writes the runtime
 checkpoint, the node front matter and sections, the round journal line in the required shape and
 length, the generated index, and the fleet render, then prints the validator's result. `--task` may
 be repeated, which is how a batch writes one round and one closure into every node it covers.

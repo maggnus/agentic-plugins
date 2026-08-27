@@ -149,9 +149,10 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
 - **An accepted task is not moved.** Its state changes and its closure fields are filled in the same
   file.
 - **Lifecycle events are written by the ledger command, not by hand.** One call per event —
-  dispatch, candidate, verdict, merge, retire, block, escalate — updates the checkpoint, the node
-  files, the round journal, the generated index and the fleet render together, stamped from the
-  system clock. Hand editing any of them is how the record, the clock and the tree drift apart, and
+  dispatch, candidate, verdict, merge, accept, retire, block, escalate — updates the checkpoint,
+  the node files, the round journal, the generated index and the fleet render together, stamped
+  from the system clock. Merging integrates; accepting is the owner's separate event unless the
+  project's settings say the two coincide. Hand editing any of them is how the record, the clock and the tree drift apart, and
   it spends the turn time this method exists to protect.
 - **`STATUS.md` is an index, not a work journal.** It is generated from the tree, never edited by
   hand, and carries one row per unit. `FLEET.md` is separately generated from runtime state only
