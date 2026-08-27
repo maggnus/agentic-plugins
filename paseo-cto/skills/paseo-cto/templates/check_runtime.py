@@ -24,6 +24,11 @@ TOP_KEYS = {
     "heartbeat", "releaseClock", "activeNodes", "agents", "workspaces", "tails",
     "materialEvents",
 }
+# A run that declares no shared resource omits the key rather than carrying an empty list.
+OPTIONAL_TOP_KEYS = {"resources", "accountingTotals"}
+RESOURCE_MODES = {"consumable", "exclusive"}
+RETURN_REASONS = {"outcome_defect", "proof", "rule", "contract"}
+ROLE_MINUTES = {"builder", "reviewer", "researcher", "cto"}
 NATIVE_STATUSES = {"initializing", "idle", "running", "error", "closed"}
 
 
@@ -296,11 +301,33 @@ def validate_paseo_observation(
     return observation
 
 
+def validate_accounting(value: object, where: str) -> dict:
+    """Per-node cost: minutes by role, rounds, and why the returns happened."""
+    record = object_keys(value, {"roleMinutes", "rounds", "returns"}, {"tokens"}, where)
+    minutes = record["roleMinutes"]
+    if not isinstance(minutes, dict) or set(minutes) - ROLE_MINUTES:
+        fail(f"{where}.roleMinutes must hold only {sorted(ROLE_MINUTES)}")
+    for role, value_minutes in minutes.items():
+        natural(value_minutes, f"{where}.roleMinutes.{role}")
+    natural(record["rounds"], f"{where}.rounds")
+    returns = record["returns"]
+    if not isinstance(returns, dict) or set(returns) - RETURN_REASONS:
+        fail(f"{where}.returns must hold only {sorted(RETURN_REASONS)}")
+    for reason, count in returns.items():
+        natural(count, f"{where}.returns.{reason}")
+    if "tokens" in record:
+        natural(record["tokens"], f"{where}.tokens")
+    return record
+
+
 def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
     runtime = load_json(path, "runtime checkpoint")
-    if runtime.get("schema") != 2:
-        fail("runtime.schema must be 2; rebuild legacy state from a fresh inventory")
-    object_keys(runtime, TOP_KEYS, set(), "runtime")
+    if runtime.get("schema") != 3:
+        fail(
+            "runtime.schema must be 3; a schema-2 checkpoint is carried forward by ledger.py, "
+            "which adds resources and per-node accounting without losing what it recorded"
+        )
+    object_keys(runtime, TOP_KEYS, OPTIONAL_TOP_KEYS, "runtime")
     updated = timestamp(runtime["updatedAt"], "runtime.updatedAt")
     project = text(runtime["project"], "runtime.project")
     text(runtime["run"], "runtime.run")
@@ -394,9 +421,11 @@ def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
     active_ids = set()
     for index, node in enumerate(active_nodes):
         node = object_keys(
-            node, {"id", "ceremonyMinutes", "auxiliaryReturnsSinceMovement"}, set(),
+            node, {"id", "ceremonyMinutes", "auxiliaryReturnsSinceMovement"}, {"accounting"},
             f"activeNodes[{index}]",
         )
+        if "accounting" in node:
+            validate_accounting(node["accounting"], f"activeNodes[{index}].accounting")
         node_id = text(node["id"], f"activeNodes[{index}].id")
         if not TASK_RE.fullmatch(node_id) or node_id in active_ids:
             fail(f"activeNodes[{index}].id is invalid or duplicated")
@@ -489,6 +518,38 @@ def validate_runtime(path: Path, project_root: Path | None = None) -> dict:
         ):
             fail(f"agents[{index}] does not match its workspace")
 
+    if "accountingTotals" in runtime:
+        validate_accounting(runtime["accountingTotals"], "runtime.accountingTotals")
+
+    resources = runtime.get("resources", [])
+    if not isinstance(resources, list):
+        fail("runtime.resources must be an array")
+    resource_ids = set()
+    for index, resource in enumerate(resources):
+        resource = object_keys(
+            resource, {"id", "mode"}, {"owner", "note", "ports"}, f"resources[{index}]"
+        )
+        resource_id = text(resource["id"], f"resources[{index}].id")
+        if resource_id in resource_ids:
+            fail(f"resources[{index}].id is duplicated")
+        resource_ids.add(resource_id)
+        if resource["mode"] not in RESOURCE_MODES:
+            fail(f"resources[{index}].mode must be one of {sorted(RESOURCE_MODES)}")
+        owner = text(resource.get("owner", ""), f"resources[{index}].owner", empty=True)
+        if owner and owner not in active_ids:
+            fail(f"resources[{index}].owner {owner!r} is not an active node")
+        if "ports" in resource and (
+            not isinstance(resource["ports"], list)
+            or any(not isinstance(port, int) or port <= 0 for port in resource["ports"])
+        ):
+            fail(f"resources[{index}].ports must be positive integers")
+        text(resource.get("note", ""), f"resources[{index}].note", empty=True, limit=200)
+    held = [item for item in resources if item["mode"] == "exclusive" and item.get("owner")]
+    for item in held:
+        holders = [node for node in active_nodes if node["id"] == item["owner"]]
+        if not holders:
+            fail(f"exclusive resource {item['id']!r} names an owner outside activeNodes")
+
     tails = runtime["tails"]
     events = runtime["materialEvents"]
     if not isinstance(tails, list) or len(tails) > 12:
@@ -569,7 +630,7 @@ def main() -> int:
         return 1
     runtime = state["runtime"]
     print(
-        f"runtime check: valid schema 2 with {len(runtime['activeNodes'])} active nodes "
+        f"runtime check: valid schema 3 with {len(runtime['activeNodes'])} active nodes "
         f"and {len(runtime['agents'])} live agents"
         f"{' verified against Paseo and Git' if args.project_root else ''}"
     )

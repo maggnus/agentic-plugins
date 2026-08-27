@@ -26,6 +26,50 @@ The phase before the first line of code became its own plugin.
   to: matching manifests, a shared skills directory, `agents/openai.yaml` beside every skill, and one
   resolving marketplace entry.
 
+## v10.8.0 — paseo-cto 10.8.0
+
+Bookkeeping moved from the CTO's turns into a command, and the round loop lost its avoidable latency.
+Every control stage is unchanged: each delegated write still gets an independent reviewer at its risk
+tier, the CTO still does not inspect, owner gates are untouched.
+
+- **A. One ledger call per event.** [`templates/ledger.py`](paseo-cto/skills/paseo-cto/templates/ledger.py)
+  performs `dispatch`, `candidate`, `verdict`, `merge`, `retire`, `block` and `escalate`, writing the
+  checkpoint, the node files, the journal line, the index and the fleet render in one call, stamped
+  from the system clock. *Accepted:* candidate → RETURN → candidate → ACCEPT → merge → retire runs in
+  six calls with no hand edits and a valid tree.
+- **B. One run reports everything.** The validator no longer stops at the first defect in a node,
+  every finding carries an exact `fix:`, over-long journal lines are trimmed by `check --fix` instead
+  of refused, `[reset R<n>]` is a legal round form, and the budget warning arrives while a round can
+  still be planned. *Accepted:* a tree carrying five typical defects lists all five in one run.
+- **C. A builder return has a required shape.**
+  [`references/builder-return.md`](paseo-cto/skills/paseo-cto/references/builder-return.md) fixes the
+  range, the per-item changes, the claim/command/result table for commands that actually ran, the
+  falsifiers, the screenshot manifest and the mandatory `UNVERIFIED` list. *Accepted:* the contract
+  requires it and the reviewer reads it as a checklist.
+- **D. Delta re-review.** After an accept-with-corrections or a proof-only return, the reviewer
+  inspects only `prev..new` in 300 characters. It counts as a round and spends no return unless it
+  finds a new outcome-defect. *Accepted:* the rule is in the gate and `verdict --delta` records it.
+- **E. Shared resources are modelled.** The checkpoint carries resources with a mode; a second task
+  on an `exclusive` one stops for an explicit decision; `resourcePolicy` records which stands the
+  owner treats as consumable. *Accepted:* the second dispatch fails until `--acknowledge`.
+- **F. A batch is a first-class dispatch.** One contract, one workspace, one review over several
+  homogeneous nodes, each keeping its own acceptance and closure; `--task` repeats. *Accepted:* three
+  nodes complete their cycle in six ledger calls.
+- **G. Cost and time are recorded.** Per node and per run: minutes by role, rounds, and returns
+  classified as outcome-defect, proof, rule or contract. *Accepted:* `FLEET.md` carries accepted /
+  merged / in flight / remaining, percent by risk weight, average round length and the proof-return
+  share.
+- **H. Pre-dispatch contract check.** For significant and critical nodes a non-author reviewer
+  attacks the contract in five minutes against a five-item checklist and answers in one line.
+  *Accepted:* the rule is in the gate and the dispatch step; `contractCheck` can disable it for
+  routine only.
+- **I. One clock, one source.** The ledger stamps every event from the system clock, the quiet status
+  line is read from the checkpoint rather than recalled, and the heartbeat warns when pushes to the
+  integration branch outpace `mainAdvanceWindowMinutes`.
+
+The checkpoint moves to schema 3; `ledger.py` migrates a schema-2 file in place, adding resources and
+accounting without losing what it recorded.
+
 ## v10.7.1 — paseo-cto 10.7.1
 
 Runs and tokens became an owned budget rather than a side effect.

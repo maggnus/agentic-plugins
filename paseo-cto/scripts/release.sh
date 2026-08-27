@@ -85,6 +85,7 @@ fi
 # 1. Contract tests
 echo "release: running contract tests..."
 bash paseo-cto/scripts/test-plugin-contracts.sh
+bash paseo-cto/scripts/test-ledger.sh
 
 # 2. Stamp work tooling
 echo "release: stamping work tooling..."

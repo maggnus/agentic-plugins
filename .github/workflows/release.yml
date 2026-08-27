@@ -63,7 +63,9 @@ jobs:
           fi
 
       - name: Contract tests
-        run: bash paseo-cto/scripts/test-plugin-contracts.sh
+        run: |
+          bash paseo-cto/scripts/test-plugin-contracts.sh
+          bash paseo-cto/scripts/test-ledger.sh
 
       - name: Stamp work tooling
         run: python3 paseo-cto/scripts/stamp-work-tooling.py

@@ -134,6 +134,7 @@ cat > "$scratch/FLEET.md" <<'EOF'
 paseo-cto: v8.0.1 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [W5] Recovery readiness
 Cards: 3/5
+Nodes: 2 accepted / 2 merged / 1 in flight / 4 remaining · 40% by risk weight · round 21m · proof returns 33%
 
 | Agent | Task | Status | Time | LOC |
 | --- | --- | --- | --- | --- |
@@ -312,7 +313,7 @@ EOF
 
 cat > "$scratch/runtime.json" <<EOF
 {
-  "schema": 2,
+  "schema": 3,
   "updatedAt": "2026-08-02T22:30:00+08:00",
   "project": "runtime-test",
   "run": "runtime-test-1",
@@ -542,7 +543,7 @@ expect_fail "failed live probe cannot replace fleet" env \
 expect_pass "failed fleet generation preserves the prior file" \
   cmp "$scratch/FLEET-before-failure.md" "$scratch/FLEET-preserved.md"
 
-sed 's/"schema": 2/"schema": 1/' "$scratch/runtime.json" > "$scratch/runtime-legacy.json"
+sed 's/"schema": 3/"schema": 2/' "$scratch/runtime.json" > "$scratch/runtime-legacy.json"
 expect_fail "legacy runtime is rebuilt rather than trusted" \
   python3 "$templates/check_runtime.py" "$scratch/runtime-legacy.json" --project-root "$transfer_repo"
 
@@ -655,6 +656,7 @@ cat > "$scratch/FLEET-work.md" <<'EOF'
 paseo-cto: v9.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Context: 201k(15%) | Session: 1h24m
 Wave: [W1] Launch readiness
 Cards: 1/2
+Nodes: 2 accepted / 2 merged / 1 in flight / 4 remaining · 40% by risk weight · round 21m · proof returns 33%
 
 | Agent | Task | Status | Time | LOC |
 | --- | --- | --- | --- | --- |

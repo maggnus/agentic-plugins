@@ -32,6 +32,45 @@ def elapsed(updated, started, *, approximate: bool = False) -> str:
     return f"~{value}" if approximate else value
 
 
+# A defect in a critical node costs more than one in a routine node, so remaining work is weighed
+# by risk rather than counted by heads.
+RISK_WEIGHT = {"routine": 1, "significant": 2, "critical": 3, "pre_policy": 1}
+
+
+def progress_line(schema: dict, nodes: list, runtime: dict, wave_id: str) -> str:
+    """Accepted, merged, in flight and remaining for the current wave, with the round economics."""
+    leaves = [
+        node for node in nodes
+        if node.kind in ("task", "subtask")
+        and (wave_id == "—" or worklib.owning_wave(schema, node.id) == wave_id)
+    ]
+    accepted = [node for node in leaves if node.state == "accepted"]
+    merged = [node for node in accepted if node.text("closure_commit")]
+    in_flight = [node for node in leaves if node.state in ("active", "review", "rework")]
+    remaining = [node for node in leaves if node not in accepted and node not in in_flight]
+    weight = sum(RISK_WEIGHT.get(node.text("risk"), 1) for node in leaves)
+    done_weight = sum(RISK_WEIGHT.get(node.text("risk"), 1) for node in accepted)
+    percent = worklib.render_percent(done_weight, weight, "0%") if weight else "0%"
+
+    sources = [runtime["accountingTotals"]] if "accountingTotals" in runtime else [
+        node["accounting"] for node in runtime.get("activeNodes", []) if node.get("accounting")
+    ]
+    rounds = minutes = proof_returns = all_returns = 0
+    for record in sources:
+        rounds += record.get("rounds", 0)
+        minutes += sum(record.get("roleMinutes", {}).values())
+        returns = record.get("returns", {})
+        proof_returns += returns.get("proof", 0)
+        all_returns += sum(returns.values())
+    per_round = f"{minutes // rounds}m" if rounds else "—"
+    proof_share = f"{round(100 * proof_returns / all_returns)}%" if all_returns else "—"
+    return (
+        f"Nodes: {len(accepted)} accepted / {len(merged)} merged / {len(in_flight)} in flight / "
+        f"{len(remaining)} remaining · {percent} by risk weight · round {per_round} · "
+        f"proof returns {proof_share}"
+    )
+
+
 def render(args: argparse.Namespace) -> tuple[Path | None, int, int]:
     state = check_runtime.validate_runtime(args.checkpoint, args.project_root)
     runtime, settings = state["runtime"], state["settings"]
@@ -118,6 +157,7 @@ def render(args: argparse.Namespace) -> tuple[Path | None, int, int]:
         identity,
         f"Wave: [{wave_id}] {wave_name}",
         f"Cards: {done}/{total}",
+        progress_line(schema, nodes, runtime, wave_id),
         "",
         "| Agent | Task | Status | Time | LOC |",
         "| --- | --- | --- | --- | --- |",

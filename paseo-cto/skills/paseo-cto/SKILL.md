@@ -148,6 +148,11 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
   Nothing may depend on what an agent remembers. Workers report; the CTO is the only writer.
 - **An accepted task is not moved.** Its state changes and its closure fields are filled in the same
   file.
+- **Lifecycle events are written by the ledger command, not by hand.** One call per event —
+  dispatch, candidate, verdict, merge, retire, block, escalate — updates the checkpoint, the node
+  files, the round journal, the generated index and the fleet render together, stamped from the
+  system clock. Hand editing any of them is how the record, the clock and the tree drift apart, and
+  it spends the turn time this method exists to protect.
 - **`STATUS.md` is an index, not a work journal.** It is generated from the tree, never edited by
   hand, and carries one row per unit. `FLEET.md` is separately generated from runtime state only
   after Paseo and Git agree with that state; it is never edited by hand.
@@ -169,7 +174,11 @@ and [Project bootstrap](references/project-bootstrap.md) defines how it is built
    [Project bootstrap](references/project-bootstrap.md) before the first dispatch. Regenerate the
    index in the same change that alters a node, and commit semantic plan changes before dependent
    dispatch. Lifecycle transitions belong in runtime, never in a Git commit of their own.
-3. **Dispatch.** Recover the persisted operating charter, or confirm and persist it on the first
+3. **Dispatch.** For a `Significant` or `Critical` node, have a non-author reviewer attack the
+   contract before the builder starts — five minutes against the checklist in
+   [Review gate](references/review-gate.md), answered `ACCEPT` or `RETURN` in one line — so a
+   contract naming something that does not exist costs a message rather than a round. Recover the
+   persisted operating charter, or confirm and persist it on the first
    run, before the first dispatch — create no agents, workspaces, or heartbeat until this is
    complete. Then freeze an exact baseline, create an isolated writer workspace, and issue one
    plan-aligned contract with an explicit validation budget to a role-skilled agent. The budget
@@ -266,7 +275,10 @@ one policy rather than remembering them separately.
   conversation into new work costs more than a cold start.
 - Post the quiet liveness line instead of an unchanged fleet table.
 - Batch homogeneous small nodes into one dispatch instead of paying setup, execution, and review
-  three times.
+  three times; one contract, one workspace, one review, with every node keeping its own acceptance
+  and closure.
+- Use the delta re-review after an accept-with-corrections or a proof-only return instead of paying
+  a full protocol for a two-line change.
 - Retire a finished agent completely — terminals, agent record, workspace, runtime entry — as
   defined by [Cleanup and close](references/cleanup-and-close.md), so every later inventory reads a
   short list. An archived-but-undeleted record costs a read at every reconcile for the rest of the
@@ -334,7 +346,8 @@ Load only what the next action needs; do not read every reference at skill start
   [Work tree](references/work-tree.md).
 - Starting a project or opening a new wave, and the plan review that gates it:
   [Project bootstrap](references/project-bootstrap.md).
-- Review: the relevant task file, [Review gate](references/review-gate.md), and
+- Review: the relevant task file, [Review gate](references/review-gate.md),
+  [Builder return](references/builder-return.md), and
   [Source references](references/source-references.md).
 - Validation planning or any command rerun: [Validation budget](references/validation-budget.md).
 - First Operate, in order: read project truth and Execution plan; read

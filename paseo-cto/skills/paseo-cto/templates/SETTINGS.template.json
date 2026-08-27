@@ -28,11 +28,24 @@
       }
     },
     "permissionPolicy": "full-access-writers",
-    "fleetBudget": { "max_live_tasks": 3, "max_live_agents": 7 },
+    "fleetBudget": {
+      "max_live_tasks": 3,
+      "max_live_agents": 7
+    },
     "autonomyHorizon": "until-gate",
     "reviewDepth": "risk-based",
     "reportingLanguage": "<language the owner writes in>",
-    "modeMap": {}
+    "modeMap": {},
+    "resourcePolicy": {
+      "defaultMode": "exclusive",
+      "consumable": []
+    },
+    "contractCheck": {
+      "significant": true,
+      "critical": true,
+      "routine": false
+    },
+    "mainAdvanceWindowMinutes": 0
   },
   "work": {
     "root": "docs/work",

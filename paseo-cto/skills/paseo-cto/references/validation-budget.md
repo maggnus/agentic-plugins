@@ -73,7 +73,7 @@ still distinguishes the defect.
   interface change — and then as one set of the changed surface (desktop and mobile × light and
   dark), captured once. A screenshot that no owner decision waits on is not evidence.
 - **The reviewer does not rerun the author's end-to-end pass.** It reads the captured logs and exit
-  lines, and runs at most one independently selected falsifier, at the cheapest level that
+  lines the return carries under [Builder return](builder-return.md), and runs at most one independently selected falsifier, at the cheapest level that
   discriminates its hypothesis. An independent falsifier stays independent without being expensive.
 - **Lint and type checks run per package, in touched packages only.** The iteration gate — the
   project's fast composite check — runs once before return, not per edit.

@@ -223,6 +223,49 @@ journal, kept in the wave file. Because the CTO is the corrected party there, an
 goes to the owner as a named gate rather than to another CTO decision — a decomposition the reviewer
 cannot accept after two rounds is a scope question, not a review question.
 
+## The delta re-review
+
+A full protocol on a two-line correction costs what a full review costs and discovers what the last
+one already settled. Two situations take the short path instead:
+
+- an `ACCEPT` that named corrections to make before merge, and they were made;
+- a `RETURN` whose findings were all about the proof rather than about the contracted outcome.
+
+In both, the reviewer inspects **only the delta** — the range from the previously reviewed candidate
+to the new one — against the findings that produced it. The same author and the same reviewer
+continue; nothing about the earlier inspection is repeated, and its verdict on unchanged material
+stands. The response fits in 300 characters: the range, whether each named finding is closed, and
+the verdict.
+
+A delta re-review counts as a round in the journal, because it happened. It does **not** spend a
+return from the reviewer's budget unless it finds a new `outcome-defect` — the budget exists to stop
+a loop that is not converging, and a correction that closes what was asked is convergence. The
+moment a delta pass finds a defect in the contracted outcome, it becomes an ordinary return, spends
+the budget, and the full protocol resumes on the next candidate.
+
+Nothing else shortens: the write-zone check, the finding kinds, the scoring, and the journal line
+are unchanged. A delta pass may not be used to skip a first inspection, to re-examine a scope the
+earlier review never covered, or to accept a candidate whose range the reviewer has not seen.
+
+## The pre-dispatch contract check
+
+A contract that names a section, an export, a component or a mechanism that does not exist costs an
+hour: the builder discovers it, or the reviewer does, and the round is spent on a defect the CTO
+wrote. For a `Significant` or `Critical` node, a non-author reviewer attacks the contract itself
+before the builder starts, in five minutes or less, against exactly this list:
+
+1. Does every mechanism the contract names exist, at the path and under the name it uses?
+2. Are the section, export, component and file references correct as written?
+3. Does anything close "by convention" — an acceptance nobody can check, a state reached by
+   agreement rather than by evidence?
+4. Is the acceptance falsifiable: for each claim, is there an input under which it fails?
+5. Does the write zone overlap a task already running?
+
+The answer is one line: `ACCEPT` or `RETURN` with the item that fails and the correction. The CTO
+corrects and re-issues; this is not a review of the plan and creates no round in any journal. A
+project may switch the check off for `Routine` nodes in its settings; it may not switch it off for
+the tiers above.
+
 ## The convergence loop
 
 A returned card is not finished by a verdict; it is finished by the author and the reviewer

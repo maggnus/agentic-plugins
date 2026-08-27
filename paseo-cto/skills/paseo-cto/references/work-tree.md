@@ -143,6 +143,17 @@ copied into the file. A closed finding leaves the open list or appears in the cl
 return leaves the unit active. A block preserves the duration already accumulated, and resuming does
 not reset the start.
 
+## The ledger writes the events
+
+`templates/ledger.py`, copied beside `work.py`, performs each lifecycle event as one call:
+`dispatch`, `candidate`, `verdict`, `merge`, `retire`, `block`, `escalate`. It writes the runtime
+checkpoint, the node front matter and sections, the round journal line in the required shape and
+length, the generated index, and the fleet render, then prints the validator's result. `--task` may
+be repeated, which is how a batch writes one round and one closure into every node it covers.
+
+Every event takes its moment from the system clock. No event accepts a time argument, so the record
+cannot disagree with the clock about when something happened.
+
 ## Acceptance
 
 Set the state to `accepted`, record `accepted_at`, record the closure commit and the durable

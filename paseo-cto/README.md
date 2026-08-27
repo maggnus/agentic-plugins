@@ -67,7 +67,7 @@ a long session does not spend its context restating an unchanged table.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.7.1 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v10.8.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -116,7 +116,7 @@ hosts to it, and reinstalls any sibling plugin from the same marketplace. Asking
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check     # report versions only
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --dry-run   # print the commands
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"             # upgrade to the latest
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.7.1
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.8.0
 ```
 
 ## What ships

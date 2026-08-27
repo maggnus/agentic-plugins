@@ -116,15 +116,28 @@ done, total = map(int, cards_match.groups())
 if done > total:
     fail("Cards done cannot exceed total")
 
+progress = re.fullmatch(
+    r"Nodes: (\d+) accepted / (\d+) merged / (\d+) in flight / (\d+) remaining · "
+    r"(\d+(?:\.\d)?%) by risk weight · round (—|\d+m) · proof returns (—|\d+%)",
+    lines[4],
+)
+if not progress:
+    fail(
+        "line 5 must be 'Nodes: <a> accepted / <m> merged / <f> in flight / <r> remaining · "
+        "<p>% by risk weight · round <n>m · proof returns <n>%'"
+    )
+if int(progress.group(2)) > int(progress.group(1)):
+    fail("merged nodes cannot exceed accepted nodes")
+
 expected_prefix = [
     "",
     "| Agent | Task | Status | Time | LOC |",
     "| --- | --- | --- | --- | --- |",
 ]
-if lines[4:7] != expected_prefix:
+if lines[5:8] != expected_prefix:
     fail("snapshot spacing or fleet table header does not match the required shape")
 
-fleet_rows = lines[7:]
+fleet_rows = lines[8:]
 if not fleet_rows or any(not row.strip() for row in fleet_rows):
     fail("fleet table must contain consecutive rows and no trailing content")
 

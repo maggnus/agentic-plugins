@@ -33,6 +33,10 @@ The minimum schema is:
       "reviewer":   { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" },
       "researcher": { "family": "<slug>", "provider": "<provider/model>", "effort": "<tier|minimum..maximum>" }
     },
+    "resourcePolicy": { "defaultMode": "exclusive|consumable", "consumable": ["<resource id>"] },
+    "contractCheck": { "significant": true, "critical": true, "routine": false },
+    "mainAdvanceWindowMinutes": 0
+    },
     "permissionPolicy": "full-access-writers",
     "fleetBudget": { "max_live_tasks": 3, "max_live_agents": 7 },
     "autonomyHorizon": "until-gate",
@@ -56,6 +60,15 @@ The seven charter fields use the values defined by Operating charter. Every angl
 above is a placeholder the owner fills: **the plugin ships no model, no effort tier, and no
 provider preference, and it never supplies one as a fallback.** An `effort` may name one tier or a
 range the CTO picks from per atom; a role absent from `roleAssignments` is not dispatchable.
+
+`resourcePolicy` fixes what happens when two tasks want the same shared thing — a local stand and
+its ports, a datastore, a storefront, a shared specification or index file. `exclusive` is the
+default: a second task on a held resource stops for a decision. Naming a resource under `consumable`
+records the owner's judgement that rebuilding it under another task is acceptable and no waiting is
+required. `contractCheck` switches the pre-dispatch contract check per risk tier; it may be false
+for `routine` and not for the tiers above. `mainAdvanceWindowMinutes` is how long a release build
+takes, so a heartbeat can say that pushes to the integration branch are arriving faster than that
+window and are starving the automatic advance; zero disables the warning.
 The range syntax is inclusive and uses exact tier IDs from the provider's ordered catalog, for
 example `medium..xhigh`; the dispatch always resolves it to one exact tier under Roles and
 providers. `family` is the short lowercase slug used in agent titles and the status table. `modeMap` records

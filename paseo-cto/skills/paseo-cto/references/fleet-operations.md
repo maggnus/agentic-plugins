@@ -104,7 +104,12 @@ prior reviewer record and workspace are retired or preserved outside live runtim
 when both ceilings remain satisfied.
 
 1. **As many tasks run as have write zones that are pairwise disjoint at file granularity — no
-   more.** The ceiling is a limit, never a target.
+   more.** The ceiling is a limit, never a target. Disjoint paths are not enough when the tasks
+   share a running thing: a local stand and its ports, a datastore, a storefront, a shared
+   specification or index file. Those are recorded in the checkpoint as resources with a mode, and a
+   second task on an `exclusive` one stops for an explicit decision — wait, reassign, or record the
+   overlap deliberately. `resourcePolicy` in settings decides which resources the owner treats as
+   consumable, where rebuilding under another task is acceptable and nothing waits.
 2. **An overlap is split along its subsystem seam; what will not split becomes a successor.**
    Re-baselining the later atom on the earlier one's accepted `HEAD` is cheaper than resolving a
    conflict by hand, which is never done in a writer's workspace.
@@ -176,6 +181,11 @@ loop of that same atom — its responses, rework, and re-reviews. An unrelated a
 the previous agent is idle; carrying an old conversation into new work spends context on irrelevant
 history and increases instruction drift.
 
+Every lifecycle event is written by the ledger command rather than by hand: it stamps itself from
+the system clock and updates the checkpoint, the node files, the generated index and the fleet
+render in one call. A hand-edited checkpoint and a hand-written timestamp are the two ways the
+record and the clock drift apart.
+
 The cheap check reads statuses; it never runs work. A long background operation is observed by its
 exit line at the next material event or heartbeat, never by a wait loop inside the CTO turn: waiting
 in-turn spends tokens to learn what one later line states, and blocks every other decision while it
@@ -215,7 +225,10 @@ expiresIn: 24h
 ```
 
 Store its ID. On collision with an active CTO turn, report at the nearest idle boundary; the next
-interval catches up. Use this exact reconciliation prompt, filling absolute paths and IDs:
+interval catches up. When `mainAdvanceWindowMinutes` is set and pushes to the integration branch are
+arriving faster than that window, the heartbeat says so once: an automatic advance that re-checks
+"the branch moved" on every attempt never lands while the branch keeps moving, and the fix is a
+scheduling decision, not another retry. Use this exact reconciliation prompt, filling absolute paths and IDs:
 
 ```text
 PASEO CTO RECONCILIATION

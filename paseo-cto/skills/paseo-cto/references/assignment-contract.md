@@ -26,7 +26,8 @@ Review: <apply Review gate for the declared risk; the reviewer is always a non-a
 Consumer surface: <only when the card changes one: the surface (API, CLI, TUI, web or mobile interface, SDK, event stream, configuration contract), the consumer role to walk it as, how to reach it in an environment the product reaches, the data or credentials needed, and the edges that matter here; `none` when no consumer can observe the change>
 Observation: <expected silence/long operations and safe liveness proof>
 Commit: <coherent local commit set/message conventions>; final reviewed range; clean worktree; never push
-Return: <opens with TIME: dd/mm hh:mm local and minutes worked; then source-linked final range and file evidence, concise diff, real checks, Git state, blockers/disputes, proposed children>
+Resources: <shared stands, ports, datastores, shared specification or index files this task touches, each with its mode — consumable or exclusive; `none` when the task shares nothing>
+Return: <the structure in [Builder return](builder-return.md), in full, within the stated character ceiling>
 Convergence loop: <the reviewer's five-return budget for this node, the running round count, and the exact acceptance condition when the CTO has granted the bounded second budget>
 ```
 
@@ -92,6 +93,18 @@ contract is where that requirement is priced in, because discovering it at revie
 For a boundary between two components, name in the contract which accepted proof travels the
 product's own path. A harness that assembles the request and supplies the expected value tests only
 the harness. See [Validation budget](validation-budget.md).
+
+## One contract may carry a batch
+
+Several homogeneous nodes — one technical surface, one environment, one verification method, one
+review context — are dispatched as one batch: one contract, one workspace, one review. The contract
+then names every node identifier, the shared write zone, and the acceptance each node keeps of its
+own. The review closes each node individually on shared evidence, the round journal is written into
+every node of the batch, and a node that develops its own risk, acceptance story or return leaves
+the batch and continues alone.
+
+A batch is a dispatch shape, not a plan shape: it creates no node, merges no identifier, and never
+hides one node's failure behind another's acceptance.
 
 ## Role additions
 

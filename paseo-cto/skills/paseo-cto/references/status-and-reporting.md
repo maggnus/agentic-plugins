@@ -22,7 +22,10 @@ Compute the snapshot once per reconcile and use those exact values for both sink
 2. **Chat** — post the header and complete fleet table when a material event occurred since the last
    posted snapshot, and immediately for any explicit status request. Otherwise post one quiet line:
    `<dd/mm hh:mm> · Fleet steady · <agents-running> running · head <short-sha>`, followed by one
-   Markdown list item per live agent, `` `<title>` — <derived-status> `` — nothing else.
+   Markdown list item per live agent, `` `<title>` — <derived-status> `` — nothing else. Every value
+   in that line is read from the runtime checkpoint, never recalled: the count of running agents,
+   the head, the titles and the derived statuses are what the checkpoint holds at that moment, and a
+   line assembled from memory is how a status starts describing a fleet that no longer exists.
 
 For a status or other read-only request, run the same renderer with `--stdout`. It validates the live
 state and table without replacing the durable file. If validation fails, report the mismatch and do

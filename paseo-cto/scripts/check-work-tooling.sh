@@ -27,12 +27,14 @@ echo "Plugin version: $plugin_version"
 # Check if work.py exists in project
 project_work_py="$work_root/scripts/work.py"
 project_schema="$work_root/scripts/work-schema.json"
+project_ledger="$work_root/scripts/ledger.py"
 
 if [ ! -f "$project_work_py" ]; then
     echo "FAIL: work.py not found at $project_work_py" >&2
     echo "Run: cp paseo-cto/skills/paseo-cto/templates/work.py $project_work_py" >&2
     echo "     cp paseo-cto/skills/paseo-cto/templates/work-schema.json $project_schema"
     echo "     cp -r paseo-cto/skills/paseo-cto/templates/work $work_root/scripts/work"
+    echo "     cp paseo-cto/skills/paseo-cto/templates/ledger.py $work_root/scripts/ledger.py"
     exit 1
 fi
 
@@ -42,6 +44,12 @@ if [ ! -f "$project_schema" ]; then
 fi
 
 # Run version check
+if [ ! -f "$project_ledger" ]; then
+    echo "FAIL: ledger.py not found at $project_ledger" >&2
+    echo "Run: cp paseo-cto/skills/paseo-cto/templates/ledger.py $project_ledger" >&2
+    exit 1
+fi
+
 project_version=$("$project_work_py" version 2>/dev/null | cut -d' ' -f3 || echo "unknown")
 echo "Project work tooling version: $project_version"
 

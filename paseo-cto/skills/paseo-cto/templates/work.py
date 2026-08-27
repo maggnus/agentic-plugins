@@ -32,7 +32,7 @@ from pathlib import Path
 # The plugin release in which this tooling last changed. A project keeps its own copy of work.py and
 # work-schema.json, so nothing else would notice that the copy fell behind the plugin or was edited
 # locally; the pair is stamped together and verified on every run.
-TOOLING_VERSION = "10.6.0"
+TOOLING_VERSION = "10.8.0"
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_SCHEMA = SCRIPT_DIR / "work-schema.json"
@@ -313,9 +313,10 @@ def validate(schema: dict, root: Path, nodes: list[Node], load_errors: list[str]
         legal = derived_paths(schema, node.id, node.kind)
         if rel not in legal:
             errors.append(
-                f"{prefix}: id {node.id} derives {' or '.join(legal)}; the file is somewhere else"
+                f"{prefix}: id {node.id} derives {' or '.join(legal)}; the file is somewhere else. "
+                f"fix: git mv {rel} {legal[0]}"
             )
-            continue
+            # The path is wrong, not the content: keep checking so one run reports everything.
 
         wave_segment = rel.split("/")[1] if rel.startswith("waves/") else ""
         if wave_segment != owning_wave(schema, node.id):
@@ -423,11 +424,21 @@ def validate_sections(schema: dict, node: Node) -> list[str]:
     required_h2 = [name for name in expected_h2 if name not in optional_h2]
     if ([name for name in found_h2 if name not in optional_h2] != required_h2
             or not ordered_subsequence(found_h2, expected_h2)):
+        missing = [name for name in required_h2 if name not in found_h2]
+        unknown = [name for name in found_h2 if name not in expected_h2]
+        repair = []
+        if missing:
+            repair.append(f"add {missing}")
+        if unknown:
+            repair.append(f"remove or rename {unknown}")
+        if not repair:
+            repair.append("reorder them")
         errors.append(
             f"{node.rel}: sections must be exactly {required_h2} in that order, with "
-            f"{optional_h2} optional in place, found {found_h2}"
+            f"{optional_h2} optional in place, found {found_h2}. fix: {'; '.join(repair)}"
             if optional_h2 else
-            f"{node.rel}: sections must be exactly {expected_h2} in that order, found {found_h2}"
+            f"{node.rel}: sections must be exactly {expected_h2} in that order, found {found_h2}. "
+            f"fix: {'; '.join(repair)}"
         )
     for parent, expected_h3 in schema["sections"][node.kind]["h3"].items():
         found_h3 = [line[4:].strip() for line in section_lines(node.body, parent)
@@ -472,12 +483,30 @@ def ordered_subsequence(found: list[str], expected: list[str]) -> bool:
 
 # "- R2(5/10) RETURN 25/08 14:20 — ..." — the round, its score, the verdict, and its moment.
 MOMENT = (r"(?P<moment>(?:0[1-9]|[12][0-9]|3[01])/(?:0[1-9]|1[0-2]) (?:[01][0-9]|2[0-3]):[0-5][0-9])")
+# "[reset R1]" marks the round a CTO-granted budget restarted from, so a reset loop still numbers
+# its rounds continuously while showing where the new budget began.
+RESET_MARKER = r"(?:\[reset R(?P<reset>[1-9][0-9]*)\] )?"
 ROUND_ENTRY_RE = re.compile(
     r"^- R(?P<round>[1-9][0-9]*)\((?P<score>10|[1-9])/10\) "
-    r"(?P<verdict>ACCEPT|RETURN|ESCALATE) " + MOMENT + r" "
+    r"(?P<verdict>ACCEPT|RETURN|ESCALATE) " + MOMENT + r" " + RESET_MARKER
 )
 ROUND_UNSCORED_RE = re.compile(r"^- R([1-9][0-9]*)[ (]")
 ROUND_DECISION_RE = re.compile(r"^- CTO (?P<decision>[a-z_]+) " + MOMENT + r" ")
+
+
+def trim_journal_line(line: str, limit: int) -> str:
+    """Keep the machine-readable head of a journal line and elide the tail.
+
+    A ledger line that outgrew the limit is a formatting accident, not a defect in the record, so
+    the writer shortens it instead of refusing the write.
+    """
+    if len(line) <= limit:
+        return line
+    head = ROUND_ENTRY_RE.match(line) or ROUND_DECISION_RE.match(line)
+    keep = head.end() if head else 0
+    if keep >= limit - 1:
+        return line[: limit - 1] + "…"
+    return line[: limit - 1].rstrip() + "…"
 ROUND_DECISION_LOOSE_RE = re.compile(r"^- CTO ")
 
 
@@ -519,12 +548,14 @@ def validate_review_rounds(schema: dict, node: Node) -> list[str]:
         )
     if rounds and not has_section:
         errors.append(
-            f"{node.rel}: review_rounds is {rounds} but there is no 'Review rounds' journal"
+            f"{node.rel}: review_rounds is {rounds} but there is no 'Review rounds' journal. "
+            "fix: add '## Review rounds' between '## Findings' and '## Closure', one line per round"
         )
     if rounds != len(entries) and has_section:
         errors.append(
             f"{node.rel}: review_rounds is {rounds} but the journal holds {len(entries)} "
-            "'- R<n>' entries; one round is one line"
+            f"'- R<n>' entries; one round is one line. fix: set review_rounds: {len(entries)} "
+            "or add the missing line"
         )
     numbers = [int(ROUND_ENTRY_RE.match(line).group(1)) for line in entries]
     if numbers != list(range(1, len(entries) + 1)):
@@ -536,7 +567,9 @@ def validate_review_rounds(schema: dict, node: Node) -> list[str]:
         if len(line) > line_limit:
             errors.append(
                 f"{node.rel}: journal line {line[:40]!r} is {len(line)} characters; the limit is "
-                f"{line_limit}. The journal is a ledger, not the review dialogue"
+                f"{line_limit}. The journal is a ledger, not the review dialogue. "
+                "fix: work.py check --fix trims it to "
+                f"{trim_journal_line(line, line_limit)[:60]!r}…"
             )
     for line in unscored:
         errors.append(
@@ -557,7 +590,8 @@ def validate_review_rounds(schema: dict, node: Node) -> list[str]:
     if rounds > budget and escalation not in ("bounded_retry", "independent_review"):
         errors.append(
             f"{node.rel}: {rounds} returns exceed the reviewer's budget of {budget}; only a "
-            "recorded escalation_decision of bounded_retry or independent_review extends it"
+            "recorded escalation_decision of bounded_retry or independent_review extends it. "
+            "fix: record the decision and its '- CTO <decision> dd/mm hh:mm — <reason>' line"
         )
     if escalation and decisions:
         last = ROUND_DECISION_RE.match(decisions[-1]).group("decision")
@@ -1289,9 +1323,56 @@ def compare_with_plugin(schema: dict, plugin_templates: Path) -> list[str]:
     return []
 
 
+def fix_journal_lines(schema: dict, root: Path, nodes: list[Node]) -> list[str]:
+    """Trim over-long journal lines in place and report what was shortened."""
+    limit = schema["limits"]["review_round_line_chars"]
+    repaired: list[str] = []
+    for node in nodes:
+        sections = schema["sections"].get(node.kind, {})
+        if "Review rounds" not in sections.get("h2", []) or "## Review rounds" not in node.body:
+            continue
+        lines = node.path.read_text(encoding="utf-8").split("\n")
+        inside, changed = False, False
+        for index, line in enumerate(lines):
+            if line.startswith("## "):
+                inside = line[3:].strip() == "Review rounds"
+                continue
+            if not inside or len(line) <= limit:
+                continue
+            if not (ROUND_ENTRY_RE.match(line) or ROUND_DECISION_RE.match(line)):
+                continue
+            lines[index] = trim_journal_line(line, limit)
+            changed = True
+        if changed:
+            node.path.write_text("\n".join(lines), encoding="utf-8")
+            repaired.append(node.rel)
+    return repaired
+
+
+def review_budget_warnings(schema: dict, nodes: list[Node]) -> list[str]:
+    """Say that the budget is spent while a round can still be planned, not after it is paid for."""
+    budget = schema["limits"]["review_return_budget"]
+    warnings = []
+    for node in nodes:
+        sections = schema["sections"].get(node.kind, {})
+        if "Review rounds" not in sections.get("h2", []):
+            continue
+        rounds = node.integer("review_rounds") or 0
+        if rounds == budget and not node.text("escalation_decision"):
+            warnings.append(
+                f"notice {node.rel}: {rounds} of {budget} returns are spent; the next reviewer "
+                "verdict is ESCALATE, and the decision after it is the CTO's"
+            )
+    return warnings
+
+
 def command_check(args, schema: dict) -> int:
     root = Path(args.root)
     nodes, load_errors = load_tree(schema, root)
+    if getattr(args, "fix", False) and not load_errors:
+        for rel in fix_journal_lines(schema, root, nodes):
+            print(f"work check: trimmed journal lines in {rel}")
+        nodes, load_errors = load_tree(schema, root)
     legacy = Path(args.legacy_plan) if args.legacy_plan else None
     errors = validate(schema, root, nodes, load_errors, legacy)
     if args.plugin_templates:
@@ -1307,6 +1388,8 @@ def command_check(args, schema: dict) -> int:
         elif generated.read_text(encoding="utf-8") != rendered:
             errors.append(f"{name} disagrees with the tree; it is generated, not edited")
 
+    for message in review_budget_warnings(schema, nodes):
+        print(f"work check: {message}", file=sys.stderr)
     if errors:
         for message in errors:
             print(f"work check: {message}", file=sys.stderr)
@@ -1367,6 +1450,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="repin short-SHA or branch forge references to full commit SHAs")
 
     check = sub.add_parser("check", help="validate the tree")
+    check.add_argument("--fix", action="store_true",
+                       help="repair what is mechanically repairable (over-long journal lines)")
     check.add_argument("--legacy-plan", default=None,
                        help="frozen legacy execution document to test for live-id overlap")
     check.add_argument("--plugin-templates", default=None,
