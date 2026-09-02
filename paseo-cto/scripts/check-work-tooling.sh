@@ -1,78 +1,73 @@
 #!/usr/bin/env bash
-# Check if the project's work tooling matches the installed plugin version
+# Check that a project's copy of the work tooling matches the installed plugin's stamp, then
+# validate the project's work tree with that copy.
+#
+#   check-work-tooling.sh [<project-root>]
+#
+# The work root and the script home come from the project's SETTINGS.json (`work.root`,
+# `work.scriptHome`); a project without one is assumed to keep `docs/work` and `scripts`.
 
 set -euo pipefail
 
 plugin_root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-cd "$plugin_root"
+templates="$plugin_root/skills/paseo-cto/templates"
 
-# Find project root (where work tree is)
-work_root="${1:-$(git rev-parse --show-toplevel 2>/dev/null)}"
-if [ -z "$work_root" ] || [ ! -d "$work_root" ]; then
-    echo "usage: $0 <project-work-root>" >&2
-    echo "  If omitted, uses git root of current directory" >&2
+project_root="${1:-$(git rev-parse --show-toplevel 2>/dev/null || true)}"
+if [ -z "$project_root" ] || [ ! -d "$project_root" ]; then
+    echo "usage: $0 <project-root>" >&2
+    echo "  If omitted, uses the git root of the current directory" >&2
     exit 1
 fi
+project_root=$(CDPATH='' cd -- "$project_root" && pwd)
 
 # The tooling is stamped with the release in which it last changed, which is not always the
 # plugin's own version: a release that touched only prose keeps the older stamp.
-plugin_version=$(jq -r '.tooling_version' "$plugin_root/skills/paseo-cto/templates/work-schema.json")
+plugin_version=$(jq -r '.tooling_version' "$templates/work-schema.json")
 if [ -z "$plugin_version" ] || [ "$plugin_version" = "null" ]; then
     echo "cannot read the plugin's tooling stamp" >&2
     exit 1
 fi
 
-echo "Checking work tooling in: $work_root"
+settings="$(git -C "$project_root" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)/paseo-cto/SETTINGS.json"
+work_root="docs/work"
+script_home="scripts"
+if [ -f "$settings" ]; then
+    work_root=$(jq -r '.work.root // "docs/work"' "$settings")
+    script_home=$(jq -r '.work.scriptHome // "scripts"' "$settings")
+fi
+case "$work_root" in /*) ;; *) work_root="$project_root/$work_root" ;; esac
+case "$script_home" in /*) ;; *) script_home="$project_root/$script_home" ;; esac
+
+echo "Project: $project_root"
 echo "Plugin tooling stamp: $plugin_version"
+echo "Script home: $script_home"
+echo "Work root: $work_root"
 
-# Check if work.py exists in project
-project_work_py="$work_root/scripts/work.py"
-project_schema="$work_root/scripts/work-schema.json"
-project_ledger="$work_root/scripts/ledger.py"
-
-if [ ! -f "$project_work_py" ]; then
-    echo "FAIL: work.py not found at $project_work_py" >&2
-    echo "Run: cp paseo-cto/skills/paseo-cto/templates/work.py $project_work_py" >&2
-    echo "     cp paseo-cto/skills/paseo-cto/templates/work-schema.json $project_schema"
-    echo "     cp -r paseo-cto/skills/paseo-cto/templates/work $work_root/scripts/work"
-    echo "     cp paseo-cto/skills/paseo-cto/templates/ledger.py $work_root/scripts/ledger.py"
-    exit 1
-fi
-
-if [ ! -f "$project_schema" ]; then
-    echo "FAIL: work-schema.json not found at $project_schema" >&2
-    exit 1
-fi
-
-# Run version check
 # Everything ledger.py and the check-*.sh scripts call must live beside work.py: a copy that
 # lacks one of these renders nothing and validates nothing until someone finds out why.
 missing=""
-for tool in ledger.py render_fleet.py check_runtime.py check-fleet-render.sh; do
-    [ -f "$work_root/scripts/$tool" ] || missing="$missing $tool"
+for tool in work.py work-schema.json ledger.py render_fleet.py check_runtime.py check-fleet-render.sh; do
+    [ -f "$script_home/$tool" ] || missing="$missing $tool"
 done
 if [ -n "$missing" ]; then
-    echo "FAIL: tooling incomplete in $work_root/scripts:$missing" >&2
+    echo "FAIL: tooling incomplete in $script_home:$missing" >&2
     for tool in $missing; do
-        echo "Run: cp paseo-cto/skills/paseo-cto/templates/$tool $work_root/scripts/$tool" >&2
+        echo "Run: cp \"$templates/$tool\" \"$script_home/$tool\"" >&2
     done
     exit 1
 fi
 
-project_version=$("$project_work_py" version 2>/dev/null | cut -d' ' -f3 || echo "unknown")
-echo "Project work tooling version: $project_version"
-
-if [ "$project_version" != "$plugin_version" ]; then
-    echo "MISMATCH: Project tooling ($project_version) != Plugin ($plugin_version)" >&2
+project_version=$(python3 "$script_home/work.py" version 2>/dev/null | awk '{print $3}')
+echo "Project tooling stamp: ${project_version:-unknown}"
+if [ "${project_version:-}" != "$plugin_version" ]; then
+    echo "MISMATCH: project tooling (${project_version:-unknown}) != plugin ($plugin_version)" >&2
     echo "Update with:" >&2
-    echo "  cp paseo-cto/skills/paseo-cto/templates/work.py $project_work_py" >&2
-    echo "  cp paseo-cto/skills/paseo-cto/templates/work-schema.json $project_schema"
-    echo "  cp -r paseo-cto/skills/paseo-cto/templates/work $work_root/scripts/work"
+    echo "  for t in work.py work-schema.json ledger.py check_runtime.py render_fleet.py check-fleet-render.sh; do cp \"$templates/\$t\" \"$script_home/\$t\"; done" >&2
+    echo "  cp -R \"$templates/work/.\" \"<the project's templates directory>/\"" >&2
     exit 1
 fi
 
-# Full check with plugin templates
-echo "Running full validation against plugin templates..."
-"$project_work_py" check --root "$work_root" --plugin-templates "$plugin_root/skills/paseo-cto/templates"
+echo "Validating the work tree against the plugin templates..."
+python3 "$script_home/work.py" --root "$work_root" check --plugin-templates "$templates"
 
-echo "OK: Work tooling matches the plugin tooling stamp $plugin_version"
+echo "OK: work tooling matches the plugin tooling stamp $plugin_version"
