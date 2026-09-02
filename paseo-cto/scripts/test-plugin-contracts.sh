@@ -802,7 +802,6 @@ files = {
     "assignment": root / "skills/paseo-cto/references/assignment-contract.md",
     "validation": root / "skills/paseo-cto/references/validation-budget.md",
     "review": root / "skills/paseo-cto/references/review-gate.md",
-    "runtime": root / "skills/paseo-cto/references/execution-plan.md",
     "fleet": root / "skills/paseo-cto/references/fleet-operations.md",
     "roles": root / "skills/paseo-cto/references/roles-and-providers.md",
     "builder": root / "skills/paseo-builder/SKILL.md",
@@ -814,8 +813,8 @@ required = {
     "assignment": ("hard ceiling of 1800 characters", "one negative half per load-bearing claim"),
     "validation": ("composition preflight runs after integration", "not to every command"),
     "review": ("not inherited from its parent card", "ceremonial mutation"),
-    "runtime": ("returnSummary", "at most twelve material events", "ceremonyMinutes"),
-    "fleet": ("An unrelated atom always starts a fresh session",),
+    "fleet": ("returnSummary", "at most twelve material events", "ceremonyMinutes",
+              "An unrelated atom always starts a fresh session"),
     "roles": ("<minimum>..<maximum>", "Critical work and review use the maximum tier"),
     "builder": (
         "Return within 1800 characters",
@@ -856,6 +855,7 @@ import sys
 root = Path(sys.argv[1])
 skill = " ".join((root / "skills/paseo-cto/SKILL.md").read_text().split())
 review = " ".join((root / "skills/paseo-cto/references/review-gate.md").read_text().split())
+fleet = " ".join((root / "skills/paseo-cto/references/fleet-operations.md").read_text().split())
 bootstrap = " ".join((root / "skills/paseo-cto/references/project-bootstrap.md").read_text().split())
 assignment = " ".join((root / "skills/paseo-cto/references/assignment-contract.md").read_text().split())
 settings = json.loads((root / "skills/paseo-cto/templates/SETTINGS.template.json").read_text())
@@ -863,42 +863,39 @@ problems = []
 required = {
     "skill": (
         "Read-only intent always takes precedence",
-        "stop the operating heartbeat",
-        "does not reconfigure an existing run",
-        "without a standalone review",
-        "After two auxiliary research or review layers",
-        "Rounds of the same node's convergence loop are not auxiliary layers",
-        "Do not adjudicate inside the loop",
+        "stop the heartbeat",
+        "change nothing, start no fleet",
         "Four returns is the ceiling",
-        "Do not turn a product blocker into a process project",
+        "A node that has not moved between two reconciles gets a decision that turn",
     ),
     "review": (
-        "does not receive a separate review",
-        "Ordinary CTO work-tree and contract edits",
-        "does not trigger a separate contract review",
-        "same reviewer and retained evidence",
-        "a realistic defect could directly violate security",
-        "Uncertainty prevents a Routine classification but never creates Critical by itself",
-        "The reviewer holds two returns on one work unit",
-        "the reviewer returns `ESCALATE` instead of `RETURN`",
+        "gets no separate review",
+        "Ordinary work-tree and contract edits get no per-edit review",
+        "a realistic defect could directly violate",
+        "Uncertainty prevents `Routine` but never creates `Critical` by itself",
+        "The inspector holds two returns on one work unit",
+        "After the second return the verdict is `ESCALATE`",
         "Four returns is the ceiling on one work unit",
-        "grant a bounded second budget of two returns",
-        "hands the node to the CTO with the journal as it stands",
+        "`bounded_retry` (two more returns, once per node",
+        "hand the node to the CTO with the journal and the unspent budget",
+        "Inside the loop the CTO adjudicates nothing",
         "Each round leaves exactly one line",
         "carries a score on a ten-point scale",
         "- R2(5/10) RETURN 25/08 14:20 —",
         "The marker carries the lowest axis that applies",
         "Review the surface the consumer meets",
-        "The first vertical slice always gets this walk",
+        "The first vertical slice of a wave always gets the walk",
         "The score never decides the verdict",
     ),
+    "fleet": ("after two auxiliary layers",),
     "bootstrap": (
-        "not to each task contract",
+        "not each task contract",
         "Repeat it only for a material rewrite",
     ),
     "assignment": ("otherwise the CTO verifies its sources",),
 }
-for name, body in (("skill", skill), ("review", review), ("bootstrap", bootstrap), ("assignment", assignment)):
+for name, body in (("skill", skill), ("review", review), ("fleet", fleet),
+                   ("bootstrap", bootstrap), ("assignment", assignment)):
     for needle in required[name]:
         if needle not in body:
             problems.append(f"{name} lacks {needle!r}")
@@ -932,10 +929,10 @@ required = {
                "a planning defect"),
     "contract": ("e2e: none | one scenario", "screenshots: none | one approval set",
                  "return ceiling", "reruns nothing already green"),
-    "gate": ("No run at all beyond reading",
-             "read from the author's captured logs and exit lines rather than reproduced"),
+    "gate": ("No falsifier, no reproduction",
+             "reads the complete diff and the captured evidence, reruns nothing already green"),
     "fleet": ("never by a wait loop inside the CTO turn",),
-    "status": ("never carries command output beyond one decisive line",),
+    "status": ("One decisive line of command output at most",),
 }
 # The cheapest level is where the negative half moves to; it never disappears.
 kept = {
@@ -962,9 +959,9 @@ skill = " ".join((root / "SKILL.md").read_text().split())
 # One requirement per resource an agent can leave behind, plus the proof that none remain.
 required = {
     "child agents are archived and their records deleted": (
-        cleanup, ("archive the agent", "delete the exact agent record")),
+        cleanup, ("Archive the agent", "Delete the exact agent record")),
     "terminals and started processes are killed first": (
-        cleanup, ("kill_terminal", "Stop every workspace script this run started")),
+        cleanup, ("kill_terminal", "stop every workspace script this run started")),
     "schedules are deleted, not only the heartbeat": (
         cleanup, ("delete_schedule",)),
     "the heartbeat and the schedules are separate records": (
@@ -1100,9 +1097,9 @@ required = {
         "Fleet steady ·",
         "<dd/mm hh:mm> · Fleet steady",
         "Every owner-facing message carries its moment",
-        "on each heartbeat reconcile and on a material event",
+        "the ledger calls it on every event",
     ),
-    "fleet": ("otherwise post one quiet liveness line",),
+    "fleet": ("post one quiet liveness line",),
     "readme": ("a single quiet liveness line otherwise",),
 }
 retired = (
@@ -1132,8 +1129,8 @@ cleanup = " ".join((root / "references/cleanup-and-close.md").read_text().split(
 skill = " ".join((root / "SKILL.md").read_text().split())
 problems = []
 for needle in (
-    "Delete the record once the card is integrated",
-    "drop both records from the runtime checkpoint",
+    "Delete the exact agent record",
+    "Drop both records from the checkpoint",
     "Paseo archival preserves the session journal",
     "not a substitute for the source-linked evidence",
     "the working copy goes, the history does not",
@@ -1151,43 +1148,45 @@ for needle in (
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
-expect_pass "review depth names one performer everywhere" python3 - "$plugin_root" <<'PY'
+expect_pass "inspection depth follows the charter, never a fixed performer" python3 - "$plugin_root" <<'PY'
 from pathlib import Path
+import json
 import sys
 
 root = Path(sys.argv[1])
 files = {
     "gate": root / "skills/paseo-cto/references/review-gate.md",
     "skill": root / "skills/paseo-cto/SKILL.md",
+    "charter": root / "skills/paseo-cto/references/operating-charter.md",
     "contract": root / "skills/paseo-cto/references/assignment-contract.md",
     "budget": root / "skills/paseo-cto/references/validation-budget.md",
+    "workflow": root / "skills/paseo-cto/templates/work/WORKFLOW.md",
 }
 text = {name: " ".join(path.read_text().split()) for name, path in files.items()}
 required = {
     "gate": (
-        "**The CTO does not inspect.**",
-        "inspected by a non-author reviewer, whatever its risk",
-        "Depth says how far the inspection goes, never who performs it",
+        "| `Routine` | CTO glance | CTO glance | non-author reviewer, reading depth |",
+        "| `Critical` | independent reviewer, executable proof | same | same |",
+        "keep that floor under every charter",
+        "does not grant itself a budget",
     ),
-    "skill": (
-        "You coordinate; you do not implement and you do not inspect",
-        "a non-author reviewer performs every inspection, at every tier",
-        "Always know the arithmetic",
-        "Refuse stagnation",
-    ),
-    "contract": ("the reviewer is always a non-author agent",),
+    "skill": ("Inspect by risk", "`Critical` under every charter"),
+    "charter": ("`lean`, `standard` (default), `strict`", "No value lowers the `Critical` row"),
+    "contract": ("inspection depth per Review gate and who performs it",),
     "budget": (
-        "the consumer-path walk when the card changed a product surface",
+        "Inspector (reviewer or CTO)",
         "Check what this change can break, and nothing else",
         "Run a check while it can still change a decision",
     ),
+    "workflow": ("a CTO glance for `Routine`", "`Critical` whatever the setting"),
 }
 retired = (
+    "The CTO does not inspect",
+    "must not define a weaker floor",
+    "No tier is inspected by the CTO",
+    "you do not inspect",
     "A gate review is always delegated",
-    "never performs that review itself",
-    "always delegated to a non-author agent",
     "Routine second look",
-    "lightweight second look",
 )
 problems = [
     f"{name} lacks {needle!r}"
@@ -1202,6 +1201,9 @@ for path in sorted(root.glob("skills/**/*.md")):
         for needle in retired
         if needle in body
     ]
+settings = json.loads((root / "skills/paseo-cto/templates/SETTINGS.template.json").read_text())
+if settings["charter"].get("reviewDepth") != "standard":
+    problems.append("settings template does not default reviewDepth to standard")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
@@ -1232,7 +1234,7 @@ required = {
         "is not named in `No-touch`",
     ),
     "reviewer": ("against the contract's write zone and `No-touch`",),
-    "gate": ("checks every changed path against",),
+    "gate": ("touches no `No-touch` path",),
     "roles": ("A write outside its write zone but inside its worktree",),
 }
 problems = [
@@ -1268,6 +1270,122 @@ for form in ("`$paseo-cto:paseo-<role>` in Codex", "`/paseo-cto:paseo-<role>` in
         problems.append(f"the assignment contract does not name {form!r}")
 raise SystemExit("; ".join(problems) if problems else 0)
 PY
+
+
+expect_pass "the plugin loads lean" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills"
+ceilings = {
+    "paseo-cto/SKILL.md": 10_000,
+    "paseo-reviewer/SKILL.md": 8_000,
+    "paseo-builder/SKILL.md": 6_000,
+    "paseo-researcher/SKILL.md": 3_000,
+}
+problems = [
+    f"{name} is {size} bytes; the ceiling is {limit}"
+    for name, limit in ceilings.items()
+    for size in [(root / name).stat().st_size]
+    if size > limit
+]
+references = sum(path.stat().st_size for path in (root / "paseo-cto/references").glob("*.md"))
+if references > 110_000:
+    problems.append(f"references total {references} bytes; the ceiling is 110000")
+first_operate = ("operating-charter.md", "roles-and-providers.md", "fleet-operations.md",
+                 "assignment-contract.md", "paseo-core-commands.md")
+first = sum((root / "paseo-cto/references" / name).stat().st_size for name in first_operate)
+if first > 40_000:
+    problems.append(f"the first Operate reads {first} bytes of references; the ceiling is 40000")
+for retired in ("persistent-settings.md", "execution-plan.md", "builder-return.md"):
+    if (root / "paseo-cto/references" / retired).exists():
+        problems.append(f"{retired} was folded into another reference and must not return")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "the return ceiling is one number everywhere" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+problems = []
+for path in sorted(root.glob("skills/**/*.md")) + [root / "README.md"]:
+    body = " ".join(path.read_text().split())
+    for stale in ("five-return", "five returns", "seven returns", "six returns"):
+        if stale in body:
+            problems.append(f"{path.relative_to(root)} says {stale!r}")
+for path in ("skills/paseo-cto/SKILL.md", "skills/paseo-cto/references/review-gate.md",
+             "skills/paseo-cto/templates/work/WORKFLOW.md", "README.md"):
+    body = " ".join((root / path).read_text().split()).lower()
+    if "four returns is the ceiling" not in body:
+        problems.append(f"{path} does not state the four-return ceiling")
+workflow = " ".join((root / "skills/paseo-cto/templates/work/WORKFLOW.md").read_text().split())
+if "scores code, work and, when a consumer surface was walked, experience" not in workflow:
+    problems.append("WORKFLOW.md does not name the three score axes")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "the heartbeat cadence comes from the charter" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import json
+import sys
+
+root = Path(sys.argv[1]) / "skills/paseo-cto"
+problems = []
+settings = json.loads((root / "templates/SETTINGS.template.json").read_text())
+charter = settings["charter"]
+if charter.get("heartbeatMinutes") != 30:
+    problems.append("settings template does not default heartbeatMinutes to 30")
+if charter.get("hostNativeRoles") != ["researcher"]:
+    problems.append("settings template does not default hostNativeRoles to the researcher")
+if charter.get("contractCheck") != {"critical": True, "significant": False, "routine": False}:
+    problems.append("settings template does not default the contract check to critical only")
+fleet = " ".join((root / "references/fleet-operations.md").read_text().split())
+for needle in ("cron: */<heartbeatMinutes> * * * *", "Start with the cheap check",
+               "post one quiet liveness line from the checkpoint and end the turn"):
+    if needle not in fleet:
+        problems.append(f"fleet operations lacks {needle!r}")
+for path in sorted(Path(sys.argv[1]).glob("skills/**/*.md")):
+    if "*/15 * * * *" in path.read_text():
+        problems.append(f"{path.name} still hardcodes a 15-minute heartbeat")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+expect_pass "both hosts are named where they differ" python3 - "$plugin_root" <<'PY'
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1]) / "skills"
+text = {
+    name: " ".join((root / path).read_text().split())
+    for name, path in {
+        "roles": "paseo-cto/references/roles-and-providers.md",
+        "contract": "paseo-cto/references/assignment-contract.md",
+        "charter": "paseo-cto/references/operating-charter.md",
+        "skill": "paseo-cto/SKILL.md",
+        "builder": "paseo-builder/SKILL.md",
+    }.items()
+}
+required = {
+    "roles": ("Codex writer sandbox", "Plugin path", "hostNativeRoles"),
+    "contract": ("Plugin path: <absolute installed plugin directory", "CTO commits at integration"),
+    "charter": ("hostNativeRoles", "`builder` is never allowed"),
+    "skill": ("hostNativeRoles", "Operating requires an agent-scoped Paseo identity"),
+    "builder": ("uncommitted: sandbox", "Plugin path"),
+}
+problems = [
+    f"{name} lacks {needle!r}"
+    for name, needles in required.items()
+    for needle in needles
+    if needle not in text[name]
+]
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
+printf '%s\n' 'The importer in `scripts/import.py` rejects a malformed row; release authorization is pending.' \
+  > "$scratch/status-filename.txt"
+expect_pass "a status may name the file the owner asked about" env REPORTING_LANGUAGE=English \
+  "$templates/check-owner-status.sh" "$scratch/status-filename.txt"
 
 printf 'test: %s contract checks passed\n' "$passes"
 

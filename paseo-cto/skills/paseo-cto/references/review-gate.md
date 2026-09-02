@@ -1,620 +1,249 @@
-# CTO review gate
+# Review gate
 
-Read this file when a delegated repository write returns, a semantic CTO integration fix is made, or
-a delegated report-only result is proposed as plan-node closure, authorization for a `Critical` card, or an
-owner-gate decision. Apply it before closure, integration, or push. Intermediate research or design
-used only to narrow the next contract is source-checked by the CTO and does not receive a separate
-review. Ordinary CTO work-tree and contract edits follow the plan-review rule below rather than a
-per-edit review. A project may define stricter gates; it must not define a weaker floor.
+Read this file when a delegated write returns, when a CTO integration fix changes semantics, or
+when a report-only result is proposed as closure, authorization for a `Critical` card, or an
+owner-gate decision. Intermediate research that only narrows the next contract is source-checked by
+the CTO and gets no separate review. Ordinary work-tree and contract edits get no per-edit review.
 
-**The CTO does not inspect.** Every outcome that crosses this gate is inspected by a non-author
-reviewer, whatever its risk. The CTO classifies the risk, which fixes how deep that inspection goes;
-it decides what lands, integrates, and answers for the result — but it does not read the diff in
-place of a reviewer. A CTO that inspects reads with the integrator's hypothesis rather than the
-adversary's, runs no falsifier of its own, and spends on one card the attention the whole fleet
-needs; and a change the CTO authored cannot be checked by the agent that wrote it. Landing
-authority, integration, and the bounded CTO fix remain CTO work.
+## Who inspects, by risk and by charter
 
-Once an outcome is under inspection, the author and its reviewer converge on it themselves: the
-reviewer returns, the author corrects, and the two repeat until the reviewer accepts or its
-two-return budget is spent. The CTO stays outside that loop and decides on the record when it
-escalates or breaks. *The convergence loop* and *Escalation* below define both.
+The charter's `reviewDepth` chooses one column. `standard` is the default; `risk-based` is its
+older name, `every-write` is the older name of `strict`.
+
+| Risk | `lean` | `standard` | `strict` |
+| --- | --- | --- | --- |
+| `Routine` | CTO glance | CTO glance | non-author reviewer, reading depth |
+| `Significant` | CTO look | non-author reviewer, one falsifier | non-author reviewer, one falsifier |
+| `Critical` | independent reviewer, executable proof | same | same |
+
+- **CTO glance** — five minutes on the return, not on the code: the return is complete in the
+  contract's structure, every `CHECKS` line carries a real result, each load-bearing claim has its
+  negative half under `FALSIFIERS`, `UNVERIFIED` is honest, `git diff --stat` stays inside the write
+  zone and touches no `No-touch` path. Accept, or return the one gap. No falsifier, no reproduction.
+- **CTO look** — the glance plus the complete diff read against the task file and the captured
+  evidence, and one falsifier only when that reading leaves a concrete hypothesis open. Fifteen
+  minutes is the budget; a look that needs more is a reviewer dispatch, whatever the column says.
+- **Non-author reviewer** — a separate agent reads the complete diff and the captured evidence,
+  reruns nothing already green, and runs at most one independently selected falsifier of a
+  different shape than the author's evidence, at the cheapest level that discriminates it. A change
+  that cannot alter product behaviour — tests, documentation, configuration, generated files — is
+  inspected at reading depth even at `Significant`.
+- **Independent reviewer** — a non-author reviewer from a different provider family whenever the
+  catalog allows, with at least one executable falsifier, fault injection, conflicting primary
+  source or bounded counterexample against the threatened invariant. A maintained negative suite
+  counts only when it demonstrably distinguishes the defect.
+
+Whoever inspects also walks the consumer surface when the card changed one (below). Several
+homogeneous siblings share one inspection at the highest classification among them, and its
+evidence must close each node individually. A change the CTO authored is inspected by a non-author
+reviewer at any risk. Nothing the CTO writes into a project lowers the `Critical` row: authentication,
+authorization, tenant isolation, privacy and secrets, data loss and corruption, distributed
+consistency, public compatibility and irreversible actions keep that floor under every charter.
 
 ## Risk classification
 
-Classify the card by the credible consequence of a defect, not by file type, subsystem, diff size,
-or implementation mechanism:
+Classify by the credible consequence of a defect, never by file type, subsystem, diff size or
+mechanism:
 
 - `Routine` — the worst credible failure is local, quickly detectable, reversible, and cannot
   violate a critical product invariant.
-- `Significant` — product or service behaviour changes materially, but credible damage remains
-  bounded, observable, and reversible.
-- `Critical` — a realistic defect could directly violate security, authentication, authorization,
-  tenant isolation, privacy or secrets, data integrity or preservation, distributed consistency or
-  completion, public compatibility, or the safety of an irreversible action.
+- `Significant` — behaviour changes materially, but credible damage stays bounded, observable and
+  reversible.
+- `Critical` — a realistic defect could directly violate one of the invariants named above.
 
-Auth, protocol, migration, storage, deployment, and similar surfaces trigger an explicit
-classification check; they do not automatically make a card Critical. Uncertainty prevents a Routine
-classification but never creates Critical by itself. Crossing subsystems, changing shared components,
-dependencies, or build and test infrastructure raises a card to at least Significant unless the diff
-and consequences are mechanically bounded.
+Auth, protocol, migration, storage and deployment surfaces trigger an explicit classification check;
+they do not automatically make a card `Critical`. Uncertainty prevents `Routine` but never creates
+`Critical` by itself. Crossing subsystems or changing shared components, dependencies or build and
+test infrastructure raises a card to at least `Significant` unless the diff is mechanically bounded.
+A correction is classified by its own consequence, not inherited from its parent card: a comment,
+inventory or generated-file repair may land at `Routine` under a `Critical` card, provided it cannot
+alter behaviour or weaken the critical proof.
 
 ## Judge at the contracted maturity
 
-Every card carries a maturity level, set when it is written and named in the assignment. Risk says
-what a defect would cost; maturity says what the card promised to produce.
+Every card carries a maturity level named in the assignment: `RESEARCH` (a verified answer),
+`DESIGN` (a working model), `BUILD` (a specified contract realized), `OPERATIONALIZATION` (a
+procedure proved executable by a real operator in the real environment). An assumption invalidated
+during research or design is a result, not a defect. Return work only when it fails the outcome
+promised at its maturity.
 
-- `RESEARCH` — the outcome is a verified answer. Refuting the starting hypothesis is a success.
-- `DESIGN` — the outcome is a working model. A preliminary plan may change as facts arrive.
-- `BUILD` — the outcome is an already-specified contract, realized. Divergence is a defect.
-- `OPERATIONALIZATION` — the outcome is proof that a real procedure is executable by a real operator
-  in the environment actually available.
+Depth surfaces neighbouring problems and no card carries everything found next to it. Every
+finding has exactly one kind, stated beside it, and no landing decision uses a finding whose kind
+is unstated:
 
-**Judge work at the maturity level contracted by the card.** An assumption invalidated during
-research or design is a result, not a defect. Return work only when it fails the outcome promised at
-that maturity level.
-
-Depth of investigation surfaces neighbouring problems, and no card carries everything found next to
-it. Sort each finding into exactly one kind before deciding the landing:
-
-- a defect in **this card's contracted outcome** — the only kind that can force a return;
-- a **refinement of the starting hypothesis** — recorded as a result, not charged as a failure;
-- an **independent product defect** — a proposed plan child, reported precisely and left unfixed;
-- **additional work** the finding implies — a separate card, never absorbed into this one;
-- **measurement gaming** — the author changed how a claim is measured rather than what the product
-  does: a tightened data limit, a layout that leaves one row visible, a viewport stretched before the
-  reading, a fixture pinned to the current output. It is an `outcome-defect` in the proof, it returns
-  the work, and it is named as its own kind because its second occurrence changes what happens next.
-
-State the kind alongside each finding. No landing decision may use a finding whose kind is unstated.
-A second `measurement-gaming` finding against the same author on one node is a break condition: the
-loop stops, the CTO reassigns the node to a different author, and the record says why. Another round
-with the same author buys a third way to measure, not a corrected product.
-
-## Common evidence floor
-
-For every outcome that crosses this gate:
-
-1. inspect the report, complete evidence package, outcome, scope, and no-touch boundaries;
-2. inventory executable or source-verifiable evidence for the exact returned result; verbal claims
-   are not acceptance;
-3. require a clean final worktree and preserve real command exits or source-linked primary evidence;
-4. list evidenced `blocker`, `major`, or `minor` findings;
-5. choose `ACCEPT`, `ACCEPT WITH CTO FIX`, `ACCEPT WITH RESIDUE`, `RETURN`, `ESCALATE`, or
-   `BLOCKED`. A delegated reviewer chooses only `ACCEPT`, `RETURN`, or `ESCALATE`; the landing
-   decisions belong to the CTO.
-
-For a repository write, also inspect the final workspace state, complete reviewed revision range,
-ancestry, and actual diff. For a gated report-only result, verify every source that carries a
-conclusion and the stated omitted scope. Apply [Source references](source-references.md) to every
-commit or repository file cited as durable evidence. Every verdict carries the round score defined
-under *Scoring each round*; the score measures the work and never decides the verdict.
+- `outcome-defect` — a defect in this card's contracted outcome; the only kind that can return it;
+- `hypothesis-refinement` — recorded as a result;
+- `independent-defect` — a proposed plan child, reported precisely and left unfixed;
+- `additional-work` — a separate card, never absorbed;
+- `measurement-gaming` — the author changed how a claim is measured rather than what the product
+  does (a tightened limit, a fixture pinned to current output, a viewport stretched before the
+  reading). It is an `outcome-defect` in the proof; its second occurrence against one author on one
+  node stops the loop and the node is reassigned to another author.
 
 ## A proof must be able to fail
 
-A check that cannot fail proves nothing and is indistinguishable from a passing check until
-production disagrees. The recurring shapes: a gate whose condition no input could violate, a script
-comparing a subset against itself, a fixture pinned to the value the code currently produces, and a
-suite exercising a configuration the deployed system never reaches.
+A check that cannot fail proves nothing until production disagrees: a condition no input violates,
+a script comparing a subset against itself, a fixture pinned to current output, a suite exercising a
+configuration the product never reaches. For every load-bearing claim require the negative half
+with its captured failing output, a statement of what the check catches and what it would pass, and
+an argument that the configuration it ran in is one the product reaches. Several commands proving
+one claim share one negative half; unchanged compiler, formatter, linter and upstream-suite commands
+need no ceremonial mutation. This is a property of the evidence and costs the author one broken
+input and one sentence; discovering it at review costs a round.
 
-For every load-bearing claim offered as acceptance evidence, require three things. Several commands
-may share one negative half when they establish the same claim; unchanged compiler, formatter,
-linter, and upstream-suite commands need no ceremonial mutation.
+For any boundary between two components, at least one accepted proof travels the product's own
+path, with the harness supplying no value product code would generate and assembling nothing
+differently from the running system. When the product path genuinely cannot run, the substitution
+is written into the card and the node lands with residue whose return condition is the event that
+makes the path runnable — never on an irreversible or silent boundary, which blocks instead.
 
-- **The negative half, with its output captured.** Show the check failing on a deliberately broken
-  input — the mutation, the command, and the real non-zero exit.
-- **What it catches and what it does not.** Name the mutations the check distinguishes and the ones
-  it would pass. A check with no stated blind spot has not been thought about.
-- **Reachability of the configuration it ran in.** Argue that the environment, inputs, and code path
-  under test are ones the product actually reaches.
+## Landing decisions
 
-This is a property of the evidence, not an extra stage. It costs the author one broken input and one
-sentence, and removes the review round that would otherwise discover the same thing later.
+The inspector — reviewer or CTO — chooses `ACCEPT`, `RETURN` or `ESCALATE`. The CTO alone lands:
+`ACCEPT`, `ACCEPT WITH CTO FIX` (a small, obvious, bounded, separately visible, rerun and disclosed
+fix), `ACCEPT WITH RESIDUE`, `RETURN`, `ESCALATE`, `BLOCKED`. A clean acceptance needs no response
+round; a `RETURN` goes to the author as the correction it names.
 
-## Review depth
-
-Depth says how far the inspection goes, never who performs it: that is always a non-author reviewer.
-The reviewer checks every changed path against
-the contract's write zone and `No-touch` before judging the content. A path outside the write zone is
-a finding until it is classified: the additive edit the [Assignment contract](assignment-contract.md)
-permits, declared in the return and changing no existing behaviour there, is ratified at integration;
-anything undeclared, behaviour-changing, or inside `No-touch` returns.
-
-### Routine
-
-A non-author reviewer reads the final diff and the author's acceptance evidence against the task
-file and accepts or returns. No run at all beyond reading: no falsifier, no reproduction, no command
-of its own. The single exception is the consumer-surface walk a wave's first vertical slice requires
-under *Review the surface the consumer meets*, which is one scenario and stays required at this
-depth. The review runs at the lowest effort tier the assignment allows; several homogeneous Routine nodes normally share one review under the
-batching rule, so the floor costs a dispatch, not a ceremony. A return goes to the author as the
-correction it names, and the author argues back only where it disputes a finding on evidence — no
-ceremonial response round.
-
-### Significant
-
-A change that cannot alter product behaviour — tests, documentation, configuration, generated files,
-mechanical edits — is reviewed at the Routine depth above: the final diff and the author's evidence
-against the task file, no falsifier. Any change to product code receives the full Significant depth:
-the complete outcome with the final diff, the success and failure paths read from the author's
-captured logs and exit lines rather than reproduced, and one independently selected falsifier of a
-concrete risk hypothesis the author's evidence does not settle — the reviewer's own execution is
-that falsifier and nothing else, at the cheapest level that discriminates it; sensitive surfaces (authentication, authorization, money, privacy, data loss, schema,
-canonical contracts) additionally anchor the falsifier to the threatened invariant. The reviewer runs
-in parallel and blocks nothing; the saving from skipping it is spent later with interest when an
-escaped defect is repaired after integration.
-
-### Critical
-
-An independent non-author reviewer inspects the complete returned outcome and evidence. At least one
-independently selected executable falsifier, fault-injection proof, conflicting primary source, or
-bounded counterexample must challenge the threatened invariant. Repository writes use executable
-proof when the invariant can be exercised. The reviewer may own that proof. A maintained negative or
-conformance suite counts only when it demonstrably distinguishes the defect.
-
-### Depth follows the classification and does not drift
-
-The risk-required depth is the default and, absent new evidence, the ceiling. Adding a falsifier, a
-round, or a suite beyond it carries its explicit reason in the review record. Resolve uncertainty by
-reclassifying the card on evidence, never by silently reviewing at a higher tier. One review may
-cover several batched sibling nodes: it runs once at the highest classification among them, and its
-evidence must close each node individually.
-
-A correction is classified by the credible consequence of the correction itself, not inherited from
-its parent card. A mechanical test-inventory, comment, generated-file, or report repair may receive a
-Routine acceptance even when the product change it supports was Critical, provided it cannot alter
-product behaviour or weaken the critical proof. If the correction changes an oracle, acceptance
-semantics, production reachability, or the threatened invariant, it keeps the corresponding depth.
-
-## When the reviewer shares the author's provider family
-
-An independent review borrows part of its strength from the reviewer not sharing the author's blind
-spots. A same-family assignment removes that property silently: the review still reads as independent
-and still produces findings.
-
-Record in the review that the cross-family property was lost, and compensate in the reviewer's
-contract:
-
-- **Require a falsifier of a different shape than the author's evidence.** If the author proved the
-  behaviour with a unit test, the falsifier injects a fault, drives the product path end to end, or
-  attacks the boundary from outside.
-- **Forbid taking the problem statement from the author.** The reviewer derives what the change must
-  do from the contract, the specification, and the code, never from the author's report.
-- **Weight the absence of findings accordingly.** Findings that survive are worth no less; findings
-  that are missed are more likely. Prefer keeping a `Critical` card's falsifier independently
-  selected even when that costs a round.
-
-## Accepting with residue
-
-A finding can be real, correctly argued, and still not worth another round when the product
-behaviour is settled and what remains only improves the proof.
-
-`ACCEPT WITH RESIDUE` lands the work and records the finding as a known fact with a return
-condition. It is a landing decision, so only the CTO takes it: a delegated reviewer may name a
-finding as residue-eligible in its return, and the CTO decides. It requires all of:
-
-- the outcome the card contracted is met and evidenced;
-- the residue is written where the project will find it again — a plan node, an invariant entry, or a
-  decision record — never only in review dialogue;
-- the return condition is concrete and observable, stated so that anyone can recognise it;
-- the decision names what is being accepted.
-
-**Residue is forbidden when the finding fails either test below**, and the decision is `RETURN` or
-`BLOCKED`:
-
-- **Reversibility.** Could the worst credible failure be undone once noticed? A defect that destroys,
-  discloses, or misappropriates something cannot be un-shipped by fixing it later.
-- **Detection.** Would the failure announce itself? A defect that fails silently has no moment at
-  which the return condition fires.
-
-Authentication and authorization, tenant isolation, money, privacy and secrets, data loss and
-corruption, and irreversible actions fail both tests routinely; the list saves time on common cases
-and does not bound the rule. When in doubt the card returns.
-
-Record the residue in the accepted task's `Closure` section under `Residuals`, set
-`deliberate_partial: true`, and give it an exact `return_trigger`. When the unachieved part is
-independent work rather than a limitation, it gets its own task identifier instead.
-
-## Reviewing a decomposition rather than an outcome
-
-A plan review applies this gate once to a new project's or wave's tree before its first card starts.
-Creating or correcting an individual task contract inside an accepted wave is CTO-owned work and
-does not trigger a separate contract review. Review the tree again only when a later rewrite changes
-closure semantics, dependencies, or owner gates across multiple nodes. A `RETURN` and any such
-re-review continue with the same reviewer and retained evidence under
-[Project bootstrap](project-bootstrap.md).
-
-A plan review converges the same way, with the CTO as the author of the tree: the reviewer returns,
-the CTO corrects the tree, and the loop repeats under the same two-return budget and the same
-journal, kept in the wave file. Because the CTO is the corrected party there, an exhausted budget
-goes to the owner as a named gate rather than to another CTO decision — a decomposition the reviewer
-cannot accept after two rounds is a scope question, not a review question.
-
-## The delta re-review
-
-A full protocol on a two-line correction costs what a full review costs and discovers what the last
-one already settled. Two situations take the short path instead:
-
-- an `ACCEPT` that named corrections to make before merge, and they were made;
-- a `RETURN` whose findings were all about the proof rather than about the contracted outcome.
-
-In both, the reviewer inspects **only the delta** — the range from the previously reviewed candidate
-to the new one — against the findings that produced it. The same author and the same reviewer
-continue; nothing about the earlier inspection is repeated, and its verdict on unchanged material
-stands. The response fits in 300 characters: the range, whether each named finding is closed, and
-the verdict.
-
-A delta re-review counts as a round in the journal, because it happened. It does **not** spend a
-return from the reviewer's budget unless it finds a new `outcome-defect` — the budget exists to stop
-a loop that is not converging, and a correction that closes what was asked is convergence. The
-moment a delta pass finds a defect in the contracted outcome, it becomes an ordinary return, spends
-the budget, and the full protocol resumes on the next candidate.
-
-Nothing else shortens: the write-zone check, the finding kinds, the scoring, and the journal line
-are unchanged. A delta pass may not be used to skip a first inspection, to re-examine a scope the
-earlier review never covered, or to accept a candidate whose range the reviewer has not seen.
-
-## The pre-dispatch contract check
-
-A contract that names a section, an export, a component or a mechanism that does not exist costs an
-hour: the builder discovers it, or the reviewer does, and the round is spent on a defect the CTO
-wrote. For a `Significant` or `Critical` node, a non-author reviewer attacks the contract itself
-before the builder starts, in five minutes or less, against exactly this list:
-
-1. Does every mechanism the contract names exist, at the path and under the name it uses?
-2. Are the section, export, component and file references correct as written?
-3. Does anything close "by convention" — an acceptance nobody can check, a state reached by
-   agreement rather than by evidence?
-4. Is the acceptance falsifiable: for each claim, is there an input under which it fails?
-5. Does the write zone overlap a task already running?
-
-The answer is one line: `ACCEPT` or `RETURN` with the item that fails and the correction. The CTO
-corrects and re-issues; this is not a review of the plan and creates no round in any journal.
-
-The check is required for `Significant` and `Critical`, and for any `Routine` node whose write zone
-touches shared infrastructure — build and test tooling, a shared configuration, a schema, a
-canonical contract, a stand another task uses — because a wrong contract there costs every task that
-shares the surface. For the remaining `Routine` nodes it is optional, and a project's settings say
-which way; the settings may not switch it off for the tiers above.
-
-## Escalation decisions are one vocabulary
-
-The decision the CTO records after an escalation is one of exactly these, and the work-tree schema
-is where the list lives:
-
-| Decision | Extends the loop | Meaning |
-| --- | --- | --- |
-| `bounded_retry` | yes | the bounded second budget is granted with an exact acceptance condition |
-| `independent_review` | yes | a replacement reviewer inspects inside that granted budget |
-| `accept_with_corrections` | no | the outcome lands; the named corrections are read as a delta |
-| `split` | no | the settled part lands; the unresolved part becomes its own node |
-| `stop` | no | the gate is named; the node blocks or is withdrawn |
-
-Only a decision that extends the loop makes a further return legal. A decision that does not extend
-it closes the loop where it stands: a return recorded after `split` or `stop` is an overrun, not a
-round. The ledger refuses a decision outside this table before writing it.
+`ACCEPT WITH RESIDUE` lands work whose contracted outcome is met while a real finding only improves
+the proof. It requires the residue written where the project will find it — the node's
+`Residuals` with `deliberate_partial: true` and an exact `return_trigger`, or its own node when the
+unachieved part is independent work — and it is forbidden when the finding fails either test:
+**reversibility** (could the worst failure be undone once noticed) or **detection** (would it
+announce itself). The `Critical` invariants fail both routinely; when in doubt, the card returns.
 
 ## The convergence loop
 
-A returned card is not finished by a verdict; it is finished by the author and the reviewer
-converging on evidence. They own that loop and run it to its end. Inside it the CTO adjudicates
-nothing and authorizes no individual correction: it carries the material between the two agents,
-advances the reviewer branch, writes the round journal, and watches for the break conditions below.
-Everything the gate already requires — independent derivation, a proof able to fail, the finding
-kinds, the maturity level, the review depth, and the non-negotiation rules of the direct exchange —
-holds unchanged in every round.
+A returned card is finished by the author and the inspector converging on evidence, not by a
+verdict. Inside the loop the CTO adjudicates nothing: it relays material verbatim where workers
+cannot address each other, writes the round journal, and watches for break conditions. When the CTO
+is itself the inspector, it holds the same two returns under the same rules and does not grant
+itself a budget: its third look is an independent reviewer's.
 
-- **A return authorizes the rework it names, and nothing else.** The author corrects inside the same
-  node, the same write zone, and the same contract, preserving still-valid proof and adding
-  regressions only for accepted findings. No separate rework contract is issued for a round.
-- **One round is one return and one corrected candidate.** The author answers every finding with
-  evidence — agreement, partial agreement, or a defence built from specification, code, tests,
-  measurements, or a reproducible counterexample. The reviewer resolves each defence on evidence and
-  withdraws or reclassifies whatever it disproves. Silence is recorded and creates no agreement.
-- **The reviewer holds two returns on one work unit.** Rounds are counted per dispatched node, not
-  per candidate: a re-dispatch under a new commit continues the same count. The second return is the
-  last the reviewer may issue on its own authority, and it carries a convergence condition — one
-  sentence naming what remains unclosed and which evidence would close it. A return that cannot name
-  that condition is an escalation, not another attempt.
-- **A round carrying no new evidence on either side does not spend the budget; it escalates.**
-  Repeating a finding without new material, or resubmitting a candidate whose evidence did not
-  change, means the loop has stopped converging and further rounds only spend time.
-- **After the second return the reviewer returns `ESCALATE` instead of `RETURN`.** That verdict
-  carries what remains unclosed, which findings recurred, what each side last proved, and the
-  reviewer's stated hypothesis for why the loop did not converge. `ACCEPT` remains available at every
-  round, including the last.
+- A return authorizes the rework it names and nothing else, inside the same node, zone and
+  contract; no separate rework contract per round.
+- One round is one return and one corrected candidate. The author answers every finding with
+  evidence; the inspector resolves each defence on evidence and withdraws what it disproves. Silence
+  is recorded and creates no agreement.
+- The inspector holds two returns on one work unit, counted per node, not per candidate; a
+  re-dispatch under a new commit continues the count. The second return carries a convergence
+  condition — what remains unclosed and which evidence closes it. A round with no new evidence on
+  either side spends nothing and escalates.
+- After the second return the verdict is `ESCALATE`: what is unclosed, which findings recurred,
+  what each side last proved, and why the loop did not converge. `ACCEPT` stays available in every
+  round; rounds spent are not quality earned.
+- The exchange carries facts — revision, reproduction, exit, which finding refers to which line —
+  and never negotiates a verdict, asks for an adverse check to be skipped or weakened, lets the
+  author touch a reviewer-owned falsifier, or applies pressure. A breach freezes integration,
+  preserves the record and brings a replacement reviewer; never allege coordination without a
+  reproducible message.
+- Keep the same author and inspector, with their workspaces, for the whole loop. Advance a clean
+  reviewer branch only by verified conflict-free fast-forward from the recorded reviewed head;
+  replace the workspace when that is impossible. Unchanged material is not reread; the correction
+  delta and its affected context are. A reviewer-selected falsifier stays selected and reruns on
+  the corrected revision when its hypothesis still applies; a new proof needs a new hypothesis.
 
-The CTO never enters the loop as a participant. It relays, keeps the journal, and decides when the
-node escalates or breaks — there is no depth at which it becomes the inspector instead.
+**Break conditions** end the round at once and hand the node to the CTO with the journal and the
+unspent budget: an undeclared path outside the write zone or in `No-touch`; a finding that changes
+risk or maturity, needs an owner gate, or disputes the contract; a finding that is not an
+`outcome-defect`; any negotiation signal; a lost, errored or no longer independent participant; a
+second `measurement-gaming` finding. The CTO resolves what broke — ratifies or returns the edit,
+reclassifies, opens the gate, creates the child, replaces the reviewer — and hands the node back.
 
-## Escalation: the CTO decides on the record
+**Escalation** reaches the CTO with the journal, both last reports, the final diff or package and
+the convergence condition. Read the exchange: whether the scores moved as the work changed, whether
+both sides still argue the same fact. Decide in that turn among exactly the schema's vocabulary —
+`bounded_retry` (two more returns, once per node, with an exact acceptance condition written into
+the node), `independent_review` (a replacement reviewer from a third family when the catalog allows,
+inside that same budget), `accept_with_corrections`, `split`, `stop`. Only the first two extend the
+loop; the ledger refuses anything else. **Four returns is the ceiling on one work unit**; after the
+granted budget the next decision is never another round. A finding that fails reversibility or
+detection cannot be accepted with residue at any round count.
 
-An escalated node reaches the CTO with the round journal, both roles' last reports, the final diff or
-evidence package, and the reviewer's convergence condition. The CTO reads the exchange itself — what
-was found, what was answered, what changed between rounds, whether the round scores moved as the
-work changed, and whether the two sides were still arguing about the same fact. A flat score across
-several rounds says the corrections are not reaching the problem; a score that climbs while the
-findings repeat says the review has drifted from its anchors.
+A node whose rounds keep resolving into new work rather than into a closed finding is a
+decomposition problem; escalate it instead of spending the budget.
 
-A node that arrived through a break condition rather than an exhausted budget is a different case:
-resolve what broke — ratify or return the out-of-zone edit, reclassify the node, open the owner
-gate, create the plan child, replace a compromised reviewer — and hand the node back to the loop
-with the budget it had left. The bounded second budget is spent only after the two returns are.
+## The delta re-review
 
-Otherwise the CTO decides in that same turn among exactly these:
+An `ACCEPT` that named corrections to make before merge, or a `RETURN` whose findings were all
+about the proof, takes the short path: the same inspector reads only the range from the previously
+reviewed candidate against the findings that produced it, answers in 300 characters, and the earlier
+verdict on unchanged material stands. It is journalled as a round but spends no return unless it
+finds a new `outcome-defect`, at which point the full protocol resumes. It never substitutes for a
+first inspection or covers scope the earlier review never saw.
 
-- **accept**, in any form this gate already defines: `ACCEPT`, `ACCEPT WITH CTO FIX`, or `ACCEPT WITH
-  RESIDUE` under the residue rule;
-- **grant a bounded second budget of two returns**, once per work unit, with an exact acceptance
-  condition written into the node before the loop resumes;
-- **assign an independent replacement reviewer**, in the rare cases below, working inside that same
-  two-return budget;
-- **split the node**, landing the settled part and moving the unresolved part into its own node with
-  its own risk classification and acceptance;
-- **name the gate and stop**, recording what blocks convergence and who must resolve it, as `BLOCKED`
-  or a withdrawal.
+## The pre-dispatch contract check
 
-A replacement reviewer is for what a second budget alone cannot settle: the two roles dispute a fact
-neither can close on the evidence available; the review's independence is in doubt; author and
-reviewer share a provider family and the disputed finding sits exactly where that costs most; or a
-`Critical` invariant rests on a falsifier the author disputes. It creates no new budget, and its
-first act is deriving the requirement from the contract, the specification and the code rather than
-from either prior report.
-
-Four returns is the ceiling on one work unit — two inside the loop and two inside the granted
-budget. Once the second budget is spent, the next CTO decision cannot be another round: accept,
-accept with residue, split, or name the gate. A finding that fails the reversibility or detection
-test cannot be accepted with residue at any round count; that node blocks or is withdrawn instead.
-
-## What breaks the loop early
-
-The loop runs without the CTO only while it stays inside the contract. Any of the following ends the
-round immediately and hands the node to the CTO with the journal as it stands. The unspent budget is
-preserved and remains available to whatever the CTO decides.
-
-- A changed path outside the write zone that the return did not declare as the permitted additive
-  edit, or any path in `No-touch`.
-- A finding that changes the node's risk classification or maturity, requires an owner gate — push,
-  deployment, money, schema, live mutation, an irreversible action — or disputes the contract itself
-  rather than the work measured against it.
-- A finding whose kind is not `outcome-defect`. An independent product defect or additional work
-  belongs to a new plan node, and only the CTO writes the tree.
-- Any signal that the exchange is being used to negotiate a verdict, weaken, skip or conceal an
-  adverse check, select the other role's proof, or apply social pressure. Integration freezes, the
-  record is preserved, and an independent replacement is assigned; never allege coordination without
-  a reproducible message or action.
-- A reviewer or author that is unavailable, errored, or no longer independent.
-- A second `measurement-gaming` finding against the same author on this node.
+A contract naming a section, export, component or mechanism that does not exist costs a round. A
+non-author reviewer attacks the contract in five minutes — does every named mechanism exist at that
+path and name; are references correct as written; does anything close by convention; is every
+acceptance claim falsifiable; does the write zone overlap a running task — and answers `ACCEPT` or
+`RETURN` in one line. It is required for `Critical` and for any node whose write zone touches shared
+infrastructure — build and test tooling, a shared configuration, a schema, a canonical contract, a
+stand another task uses. The charter's `contractCheck` may add `significant` and `routine`; it
+creates no journal round.
 
 ## Review the surface the consumer meets
 
-A diff says what the code does. It does not say what the consumer receives, and a card can be
-correct against its contract while the path through the product stays broken, slow, or
-unintelligible. On a card that changes a product surface, the review includes walking that surface
-the way its consumer does.
+A diff says what the code does, not what the consumer receives. On a card that changes a product
+surface — an HTTP or gRPC API, a CLI, a TUI, a web or mobile interface, an SDK, an event stream, a
+job's output, a configuration contract — the inspection includes walking that surface as its
+consumer does, in an environment the product reaches, never against a fixture. The first vertical
+slice of a wave always gets the walk, whatever its risk; afterwards it follows risk: a
+`Significant` or higher change to the surface, its error or permission behaviour, or a contract a
+consumer depends on. It adds no agent: whoever inspects the card walks, and one walk covers batched
+siblings on the same surface.
 
-The surface is whatever the product presents to whoever consumes it: an HTTP or gRPC API, a CLI, a
-TUI, a web or mobile interface, an SDK, an event stream, a scheduled job's output, a configuration
-contract. The consumer is whoever meets it: a person, an integrating system, an operator, an
-administrator, an anonymous caller, the engineer on call at 03:00. The contract names both, and the
-walk happens on the surface the product actually exposes, in an environment the product reaches —
-never against a fixture that stands in for it.
-
-**The first vertical slice always gets this walk.** The first card of a wave or epic that carries a
-scenario through to its consumer surface is reviewed this way whatever its risk, because that is the
-cheapest moment at which a wrong path costs one card instead of a wave. After that, the walk follows
-risk: a `Significant` or higher change to the surface, to its error or permission behaviour, or to
-the contract a consumer depends on. A change that no consumer can observe does not get one.
-
-The walk belongs to the reviewer inspecting the card, at whatever depth its risk requires. It adds no
-agent by itself — the reviewer that would review the card anyway also walks the surface — and on a
-batched dispatch one walk covers the sibling nodes that share that surface.
-
-Six questions, in this order. The first that fails is the finding; do not collect the rest as
-decoration.
-
-1. **Does the scenario reach its result?** Not `200 OK`, not a rendered page, not an exit status —
-   the thing the consumer came for, observed after the fact.
-2. **What happens at the edges?** Empty, one, many, slow, partial, unauthorized, repeated,
-   concurrent, malformed, dependency missing. Name which edges were walked and which were not.
-3. **What does the path cost?** Steps, calls, fields, waits, and prior knowledge required, against
-   the minimum the scenario needs. A path that works but costs three avoidable round trips is a
-   finding with a number attached.
-4. **Does a failure explain itself?** A refusal names what happened and what to do next; an API
-   carries a stable machine-readable code beside the human-readable message; a CLI sets a truthful
-   exit status and writes the diagnosis where a script can read it.
-5. **Is it consistent with what already exists?** The conventions of the surface — error shapes,
-   pagination, flag grammar, the project's design-system sources for a visual interface — and the
-   behaviour of the neighbouring paths a consumer already learned.
-6. **Is the consumer better off?** State plainly what improved, what did not, and what the change
-   left unsolved. This is judged against the consumer's task, not against the contract, and it is
-   the one question the diff can never answer.
-
-Evidence rules do not relax here. A finding carries the exact call or step, the real response, exit
-status or captured state, and a reproduction path someone else can follow. An impression without a
-reproducible step is not a finding and does not enter the report.
-
-This walk grants no authority to widen the card. Sort each finding by kind as usual: a broken
-scenario the card contracted is an `outcome-defect` and can return the work; a rough edge the card
-never promised is an `independent-defect` or `additional-work`, reported precisely and left to its
-own node. A review that redesigns the product it was asked to check has stopped being a review.
+Six questions in order; the first that fails is the finding: does the scenario reach its result;
+what happens at the edges (empty, one, many, slow, partial, unauthorized, repeated, concurrent,
+malformed, dependency missing); what does the path cost against the minimum; does a failure explain
+itself; is it consistent with the surface's conventions and neighbouring paths; is the consumer
+better off. A finding carries the exact call, the real response and a reproduction; an impression is
+not a finding. The walk widens nothing: a broken contracted scenario is an `outcome-defect`, a rough
+edge the card never promised is `independent-defect` or `additional-work`.
 
 ## Scoring each round
 
-Every verdict the reviewer issues — `ACCEPT`, `RETURN`, or `ESCALATE` — carries a score on a ten-point
-scale, written as the round marker `R<n>(<score>/10)`. The score answers one question: how good is
-this work, judged at the contracted maturity, on the evidence in front of the reviewer.
+Every verdict carries a score on a ten-point scale in the round marker `R<n>(<score>/10)` — how
+good is this work, judged at the contracted maturity, on the evidence in front of the inspector.
+Score **code** (does what the contract requires, reads like its surroundings, holds the area's
+invariants, leaves the tree buildable), **work** (evidence discriminates, negative half observed,
+return matches the diff, stayed in zone, reproducible from the report), and **experience** whenever
+a surface was walked (scenario reaches its result, edges behave, path cost, failures explain
+themselves, consumer better off); otherwise experience is `n/a`. For a report-only outcome the code
+axis is the answer itself. **The marker carries the lowest axis that applies.**
 
-Score these axes and report each one that applies:
-
-- **Code** — does the change do what the contract requires, does it read like the surrounding code,
-  does it hold the invariants its area already holds, and does it leave the tree in a state the next
-  change can build on.
-- **Work** — does the evidence discriminate, was the negative half observed, does the return match
-  what the diff actually does, did the work stay inside its zone, and is the result reproducible
-  from the report alone.
-- **Experience** — scored whenever the card changed a product surface and the review walked it: does
-  the scenario reach its result, do the edges behave, what does the path cost, does a failure
-  explain itself, is it consistent with what exists, and is the consumer better off. Where no
-  consumer can observe the change, this axis is `n/a` and is not invented to fill the line.
-
-**The marker carries the lowest axis that applies.** A clean implementation proved by a check that
-cannot fail scores on its evidence; a thoroughly evidenced change that ignores the conventions of
-the area it edits scores on its code; and a correct, well-proved change that leaves its consumer
-worse off scores on experience, because that is what shipped. For a report-only outcome the code
-axis reads as the answer itself: its correctness, its completeness against the question asked, and
-whether its sources carry the conclusion drawn from them.
-
-The anchors are observable, not felt:
-
-| Score | What it means |
+| Score | Anchor |
 | --- | --- |
-| 9–10 | The contracted outcome is met, nothing above `minor` is open, and every load-bearing claim has an observed failing form and a stated blind spot. On experience: the scenario reaches its result, the walked edges behave, and a failure explains itself. |
-| 7–8 | The outcome is met with only `minor` findings open; one check is narrower than the claim it carries, or the configuration it ran in is a step away from the one the product reaches. On experience: the path works with avoidable cost or an inconsistency a consumer will notice once. |
-| 5–6 | One `major` finding, or evidence that does not distinguish the defect it is offered against. The product probably behaves, but the proof does not establish it. On experience: an edge misbehaves, or a failure gives the consumer nothing to act on. |
-| 3–4 | Several `major` findings, a false green, or a divergence from the contract at the declared maturity. On experience: the scenario reaches its result only along a path the consumer would not find. |
-| 1–2 | An open `blocker` in the contracted outcome, evidence that does not reproduce, or work that does not run. On experience: the scenario does not complete. |
+| 9–10 | Outcome met, nothing above `minor` open, every load-bearing claim has an observed failing form and a stated blind spot; a walked scenario reaches its result and failures explain themselves. |
+| 7–8 | Outcome met with `minor` findings; one check narrower than its claim or a step away from the configuration the product reaches; a path that works with avoidable cost. |
+| 5–6 | One `major`, or evidence that does not distinguish the defect it is offered against; an edge misbehaves or a failure gives nothing to act on. |
+| 3–4 | Several `major`, a false green, or divergence from the contract at its maturity; the result is reachable only along a path the consumer would not find. |
+| 1–2 | An open `blocker` in the outcome, evidence that does not reproduce, work that does not run; the scenario does not complete. |
 
-Four rules keep the number honest:
-
-- **The score never decides the verdict.** An open `outcome-defect` blocker returns the work at any
-  score, and its absence accepts the work at any score. A low score with no finding behind it is a
-  defect in the review, not in the work.
-- **Every score below 9 names its reason** in the same line — which finding, which missing proof,
-  which convention. An accepted outcome scored below 8 says in one clause what stayed imperfect, so
-  the number is never mute.
-- **The scale does not move with the round.** Rounds spent earn nothing; the last round is scored
-  against the same anchors as the first, and a score that rises without the work changing is a
-  review that has started grading the author.
-- **No strategy, urgency, or provider changes it.** `alpha` and `stable` change what is contracted,
-  not what a seven means.
+The score never decides the verdict: an open `outcome-defect` blocker returns at any score and its
+absence accepts at any score. Every score below 9 names its reason in the same line, and an
+acceptance below 8 says in one clause what stayed imperfect. The scale does not move with the round
+or with strategy, urgency or provider.
 
 ## The round journal
 
-Each round leaves exactly one line in the dispatched node's `Review rounds` section: the round
-number with its score, the verdict, the moment it was issued, the finding that carried it, what the
-author answered with, and what changed —
-`- R2(5/10) RETURN 25/08 14:20 — <finding> → <answer> → <what changed>`. An escalation adds one
-decision line in the same shape: `- CTO bounded_retry 25/08 15:10 — <reason>`, naming the same
-decision the node's `escalation_decision` field records.
+Each round leaves exactly one line in the node's `Review rounds` section, written by the ledger from
+the two reports: `- R2(5/10) RETURN 25/08 14:20 — <finding> → <answer> → <what changed>`. An
+escalation adds `- CTO bounded_retry 25/08 15:10 — <reason>`, naming the same value as
+`escalation_decision`. The moment is local `dd/mm hh:mm` when the verdict arrived and the only clock
+reading in the journal; two adjacent moments show what a round cost. The dialogue itself stays in
+the reports and the evidence package. A CTO glance or look that returns is journalled the same way.
 
-The moment is `dd/mm hh:mm` in the machine's local time, taken when the verdict arrives rather than
-when the line is written, and it is the only clock reading in the journal: durations are derived
-from the sequence, never restated per line. Two adjacent moments show what a round actually cost,
-which is what makes a stalled loop visible before the budget runs out.
+## Integration delta and durable evidence
 
-The CTO writes those lines — workers never edit the tree — from the two roles' reports at each
-handoff. The journal is what a later session, a replacement reviewer, and the escalation decision
-are read from; the review dialogue itself stays in the reports and the evidence package and is never
-copied into the file.
+Integrate only into a clean CTO tree. If the accepted range applies without manual edits and its
+dependency surface is unchanged, reuse its final-revision evidence; if a conflict resolution,
+integration edit or changed dependency surface alters the result, inspect that delta at the node's
+depth and rerun what it may invalidate. Inspect every commit in `<upstream>..HEAD` before push.
 
-## Response and repair inside the loop
-
-A response is owed whenever there is a blocker or major finding, a proposed return, a disputed scope
-or contract, or a semantic CTO integration edit. A clean acceptance — delegated or CTO-performed —
-requires none, and a ceremonial `AGREE` round is never inserted. The response and the authorized
-correction are one turn: the author states its position on each finding and lands the rework the
-return named, in the same node and write zone.
-
-An author that disputes a finding does not correct it while disputing it; it answers with evidence
-and waits for the reviewer to resolve the dispute. A new adverse finding discovered mid-round earns
-its own round before final authorization.
-
-Choose return versus CTO repair by severity, blast radius, depth, hot context, correction size,
-acceptance cost, and collision risk. A CTO fix is small, obvious, bounded, separately visible,
-rerun, and disclosed. Return deep, behavioural, architectural, cross-file, or uncertain work.
-
-When several blocker or major findings are symptoms of one missing model, the author states that
-shared ownership, lifecycle, serialization, or linearization model and its bounded acceptance matrix
-before patching, inside the round it was asked in.
-
-## Direct exchange between author and reviewer
-
-The convergence loop runs on this channel. A fact that only one side holds is asked and answered
-directly; routing the question through a decision maker delays the answer until the next reconcile.
-Where the host gives workers no way to address each other, the CTO relays the return, the response,
-and the corrected revision verbatim, adding no judgement of its own — relaying is transport, not
-adjudication. The CTO remains the decision point at escalation, at a break condition, and at
-integration, and audits the exchange at each material handoff and at the scheduled reconcile.
-
-The channel carries facts and the loop's own material: the exact revision, range and bounded scope;
-how to reproduce something, the command, and its real exit; which finding refers to which line, and
-the evidence-based response to it; the verdict of the round and the correction it names. One
-question, one answer. Do not restate what the contract, the report, or the diff already carries. Ask
-when asking is cheaper than deriving the same fact from the code.
-
-Four things the exchange never does:
-
-- negotiate a verdict, an acceptance, or a classification outside the task contract;
-- request that an adverse check or finding be skipped, weakened, concealed, or reclassified;
-- let the author select or modify a reviewer-owned falsifier, or the reviewer modify the candidate
-  or its acceptance evidence;
-- apply pressure, urgency, praise, blame, or any other social framing to a verdict.
-
-Independence of derivation does not change with the number of rounds: the reviewer derives what the
-change must do from the contract, the specification and the code, in the last round exactly as in
-the first. The exchange supplies facts, not the problem statement. Familiarity built over rounds is
-not evidence, and neither side may accept the other's conclusion because the loop is long.
-
-Record each exchange in one line in both the return and the review report — what was asked, what was
-answered — and in the round journal at each handoff. On any signal of a breach, freeze integration,
-preserve the record, and assign an independent replacement or tie-break reviewer; never allege
-coordination without a reproducible message or action. A project may close this channel and route
-every handoff through the CTO, but it may not widen it.
-
-## Continuity across rounds
-
-A `RETURN` starts bounded rework inside the same node. It does not reset valid review evidence,
-restart the round count, or require a new review organization. For a report-only outcome, the
-preserved author and reviewer continue against the same evidence package without a repository
-fast-forward.
-
-- Keep the originating author and independent reviewer, with their workspaces, for the whole loop.
-  The same reviewer carries every round of one node by default.
-- Before re-review, the CTO may advance a clean preserved reviewer branch to the corrected exact
-  revision only by verified conflict-free fast-forward: require empty porcelain, the recorded prior
-  reviewed `HEAD`, and ancestry from that `HEAD` to the correction. Record the new exact range.
-  Never rebase, reset, or resolve conflicts in the reviewer workspace; use a replacement workspace
-  when fast-forward is impossible.
-- The reviewer may satisfy complete-final-diff inspection by retaining its own inspection of
-  unchanged lines, inspecting the entire rework delta and affected context, and confirming the final
-  range, scope, ancestry, and evidence. Do not force a context-free reread of unchanged material.
-- A reviewer-selected falsifier remains independently selected. Rerun it on the corrected revision
-  when its hypothesis still applies. Add a new proof only for a new risk hypothesis, materially
-  changed semantics or dependency surface, contradictory evidence, or an invalidated prior proof.
-  Depth still follows the classification: extra proofs added because the loop is long, rather than
-  because a hypothesis is open, carry their reason in the record.
-- Replace the reviewer only under a break condition or an escalation decision — unavailability, an
-  error, compromised independence, a disputed finding needing a tie-break, or rework that materially
-  expands scope, dependencies, or the threatened invariant.
-- A node whose rounds keep resolving into new work rather than into a closed finding is a
-  decomposition problem, not a review problem. Escalate it instead of spending the budget.
-
-## Integration delta
-
-Integrate accepted work only into a clean CTO tree. Compare the integrated result with the reviewed
-revision range:
-
-- if it applies without manual edits and its dependency surface is unchanged, reuse valid
-  final-revision evidence;
-- if a conflict resolution, integration edit, reordered dependency, or changed dependency surface
-  alters the result, dispatch an explicit non-author review of that delta and rerun every check it
-  may invalidate.
-
-Patch identity is optional provenance metadata, never an acceptance criterion. Inspect every commit
-in `<upstream>..HEAD` before push. Do not repeat a leaf suite whose reviewed tree and dependency
-surface remain unchanged; follow [Validation budget](validation-budget.md).
-
-## Durable evidence
-
-- Preserve archive-worthy evidence through source-linked Git references, an approved artifact store,
-  CI, runtime state, or a concise durable authorization record. Apply
-  [Source references](source-references.md) to every commit or repository file mentioned.
-- Durable evidence is the derivation, not the haul. Keep what was run, its exit, the values that
-  decide the claim, and a script able to re-derive them on the exact revision. Retain a raw capture
-  only where the claim is otherwise unreproducible. Money movement, tenant isolation, the sandbox
-  boundary, and irreversible operations keep their complete raw package.
-- Prove generated or deployed artifact ancestry and serialize live changes against evidence runs.
-- Treat shared-tree contamination as failure; preserve dirty or unintegrated work for diagnosis.
-- Implementation ends locally. Push, deploy, publication, live mutation, paid work, schema
-  operations, and irreversible actions remain separate explicit owner or project gates.
+Durable evidence is the derivation, not the haul: what ran, its exit, the values that decide the
+claim, and a way to re-derive them on the exact revision, all as commit-pinned links under
+[Source references](source-references.md). Raw captures stay only where a claim is otherwise
+unreproducible; money, tenant isolation, the sandbox boundary and irreversible operations keep their
+complete package. Shared-tree contamination is failure; dirty or unintegrated work is preserved for
+diagnosis. Implementation ends locally; push and everything beyond it are owner gates.

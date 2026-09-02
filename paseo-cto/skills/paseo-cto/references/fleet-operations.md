@@ -1,309 +1,167 @@
 # Fleet operations
 
-Read this file before creating, recovering, or monitoring a fleet. Reporting lives in
-[Status and reporting](status-and-reporting.md); archival, deletion and close live in
-[Cleanup and close](cleanup-and-close.md). This file governs preflight, reconciliation, creation,
-derived state, and the heartbeat.
+Read this file before creating, recovering or monitoring a fleet. It governs preflight, the
+runtime checkpoint, reconciliation, creation, parallel work, derived state and the heartbeat.
+Reporting is in [Status and reporting](status-and-reporting.md); retirement and close in
+[Cleanup and close](cleanup-and-close.md).
 
 ## Preflight and state
 
-`operate` requires the CTO to be an agent-scoped Paseo session (`PASEO_AGENT_ID` or equivalent
-caller identity). Outside Paseo, allow only inspection and status, and explain how to start or hand
-off to a Paseo CTO; create no agents, workspaces, or heartbeat.
-
-Bind project root and plan, the canonical settings path and revision, integration branch and
-accepted `HEAD`, CTO/project/run IDs, owner gates, both fleet ceilings, and heartbeat. The task and
-external-agent ceilings exclude the CTO. Keep plan truth in Git, persistent owner choices in
-`SETTINGS.json`, and volatile state at the canonical absolute path defined by Execution plan:
+Operate requires an agent-scoped Paseo session (`PASEO_AGENT_ID` or equivalent). Outside Paseo,
+allow only inspection and status and explain how to start a Paseo CTO. Bind the project root, work
+root, settings path and revision, integration branch and accepted head, CTO/project/run IDs, owner
+gates, both fleet ceilings and the heartbeat. Plan truth lives in Git, owner choices in
+`SETTINGS.json`, volatile state in the checkpoint:
 
 ```text
 $(git rev-parse --git-common-dir)/paseo-cto/<run>.json
 ```
 
-Resolve the common directory before use; never clean an unresolved or broad path. Recover settings
-before runtime, persist runtime after each lifecycle mutation, and commit plan changes before
-dependent dispatch and material gates. Lifecycle-only transitions belong in runtime and never
-justify a plan commit.
+Runtime schema 3 has these top-level keys: `schema`, `updatedAt`, `project`, `run`, `settings`
+(`path/revision`), `plugin` (`version/commit`), `cto` (identity, assignment, session and state
+times, derived status, bounded action), `integration` (`branch/head/acceptedHead`), `heartbeat`
+(`id/name/status`), `releaseClock` (nearest outcome, critical path, current wave ID and name,
+target window, next observable finish, accepted movement), `activeNodes` (`id`, `ceremonyMinutes`,
+`auxiliaryReturnsSinceMovement`, `accounting`), `agents` (identity, task/role/family/title,
+workspace/baseline, optional candidate, assignment/mode, derived status and `stateSince`, one
+`returnSummary` under 1200 characters), `workspaces`, `tails`, `materialEvents`; optional
+`resources` and `accountingTotals`. Keep at most twelve material events and twelve tails. The
+checkpoint is current state, not a transcript: it is written by the ledger on every event, and by
+hand only to adopt a resumed run. Conversation history is not a recovery mechanism.
 
-## Reconcile before creation
+`check_runtime.py <checkpoint> --project-root <root>` validates the checkpoint against the live
+Paseo inventory, settings and Git; a mismatch, a legacy checkpoint or an unavailable probe stops
+dispatch until a fresh inventory is reconciled.
 
-Reconcile on startup, resume, context recovery, every heartbeat, and material events. On startup,
-recovery, and every fourth heartbeat, also sweep for orphans — unlabeled crash tails that routine
-project-scoped queries miss.
+## Reconcile
 
-1. Read persistent settings, plan, accepted Git state, and runtime checkpoint, then run
-   `check_runtime.py <checkpoint> --project-root <integration-root>`. The check obtains the global
-   Paseo inventory and active workspaces itself. If the probe is unavailable or disagrees with the
-   checkpoint, reconcile the reported identities and rebuild legacy state before dispatch.
-2. The probe includes both agents labelled for the exact project/run and every unlabelled agent
-   whose native parent is the exact CTO. This is the authoritative coverage check; a root-scoped
-   listing, an empty first response, or an agent's return is not inventory evidence.
-3. Independently inspect any reported mismatch before adoption, archival, or correction.
-4. Inspect known IDs and permissions, and match each owned record to its plan node, Git state,
-   evidence, and review state. Derive each agent's expected title from its labels and rename on
-   mismatch. Require its recorded workspace to carry the same title, correcting a mismatch with
-   `rename_workspace` before reuse. Names follow the single derived format in Roles and providers.
-5. **Collect finished work as a step, not as a by-product.** A completed agent does not announce
-   itself. For every recorded agent not currently running, fetch and read the return in this
-   reconcile, then move the card to `reviewing` or record why it cannot move. An uncollected result
-   costs the whole interval it waits.
-6. Process returned results before dispatch. Detect duplicates, errors, suspected stalls, stranded
-   workspaces, and dirty or unintegrated tails.
-7. Persist runtime state, commit any durable plan correction, then rebuild the ready frontier.
+Reconcile on startup, resume, context recovery, a material event, and the heartbeat. Every fourth
+heartbeat, and on startup and recovery, also sweep for orphans.
 
-### Turn-start check
+1. Read settings, the tree, accepted Git state and the checkpoint; run `check_runtime.py`.
+2. Inventory by label, never by directory: `paseo ls --global --label paseo-cto.project=<project>
+   --label paseo-cto.run=<run> --json` plus every unlabelled agent whose parent is the exact CTO.
+   Worktree agents do not appear in a root-scoped listing; a CTO that inventories by directory
+   dispatches duplicates.
+3. Inspect every recorded ID with `get_agent_status`; match each record to its node, Git state,
+   evidence and review state; rename any title that differs from its derived form.
+4. **Collect finished work as a step.** For every recorded agent not running, read the return in
+   this reconcile and move the node, or record why it cannot move. An uncollected result costs the
+   whole interval.
+5. Process returns and permissions before dispatch; detect duplicates, errors, stalls, stranded
+   workspaces and dirty tails. Never create a duplicate for a task and role already live in any run.
+6. Persist runtime through the ledger, commit any durable plan correction, rebuild the ready
+   frontier.
 
-A full reconcile runs only on the heartbeat and material events, so begin **every** CTO turn with
-the cheap check instead: pending permissions plus the status of the agents already recorded in
-runtime. A non-running agent means a report is waiting; fetch it in that turn. This costs no extra
-cycle and usually surfaces a return well before the next heartbeat. Escalate to the full reconcile
-only when the cheap check shows a return, an error, or a permission needing a decision.
+**Turn-start check.** Begin every turn with the cheap check — pending permissions plus the recorded
+agents' status — and escalate to a full reconcile only when it shows a return, an error or a
+decision. A non-running agent means a report is waiting; fetch it in that turn. Never wait in-turn
+for a long operation: start it detached, record where its exit line will appear, and read that
+line at the next material event or heartbeat — never by a wait loop inside the CTO turn.
 
-Never mutate an unlabeled or foreign record without proving ownership. Never create a duplicate for
-a task or role already `running`, `waiting`, `reviewing`, or `rework` in any run. The CTO is the sole
-lifecycle owner of every agent in the run, recorded as `paseo-cto.parent`. A reviewer that returned
-findings remains the default owner of every later round on that node: preserve it with its workspace
-for the whole convergence loop, unless a Review-gate replacement or break condition applies. Advance
-a preserved clean reviewer branch only through the Review gate's verified conflict-free fast-forward.
-A node inside the loop alternates between `reviewing` and `rework` without a new dispatch; relaying
-the return, the response, and the corrected revision between the two agents is transport, and the
-CTO adds no judgement to it until the node escalates or a break condition fires.
+**Resume and handover.** A restarted or handed-over CTO is a new session with a new agent ID. Its
+first mutation is adoption: inventory by label, `update_agent` each live agent of this run whose
+parent is the previous session, record the new parent in `cto.agentId`, rerun the validator. A
+same-run predecessor is the only parent an agent may have carried; any other parent is foreign. A
+CTO on the other host loads the same `SETTINGS.json`, keeps its revision and charter, and replaces
+only CTO, run and heartbeat identity. After an agent-daemon restart, sessions and the heartbeat are
+gone while worktrees, branches and commits survive: re-issue each active card's contract to a fresh
+agent in its preserved workspace, including any review findings already returned, recreate the
+heartbeat, and sweep the scratch directories the dead sessions left.
 
 ## Create isolated work
 
-Freeze an exact baseline and use a plan-aligned branch name. Derive the agent title before creating
-its workspace, and use that exact string as the workspace title: call
-`create_workspace(title:<derived-agent-title>)`, verify the returned workspace title, then
-`create_agent(workspaceId, title:<the-same-derived-agent-title>)`.
+Before any workspace: confirm the integration tree is clean, record the exact baseline SHA, choose
+a branch name no working copy holds. Then `create_workspace(title:<derived-agent-title>)` in
+branch-off mode from that SHA, verify the returned title, and
+`create_agent(workspaceId, title:<the-same-derived-agent-title>)`. This equality is strict.
+Pointing a new workspace at an existing branch moves that branch and strands its uncommitted work;
+to hand an existing branch to an agent, verify no copy has it checked out and re-verify the
+integration tree afterwards. Persist the workspace ID immediately after creation and the agent ID
+and labels immediately after launch. A finish notification can replace the CTO turn in progress and
+is lost on daemon restart; re-derive state from the checkpoint rather than from the interrupted turn.
 
-This equality is strict. Do not launch an agent when its newly created workspace has a different
-title, and do not decorate either name with a workspace suffix, run ID, or descriptive text.
+## Parallel work
 
-**Always branch off an exact SHA into a new branch name.** Pointing a new workspace at an existing
-branch moves that branch into the new working copy, and the tree that held it is left on whatever the
-tool put there together with its uncommitted work. The damage surfaces later as a commit on the wrong
-branch or a lost edit.
+`max_live_tasks` limits tasks in flight; `max_live_agents` limits external sessions; a task carries
+at most one live agent per role. Admit work only under both.
 
-The safe order, before creating any workspace: confirm the integration tree is clean, record the
-exact baseline SHA, choose a branch name no working copy currently holds, and create the workspace
-in branch-off mode from that SHA. To hand an existing branch to an agent, verify no other copy has
-it checked out first, then re-verify the integration tree's branch and cleanliness immediately after
-the workspace exists.
+1. As many tasks run as have pairwise disjoint write zones at file granularity — no more, and the
+   ceiling is never a target. Disjoint paths are not enough when tasks share a running thing — a
+   stand and its ports, a datastore, a shared index — recorded as resources with a mode; a second
+   task on an `exclusive` one stops for a decision.
+2. An overlap is split along its subsystem seam; what will not split becomes a successor
+   re-baselined on the earlier atom's accepted head. Conflicts are never resolved by hand in a
+   writer's workspace.
+3. A task changing a canonical contract, a schema or shared infrastructure runs alone.
+4. A deterministically regenerated file — lockfile, formatter output, generated index — is not
+   shared ownership; the CTO regenerates it at integration.
+5. No inspection capacity, no new task: a task admitted without the glance, look or reviewer its
+   depth needs will sit as a candidate. Batching Routine siblings is how capacity stretches.
+6. Accepted work integrates and retires immediately; refill only with admissible ready work.
 
-Persist the workspace immediately after creation, then the agent ID and labels immediately after
-launch. Agents use `notifyOnFinish: true` so a return is handled when it arrives. A finish
-injection can replace the CTO turn in progress and is lost on daemon restart, so treat an
-interrupted turn as expected: re-derive state from the checkpoint and runtime rather than from the
-interrupted turn, and keep the heartbeat as the reconcile that catches a lost notification.
-
-## Parallel work — six rules
-
-`max_live_tasks` limits tasks in flight; `max_live_agents` independently limits external sessions.
-A task may carry one live agent per role. A replacement or tie-break reviewer starts only after the
-prior reviewer record and workspace are retired or preserved outside live runtime. Admit work only
-when both ceilings remain satisfied.
-
-1. **As many tasks run as have write zones that are pairwise disjoint at file granularity — no
-   more.** The ceiling is a limit, never a target. Disjoint paths are not enough when the tasks
-   share a running thing: a local stand and its ports, a datastore, a storefront, a shared
-   specification or index file. Those are recorded in the checkpoint as resources with a mode, and a
-   second task on an `exclusive` one stops for an explicit decision — wait, reassign, or record the
-   overlap deliberately. `resourcePolicy` in settings decides which resources the owner treats as
-   consumable, where rebuilding under another task is acceptable and nothing waits.
-2. **An overlap is split along its subsystem seam; what will not split becomes a successor.**
-   Re-baselining the later atom on the earlier one's accepted `HEAD` is cheaper than resolving a
-   conflict by hand, which is never done in a writer's workspace.
-3. **A task that changes a canonical contract, a schema or shared infrastructure runs alone.** Every
-   other writer waits for its acceptance and re-baselines on it.
-4. **A file any participant regenerates deterministically — a lockfile, formatter output, a
-   generated index — is not shared ownership**; the CTO regenerates it during integration.
-5. **No free review capacity, no new task.** Every outcome needs a non-author reviewer, so a task
-   admitted without a review slot for it is a candidate that will sit waiting, costing the same as
-   an unstarted atom and ageing worse. Batching homogeneous Routine siblings into one review is how
-   that capacity is stretched; skipping the review is not available. Clear unaccepted returns before
-   starting new work.
-6. **Accepted work integrates and retires immediately.** Refill an available task and agent slot
-   only with admissible ready work; conflict cost grows with how long branches sit apart.
-
-Track `ceremonyMinutes` and a saturating `0..2` `auxiliaryReturnsSinceMovement` counter per active
-node in runtime. It counts auxiliary layers — a research dispatch or a review organization added
-beyond the node's own convergence loop — not the rounds of that loop, which carry their own budget
-and their own journal. After two such layers without accepted product movement or a new owner
-decision, the next action builds or integrates, combines the remaining check with an existing
-review, exposes a gate, or stops. It never adds another auxiliary agent layer.
-`ceremonyMinutes` is a whole-minute estimate of workspace, dispatch, review-logistics, and
-integration time, excluding work on the product outcome itself.
-
-Name the wave's independent lanes in its wave file when the wave opens, and attach every new node to
-one. A node that fits no lane is split or queued. If the critical path is one chain of dependent
-atoms, the honest concurrency is one task plus off-path work; say so in status instead of
-dispatching overlapping atoms to look busy.
-
-## Inventory by label, never by directory
-
-A directory listing sees the agents whose working directory is the project root. Worktree agents —
-every builder, every reviewer in its own isolated copy — live elsewhere, and a listing scoped to the
-root does not show them even when archived records are included. A CTO that inventories by
-directory after a restart concludes its live builder and reviewer are lost, dispatches a duplicate
-into the same tree, and learns of the collision only when the checkpoint validator refuses the
-state.
-
-Inventory is therefore by the run's own labels and IDs, never by path:
-
-- `paseo ls --global --label paseo-cto.project=<project> --label paseo-cto.run=<run> --json` is
-  the coverage set; a root-scoped listing is not.
-- Every agent ID the checkpoint records is inspected by ID (`get_agent_status`), whatever its
-  directory reports.
-- An agent that the label set holds and the checkpoint does not is an orphan to adopt or retire —
-  never a reason to create another.
-
-## Resume: adopt the run's agents before anything else
-
-A restarted or handed-over CTO is a new session with a new agent ID. The run's live agents still
-carry the previous session as their parent, and the checkpoint validator refuses the state until
-that is corrected — deliberately, because an agent nobody owns is an agent nobody retires.
-
-The first mutation of a resumed session is adoption, before any dispatch:
-
-1. Inventory by the run label as above.
-2. For each live agent of this run whose parent is the previous CTO session, `update_agent` with
-   this session as the parent; record the new parent in the checkpoint's `cto.agentId`.
-3. Re-run the checkpoint validator; only a clean result unlocks dispatch.
-
-A same-run predecessor session is the one parent an agent may legitimately have carried; any other
-parent is a foreign agent and is not adopted.
-
-## Recovering from an agent-daemon restart
-
-A restart of the agent daemon does not preserve running work. Every agent session and the scheduled
-heartbeat are gone afterwards, while workspaces, worktrees, branches and commits survive intact.
-
-Recovery costs one re-dispatch per active card plus recreating the heartbeat, provided every
-candidate was committed. After a restart, re-issue each active card's contract to a fresh agent in
-its preserved workspace, including the findings of any review that had already returned; recreate
-the heartbeat; and sweep the scratch directories the dead sessions left outside the repository.
-
-## CTO handover
-
-A new CTO first loads the same `SETTINGS.json`, inventories all project agents regardless of prior
-run or CTO, and then adopts or creates runtime state. Preserve the settings revision and charter
-snapshot while replacing only CTO, run and heartbeat identity. Do not re-onboard, choose provider
-defaults, or reinterpret owner overrides merely because the CTO changed between Claude and Codex.
-Conflicting legacy checkpoints are history; Persistent settings defines the migration rule.
+Name a wave's independent lanes in its wave file and attach every node to one. If the critical
+path is one chain, the honest concurrency is one task plus off-path work; say so instead of
+dispatching overlapping atoms to look busy. Track `ceremonyMinutes` and the saturating `0..2`
+`auxiliaryReturnsSinceMovement` per active node: after two auxiliary layers — a research dispatch or
+a review organization beyond the node's own loop — without accepted movement, the next action builds,
+integrates, combines the check with an existing review, exposes a gate, or stops.
 
 ## Derived status and stalls
 
-Paseo's native state and project work state differ. Maintain one exact machine-readable derived
-status token per agent and reset `stateSince` only when it changes:
+One derived token per agent, `stateSince` reset only when it changes: `running`, `waiting`,
+`blocked`, `idle`, `reviewing`, `rework`, `stalled`, `error`, `done`. Idle is not storage: retire
+unless a specific follow-up justifies reuse. An agent session belongs to one atom; reuse it only for
+that atom's convergence loop. An unrelated atom always starts a fresh session.
 
-| Status | Meaning |
-| --- | --- |
-| `running` | Useful agent work or a verified long operation is active. |
-| `waiting` | A known permission, capacity, external event, or legitimate wait is pending. |
-| `blocked` | A dependency or decision prevents progress. |
-| `idle` | No active turn, with a concrete near-term reuse reason. |
-| `reviewing` | A returned result is under independent or CTO review. |
-| `rework` | The originating agent is correcting returned findings. |
-| `stalled` | Repeated evidence shows no useful progress. |
-| `error` | Paseo/provider failure remains unresolved. |
-| `done` | Accepted result awaits immediate cleanup. |
-
-Idle is not storage: retire the agent unless a specific follow-up or dispute justifies reuse.
-
-An agent session belongs to one plan atom. Reuse the author and reviewer only for the convergence
-loop of that same atom — its responses, rework, and re-reviews. An unrelated atom always starts a fresh session even when
-the previous agent is idle; carrying an old conversation into new work spends context on irrelevant
-history and increases instruction drift.
-
-Every lifecycle event is written by the ledger command rather than by hand: it stamps itself from
-the system clock and updates the checkpoint, the node files, the generated index and the fleet
-render in one call. A hand-edited checkpoint and a hand-written timestamp are the two ways the
-record and the clock drift apart.
-
-The cheap check reads statuses; it never runs work. A long background operation is observed by its
-exit line at the next material event or heartbeat, never by a wait loop inside the CTO turn: waiting
-in-turn spends tokens to learn what one later line states, and blocks every other decision while it
-does. Start long commands detached, record where their exit line will appear, and move on.
-
-When an atom's target window expires with work still open, the CTO does not wait for the next
-reconcile: it instructs the author to return a candidate within a short fixed period — twenty
-minutes is the default — carrying an honest remainder. The return is the ordinary builder return with
-`deliberate_partial` declared, the unachieved part written under `UNVERIFIED` and `FINDINGS`, and no
-claim the candidate does not establish. A partial candidate that states its gap is reviewable and
-landable with residue; a complete candidate that arrives after the window has already cost the
-decision it was meant to inform.
-
-Elapsed time alone never proves a stall. Require two consecutive 15-minute snapshots without
+Elapsed time alone never proves a stall. Require two consecutive heartbeat snapshots without
 meaningful progress, bounded `get_agent_activity(limit: 10–20)`, terminal or background evidence,
-and permission, capacity and external-wait checks. Two such snapshots require a CTO decision in that
-reconcile: narrow, split, reassign, return, expose the gate, or stop. Do not prompt a genuinely
-running turn. For confirmed stalls, preserve Git and workspace state before cancellation.
+and permission, capacity and external-wait checks; then decide in that reconcile — narrow, split,
+reassign, return, expose the gate, stop. Never prompt a genuinely running turn. When an atom's
+target window expires, instruct the author to return a candidate within twenty minutes with
+`deliberate_partial` declared and the remainder under `UNVERIFIED` and `FINDINGS`.
 
-## The deployment window is a resource
+Where a push to the integration branch starts a build and promotion, the branch is busy for
+`mainAdvanceWindowMinutes`: plan and documentation commits queue and push `[skip ci]` in a quiet
+window; code merges go one at a time after the previous promotion completed; the window check is a
+named step before every push.
 
-Where a push to the integration branch starts a build and a promotion, the branch is busy for the
-whole window: a promoter that requires its source at exactly the promoted revision fails when a
-later commit — any commit, a plan file included — lands in the middle, and the failure reads as a
-rollback. The window is a shared resource with one owner at a time, and `mainAdvanceWindowMinutes`
-is its length.
-
-- **Plan and documentation commits queue.** They are batched and pushed with `[skip ci]` in a quiet
-  window, never between a code push and the end of its promotion.
-- **Code merges go one at a time.** Before a push, confirm the previous promotion completed; a push
-  into a running window is refused, not retried.
-- **The window check is a named step before every push**, recorded like any other pre-push check.
-  A push made without it is a process finding against the CTO.
-
-## One heartbeat, one invariant
+## One heartbeat
 
 Keep exactly one agent-scoped heartbeat while the CTO can still advance in-scope work without a new
-owner instruction: any agent `running`, `reviewing`, or `rework`; a pending permission; a verified
-background operation; or a recoverable tail with an available action.
+owner instruction; stop it the moment the ready frontier is empty and every remaining tail is
+owner-gated, persisting every tail and the exact resume trigger in that same turn, then
+`delete_heartbeat` and `delete_schedule` by exact ID for every schedule this run created — the two
+are separate records. Do not renew it afterwards; a later owner instruction starts a fresh
+reconciliation.
 
-Stop it the moment that is false — when the ready frontier is empty and every remaining tail is
-**owner-gated**: immutable branch coordinates, a pull trigger needing a new owner instruction, an
-accepted plan change, or an external event, with no agent, workspace, permission, review, rework, or
-background operation still needing care. In that same turn, persist every tail and the exact resume
-trigger, write the final `FLEET.md` render once, delete the heartbeat with `delete_heartbeat`, and
-delete every schedule this run created with `delete_schedule` by exact ID. A heartbeat and a
-schedule are separate records: deleting the first leaves the second waking agents into a finished
-run. The rest of the teardown — terminals, agent records, workspaces, and the proof that none of
-them remain — is [Cleanup and close](cleanup-and-close.md).
-Do not renew it or re-emit an identical scheduled report afterward; a later owner instruction,
-accepted plan change, or matching external event starts a fresh reconciliation.
-
-Create the heartbeat inside the CTO agent; a stable name plus target is idempotent:
+`notifyOnFinish` carries the primary signal; the heartbeat is the fallback that catches a lost
+notification and a stall. Its cadence is the charter's `heartbeatMinutes` (default 30):
 
 ```text
 name: paseo-cto:<project>:<cto-short-id>
-cron: */15 * * * *
-maxRuns: 96
+cron: */<heartbeatMinutes> * * * *
+maxRuns: <1440 / heartbeatMinutes>
 expiresIn: 24h
 ```
 
-Store its ID. On collision with an active CTO turn, report at the nearest idle boundary; the next
-interval catches up. When `mainAdvanceWindowMinutes` is set and pushes to the integration branch are
-arriving faster than that window, the heartbeat says so once: an automatic advance that re-checks
-"the branch moved" on every attempt never lands while the branch keeps moving, and the fix is a
-scheduling decision, not another retry. Use this exact reconciliation prompt, filling absolute paths and IDs:
+A heartbeat turn is cheap by default and expensive only when it has to be:
 
 ```text
-PASEO CTO RECONCILIATION
-Project root: <absolute-root>
-Plan: <absolute-plan-path>
-Project/run: <project>/<run>
-CTO/runtime: <cto-id>/<absolute-runtime-json>
+PASEO CTO HEARTBEAT
+Project root: <absolute-root> · Work root: <absolute-work-root>
+Project/run: <project>/<run> · CTO/runtime: <cto-id>/<absolute-runtime-json>
 Settings: <absolute-settings-json> revision <revision>
-Read and validate settings first, then plan and runtime state with check_runtime.py. Reconcile
-project agents globally, process returns and permissions, derive states/stateSince and LOC, diagnose evidence-backed stalls,
-preserve tails, retire integrated records, and update plan/runtime. Every fourth run perform the
-orphan workspace sweep. Refill only safe capacity from ready plan nodes; never duplicate an existing
-task or role, and never exceed either fleet ceiling. Resolve the loaded plugin base version, CTO
-model/effort, any trustworthy host context
-measurement, session elapsed time, current wave, and accepted/total card counts from preflight,
-settings, runtime, plan, and acceptance truth.
-Generate and validate the durable FLEET.md with render_fleet.py unconditionally. In chat, post the full header and fleet table
-only when a material event occurred since the last posted snapshot or the owner asked for status;
-otherwise post one quiet liveness line (see Status and reporting). Add brief unheaded prose only for
-a material event. Never repeat unchanged prose.
+Start with the cheap check: list_pending_permissions and get_agent_status for every agent the
+checkpoint records. If nothing returned, nothing errored and no permission waits — and this is not
+the fourth heartbeat since the last full reconcile — post one quiet liveness line from the checkpoint
+and end the turn. Otherwise reconcile fully: validate settings and runtime with check_runtime.py,
+inventory by label, collect every return, resolve permissions, derive states and LOC, diagnose
+evidence-backed stalls, preserve tails, retire integrated records, refill only safe capacity from
+ready nodes under both ceilings, and render FLEET.md through the ledger. Post the full snapshot
+only when a material event occurred since the last posted one; add brief prose only for a material
+event. Never repeat unchanged prose.
 ```
+
+On collision with an active CTO turn, report at the nearest idle boundary; the next interval
+catches up. When pushes are arriving faster than `mainAdvanceWindowMinutes`, say so once.

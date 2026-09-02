@@ -1,125 +1,96 @@
 # Work rules
 
-Standing rules for this project's execution. This file holds only long-lived rules: it never carries
-the current frontier, a live task list, or a status claim. Current work lives in the wave tree; the
+Standing rules for this project's execution. This file holds only long-lived rules: never the
+current frontier, a live task list, or a status claim. Current work lives in the wave tree; the
 index of every unit is [STATUS.md](STATUS.md) and the overview of the waves is
 [WAVES.md](WAVES.md). Both are generated.
 
 ## Sources of truth
 
-- One work unit is one permanent file under `waves/`. It is created once, keeps its identifier for
-  its whole lifecycle, and is never moved, copied, or rewritten into another document on acceptance.
-- The task file is the only source of a task's state. `STATUS.md` is generated from the tree and is
-  never edited by hand.
-- Git holds candidate history; the evidence package holds command transcripts; the task file holds
-  the current position and the closure record. None of the three duplicates another.
+- One work unit is one permanent file under `waves/`, created once, keeping its identifier for its
+  whole lifecycle, never moved or rewritten into another document on acceptance.
+- The unit's file is the only source of its state. `STATUS.md` and `WAVES.md` are generated and
+  never edited by hand; a hand edit fails the tree check.
+- Git holds candidate history; the evidence package holds command transcripts; the file holds the
+  current position and the closure record. None duplicates another.
 - The canonical source repository is `<HTTPS source repository URL>`. Every commit or repository
   file used as evidence is a Markdown link pinned to an immutable 40-character commit.
 
 ## Authority gates
 
-- The CTO owns the tree: creation, identifiers, dependencies, state transitions, and closure.
-  Workers read their task file and report; they do not edit it.
-- Repository writers commit locally and never push. Push, deploy, publication, live mutation, money,
-  schema operations, and irreversible actions each stay a separate owner gate.
-- An unknown that belongs to the owner becomes a record in [backlog/OWNER_GATES.md](backlog/OWNER_GATES.md)
-  or a task in state `[?]` with its blocker. It is never filled in with a guess to complete the plan.
+- The CTO owns the tree: creation, identifiers, dependencies, state transitions and closure.
+  Workers read their file and report; they never edit it. Lifecycle events are written by the
+  ledger, never by hand.
+- Repository writers commit locally and never push. Push, deploy, publication, live mutation,
+  money, schema operations and irreversible actions each stay a separate owner gate.
+- An unknown that belongs to the owner becomes a row in [backlog/OWNER_GATES.md](backlog/OWNER_GATES.md)
+  or a unit in state `[?]` naming it as the blocker; it is never filled in with a guess.
 
-## Landing discipline
+## Inspection and landing
 
-- Every delegated repository write, semantic CTO integration fix, and delegated result used for
-  closure or authorization receives the risk-required non-author review. Intermediate research is
-  source-checked by the CTO.
-- A task is accepted in place: its state becomes `accepted`, its closure commit and evidence are
-  recorded, and its `Closure` section is filled. No text moves to another file.
-- Integration happens into a clean tree; checks invalidated by composition are rerun.
+- Every delegated write and every result used for closure or authorization is inspected at the
+  depth its risk requires under the project's `reviewDepth`: a CTO glance for `Routine`, a
+  non-author reviewer or a CTO look for `Significant`, an independent reviewer with an executable
+  proof for `Critical`. Authentication, authorization, tenant isolation, privacy, data loss,
+  corruption and irreversible actions are `Critical` whatever the setting.
+- A card whose outcome is one atom is dispatched itself and carries its own journal and closure;
+  a card that needs several atoms has tasks and closes when every `required` task is accepted.
+- A unit is accepted in place: state `accepted`, closure commit and evidence recorded, `Closure`
+  filled, the checklist closed or `deliberate_partial: true` with the residue and its exact
+  return trigger. Integration happens into a clean tree; checks invalidated by composition rerun.
 
 ## Verification commands
 
 - Project validation gate: `<command>`.
 - Tree check: `python3 <script home>/work.py check --root <work root>`.
 - Status generation: `python3 <script home>/work.py status --root <work root>`.
-- The full suite runs only at the triggers named per card, at a wave gate, or at a release gate.
+- The full suite runs only at the triggers named per unit, at a wave gate, or at a release gate.
 
-## Status discipline
+## Review rounds
 
-- `STATUS.md` is an index, not a work journal. It carries exactly `Status | ID | Task | Commit |
-  Start | Time` and nothing else. `WAVES.md` carries `Status | ID | Wave | Outcome | Cards | Done`,
-  one row per wave and a closing total row, and answers how many waves exist and how far each has
-  come.
-- Rows appear in tree order: wave, card, task, subtask, each ascending by identifier. There is no
-  priority ordering, because the ordering the reader can trust is the one the tree already fixes.
-- The status token is one of `[ ]` ready, `[~]` active including review and rework, `[?]` blocked,
-  `[=]` deliberately paused or trigger-gated, `[!]` withdrawn from the current cycle, `[x]` accepted.
-- Correcting the display means correcting the task file and regenerating. A hand edit to `STATUS.md`
-  fails the tree check.
-
-## Time
-
-- `Start` is the moment the task first became active. It is not reset by a return, a re-review, a
-  block, or a pause.
-- `Time` is `dd/mm hh:mm (<duration>)`. The moment is the acceptance time for an accepted task and
-  the last significant state change otherwise.
-- `duration_minutes` counts active work only: builder, reviewer, rework, and CTO investigation or
-  integration on that task. Waiting on an owner decision, an external event, an environment, or an
-  idle session is not spent time.
-
-## Findings and splitting
-
-A finding stays inside the current task when it is required by the current acceptance, tests the
-same outcome, and keeps the same scope, risk, owner and proof. It becomes its own task or subtask
-when it has a separate outcome, needs separate acceptance, changes scope, carries different risk,
-needs a different specialist, can be independently returned or accepted, can be deferred without
-making the current acceptance dishonest, or depends on a separate owner decision or external
-trigger.
-
-The test is one sentence: a separate file is needed when the work can be independently assigned,
-performed, reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside
-the task.
-
-Separation decides ownership and closure, never execution. Small homogeneous sibling nodes — one
-technical surface, one environment, one verification method, one review context — are normally
-implemented and reviewed as one batch under one contract, one workspace, and one review, classified
-at the highest risk among them. Each batched node keeps its own identifier, state, closure record,
-and return path; the shared review evidence must close each node individually, and a node that
-develops independent risk, a separate acceptance story, or a return of its own leaves the batch and
-moves alone.
-
-Every child declares one relation: `required` blocks the parent's closure, `follow_up` does not,
-`expansion` adds a new outcome, and `trigger` may not start before its named event.
-
-## Review and return
-
-- A task under review or in rework stays `[~]`. Review and return are not separate status tokens.
-- The review dialogue is never copied into the task file. Findings that survive become either
-  checklist items in the current task or new work units.
-- The reviewer and the author converge on the outcome themselves: a return authorizes the rework it
-  names inside the same unit, the author answers every finding with evidence, and the two repeat.
+- A unit under inspection or in rework stays `[~]`; review and return are not status tokens.
+- The inspector and the author converge on the outcome themselves: a return authorizes the rework
+  it names inside the same unit, the author answers every finding with evidence, and they repeat.
   The CTO carries their material and adjudicates nothing until the unit escalates or breaks out of
   the contract.
 - Each round leaves one line in `## Review rounds` — `- R2(5/10) RETURN 25/08 14:20 — finding →
   evidenced answer → what changed` — and `review_rounds` carries the count. The moment is local
-  `dd/mm hh:mm`, taken when the verdict arrived. The reviewer scores every verdict on ten
-  points, code and work, and the marker carries the lower of the two; the score measures the work
-  and never decides the verdict.
-- The reviewer holds two returns on one unit. After the second its verdict is `ESCALATE`, and the
-  CTO decides on the journal in that turn: accept in one of its forms, grant one bounded budget of
-  two more returns with an exact acceptance condition, assign an independent replacement reviewer
-  inside that budget, split the unit, or name the gate and stop. `escalation_decision` records the
-  decision, and seven returns is the ceiling.
+  `dd/mm hh:mm` when the verdict arrived. Every verdict scores code, work and, when a consumer
+  surface was walked, experience on ten points; the marker carries the lowest axis; the score never
+  decides the verdict.
+- The inspector holds two returns on one unit. After the second its verdict is `ESCALATE`, and the
+  CTO decides on the journal in that turn: `bounded_retry` (two more returns with an exact
+  acceptance condition), `independent_review` (a replacement reviewer inside that budget),
+  `accept_with_corrections`, `split`, or `stop`. `escalation_decision` records it; **four returns
+  is the ceiling**.
+- The review dialogue is never copied into the file. Findings that survive become checklist items
+  or new units.
 
-## Acceptance and closure
+## Time
 
-At acceptance: set the state, record `accepted_at`, record the closure commit and durable evidence,
-fill `Closure`, close the acceptance checklist or record `deliberate_partial: true` with the residue
-and its exact return trigger, update the active duration, regenerate `STATUS.md`, then test whether
-the parent card and the wave can now close.
+- `Start` is the moment the unit first became active; a return, re-review, block or pause never
+  resets it.
+- `Time` is `dd/mm hh:mm (<duration>)`: acceptance time for an accepted unit, the last significant
+  state change otherwise; `duration_minutes` counts active work only — builder, inspector, rework,
+  CTO integration — and excludes waiting on an owner, an external event, an environment or an idle
+  session.
 
-A residue is honest only when the headline outcome is genuinely achieved, the limitation does not
-make it false, the return trigger is exact, and the reviewer agreed that a separate required task is
-not needed. The unachieved independent part gets its own identifier.
+## Findings and splitting
+
+A finding stays inside the current unit when the current acceptance requires it and it keeps the
+same scope, risk, owner and proof. It becomes its own unit when it can be independently assigned,
+performed, inspected, returned and accepted. Ordinary implementation steps stay a checklist.
+
+Separation decides ownership and closure, never execution: small homogeneous siblings — one
+surface, one environment, one verification method, one review context — are implemented and
+inspected as one batch under one contract, one workspace and one inspection, classified at the
+highest risk among them; each keeps its own identifier, state, closure and return path, and a node
+that develops its own risk or return leaves the batch.
+
+Every child declares one relation: `required` blocks the parent's closure, `follow_up` does not,
+`expansion` adds a new outcome, `trigger` may not start before its named event.
 
 ## Chronology
 
-`Current state` is rewritten, not appended to, and holds at most five lines. `Next action` holds one
-operation. Closed findings leave the open list. History lives in Git and in the evidence package.
+`Current state` is rewritten, not appended to, and holds at most five lines. `Next action` holds
+one operation. Closed findings leave the open list. History lives in Git and the evidence package.

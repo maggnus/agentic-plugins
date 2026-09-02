@@ -444,6 +444,8 @@ def validate_sections(schema: dict, node: Node) -> list[str]:
             f"fix: {'; '.join(repair)}"
         )
     for parent, expected_h3 in schema["sections"][node.kind]["h3"].items():
+        if parent in optional_h2 and parent not in found_h2:
+            continue
         found_h3 = [line[4:].strip() for line in section_lines(node.body, parent)
                     if line.startswith("### ")]
         if found_h3 != expected_h3:
@@ -451,7 +453,7 @@ def validate_sections(schema: dict, node: Node) -> list[str]:
                 f"{node.rel}: '{parent}' must contain exactly {expected_h3}, found {found_h3}"
             )
 
-    if node.kind in ("task", "subtask"):
+    if "Current state" in found_h2:
         limit = schema["limits"]["current_state_lines"]
         body_lines = [line for line in section_lines(node.body, "Current state") if line.strip()]
         if len(body_lines) > limit:
@@ -842,6 +844,19 @@ def validate_closure(schema: dict, by_id: dict[str, Node]) -> list[str]:
             children = [other for other in by_id.values()
                         if other.kind == "task" and owning_card(schema, other.id) == node.id]
             label = "task"
+            if not children and node.text("historical_acceptance") != "true":
+                # A card dispatched as its own atom closes like a task: with the commit that
+                # landed it and the evidence behind it, not by the absence of children.
+                if not node.text("closure_commit"):
+                    errors.append(
+                        f"{node.rel}: an accepted card with no tasks must record its closure "
+                        "commit"
+                    )
+                if not node.list("evidence"):
+                    errors.append(
+                        f"{node.rel}: an accepted card with no tasks must record durable "
+                        f"evidence, or the explicit {schema['evidence_waiver']!r} waiver"
+                    )
         elif node.kind == "wave":
             children = [other for other in by_id.values()
                         if other.kind == "card" and owning_wave(schema, other.id) == node.id]
@@ -873,14 +888,33 @@ def validate_plan_review(schema: dict, by_id: dict[str, Node]) -> list[str]:
             and other.state in schema["started_states"]
             and other.text("historical_acceptance") != "true"
         ]
-        if started and node.text("plan_review_state") != "accepted":
+        review = node.text("plan_review_state")
+        if started and review not in ("accepted", "waived"):
             first = sorted(started, key=lambda item: item.id)[0].id
             errors.append(
                 f"{node.rel}: {first} has started while the wave plan review is "
-                f"{node.text('plan_review_state') or 'unrecorded'}"
+                f"{review or 'unrecorded'}"
             )
-        if node.text("plan_review_state") == "accepted" and not node.text("plan_review_evidence"):
+        if review == "accepted" and not node.text("plan_review_evidence"):
             errors.append(f"{node.rel}: an accepted plan review must link its review evidence")
+        if review == "waived":
+            cards = [other for other in by_id.values()
+                     if other.kind == "card" and owning_wave(schema, other.id) == node.id
+                     and other.text("historical_acceptance") != "true"]
+            critical = [card.id for card in cards if card.text("risk") == "critical"]
+            if not node.text("plan_review_evidence"):
+                errors.append(
+                    f"{node.rel}: a waived plan review must record the CTO's answers as "
+                    "plan_review_evidence"
+                )
+            if len(cards) > 3 or critical:
+                reason = (f"carries critical {', '.join(critical)}" if critical
+                          else f"holds {len(cards)} cards")
+                errors.append(
+                    f"{node.rel}: the plan review cannot be waived: the wave {reason}; at most "
+                    "three cards and none critical may be waived. fix: dispatch the independent "
+                    "plan review and record accepted with its evidence"
+                )
     return errors
 
 

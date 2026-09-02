@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Reference check for an owner-facing Paseo CTO status message.
+# Reference check for an UNSOLICITED owner-facing Paseo CTO status delta — the record register.
+# It is not applied to an answer the owner asked for: when the owner asks about a commit, a
+# branch, an agent or a file, the answer names it (see references/status-and-reporting.md).
 #
 # Copy this into the project's own script home; do not call it from the plugin path, which carries a
 # version and differs between Claude and Codex.
@@ -19,7 +21,7 @@
 #     second person;
 #   - no greeting, thanks, apology, praise, blame, or unsupported hedging;
 #   - no banned emotional, literary or jargon framing;
-#   - no internal mechanics vocabulary (commits, branches, agents, rounds, file names, counts);
+#   - no internal mechanics vocabulary (commits, branches, agents, rounds, counts);
 #   - no mandated template headings (FRONTIER/DECISION/IMPACT/NEXT and friends);
 #   - no trailing "separately/aside" paragraph carrying internal history.
 #
@@ -121,7 +123,7 @@ internal_re=(
   'рабоч[а-я]+ (дерев|копи)|working tree|worktree|porcelain'
   'карточк|card|раунд|round [0-9]|верн(ул|ула|ули)[^.]{0,20}карт'
   '(зафиксировано|committed) [0-9]|[0-9]+ (шаг|коммит|файл|раунд|пункт|commits?|files?|rounds?)'
-  'make check|git |exit=|`[a-z_]+\.(sh|go|ts|py|md)`|[a-z_/]+\.go:[0-9]'
+  'make check|git |exit='
 )
 for re in "${internal_re[@]}"; do
   hit="$(printf '%s' "$text" | grep -oiE "$re" | head -1 || true)"

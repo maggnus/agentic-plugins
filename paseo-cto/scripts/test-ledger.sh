@@ -274,9 +274,21 @@ if grep -q "skipped" "$scratch/output"; then
   exit 1
 fi
 passes=$((passes + 1))
-expect_fail "rendering without a timezone is refused" "timezone is required" \
+# A renderer that runs and cannot complete — here the checkpoint is too bare for the live probe —
+# leaves FLEET.md stale and the event recorded; the timezone comes from the machine when omitted.
+fresh
+expect_output "a render that cannot complete warns instead of failing the event" \
+  "FLEET.md is stale until the next successful render" \
   python3 "$templates/ledger.py" --checkpoint "$scratch/runtime.json" --work-root "$scratch/work" \
   candidate --task "$task" --commit "$commit_url/1111111111111111111111111111111111111111"
+[ "$(field "$node" candidate_commit)" = "$commit_url/1111111111111111111111111111111111111111" ] \
+  || { echo "the event was lost behind the failed render" >&2; exit 1; }
+passes=$((passes + 1))
+if grep -q "timezone is required" "$scratch/output"; then
+  echo "ledger test: the timezone was demanded instead of derived" >&2
+  exit 1
+fi
+passes=$((passes + 1))
 
 # --- A1: a short SHA is refused; a full SHA becomes a commit-pinned link ------------------------
 fresh

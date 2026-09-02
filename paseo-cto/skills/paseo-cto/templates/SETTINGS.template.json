@@ -3,6 +3,7 @@
   "project": "<project-slug>",
   "revision": 1,
   "confirmedAt": "<RFC3339 timestamp>",
+  "sourceRepository": "https://<forge>/<owner>/<repo>",
   "charter": {
     "strategy": "alpha",
     "roleAssignments": {
@@ -33,22 +34,26 @@
       "max_live_agents": 7
     },
     "autonomyHorizon": "until-gate",
-    "reviewDepth": "risk-based",
+    "reviewDepth": "standard",
     "reportingLanguage": "<language the owner writes in>",
-    "modeMap": {},
+    "heartbeatMinutes": 30,
+    "hostNativeRoles": [
+      "researcher"
+    ],
+    "contractCheck": {
+      "critical": true,
+      "significant": false,
+      "routine": false
+    },
     "resourcePolicy": {
       "defaultMode": "exclusive",
       "consumable": []
     },
-    "contractCheck": {
-      "significant": true,
-      "critical": true,
-      "routine": false
-    },
-    "mainAdvanceWindowMinutes": 0,
     "acceptance": {
       "mergeIsAcceptance": false
-    }
+    },
+    "mainAdvanceWindowMinutes": 0,
+    "modeMap": {}
   },
   "work": {
     "root": "docs/work",

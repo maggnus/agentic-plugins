@@ -3,6 +3,55 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## Unreleased — paseo-cto lean method (next tag)
+
+One day of the 10.8.2 method on a real project (four builders, three independent reviews, two
+rehearsals, four dev walks) measured where the plugin was the brake: a review floor stricter than
+the owner wanted and forbidden to weaken, 27 KB of CTO skill plus 100 KB of references before the
+first dispatch, a 15-minute full-fleet heartbeat, and drift between files on the return ceiling.
+The parts that produced the day's real findings — the work tree, the ledger, the finding kinds,
+the two-return loop, the proof-that-can-fail rule, the consumer-surface walk — are unchanged.
+
+- **The review floor is the charter's.** `reviewDepth` is `lean`, `standard` (default) or
+  `strict`; `risk-based` and `every-write` keep working as older names. Under `standard` the CTO
+  glances at `Routine` work itself (return, checks, diff stat — no code read), a non-author
+  reviewer with one falsifier inspects `Significant`, and an independent reviewer with an executable
+  proof inspects `Critical`. `lean` makes `Significant` a CTO look at the whole diff. The `Critical`
+  row — authentication, authorization, tenant isolation, privacy, data loss, corruption,
+  irreversible actions — cannot be lowered by any charter. A CTO that returned twice does not grant
+  itself a budget; its third look is an independent reviewer's.
+- **Loads in a third of the space.** CTO skill 27.6 → 9 KB, reviewer 15.7 → 7 KB, builder 8 → 5 KB,
+  researcher 3.2 → 2 KB; references 194 → 100 KB, with `persistent-settings.md` folded into the
+  charter, `execution-plan.md` into fleet operations and the work tree, `builder-return.md` into the
+  contract. The first Operate reads five references (about 38 KB) instead of eight. A test now holds
+  every ceiling.
+- **The heartbeat is cheap by default.** Cadence is the charter's `heartbeatMinutes` (default 30);
+  a quiet heartbeat runs the cheap check and posts one liveness line, and the full reconcile with
+  the fleet render happens only on a return, an error, a permission, or every fourth beat.
+- **Host-native researchers.** `hostNativeRoles` (default `["researcher"]`) lets read-only research
+  and a `Routine`/`Significant` inspection run as the host's own subagent; writers and `Critical`
+  reviewers stay Paseo agents.
+- **A card is a dispatch unit.** `CARD.md` carries `Current state`, `Review rounds` and `Closure`
+  (optional in place, so existing trees validate); an accepted card with no tasks needs its closure
+  commit and evidence like a task.
+- **The plan review may be waived** for a wave of at most three cards with no `Critical` card that
+  is not the project's first; `plan_review_state: waived` records the CTO's answers as evidence and
+  the check refuses a waiver on a bigger or critical wave.
+- **The pre-dispatch contract check defaults to `Critical` and shared infrastructure only.**
+- **One return ceiling.** Two returns, then `ESCALATE`, then at most a bounded budget of two: four
+  is the ceiling in every file; the WORKFLOW template no longer says seven, the contract no longer
+  says five, and it scores three axes like the gate. A test holds the number.
+- **Both hosts named where they differ.** Every contract carries `Plugin path` for the role-file
+  fallback; a Codex builder whose sandbox cannot reach the Git common directory returns
+  `uncommitted: sandbox` and the CTO commits at integration.
+- **Bookkeeping survives a daemon hiccup.** `ledger.py` records the event and marks `FLEET.md` stale
+  when the render cannot complete, defaults the timezone to the machine's, and still treats a
+  missing renderer as an error. `release.sh` commits the tooling stamp with the cachebuster so the
+  tag carries the digest it verifies.
+- **Two registers.** Durable records keep the neutral, impersonal register; chat answers the owner's
+  actual question and may name a commit, a branch, an agent or a file. `check-owner-status.sh` no
+  longer rejects a file name and applies to unsolicited status deltas only.
+
 ## v10.7.2 — brief 1.0.0, paseo-cto 10.7.2
 
 The phase before the first line of code became its own plugin.

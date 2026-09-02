@@ -662,6 +662,89 @@ raise SystemExit("; ".join(problems) if problems else 0)
 PY
 
 # ---------------------------------------------------------------------------
+# a card is a dispatch unit as well as a container
+# ---------------------------------------------------------------------------
+
+atom="$scratch/atom"
+python3 "$work" --root "$atom" init > /dev/null
+python3 "$work" --root "$atom" new wave --id W1 --title "Launch readiness" --areas LF \
+  --now 2026-08-01T09:00:00+08:00 > /dev/null
+python3 "$work" --root "$atom" new card --id W1-LF-01 --title "Launch contract frozen" \
+  --risk significant --now 2026-08-01T09:05:00+08:00 > /dev/null
+set_field "$atom/waves/W1/WAVE.md" plan_review_state "waived"
+set_field "$atom/waves/W1/WAVE.md" plan_review_evidence "one card, no critical; the ten questions answered in the wave file"
+card="$atom/waves/W1/W1-LF-01/CARD.md"
+python3 "$work" --root "$atom" status > /dev/null
+expect_pass "a scaffolded card carries its own journal and closure sections" \
+  grep -q '^## Review rounds$' "$card"
+expect_pass "a card with no tasks validates as an atom" python3 "$work" --root "$atom" check
+
+set_field "$card" state active
+set_field "$card" started_at "2026-08-01T10:00:00+08:00"
+set_field "$card" review_rounds 1
+python3 - "$card" <<'PJ'
+import sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+head, marker, tail = text.partition("## Review rounds\n")
+_, _, rest = tail.partition("\n## Closure")
+entry = "- R1(6/10) RETURN 01/08 12:00 — the contract omitted the negative half → author added it → check now fails on the broken input\n"
+open(path, "w", encoding="utf-8").write(head + marker + "\n" + entry + "\n## Closure" + rest)
+PJ
+python3 "$work" --root "$atom" status > /dev/null
+expect_pass "a dispatched card keeps its round journal" python3 "$work" --root "$atom" check
+set_field "$card" review_rounds 2
+expect_fail "a card journal that disagrees with its count is refused" "the journal holds 1" \
+  python3 "$work" --root "$atom" check
+
+set_field "$card" review_rounds 1
+set_field "$card" state accepted
+set_field "$card" accepted_at "2026-08-01T13:00:00+08:00"
+python3 "$work" --root "$atom" status > /dev/null
+expect_fail "an accepted card with no tasks needs its closure commit" \
+  "an accepted card with no tasks must record its closure commit" \
+  python3 "$work" --root "$atom" check
+set_field "$card" closure_commit "https://github.com/example/project/commit/a14fc2900000000000000000000000000000beef"
+python3 - "$card" <<'PJ'
+import sys
+path = sys.argv[1]
+text = open(path, encoding="utf-8").read()
+text = text.replace("evidence:\n", "evidence:\n  - Git\n", 1).replace("- [ ]", "- [x]")
+open(path, "w", encoding="utf-8").write(text)
+PJ
+python3 "$work" --root "$atom" status > /dev/null
+expect_pass "an accepted card with closure commit and evidence validates" \
+  python3 "$work" --root "$atom" check
+
+# a card written before the sections existed still validates: they are optional in place
+fresh
+expect_pass "a container card without the atom sections validates" \
+  python3 "$work" --root "$tree" check
+
+# ---------------------------------------------------------------------------
+# the plan review may be waived only for a small wave without a critical card
+# ---------------------------------------------------------------------------
+
+fresh
+set_field "$tree/waves/W2/WAVE.md" plan_review_state "waived"
+set_field "$tree/waves/W2/WAVE.md" plan_review_evidence "one card, none critical; answers recorded below"
+set_field "$tree/waves/W2/W2-CF-01/tasks/W2-CF-01a.md" state active
+set_field "$tree/waves/W2/W2-CF-01/tasks/W2-CF-01a.md" started_at "2026-08-04T09:00:00+08:00"
+regenerate
+expect_pass "a small wave without a critical card may start on a waived review" \
+  python3 "$work" --root "$tree" check
+
+set_field "$tree/waves/W2/WAVE.md" plan_review_evidence ""
+expect_fail "a waived review without the recorded answers is refused" \
+  "must record the CTO's answers" python3 "$work" --root "$tree" check
+
+fresh
+set_field "$tree/waves/W1/WAVE.md" plan_review_state "waived"
+set_field "$tree/waves/W1/WAVE.md" plan_review_evidence "answers recorded"
+expect_fail "a wave with a critical card cannot waive its plan review" \
+  "cannot be waived" python3 "$work" --root "$tree" check
+
+# ---------------------------------------------------------------------------
 # imported history: accepted before the tree existed, declared rather than inferred
 # ---------------------------------------------------------------------------
 

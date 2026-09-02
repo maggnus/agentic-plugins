@@ -103,10 +103,13 @@ python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-
 echo "release: checking distribution sync..."
 bash paseo-cto/scripts/check-distribution-sync.sh
 
-# Check if cachebuster update created changes to commit
+# The stamp and the cachebuster both change tracked files; the tag must carry both, or an
+# installed copy verifies against a digest the release never published.
 if ! git diff --quiet; then
-    echo "release: committing cachebuster update..."
-    git add paseo-cto/.codex-plugin/plugin.json
+    echo "release: committing cachebuster and tooling stamp..."
+    git add paseo-cto/.codex-plugin/plugin.json \
+        paseo-cto/skills/paseo-cto/templates/work.py \
+        paseo-cto/skills/paseo-cto/templates/work-schema.json
     git commit -m "chore: update codex cachebuster for $tag"
 fi
 

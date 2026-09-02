@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
   "version": "10.8.2+codex.20260827144318",
-  "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated agents; budget reasoning effort, validation, context, and reporting without weakening risk-based review; integrate only source-linked evidence; and report in the project-configured language. Models and effort ranges remain owner decisions.",
+  "description": "Lean, provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated Paseo agents, inspect by risk under a charter-chosen review floor, ration validation, context and reporting, integrate only source-linked evidence, and report in the project-configured language. Models and effort remain owner decisions.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "Paseo CTO",
     "shortDescription": "Run a release-driven Paseo engineering organization",
-    "longDescription": "Operate the same CTO-led Paseo organization in Codex or Claude. The CTO keeps the nearest shippable outcome and critical path explicit, delegates bounded work to isolated agents, selects the minimum adequate effort within owner-approved ranges, avoids duplicate validation and context, applies risk-based review at delegated-write and closure gates, and uses source-linked durable evidence.",
+    "longDescription": "Operate the same CTO-led Paseo organization in Codex or Claude. The CTO keeps the nearest shippable outcome and critical path explicit, delegates bounded work to isolated agents, inspects Routine work itself and delegates Significant and Critical review by the charter's floor, rations validation, context and heartbeat cost, and integrates only source-linked durable evidence.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [

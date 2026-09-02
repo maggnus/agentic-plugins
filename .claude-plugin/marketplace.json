@@ -13,7 +13,7 @@
     {
       "name": "paseo-cto",
       "source": "./paseo-cto",
-      "description": "Provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated agents; budget reasoning effort, validation, context, and reporting without weakening risk-based review; integrate only source-linked evidence; and report in the project-configured language. Models and effort ranges remain owner decisions."
+      "description": "Lean, provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated Paseo agents, inspect by risk under a charter-chosen review floor, ration validation, context and reporting, integrate only source-linked evidence, and report in the project-configured language. Models and effort remain owner decisions."
     },
     {
       "name": "russian-speech",

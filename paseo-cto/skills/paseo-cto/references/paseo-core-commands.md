@@ -48,7 +48,7 @@ launch. Use `notifyOnFinish:true`; the heartbeat is the fallback.
 
 ## Heartbeat and cleanup
 
-Create the CTO heartbeat inside the CTO agent with a stable name, `*/15 * * * *`, `maxRuns:96`, and
+Create the CTO heartbeat inside the CTO agent with a stable name, `*/<heartbeatMinutes> * * * *` (default 30), `maxRuns: 1440/<heartbeatMinutes>`, and
 `expiresIn:24h`; persist its ID and delete it with `delete_heartbeat`. Archive and then delete only
 exact agents and workspaces, after the cleanup proof in Cleanup and close. Never restart the daemon,
 bulk-delete, or routinely use `kill_agent`.

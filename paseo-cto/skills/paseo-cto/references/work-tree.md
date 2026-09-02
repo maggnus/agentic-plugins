@@ -1,255 +1,139 @@
 # Work tree
 
-Read this file before creating, updating, splitting, or accepting any unit of work, and before
-producing the work index. It defines the permanent-file model: one work unit is one file, created
-once and never moved.
+Read this file before creating, updating, splitting or accepting a unit of work, before producing
+the index, and when sequencing the ready frontier. One work unit is one permanent file, created once
+at a path derived from its identifier and never moved; acceptance fills its closure fields in place.
 
-## One unit, one permanent file
-
-A work unit is created in its final place and stays there for its whole lifecycle:
-
-```text
-planned → active → blocked | paused | rework → accepted | rejected
-```
-
-Acceptance moves no text: the state changes and the closure fields are filled in the same file. The
-file that was dispatched is the file that is reviewed and accepted. Nothing is summarised into a row
-or copied into an archive.
-
-The tree carries current and completed work together. Git carries candidate history, the evidence
-package carries command transcripts, and the work index carries the one-line view.
-
-## Structure
+## Structure and identifiers
 
 ```text
 docs/work/
-├── STATUS.md                       generated index of every unit; never hand-edited
-├── WAVES.md                        generated overview of the waves; never hand-edited
-├── WORKFLOW.md                     standing rules; no live task ever appears here
-├── waves/
-│   └── W1/
-│       ├── WAVE.md
-│       └── W1-LF-04/
-│           ├── CARD.md
-│           └── tasks/
-│               ├── W1-LF-04a.md
-│               └── W1-LF-04c/
-│                   ├── TASK.md
-│                   └── subtasks/
-│                       └── W1-LF-04c.1.md
-└── backlog/
-    ├── TRIGGERS.md
-    ├── OWNER_GATES.md
-    └── REJECTED.md
+├── STATUS.md            generated index of every unit; never hand-edited
+├── WAVES.md             generated overview of the waves; never hand-edited
+├── WORKFLOW.md          standing rules; no live task ever appears here
+├── waves/W1/WAVE.md
+├── waves/W1/W1-LF-04/CARD.md
+├── waves/W1/W1-LF-04/tasks/W1-LF-04a.md
+├── waves/W1/W1-LF-04/tasks/W1-LF-04c/TASK.md
+├── waves/W1/W1-LF-04/tasks/W1-LF-04c/subtasks/W1-LF-04c.1.md
+└── backlog/TRIGGERS.md · OWNER_GATES.md · REJECTED.md
 ```
 
-The root is the only adjustable path. It is recorded once in `SETTINGS.json` as `work.root` and
-defaults to `docs/work`; everything below it is derived, not chosen. The depth is fixed at wave,
-card, task, subtask. Work that seems to need a fifth level is work that was decomposed wrongly:
-split it into another card or another task instead.
+The root is the only adjustable path (`work.root` in `SETTINGS.json`). Depth is fixed at wave,
+card, task, subtask; work that seems to need a fifth level was decomposed wrongly. An identifier
+carries its wave, is permanent, is never reused, and fixes exactly one legal path: `W1-LF-04` card,
+`W1-LF-04a` task, `W1-LF-04a.1` subtask. The area code is registered in the wave's `areas`.
 
-## Identifiers derive the path
+A card is the smallest dispatchable unit as well as a container: a card whose outcome is one
+reviewable atom is dispatched itself and carries its own `Current state`, `Review rounds` and
+`Closure`; a card that needs several atoms gets tasks and closes when every `required` task is
+accepted. Do not create a single task under a card merely to have somewhere to write the journal.
 
-An identifier always carries its wave, is permanent, is never reused, and never changes when
-priority, state, or ownership changes.
+## States, markers, relations
 
-```text
-W1-LF-04      card
-W1-LF-04a     task
-W1-LF-04b     the next task
-W1-LF-04a.1   subtask
-```
+| Marker | State | Required with it |
+| --- | --- | --- |
+| `[ ]` | `ready` | — |
+| `[~]` | `active`, `review`, `rework` | `started_at` |
+| `[?]` | `blocked` — objectively impossible to continue | `blocker` |
+| `[=]` | `deferred` — paused, or gated behind a named event | `pause_reason`, or `return_trigger` for a trigger |
+| `[!]` | `rejected` — withdrawn from the current cycle | `return_trigger` |
+| `[x]` | `accepted` — in place | `accepted_at`, closure commit, evidence |
 
-The wave number, the area code and the ordinal fix exactly one legal path, and the check recomputes
-it in both directions. A task with no subtasks is `tasks/<id>.md`; a task that has them becomes
-`tasks/<id>/TASK.md`. The area code is registered in the wave's `areas` field, so codes cannot
-accumulate by taste.
+Review and return are not states of their own; which round a unit is in belongs to its file. Every
+child declares one relation: `required` (the parent cannot close without it), `follow_up` (found
+during work; the parent closes honestly without it), `expansion` (a new outcome), `trigger` (may
+not start before its named event). An open `follow_up`, `expansion` or `trigger` never reopens an
+honestly accepted parent.
 
-## States and markers
+`risk` and `maturity` live on the file. `review_rounds`, the `Review rounds` journal and
+`escalation_decision` carry the convergence loop under [Review gate](review-gate.md); the validator
+enforces only that count, journal and decision agree, that the journal stays within the four-return
+ceiling, and that each line keeps the shape `- R2(5/10) RETURN 25/08 14:20 — finding → answer →
+what changed`. `Current state` is rewritten, never appended to, and holds at most five lines;
+`Next action` holds one operation; review dialogue is never copied into the file.
 
-| Marker | State | Meaning | Required with it |
-| --- | --- | --- | --- |
-| `[ ]` | `ready` | Planned; may be dispatched | — |
-| `[~]` | `active`, `review`, `rework` | Work, review, or correction after a return | `started_at` |
-| `[?]` | `blocked` | Continuation is objectively impossible | `blocker` |
-| `[=]` | `deferred` | Deliberately paused, or gated behind a named event | `pause_reason` or, for a trigger, `return_trigger` |
-| `[!]` | `rejected` | Withdrawn from the current cycle | `return_trigger` |
-| `[x]` | `accepted` | Accepted in place | `accepted_at`, closure commit, evidence |
+## Plan and frontier
 
-Review and return are not states of their own. A unit under review stays `[~]`, a returned unit
-stays `[~]`, and which round it is in belongs to its file — `review_rounds` and the `Review rounds`
-journal — rather than to the index. `[?]` is only for objective impossibility; a deliberate stop is
-`[=]`.
+Every node states what becomes observably true. Derive nodes from the nearest shippable outcome
+downward; a node no goal claims is attached, parked with a trigger, or dropped. Rank ready nodes by
+dependency, critical path, user value, feedback speed, risk reduction and reversibility, then apply
+the charter's strategy: `alpha` prefers the smallest honest vertical path, `beta` alternates missing
+coverage with the most consequential depth gaps, `stable` finishes component depth and operational
+gates. Depth never blocks forward motion without a real dependency; while one branch investigates,
+keep an independent ready branch moving. Do not manufacture small tasks to appear busy.
 
-## Relation to the parent
+Keep the release clock in the checkpoint: nearest outcome, critical path, current wave (the wave
+holding the head of the critical path; retained through its final `N/N` snapshot when its last card
+lands), target window, next observable finish, accepted movement since the prior reconcile. Re-rank
+after every material event.
 
-Every child declares exactly one relation.
+A finding stays inside its unit when the current acceptance requires it and it keeps the same
+scope, risk, owner and proof. It becomes its own file when it can be independently assigned,
+performed, reviewed, returned and accepted. Separation decides ownership and closure, never
+execution: small homogeneous siblings are dispatched and inspected as one batch under one contract,
+each keeping its own identifier, state, closure and return path.
 
-- `required` — the parent cannot close until this child is accepted.
-- `follow_up` — found during work or review; the parent's outcome is honestly accepted without it.
-- `expansion` — a new outcome beyond the original scope.
-- `trigger` — may not start before a named event, which is recorded as its return trigger.
-
-A card closes when every `required` child is accepted. An open `follow_up`, `expansion`, or
-`trigger` child never reopens an honestly accepted parent, and the same rule applies one level up
-between cards and their wave.
-
-## Metadata
-
-[`templates/work-schema.json`](../templates/work-schema.json) is the single source of truth for
-field sets, vocabularies, section order, and identifier grammar. The templates, the generator, and
-the validator all read it. Every field is a closed vocabulary or a typed scalar; an unknown field or
-value, a timestamp without an offset, and a negative duration are refused.
-
-`risk` and `maturity` live on the file, not only in the dispatch contract. The contract is transient,
-and the maturity a result was judged at — `RESEARCH`, `DESIGN`, `BUILD`, `OPERATIONALIZATION` —
-decides whether a later reading is correct.
-
-`review_rounds` and the `Review rounds` section carry the convergence loop: one line per round —
-`- R2(5/10) RETURN 25/08 14:20 — finding → the author's evidenced answer → what changed` — written by
-the CTO from the two roles' reports, never by a worker. The marker carries the reviewer's ten-point
-score and the local `dd/mm hh:mm` moment of the verdict, so the journal shows both whether quality
-moved as the corrections landed and what each round cost in wall-clock time. An escalation adds
-`- CTO <decision> <dd/mm hh:mm> — <reason>`, naming the same value as `escalation_decision`. The reviewer holds two returns
-on one unit; after that its verdict is `ESCALATE`, the CTO decides on that journal, and
-`escalation_decision` records the decision it took. Four returns is the ceiling. The journal is a
-ledger, not a transcript: the review dialogue itself stays in the reports and the evidence package.
-[Review gate](review-gate.md) owns the rules; the validator only enforces that the count, the
-journal, and the escalation decision agree.
-
-## When a finding becomes its own file
-
-A finding stays inside the current unit when it is required by the current acceptance, tests the
-same outcome, and keeps the same scope, risk, owner, and proof. It becomes its own task or subtask
-when it has a separate outcome, needs separate acceptance, changes scope, carries different risk,
-needs a different specialist, can be independently returned or accepted, can be deferred without
-making the current acceptance dishonest, or waits on a separate owner decision or external trigger.
-
-The test: a separate file is needed when the work can be independently assigned, performed,
-reviewed, returned, and accepted. Ordinary implementation steps stay a checklist inside their file.
-
-Separation decides ownership and closure, never execution. Small homogeneous siblings — one technical
-surface, one environment, one verification method, one review context — are implemented and reviewed
-as one batch under one contract, one workspace, and one review, classified at the highest risk among
-them. Each batched node keeps its own identifier, state, closure record, and return path, and the
-shared evidence must close each node individually. A node that develops independent risk, a separate
-acceptance story, or a return of its own leaves the batch.
-
-## While the work runs
-
-`Current state` is rewritten, never appended to, and holds at most five lines: the position, the
-blocker, and the next significant step. `Next action` holds one operation. Review dialogue is never
-copied into the file. A closed finding leaves the open list or appears in the closure record. A
-return leaves the unit active. A block preserves the duration already accumulated, and resuming does
-not reset the start.
+The CTO is the only writer of the tree. A worker reads its file from a frozen baseline and reports;
+it proposes children in its return. Commit semantic plan changes — new nodes, dependencies, closure
+— before a dependent dispatch and at material gates, with the regenerated index in the same change.
+Lifecycle transitions belong to the checkpoint and never earn a plan commit of their own.
 
 ## The ledger writes the events
 
-`templates/ledger.py`, copied beside `work.py`, performs each lifecycle event as one call:
-`dispatch`, `candidate`, `verdict`, `merge`, `accept`, `retire`, `block`, `escalate`. `merge`
-records integration — the closure commit and the evidence, the node staying `review` — and
-`accept` records the owner's acceptance from the clock; a project whose merge *is* its acceptance
-says so with `acceptance.mergeIsAcceptance` in its settings, and then `merge` does both. The
-project's tooling directory carries the whole set the ledger calls — `work.py`,
-`work-schema.json`, `ledger.py`, `render_fleet.py`, `check_runtime.py`, `check-fleet-render.sh` —
-and a render that cannot run fails the event rather than being skipped. It writes the runtime
-checkpoint, the node front matter and sections, the round journal line in the required shape and
-length, the generated index, and the fleet render, then prints the validator's result. `--task` may
-be repeated, which is how a batch writes one round and one closure into every node it covers.
-
-Every event takes its moment from the system clock. No event accepts a time argument, so the record
-cannot disagree with the clock about when something happened.
-
-## Acceptance
-
-Set the state to `accepted`, record `accepted_at`, record the closure commit and the durable
-evidence, fill `Closure`, close the acceptance checklist or record `deliberate_partial: true`,
-update the active duration, regenerate the index, then test whether the parent card and the wave can
-now close. The file stays where it is.
-
-Each evidence entry is a Markdown link. The literal `Git` is the only exception and records that the
-commit itself is the whole evidence; it is written deliberately so an accepted task with nothing
-behind it cannot pass silently.
-
-A partial acceptance is honest only when the headline outcome is genuinely achieved, the limitation
-does not make it false, the return trigger is exact and observable, the residue is reversible or
-observable, and the accepting review — the CTO or a delegated reviewer — agreed that a separate
-required task is not needed. The unachieved
-independent part gets its own identifier; it is never left in prose.
-
-## The index
-
-`STATUS.md` is generated from the tree and is an index, not a second copy of the work. It carries
-exactly:
-
-```markdown
-| Status | ID | Task | Commit | Start | Time |
-```
-
-- **Status** — the marker as inline code.
-- **ID** — the full identifier, linked to its permanent file.
-- **Task** — the outcome title, never an activity.
-- **Commit** — the closure commit for an accepted unit, the candidate commit for an active one, and
-  `—` otherwise. A short SHA is displayed, and it links to the immutable full commit; a branch link
-  is not commit identity.
-- **Start** — `dd/mm hh:mm`, the first transition into active work. A return, a re-review, a block,
-  or a pause never resets it.
-- **Time** — `dd/mm hh:mm (<duration>)`. The moment is the acceptance time for an accepted unit and
-  the last significant state change otherwise. The duration is active work only: builder, reviewer,
-  rework, and CTO investigation or integration on that unit. Waiting on an owner decision, an
-  external event, an environment, or an idle session is excluded.
-
-Rows appear in tree order, ascending by identifier. No value is read from the clock, so regenerating
-an unchanged tree produces an identical file.
-
-Waves are not rows in that table; they get their own generated file, `WAVES.md`, written by the same
-command:
-
-```markdown
-| Status | ID | Wave | Outcome | Cards | Done |
-```
-
-One row per wave in ascending order, with its state marker, its title, the first line of its
-`Outcome` section, how many of its cards are accepted, and that share as a percentage rounded half
-up from integers. The last row totals every wave. A wave with no cards renders `0/0` and `—`.
-
-## Commands
+`ledger.py`, copied beside `work.py`, performs each lifecycle event as one call and stamps it from
+the system clock — no event takes a time argument:
 
 ```sh
-python3 <script home>/work.py --root <work root> init
-python3 <script home>/work.py --root <work root> new task --parent W1-LF-04 --title "<outcome>"
-python3 <script home>/work.py --root <work root> status
-python3 <script home>/work.py --root <work root> check
-python3 <script home>/work.py --root <work root> fix-links
+ledger.py --checkpoint <run.json> --work-root <root> dispatch  --task <id> --agent <id> --workspace <id> --role builder --baseline <sha>
+ledger.py … candidate --task <id> --commit <sha-or-url>
+ledger.py … verdict   --task <id> --verdict RETURN --score 6 --finding "…" [--answer …] [--changed …] [--delta]
+ledger.py … escalate  --task <id> --decision bounded_retry --reason-text "…"
+ledger.py … block     --task <id> --blocker "…"
+ledger.py … merge     --task <id> --closure-commit <sha-or-url> --evidence <url> [--accepted "…"]
+ledger.py … accept    --task <id> [--residue "…" --return-trigger "…"]
+ledger.py … retire    --task <id>
 ```
 
-Nodes are created by `new` rather than by hand, so an identifier, a path, and a parent listing
-cannot disagree from the first minute. `status` rewrites the index only when it changed. `check`
-refuses a duplicate identifier, an identifier that does not match its path or its wave directory, an
-unknown state or field, a missing link target, an accepted unit without a closure commit or
-evidence, an active unit without a start, a blocked unit without a blocker, a paused unit without a
-reason, a rejected or trigger-gated unit without a return trigger, a negative duration, a malformed
-timestamp, a dependency cycle, a dependency without a file, a parent closed over an open required
-child, an acceptance checklist left open without a deliberate partial, a `Current state` that has
-turned into a chronology, an index that disagrees with the tree, a commit reference that is not a
-full immutable SHA, a nested Markdown link, a title that names an activity, and one identifier that
-is live in both the tree and a frozen legacy document. `fix-links` repairs the mechanical class:
-a commit link carrying a short SHA and a source link pinned to a branch are repinned to the full
-commit SHA the local repository resolves them to.
+One call updates the checkpoint, the node's front matter and sections, the journal line, the
+generated index and the fleet render, then runs the validator. `--task` may be repeated for a
+batch. A bare SHA becomes a commit-pinned link through `sourceRepository`; a short SHA is refused.
+`merge` records integration and leaves the node in `review` until `accept`, unless the charter says
+`mergeIsAcceptance`. The timezone token defaults to the machine's; pass `--timezone` to override.
+A fleet render that fails because the Paseo probe is unavailable leaves the event recorded and
+`FLEET.md` unchanged with a warning; a render tool that is missing beside the tooling is an error.
 
-Copy `work.py`, `work-schema.json`, and `templates/work/` into the project's own script and template
-home and bind `check` to the project's validation gate. Do not call them from the plugin path, which
-carries a version and differs between hosts.
+## Acceptance and the index
 
-That copy can silently fall behind, so it is stamped. `work.py` and `work-schema.json` carry the
-plugin release in which the tooling last changed, together with a digest over the pair. Every run
-verifies both, refusing a copy assembled from two releases or edited in place. `work.py version`
-prints the stamp, and
+Acceptance sets the state, records `accepted_at`, the closure commit and durable evidence, fills
+`Closure`, closes the checklist or records `deliberate_partial: true` with residue and an exact
+`return_trigger`, and tests whether the parent can close. Each evidence entry is a Markdown link;
+the literal `Git` is the deliberate waiver meaning the commit is the whole evidence.
+
+`STATUS.md` carries exactly `| Status | ID | Task | Commit | Start | Time |`, one row per card,
+task and subtask in tree order: the marker, the identifier linked to its file, the outcome title,
+the closure commit for an accepted unit or the candidate for an active one as a short SHA linked to
+the full commit, the first moment the unit became active (never reset), and `dd/mm hh:mm
+(<duration>)` — acceptance time or last significant change, with active work only. `WAVES.md`
+carries `| Status | ID | Wave | Outcome | Cards | Done |` with a closing total row. Neither reads
+the clock, so regenerating an unchanged tree produces an identical file.
+
+## Commands and the stamped copy
 
 ```sh
-python3 <script home>/work.py check --root <work root> --plugin-templates <plugin>/skills/paseo-cto/templates
+python3 <script home>/work.py --root <work root> init | new <kind> … | status | check [--fix] | fix-links
 ```
 
-additionally compares the project's stamp with the installed plugin's, so a project that stayed on an
-older release learns it from the gate rather than from a surprising behaviour months later. A change
-the project genuinely needs belongs in the plugin, not in the copy.
+`new` creates a node at its derived path; `check` refuses a duplicate or misplaced identifier, an
+unknown state or field, a missing link target, an accepted unit without closure commit or evidence,
+an active unit without a start, a blocked unit without a blocker, a dependency cycle, a parent
+closed over an open required child, an open checklist without a deliberate partial, a `Current
+state` grown into a chronology, a hand-edited index, a commit reference that is not a full SHA, a
+journal that contradicts its count or exceeds the ceiling, and a wave whose work started while its
+plan review is `pending` or `returned`. `fix-links` repins short or branch forge references.
+
+Copy `work.py`, `work-schema.json`, `ledger.py`, `render_fleet.py`, `check_runtime.py`,
+`check-fleet-render.sh` and `work/` into the project's script home and bind `check` to the
+validation gate; never call them from the plugin path, which carries a version and differs between
+hosts. The pair `work.py` and `work-schema.json` is stamped with the plugin release and a digest;
+`check --plugin-templates <plugin>/skills/paseo-cto/templates` reports a copy that fell behind.

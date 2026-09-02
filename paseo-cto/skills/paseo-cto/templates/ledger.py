@@ -44,6 +44,14 @@ class LedgerError(RuntimeError):
     pass
 
 
+class RenderUnavailable(RuntimeError):
+    """The renderer exists but could not complete: a Paseo probe or Git check failed.
+
+    The event is already recorded; the render is stale until the next successful one. That is a
+    warning, because a daemon hiccup must not stop bookkeeping.
+    """
+
+
 # ------------------------------------------------------------------------------------------
 # clock, checkpoint, migration
 # ------------------------------------------------------------------------------------------
@@ -51,6 +59,12 @@ class LedgerError(RuntimeError):
 
 def now() -> datetime:
     return datetime.now().astimezone()
+
+
+def default_timezone() -> str:
+    """The machine's own timezone token, so a render needs no argument it can derive itself."""
+    name = now().tzname() or ""
+    return name if name and " " not in name else "UTC"
 
 
 def stamp(moment: datetime) -> str:
@@ -630,19 +644,23 @@ def locate_tool(name: str, runtime: dict) -> Path:
 
 
 def render_fleet(args, runtime: dict) -> str:
-    """Render FLEET.md through the plugin renderer; a render that cannot run fails the event."""
+    """Render FLEET.md through the plugin renderer.
+
+    A renderer that is missing is a setup error and fails the call; a renderer that runs and
+    cannot complete leaves FLEET.md unchanged and is reported as stale.
+    """
     renderer = locate_tool("render_fleet.py", runtime)
     locate_tool("check_runtime.py", runtime)
     locate_tool("check-fleet-render.sh", runtime)
     command = [
         sys.executable, str(renderer), str(args.checkpoint),
         "--project-root", str(args.project_root), "--work-root", str(args.work_root),
-        "--timezone", args.timezone,
+        "--timezone", args.timezone or default_timezone(),
     ]
     result = subprocess.run(command, capture_output=True, text=True)
     if result.returncode != 0:
         detail = result.stderr.strip().splitlines()[-1] if result.stderr.strip() else "failed"
-        raise LedgerError(f"fleet render failed: {detail}")
+        raise RenderUnavailable(f"fleet render failed: {detail}")
     return result.stdout.strip()
 
 
@@ -652,7 +670,8 @@ def main() -> int:
     parser.add_argument("--work-root", type=Path, required=True)
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
     parser.add_argument("--schema", type=Path, default=SCRIPT_DIR / "work-schema.json")
-    parser.add_argument("--timezone", default="")
+    parser.add_argument("--timezone", default="",
+                        help="timezone token for the render; defaults to the machine's own")
     parser.add_argument("--no-fleet", action="store_true")
     sub = parser.add_subparsers(dest="event", required=True)
 
@@ -742,15 +761,14 @@ def main() -> int:
     for line in summary:
         print(line)
     if not args.no_fleet:
-        if not args.timezone:
-            print("ledger: --timezone is required to render FLEET.md (or pass --no-fleet)",
-                  file=sys.stderr)
-            return 1
         try:
             print(f"ledger: {render_fleet(args, runtime)}")
         except LedgerError as error:
             print(f"ledger: {error}", file=sys.stderr)
             return 1
+        except RenderUnavailable as error:
+            print(f"ledger: warning: {error}; FLEET.md is stale until the next successful render",
+                  file=sys.stderr)
     check = subprocess.run(
         [sys.executable, str(SCRIPT_DIR / "work.py"), "--root", str(args.work_root),
          "--schema", str(args.schema), "check", "--fix"],
