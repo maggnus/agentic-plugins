@@ -70,7 +70,7 @@ to the owner names the commit, branch or agent the owner asked about.
 
 ```text
 # Update <YYYY-MM-DD HH:MM TZ>
-paseo-cto: v10.8.2 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
+paseo-cto: v11.0.0 | Model: openai/gpt-5.6-sol (xhigh) | Session: 1h24m
 Wave: [<wave-id>] <wave name>
 Cards: <done>/<total>
 
@@ -110,7 +110,7 @@ hosts to it and reinstalls any sibling plugin from the same marketplace; asking 
 ```sh
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check     # report versions only
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"             # upgrade to the latest
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v10.8.2
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v11.0.0
 ```
 
 ## What ships
