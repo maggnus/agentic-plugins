@@ -14,15 +14,16 @@ if [ -z "$work_root" ] || [ ! -d "$work_root" ]; then
     exit 1
 fi
 
-# Get plugin version
-plugin_version=$(jq -r '.version' "$plugin_root/.claude-plugin/plugin.json")
+# The tooling is stamped with the release in which it last changed, which is not always the
+# plugin's own version: a release that touched only prose keeps the older stamp.
+plugin_version=$(jq -r '.tooling_version' "$plugin_root/skills/paseo-cto/templates/work-schema.json")
 if [ -z "$plugin_version" ] || [ "$plugin_version" = "null" ]; then
-    echo "cannot read plugin version" >&2
+    echo "cannot read the plugin's tooling stamp" >&2
     exit 1
 fi
 
 echo "Checking work tooling in: $work_root"
-echo "Plugin version: $plugin_version"
+echo "Plugin tooling stamp: $plugin_version"
 
 # Check if work.py exists in project
 project_work_py="$work_root/scripts/work.py"
@@ -74,4 +75,4 @@ fi
 echo "Running full validation against plugin templates..."
 "$project_work_py" check --root "$work_root" --plugin-templates "$plugin_root/skills/paseo-cto/templates"
 
-echo "OK: Work tooling matches plugin version $plugin_version"
+echo "OK: Work tooling matches the plugin tooling stamp $plugin_version"

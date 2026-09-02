@@ -3,6 +3,19 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## v11.0.1 — paseo-cto 11.0.1
+
+The v11.0.0 tag shipped `work.py` and `work-schema.json` stamped `10.8.2` although both changed in
+that release: the stamp script kept an old stamp whenever the digest still matched the file.
+
+- **The stamp is derived from the tags.** `stamp-work-tooling.py` walks the release tags from the
+  newest down and stamps the oldest consecutive tag whose tooling content equals the current
+  content, or the manifest version when even the newest tag differs; the stamp fields themselves
+  are not content. The tooling now reads `11.0.0`, the release it last changed in.
+- **The project-copy check compares stamps, not versions.** `check-work-tooling.sh` reads the
+  plugin's `tooling_version` instead of the manifest version, so a release that touched only prose
+  no longer reports every project copy as outdated.
+
 ## v11.0.0 — paseo-cto 11.0.0 (lean method)
 
 One day of the 10.8.2 method on a real project (four builders, three independent reviews, two

@@ -1387,6 +1387,39 @@ printf '%s\n' 'The importer in `scripts/import.py` rejects a malformed row; rele
 expect_pass "a status may name the file the owner asked about" env REPORTING_LANGUAGE=English \
   "$templates/check-owner-status.sh" "$scratch/status-filename.txt"
 
+expect_pass "the tooling stamp names the release the tooling last changed in" python3 - "$plugin_root" <<'PY'
+import importlib.util
+import json
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+spec = importlib.util.spec_from_file_location("stamp", root / "scripts/stamp-work-tooling.py")
+stamp = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(stamp)
+problems = []
+schema = json.loads((root / "skills/paseo-cto/templates/work-schema.json").read_text())
+work_text = (root / "skills/paseo-cto/templates/work.py").read_text()
+current = stamp.identity(work_text, schema)
+# a re-stamp is not a change: the identity ignores the stamp fields
+restamped = dict(schema, tooling_version="0.0.0", tooling_digest="x")
+if stamp.identity(work_text.replace(f'TOOLING_VERSION = "{schema["tooling_version"]}"',
+                                    'TOOLING_VERSION = "0.0.0"'), restamped) != current:
+    problems.append("the identity changes when only the stamp changes")
+# the stamp is the manifest version only when even the newest tag differs from the current content
+manifest = json.loads((root / ".claude-plugin/plugin.json").read_text())["version"]
+derived = stamp.stamp_version(manifest, current)
+tags = stamp.release_tags()
+if tags and stamp.tagged_identity(tags[0]) == current and derived == manifest and manifest != tags[0][1:]:
+    problems.append("the stamp took the manifest version although the newest tag carries this tooling")
+if schema["tooling_version"] != derived:
+    problems.append(f"work-schema.json is stamped {schema['tooling_version']} but the tags say {derived}; run scripts/stamp-work-tooling.py")
+check = (root / "scripts/check-work-tooling.sh").read_text()
+if "jq -r '.tooling_version'" not in check or "jq -r '.version' \"$plugin_root/.claude-plugin" in check:
+    problems.append("check-work-tooling.sh compares against the manifest version instead of the tooling stamp")
+raise SystemExit("; ".join(problems) if problems else 0)
+PY
+
 printf 'test: %s contract checks passed\n' "$passes"
 
 bash "$script_dir/test-work-tree.sh"
