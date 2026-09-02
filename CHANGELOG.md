@@ -3,7 +3,7 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
-## Unreleased — paseo-cto lean method (next tag)
+## v11.0.0 — paseo-cto 11.0.0 (lean method)
 
 One day of the 10.8.2 method on a real project (four builders, three independent reviews, two
 rehearsals, four dev walks) measured where the plugin was the brake: a review floor stricter than
