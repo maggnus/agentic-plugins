@@ -274,6 +274,22 @@ if grep -q "skipped" "$scratch/output"; then
   exit 1
 fi
 passes=$((passes + 1))
+# The installed layout on both hosts is plugins/cache/<marketplace>/<plugin>/<version>; Codex
+# appends its build suffix. The fallback finds the copy whose base version the checkpoint names.
+fakehome="$scratch/fakehome"
+installed="$fakehome/.codex/plugins/cache/maggnus/paseo-cto/10.8.0+codex.20260101000000"
+mkdir -p "$installed/.claude-plugin" "$installed/skills/paseo-cto/templates"
+printf '{"name": "paseo-cto", "version": "10.8.0+codex.20260101000000"}\n' > "$installed/.claude-plugin/plugin.json"
+cp "$templates/render_fleet.py" "$templates/check_runtime.py" "$templates/check-fleet-render.sh" \
+  "$templates/work.py" "$templates/work-schema.json" "$installed/skills/paseo-cto/templates/"
+render_installed() {
+  HOME="$fakehome" python3 "$scratch/tools/ledger.py" --checkpoint "$scratch/runtime.json" \
+    --work-root "$scratch/work" --timezone HKT candidate --task "$task" \
+    --commit "$commit_url/1111111111111111111111111111111111111111"
+}
+expect_output "a renderer is found in the Codex install of the checkpoint's version" \
+  "render_fleet.py taken from the installed plugin at .*/paseo-cto/10.8.0+codex.20260101000000/skills/paseo-cto/templates" \
+  render_installed
 # A renderer that runs and cannot complete — here the checkpoint is too bare for the live probe —
 # leaves FLEET.md stale and the event recorded; the timezone comes from the machine when omitted.
 fresh

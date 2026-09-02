@@ -618,22 +618,13 @@ def locate_tool(name: str, runtime: dict) -> Path:
     if local.is_file():
         return local
     version = runtime.get("plugin", {}).get("version", "")
-    candidates = []
-    home = Path.home()
-    for root in (
-        home / ".claude/plugins/marketplaces/maggnus/paseo-cto/skills/paseo-cto/templates",
-        home / ".codex/plugins/marketplaces/maggnus/paseo-cto/skills/paseo-cto/templates",
-    ):
-        candidate = root / name
-        if candidate.is_file():
-            candidates.append(candidate)
-    for candidate in candidates:
+    for candidate in installed_plugin_files(name):
         manifest = candidate.parents[3] / ".claude-plugin/plugin.json"
         try:
             installed = json.loads(manifest.read_text(encoding="utf-8")).get("version", "")
         except (OSError, ValueError):
             installed = ""
-        if not version or installed == version:
+        if not version or installed.split("+codex.", 1)[0] == version:
             print(f"ledger: {name} taken from the installed plugin at {candidate.parent}",
                   file=sys.stderr)
             return candidate
@@ -641,6 +632,31 @@ def locate_tool(name: str, runtime: dict) -> Path:
         f"{name} is not in {SCRIPT_DIR} and no installed plugin at version {version or '?'} "
         f"provides it; copy it from the plugin's templates directory beside work.py"
     )
+
+
+def installed_plugin_files(name: str) -> list[Path]:
+    """Every installed copy of a template file, newest install first.
+
+    Both hosts install a plugin under `plugins/cache/<marketplace>/<plugin>/<version>`; Claude's
+    version is the bare release and Codex's carries `+codex.<build>`. The marketplace checkouts
+    (`~/.claude/plugins/marketplaces`, `~/.codex/.tmp/marketplaces`) come last, because they hold
+    whatever the marketplace was last synced to rather than an installed release.
+    """
+    home = Path.home()
+    suffix = Path("skills/paseo-cto/templates") / name
+    found: list[Path] = []
+    for cache in (home / ".claude/plugins/cache", home / ".codex/plugins/cache"):
+        for versioned in sorted(cache.glob("*/paseo-cto/*"), key=lambda p: p.stat().st_mtime,
+                                reverse=True) if cache.is_dir() else []:
+            candidate = versioned / suffix
+            if candidate.is_file():
+                found.append(candidate)
+    for checkout in (home / ".claude/plugins/marketplaces", home / ".codex/.tmp/marketplaces"):
+        for market in sorted(checkout.glob("*/paseo-cto")) if checkout.is_dir() else []:
+            candidate = market / suffix
+            if candidate.is_file():
+                found.append(candidate)
+    return found
 
 
 def render_fleet(args, runtime: dict) -> str:
