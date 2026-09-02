@@ -106,15 +106,18 @@ require(claude_source.get("ref") == release_tag,
         f"Claude marketplace is not pinned to {release_tag}")
 
 installed_registry = json.loads(installed_path.read_text()) if installed_path.is_file() else {}
+# One user-scope install plus any number of project-scope installs; every one of them must carry
+# the tagged version and commit, or a project silently runs an older method than the user seat.
 claude_installed = installed_registry.get("plugins", {}).get(plugin_id, [])
-require(len(claude_installed) == 1, "Claude paseo-cto is not installed exactly once")
-if claude_installed:
-    install = claude_installed[0]
+user_installs = [item for item in claude_installed if item.get("scope") == "user"]
+require(len(user_installs) == 1, "Claude paseo-cto is not installed exactly once at user scope")
+for install in claude_installed:
+    where = install.get("projectPath") or "user scope"
     require(install.get("version") == claude_manifest["version"],
-            "Claude installed version differs from the tagged manifest")
+            f"Claude install at {where} is {install.get('version')}, not the tagged manifest")
     if remote_commit:
         require(install.get("gitCommitSha") == remote_commit,
-                "Claude installed commit differs from the remote tag commit")
+                f"Claude install at {where} is not the remote tag commit")
 
 if errors:
     for error in errors:
