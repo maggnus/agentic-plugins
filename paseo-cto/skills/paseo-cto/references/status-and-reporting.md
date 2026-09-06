@@ -26,6 +26,19 @@ one; the table shows it as the node moving between `reviewing` and `rework`. Coa
 discovered in one turn into one report after the reconcile; if several heartbeats were missed,
 publish only the newest snapshot. State the absolute `FLEET.md` path once when Operate begins.
 
+## Owner-side asks — the awaiting-owner counter
+
+Anything the CTO needs from the owner — a question, a request (re-authenticate a workstation
+credential, grant an access, approve a spend), or a blocker only the owner can clear — is an
+owner-gated item from the moment it is raised. Raising it in prose is not enough: the same message
+that raises it updates the awaiting-owner count wherever the project shows one (the status footer's
+`🙋 <n>` where the project keeps that contract, the `blocked` state with a blocker naming the owner
+on the node it blocks, or both), so the owner sees at a glance that something waits on them. The
+item stays counted until the owner answers or the blocker clears, then it is removed in the message
+that reports the answer. An ask that is not counted does not exist to the owner; an ask that stays
+counted after it was answered is a stale number (owner rule, 2026-09-06: «если у тебя есть ко мне
+просьбы, вопросы или блокеры на моей стороне, ты должен обновить статусную иконку с человечком»).
+
 ## The snapshot — exact shape
 
 ```markdown

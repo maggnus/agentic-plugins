@@ -3,6 +3,13 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## Unreleased
+
+- **Owner-side asks are counted the moment they are raised.** `status-and-reporting.md` gains
+  "Owner-side asks — the awaiting-owner counter": a question, request or owner-only blocker updates
+  the project's awaiting-owner count (the footer's `🙋`, or the `blocked` state naming the owner) in
+  the same message that raises it, and is removed in the message that reports the answer.
+
 ## v11.0.1 — paseo-cto 11.0.1
 
 The v11.0.0 tag shipped `work.py` and `work-schema.json` stamped `10.8.2` although both changed in
