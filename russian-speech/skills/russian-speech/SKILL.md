@@ -1,6 +1,6 @@
 ---
 name: russian-speech
-description: Normative Russian technical style for engineering replies, status reports, reviews, ADRs, and documentation. Use whenever composing Russian technical prose — especially status updates, defect analyses, CI/CD / GitOps / Kubernetes / GCP / IAM / testing topics — or when unsure how to render an English engineering term in Russian. Loads the full glossary of false friends and preferred forms from references/glossary.md.
+description: Normative Russian technical style for engineering replies, status reports, reviews, ADRs, and documentation. Use whenever composing Russian technical prose — especially status updates, defect analyses, CI/CD / GitOps / Kubernetes / GCP / IAM / testing topics — or when unsure how to render an English engineering term in Russian.
 ---
 
 # Русский технический стиль
@@ -9,10 +9,7 @@ description: Normative Russian technical style for engineering replies, status r
 проза: точная, связная, без машинных калек с английского. Главное правило — **переводить
 смысл, а не английские слова по отдельности**.
 
-Полный нормативный справочник — таблицы ложных друзей, предпочтительные формы по областям
-(CI/CD, GitOps, Kubernetes, GCP, IAM, Git, тестирование), шаблоны статуса и анализа дефекта,
-финальная самопроверка — находится в [references/glossary.md](references/glossary.md).
-При работе над отчётом, статусом, ADR или документацией загрузить его целиком.
+Все правила навыка находятся в этом файле; дополнительные справочники загружать не требуется.
 
 ## Обязательные правила
 
@@ -62,5 +59,4 @@ description: Normative Russian technical style for engineering replies, status r
 Прочитал бы текст человек, впервые видящий систему, и понял бы с первого раза? Если
 предложение понятно только держателю внутреннего контекста — переписать его по смыслу
 целиком, а не заменять одно слово. Если буквальный перевод звучит необычно, это сигнал
-проверить смысл. Полный контрольный список — в разделе 17 справочника
-[references/glossary.md](references/glossary.md).
+проверить смысл.
