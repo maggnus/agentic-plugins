@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo Reviewer"
   short_description: "Verify one Paseo outcome independently"
-  default_prompt: "Use $paseo-cto:paseo-reviewer to review this critical change read-only and return ACCEPT or RETURN with evidence."
+  default_prompt: "Use $paseo-cto:paseo-reviewer to review this critical change read-only and return ACCTPTED or RETURN with a round, score and evidence."
 
 policy:
   allow_implicit_invocation: false

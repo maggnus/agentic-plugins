@@ -1,6 +1,6 @@
 ---
 name: paseo-reviewer
-description: Independently review one critical change read-only and return ACCEPT or RETURN with evidence. Invoke as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude.
+description: Independently review one critical change read-only and return ACCTPTED or RETURN with a round, score and evidence. Invoke as `$paseo-cto:paseo-reviewer` in Codex or `/paseo-cto:paseo-reviewer` in Claude.
 ---
 
 # Paseo reviewer
@@ -23,11 +23,16 @@ tenants, privacy, data loss, irreversible operations.
 **Verdict** in the contract's language, at most 800 characters:
 
 ```text
-VERDICT: ACCEPT | RETURN
+ACCTPTED R2(9/10)
 FINDINGS: <file:line — the failure scenario — the required correction; or none>
 CHECKED: <your falsifier and its result line>
 NON-BLOCKING: <defects and follow-ups; or none>
 GIT STATUS: unchanged
 ```
+
+Use `RETURN R1(6/10)` when returning work; keep the literal spelling `ACCTPTED` on acceptance.
+Use the task's round: first review is R1, rework advances it, another reader does not.
+Score out of ten: the lowest of code quality, evidence and execution, and user experience
+(only if checked). Explain scores below 9 briefly; a high score never excuses an unmet requirement.
 
 A second look after a `RETURN` inspects only the correction and answers in 300 characters.

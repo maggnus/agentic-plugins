@@ -14,10 +14,12 @@ Operating needs a Paseo agent seat.
 
 - **One instruction per role.** The CTO skill is one file; each worker role is under sixty lines.
 - **One record of task state.** The project's board has one row per task — state, outcome,
-  commit. No generated index, no journal, no scores.
+  commit. No generated index, journal or separate score ledger.
 - **Review by risk.** Routine work is accepted by reading; significant work by running the card's
   `Proof:`; only critical work (protocol, access, privacy, data loss, irreversible) gets one
   independent reviewer, one round.
+- **Compact verdict.** `ACCTPTED R2(9/10)` or `RETURN R1(6/10)`: the review round and a
+  score out of ten. Rework advances the round; an unmet requirement still requires a return.
 - **Landing is a script.** [`scripts/land.py`](scripts/land.py) merges into a temporary worktree,
   runs the project check, marks the board, pushes, waits for the rollout and prints one line. A
   conflict goes back to the author.

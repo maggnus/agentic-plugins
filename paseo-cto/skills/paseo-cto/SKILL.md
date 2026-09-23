@@ -51,7 +51,7 @@ agent or a green local check is cost until the change is landed and rolled out.
 - **Checkpoint** `<git-common-dir>/paseo-cto/<run>.json` — only the live agents: task, agent id,
   workspace id, branch, one-line status.
 
-No other status file, journal or score exists. Documentation is written by you, never by an agent.
+No separate status file, journal or score ledger exists. Documentation is written by you, never by an agent.
 
 **A new project** gets the same layout: copy `<plugin path>/templates/work/` to the project's work
 directory (for example `docs/work/`), copy `scripts/check-board.py` next to the project's checks and
@@ -115,8 +115,13 @@ build/<next>". Start a fresh agent when the zone changes or the agent's context 
   branch, read-only), one round. A `RETURN` goes to the author once; after the correction you
   decide.
 
-Return work with one message naming the gap. A report that says a check was not run is not an
-acceptance of that check; decide whether the landing check covers it.
+Report each acceptance or return to the owner, starting with `ACCTPTED R2(9/10)` or `RETURN R1(6/10)`;
+keep the literal spelling `ACCTPTED`. `R1` is the first review; increment after rework,
+not for another reader of the same revision. Pass that round to the reviewer.
+Score out of ten: the lowest of code quality, evidence and execution, and user experience
+(only if checked). Briefly explain scores below 9. The score never overrides an unmet requirement:
+accept only when the contracted outcome and required proof hold; otherwise return with the gap
+and required correction. A check not run is not a check passed; decide whether landing covers it.
 
 ## Land
 
