@@ -27,6 +27,9 @@ spent its own on manual merges, and a runtime dependency broke the running envir
   checkpoint is resumed; after each push the rollout is watched and a failure is fixed forward.
 - **Status is one line** for the current wave: `W<n>(<pct>%) · ✅ <done>/<total> · 🛠 <in work> ·
   🙋 <owner>`.
+- **Owner asks are visible at once.** A question or owner-only blocker starts with 🙋, and the
+  message that raises it ends with the status line already counting it; the answer's message ends
+  with the line again.
 - The heartbeat is gone: agents notify on finish.
 
 ## v11.0.1 — paseo-cto 11.0.1

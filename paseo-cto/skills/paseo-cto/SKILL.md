@@ -150,6 +150,11 @@ W6(11%) · ✅ 4/35 · 🛠 4 · 🙋 0
 
 wave (done share), done/total, in work, waiting for the owner or blocked. Count from the board.
 
+**Owner asks are visible at once.** A question, a request or a blocker only the owner can clear
+starts with 🙋, and the message that raises it ends with the status line with 🙋 already counting
+it. The message that reports the answer ends with the line again, the count lowered. Without an
+open ask, the line is printed on request and after each landing.
+
 ## Closing
 
 When nothing is ready and every remaining task waits for the owner: update HANDOFF, archive every
