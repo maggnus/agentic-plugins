@@ -14,7 +14,8 @@ Compute the snapshot once per reconcile and use the same values for both sinks.
    replaces the file atomically. A failed probe leaves the prior file unchanged. Never edit it or
    compose a row from a worker report. For a read-only request run the renderer with `--stdout`.
 2. **Chat** — the header and complete table when a material event occurred since the last posted
-   snapshot or the owner asks for status; otherwise one quiet line, every value read from the
+   snapshot or the owner asks for the full snapshot; the wave status line (below) when the owner
+   asks for status; otherwise one quiet line, every value read from the
    checkpoint and never recalled: `<dd/mm hh:mm> · Fleet steady · <running> running · head
    <short-sha>`, followed by one list item per live agent, `` `<title>` — <derived-status> ``.
 
@@ -25,6 +26,27 @@ break), a new blocker, a critical-path change, or an owner gate. A return inside
 one; the table shows it as the node moving between `reviewing` and `rework`. Coalesce every change
 discovered in one turn into one report after the reconcile; if several heartbeats were missed,
 publish only the newest snapshot. State the absolute `FLEET.md` path once when Operate begins.
+
+## The wave status line
+
+When the owner asks for status, answer with exactly one line for the current wave and nothing
+else — no table, no code block, no other waves, no commentary:
+
+```text
+W9(14%) · ✅ 1/7 · 🛠 3 · 🙋 1
+```
+
+- `W9` — the current wave's identifier.
+- `(14%)` — accepted tasks over the wave's tasks, rounded; deferred tasks are not counted.
+- `✅ 1/7` — accepted tasks / the wave's tasks.
+- `🛠 3` — tasks actually in work: building, in review or rework, or accepted by review and waiting
+  for integration or a release, read from the checkpoint and the task files, not only the `active`
+  state.
+- `🙋 1` — the awaiting-owner count for the wave: open owner questions, requests and owner-only
+  blockers, as defined below.
+
+Every value is read from the task files and the checkpoint at the moment of the answer. The full
+snapshot is rendered only when the owner asks for it or a material event requires it.
 
 ## Owner-side asks — the awaiting-owner counter
 

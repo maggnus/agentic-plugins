@@ -5,6 +5,10 @@ their own and move inside the same tag. Entries record what changed in the metho
 
 ## Unreleased
 
+- **Status is one line per current wave.** `status-and-reporting.md` gains "The wave status line":
+  on a status request the CTO answers with exactly `W<n>(<pct>%) · ✅ <accepted>/<total> · 🛠 <in work> · 🙋
+  <awaiting owner>` for the current wave and nothing else; the full snapshot stays for material
+  events and explicit requests.
 - **Owner-side asks are counted the moment they are raised.** `status-and-reporting.md` gains
   "Owner-side asks — the awaiting-owner counter": a question, request or owner-only blocker updates
   the project's awaiting-owner count (the footer's `🙋`, or the `blocked` state naming the owner) in
