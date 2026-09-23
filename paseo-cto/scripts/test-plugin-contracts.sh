@@ -127,6 +127,15 @@ out=$(run build/t5 T-5) || problem "checkbox case exited $?"
 git -C "$repo" fetch -q origin
 git -C "$repo" show origin/main:BOARD.md | grep -q '^- \[x\] T-5 — fifth · [0-9a-f]\{8\} · [0-9][0-9]\.[0-9][0-9] [0-9][0-9]:[0-9][0-9]$' || problem "checkbox line of T-5 not marked done"
 
+# 6. a table row with a mark column is marked done with commit and time
+git -C "$repo" fetch -q origin; git -C "$repo" switch -q --detach origin/main
+printf '| [ ] | [T-6](t6.md) | sixth |  | 23.09 18:42 |\n' >> "$repo/BOARD.md"; printf '# T-6\n' > "$repo/t6.md"
+git -C "$repo" add -A && git -C "$repo" commit -qm t6-board && git -C "$repo" push -q origin HEAD:main
+branch build/t6 six.txt six
+out=$(run build/t6 T-6) || problem "mark-table case exited $?"
+git -C "$repo" fetch -q origin
+git -C "$repo" show origin/main:BOARD.md | grep -q '^| \[x\] | T-6 | sixth | [0-9a-f]\{8\} | [0-9][0-9]\.[0-9][0-9] [0-9][0-9]:[0-9][0-9] |$' || problem "mark-table row of T-6 not marked done"
+
 if [ "$fail" -ne 0 ]; then
   echo "contracts: FAILED" >&2
   exit 1

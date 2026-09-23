@@ -101,7 +101,8 @@ def mark_board(tree, land, task, sha, outcome):
     ident = re.escape(task)
     table = re.compile(r"^\| (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") \| (\w+) \| ([^|]*?) ?\| ([^|]*)\|$", re.M)
     checkbox = re.compile(r"^- \[.\] (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") — (.*?)(?: · [0-9a-f]{7,40})?(?: · \d\d\.\d\d \d\d:\d\d)?$", re.M)
-    match = table.search(text) or checkbox.search(text)
+    marked = re.compile(r"^\| \[.\] \| (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") \| ([^|]*?) ?\| [^|]*\| [^|]*\|$", re.M)
+    match = marked.search(text) or table.search(text) or checkbox.search(text)
     if not match:
         raise Stop(1, f"board: no row for {task} in {land['board']}")
     link = match.group(2)
@@ -112,12 +113,16 @@ def mark_board(tree, land, task, sha, outcome):
         first = task
     else:
         first = match.group(1)
-    if match.re is table:
+    stamp = time.strftime('%d.%m %H:%M')
+    if match.re is marked:
+        new_outcome = outcome or match.group(3).strip()
+        line = f"| [x] | {first} | {new_outcome} | {sha} | {stamp} |"
+    elif match.re is table:
         new_outcome = outcome or match.group(4).strip()
         line = f"| {first} | done | {new_outcome} | {sha} |"
     else:
         new_outcome = outcome or match.group(3).strip()
-        line = f"- [x] {first} — {new_outcome} · {sha} · {time.strftime('%d.%m %H:%M')}"
+        line = f"- [x] {first} — {new_outcome} · {sha} · {stamp}"
     text = text[:match.start()] + line + text[match.end():]
     board.write_text(text)
     if land.get("boardCheck"):
