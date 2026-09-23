@@ -62,7 +62,7 @@ The plugin names no model and supplies no default; the owner fills `roleAssignme
 ```sh
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check     # report versions only
 python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"             # upgrade to the latest
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v12.0.0
+python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v12.0.1
 ```
 
 ## What ships

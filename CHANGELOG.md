@@ -3,6 +3,18 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## v12.0.1 — russian-speech 1.1.0
+
+- **russian-speech: comprehend, do not translate.** The first rule of the skill and of the
+  session directive: an agent's internal notes, agent reports and logs — usually compressed
+  English — are never carried into Russian line by line. Before each message the writer answers
+  what happened, why it matters to the reader and what comes next, and tells that in their own
+  words; the skill shows a bad and a better rendering of the same note. Companion rules: answer a
+  question in the first sentence; internal difficulties are told through what happens and why, not
+  log lines; features take the names people know from well-known services.
+- paseo-cto is unchanged; its version moves to 12.0.1 only because a release tag carries its
+  version.
+
 ## v12.0.0 — paseo-cto 12.0.0 (fast loop)
 
 The method is rewritten for speed after a day in which agents spent paid time on records, the CTO

@@ -1,6 +1,6 @@
 {
   "name": "russian-speech",
-  "version": "1.0.1+codex.20260808052006",
+  "version": "1.1.0+codex.20260923153240",
   "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships compact style rules, a short terminology table, and reporting templates in one skill file.",
   "author": {
     "name": "Maksim Korenev",
