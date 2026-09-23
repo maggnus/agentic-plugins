@@ -59,12 +59,20 @@ honest and [`scripts/board-status.py`](scripts/board-status.py) prints the owner
 
 The plugin names no model and supplies no default; the owner fills `roleAssignments`.
 
-## Upgrade
+## Install from GitHub
+
+### Claude Code
 
 ```sh
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --check     # report versions only
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py"             # upgrade to the latest
-python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v12.0.6
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
+claude plugin install paseo-cto@maggnus
+```
+
+### Codex
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
+codex plugin add paseo-cto@maggnus
 ```
 
 ## What ships

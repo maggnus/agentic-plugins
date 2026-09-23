@@ -14,10 +14,14 @@ end — leaving the entry point, product document, decision records and invarian
 decision is read from. It tracks no work and lands no change: whoever executes takes the first slice
 from it. See [brief/README.md](brief/README.md).
 
+### Claude Code
+
 ```sh
 claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install brief@maggnus
 ```
+
+### Codex
 
 ```sh
 codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
@@ -31,15 +35,17 @@ worktrees, acceptance by risk, one command that lands an accepted branch and wat
 and a one-line status. Models and reasoning effort are owner decisions recorded in the project
 settings. See [paseo-cto/README.md](paseo-cto/README.md).
 
+### Claude Code
+
 ```sh
-PASEO_CTO_TAG=v12.0.6
-claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install paseo-cto@maggnus
 ```
 
+### Codex
+
 ```sh
-PASEO_CTO_TAG=v12.0.6
-codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
 codex plugin add paseo-cto@maggnus
 ```
 
@@ -50,10 +56,14 @@ acceptance, checks sized to the risk, a check seen failing before it counts, an 
 the diff before a risky change lands, and a reviewer and author who converge on it across up to two
 returns. See [team/README.md](team/README.md).
 
+### Claude Code
+
 ```sh
 claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install team@maggnus
 ```
+
+### Codex
 
 ```sh
 codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
@@ -66,18 +76,19 @@ Coherent Russian technical prose: reconstruct meaning from compressed working no
 translating them literally, preserving technical terms and facts. See
 [russian-speech/README.md](russian-speech/README.md).
 
+### Claude Code
+
 ```sh
 claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install russian-speech@maggnus
 ```
 
+### Codex
+
 ```sh
 codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
 codex plugin add russian-speech@maggnus
 ```
-
-Adding the marketplace once is enough for all four; the command is repeated so each plugin can be
-installed on its own.
 
 ## Release
 
@@ -109,21 +120,3 @@ gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true
 A preview checks the next version without committing or publishing. The release preparation
 and commit/tag behavior are tested against a temporary Git repository by `npm test`.
 The built-in `GITHUB_TOKEN` needs `contents: write`; no npm publication or npm token is used.
-
-## Upgrade
-
-Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
-
-```sh
-PASEO_CTO_TAG=v12.0.6
-claude plugin marketplace remove maggnus --scope user
-claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
-claude plugin install <plugin>@maggnus --scope user
-
-codex plugin marketplace remove maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
-codex plugin add <plugin>@maggnus
-```
-
-`paseo-cto` can do this itself — see its README. Restart Claude Code and start a new Codex
-conversation afterwards so both hosts load the tagged skills.

@@ -19,3 +19,19 @@ time.
 
 Invoke as `$team:team` in Codex or `/team:team` in Claude. It is not a smaller configuration of
 `paseo-cto` — the two are read independently.
+
+## Install from GitHub
+
+### Claude Code
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
+claude plugin install team@maggnus
+```
+
+### Codex
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
+codex plugin add team@maggnus
+```

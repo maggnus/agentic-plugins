@@ -60,11 +60,9 @@ plugin_readme_path = root / "README.md"
 require(plugin_readme_path.is_file(), "paseo-cto/README.md is missing")
 plugin_readme = plugin_readme_path.read_text() if plugin_readme_path.is_file() else ""
 
-require(f"PASEO_CTO_TAG={release_tag}" in readme,
-        f"README.md does not select release tag {release_tag}")
-require('maggnus/agentic-plugins@${PASEO_CTO_TAG}' in readme,
+require(f'maggnus/agentic-plugins@{release_tag}' in readme,
         "README.md does not pin the Claude marketplace to the release tag")
-require('maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"' in readme,
+require(f'maggnus/agentic-plugins --ref {release_tag}' in readme,
         "README.md does not pin the Codex marketplace to the release tag")
 for name, body in (("README.md", readme), ("paseo-cto/README.md", plugin_readme)):
     require("plugin marketplace add ~/" not in body,

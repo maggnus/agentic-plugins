@@ -28,3 +28,19 @@ colleague, you alone — takes the first slice from here and supplies the indepe
 phase requires; `brief` supplies no roles and executes nothing.
 
 Invoke as `$brief:brief` in Codex or `/brief:brief` in Claude.
+
+## Install from GitHub
+
+### Claude Code
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
+claude plugin install brief@maggnus
+```
+
+### Codex
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
+codex plugin add brief@maggnus
+```
