@@ -3,6 +3,15 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## v12.0.3 — repository installation policy
+
+- Add matching AGENTS.md and CLAUDE.md instructions: install and update plugins only from
+  GitHub at an immutable published release tag. Local installation, copying into installation
+  directories, and manual cache edits are forbidden.
+- Require both Codex and Claude Code packages, version bumps and GitHub publication.
+- Refresh installation tags; russian-speech moves to 1.1.2 and paseo-cto to 12.0.3.
+  Skill behavior is unchanged.
+
 ## v12.0.2 — russian-speech 1.1.1
 
 - Reduce the skill to its core rule and one wrong/right example: reconstruct meaning from
