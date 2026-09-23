@@ -1,3 +1,9 @@
+## [12.0.6](https://github.com/maggnus/agentic-plugins/compare/v12.0.5...v12.0.6) (2026-09-23)
+
+### Bug Fixes
+
+* **paseo-cto:** restore compact scored acceptance and return rounds ([134a1ad](https://github.com/maggnus/agentic-plugins/commit/134a1ad9b6b8441eb71b16c4ba40b9a8fff2b39c))
+
 ## [12.0.5](https://github.com/maggnus/agentic-plugins/compare/v12.0.4...v12.0.5) (2026-09-23)
 
 ### Bug Fixes

@@ -15,12 +15,12 @@ decision is read from. It tracks no work and lands no change: whoever executes t
 from it. See [brief/README.md](brief/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.5"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install brief@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.5
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
 codex plugin add brief@maggnus
 ```
 
@@ -32,13 +32,13 @@ and a one-line status. Models and reasoning effort are owner decisions recorded 
 settings. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
-PASEO_CTO_TAG=v12.0.5
+PASEO_CTO_TAG=v12.0.6
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v12.0.5
+PASEO_CTO_TAG=v12.0.6
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -51,12 +51,12 @@ the diff before a risky change lands, and a reviewer and author who converge on 
 returns. See [team/README.md](team/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.5"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install team@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.5
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
 codex plugin add team@maggnus
 ```
 
@@ -67,12 +67,12 @@ translating them literally, preserving technical terms and facts. See
 [russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.5"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.6"
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.5
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.6
 codex plugin add russian-speech@maggnus
 ```
 
@@ -115,7 +115,7 @@ The built-in `GITHUB_TOKEN` needs `contents: write`; no npm publication or npm t
 Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
-PASEO_CTO_TAG=v12.0.5
+PASEO_CTO_TAG=v12.0.6
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install <plugin>@maggnus --scope user
