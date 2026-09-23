@@ -65,10 +65,6 @@ jobs:
       - name: Contract tests
         run: |
           bash paseo-cto/scripts/test-plugin-contracts.sh
-          bash paseo-cto/scripts/test-ledger.sh
-
-      - name: Stamp work tooling
-        run: python3 paseo-cto/scripts/stamp-work-tooling.py
 
       - name: Update the Codex cachebuster
         run: |
@@ -93,7 +89,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
-            git add paseo-cto/.codex-plugin/plugin.json paseo-cto/skills/paseo-cto/templates
+            git add paseo-cto/.codex-plugin/plugin.json
             git commit -m "chore: update codex cachebuster for $tag"
           fi
           git tag "$tag"

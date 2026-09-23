@@ -85,31 +85,23 @@ fi
 # 1. Contract tests
 echo "release: running contract tests..."
 bash paseo-cto/scripts/test-plugin-contracts.sh
-bash paseo-cto/scripts/test-ledger.sh
 
-# 2. Stamp work tooling
-echo "release: stamping work tooling..."
-python3 paseo-cto/scripts/stamp-work-tooling.py
-
-# 3. Update Codex cachebuster
+# 2. Update Codex cachebuster
 echo "release: updating Codex cachebuster..."
 python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
 
-# 4. Validate plugin
+# 3. Validate plugin
 echo "release: validating plugin..."
 python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
 
-# 5. Distribution sync check
+# 4. Distribution sync check
 echo "release: checking distribution sync..."
 bash paseo-cto/scripts/check-distribution-sync.sh
 
-# The stamp and the cachebuster both change tracked files; the tag must carry both, or an
-# installed copy verifies against a digest the release never published.
+# The cachebuster changes a tracked file; the tag must carry it.
 if ! git diff --quiet; then
-    echo "release: committing cachebuster and tooling stamp..."
-    git add paseo-cto/.codex-plugin/plugin.json \
-        paseo-cto/skills/paseo-cto/templates/work.py \
-        paseo-cto/skills/paseo-cto/templates/work-schema.json
+    echo "release: committing cachebuster..."
+    git add paseo-cto/.codex-plugin/plugin.json
     git commit -m "chore: update codex cachebuster for $tag"
 fi
 

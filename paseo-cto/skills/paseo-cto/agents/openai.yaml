@@ -1,7 +1,7 @@
 interface:
   display_name: "Paseo CTO"
-  short_description: "Run a release-driven, durable Paseo fleet"
-  default_prompt: "Use $paseo-cto:paseo-cto to advance the nearest shippable outcome, inspect returns by risk under the charter's review floor, keep the work tree and runtime truth current through the ledger, and report a quiet liveness line unless something material happened."
+  short_description: "Run a fast Paseo engineering team"
+  default_prompt: "Use $paseo-cto:paseo-cto to continue the plan: reconcile the agents, accept and land finished work, dispatch the next tasks, report one line."
 
 policy:
   allow_implicit_invocation: true

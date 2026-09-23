@@ -1,7 +1,7 @@
 {
   "name": "paseo-cto",
-  "version": "11.0.1+codex.20260902161036",
-  "description": "Lean, provider-neutral, release-driven CTO operating model for Claude Code and Codex: delegate bounded outcomes to isolated Paseo agents, inspect by risk under a charter-chosen review floor, ration validation, context and reporting, integrate only source-linked evidence, and report in the project-configured language. Models and effort remain owner decisions.",
+  "version": "12.0.0+codex.20260902161036",
+  "description": "A fast CTO loop for Claude Code and Codex: dispatch plan tasks to isolated Paseo agents, accept by risk, land each accepted branch with one command that merges, checks, marks the board, pushes and watches the rollout, and report one status line. Models and effort remain owner decisions.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -9,19 +9,19 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Paseo CTO",
-    "shortDescription": "Run a release-driven Paseo engineering organization",
-    "longDescription": "Operate the same CTO-led Paseo organization in Codex or Claude. The CTO keeps the nearest shippable outcome and critical path explicit, delegates bounded work to isolated agents, inspects Routine work itself and delegates Significant and Critical review by the charter's floor, rations validation, context and heartbeat cost, and integrates only source-linked durable evidence.",
+    "shortDescription": "Run a fast Paseo engineering team",
+    "longDescription": "Operate the same CTO in Codex or Claude: dispatch plan tasks to isolated Paseo agents, accept routine work by reading and critical work through one independent review, land each accepted branch with one command, watch the rollout, and report one line.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
       "Multi-agent orchestration",
-      "Task governance",
-      "Review and integration",
-      "Long-session recovery",
-      "Fleet lifecycle control"
+      "Review by risk",
+      "One-command landing",
+      "Rollout watch",
+      "Session recovery"
     ],
     "defaultPrompt": [
-      "Use $paseo-cto:paseo-cto to advance the nearest shippable product outcome, reconcile the fleet, and keep the living plan current."
+      "Use $paseo-cto:paseo-cto to continue the plan: reconcile the agents, accept and land finished work, dispatch the next tasks."
     ]
   }
 }

@@ -14,30 +14,30 @@ decision is read from. It tracks no work and lands no change: whoever executes t
 from it. See [brief/README.md](brief/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v11.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.0"
 claude plugin install brief@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v11.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.0
 codex plugin add brief@maggnus
 ```
 
 ## `paseo-cto`
 
-A release-driven CTO operating model over isolated Paseo agents: decomposition, delegated work with
-bounded contracts, risk-sized review that the reviewer and the author converge on themselves, and
-source-linked integration. Models and reasoning effort are owner decisions recorded in the project
-charter. See [paseo-cto/README.md](paseo-cto/README.md).
+A fast CTO loop over isolated Paseo agents: plan tasks dispatched to builders in their own
+worktrees, acceptance by risk, one command that lands an accepted branch and watches its rollout,
+and a one-line status. Models and reasoning effort are owner decisions recorded in the project
+settings. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
-PASEO_CTO_TAG=v11.0.1
+PASEO_CTO_TAG=v12.0.0
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v11.0.1
+PASEO_CTO_TAG=v12.0.0
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -50,12 +50,12 @@ the diff before a risky change lands, and a reviewer and author who converge on 
 returns. See [team/README.md](team/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v11.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.0"
 claude plugin install team@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v11.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.0
 codex plugin add team@maggnus
 ```
 
@@ -66,12 +66,12 @@ terms, no literal calques, exact resource names preserved. See
 [russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v11.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.0"
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v11.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.0
 codex plugin add russian-speech@maggnus
 ```
 
@@ -100,7 +100,7 @@ whose tag already exists.
 Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
-PASEO_CTO_TAG=v11.0.1
+PASEO_CTO_TAG=v12.0.0
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install <plugin>@maggnus --scope user

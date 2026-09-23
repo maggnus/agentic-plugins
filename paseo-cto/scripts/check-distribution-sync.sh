@@ -54,17 +54,6 @@ if marketplace_path.is_file():
         require(entry.get("description") == claude_manifest.get("description"),
                 "root marketplace and plugin descriptions differ")
 
-sys.path.insert(0, str(root / "skills/paseo-cto/templates"))
-sys.dont_write_bytecode = True
-import work as worklib
-
-work_script = root / "skills/paseo-cto/templates/work.py"
-work_schema = json.loads((root / "skills/paseo-cto/templates/work-schema.json").read_text())
-require(work_schema.get("tooling_version") == worklib.TOOLING_VERSION,
-        "work.py and work-schema.json carry different tooling stamps")
-require(work_schema.get("tooling_digest") == worklib.tooling_digest(work_script, work_schema),
-        "the work tooling changed without being re-stamped; run scripts/stamp-work-tooling.py")
-
 release_tag = f"v{claude_version}"
 readme = (root.parent / "README.md").read_text()
 plugin_readme_path = root / "README.md"
@@ -73,8 +62,6 @@ plugin_readme = plugin_readme_path.read_text() if plugin_readme_path.is_file() e
 
 require(f"PASEO_CTO_TAG={release_tag}" in readme,
         f"README.md does not select release tag {release_tag}")
-require(f"paseo-cto: {release_tag} |" in plugin_readme,
-        f"paseo-cto/README.md snapshot example does not show {release_tag}")
 require('maggnus/agentic-plugins@${PASEO_CTO_TAG}' in readme,
         "README.md does not pin the Claude marketplace to the release tag")
 require('maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"' in readme,

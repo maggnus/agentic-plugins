@@ -3,16 +3,31 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
-## Unreleased
+## v12.0.0 — paseo-cto 12.0.0 (fast loop)
 
-- **Status is one line per current wave.** `status-and-reporting.md` gains "The wave status line":
-  on a status request the CTO answers with exactly `W<n>(<pct>%) · ✅ <accepted>/<total> · 🛠 <in work> · 🙋
-  <awaiting owner>` for the current wave and nothing else; the full snapshot stays for material
-  events and explicit requests.
-- **Owner-side asks are counted the moment they are raised.** `status-and-reporting.md` gains
-  "Owner-side asks — the awaiting-owner counter": a question, request or owner-only blocker updates
-  the project's awaiting-owner count (the footer's `🙋`, or the `blocked` state naming the owner) in
-  the same message that raises it, and is removed in the message that reports the answer.
+The method is rewritten for speed after a day in which agents spent paid time on records, the CTO
+spent its own on manual merges, and a runtime dependency broke the running environment unnoticed.
+
+- **One instruction per role.** The CTO skill is one file of about 180 lines; the fourteen
+  references and the roles' long cards are gone. Builder, reviewer and researcher are under sixty
+  lines each and work the same in Claude Code and Codex.
+- **One record of task state.** The work-tree tooling (`work` script, schema, ledger, fleet render,
+  generated index, journals, scores, pinned-link rules) is removed. A project keeps a board with one
+  row per task — state, outcome, commit — and a findings list.
+- **Landing is one command.** `scripts/land.py` waits while a release runs, merges into a temporary
+  worktree, runs the project check, marks the board row `done`, pushes, waits for the rollout and
+  prints `LANDED`, `CONFLICT` or `FAILED` with the step. A conflict goes back to the author.
+- **Acceptance by risk and by command.** Cards carry `Proof:` (and `Falsifier:` when critical).
+  Routine work is accepted by reading, significant work by running the proof, critical work by one
+  independent reviewer in one round.
+- **Agents stay useful.** Checks run in the foreground; builders merge the fresh main before
+  reporting; the same builder takes the next task in its zone; no agent writes documentation.
+- **What broke in practice is now a rule.** A tool call interrupted by a new owner message is
+  repeated; a sleeping agent is woken at once; after a restart or a billing stop every agent in the
+  checkpoint is resumed; after each push the rollout is watched and a failure is fixed forward.
+- **Status is one line** for the current wave: `W<n>(<pct>%) · ✅ <done>/<total> · 🛠 <in work> ·
+  🙋 <owner>`.
+- The heartbeat is gone: agents notify on finish.
 
 ## v11.0.1 — paseo-cto 11.0.1
 
