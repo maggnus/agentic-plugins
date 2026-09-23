@@ -33,9 +33,10 @@ agent or a green local check is cost until the change is landed and rolled out.
     its header).
   If the file is missing, propose it to the owner as one line and wait for the answer. The plugin
   never picks a model.
-- **Board** — one row per task, `| [ID](tasks/ID.md) | state | outcome | commit |` (no link when the
-  task has no file). States: `ready`, `active`, `done`, `blocked`, `deferred`. Only you change it;
-  `land.py` sets `done` and, with `deleteTaskFile`, removes the task file.
+- **Board** — one line per task the owner can scan:
+  `- [x] ID — outcome · commit` done, `[~]` in work, `[!]` blocked, `[=]` paused, `[ ]` ready;
+  an open task with a file is linked, `[ID](tasks/ID.md)`. A table with a state column works too.
+  Only you change it; `land.py` marks the line done and, with `deleteTaskFile`, removes the file.
 - **Task card** — the scope, the write zone, and a `Proof:` line: the command that shows the
   outcome. Critical cards also carry `Falsifier:` — the change or input under which the proof must
   fail.

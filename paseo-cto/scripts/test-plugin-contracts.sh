@@ -118,6 +118,15 @@ out=$(run build/t4 T-4) || problem "busy case exited $?"
 [[ $out == "LANDED T-4 "* ]] || problem "busy case printed: $out"
 wait
 
+# 5. a checkbox board line is marked done the same way
+git -C "$repo" fetch -q origin; git -C "$repo" switch -q --detach origin/main
+printf -- '- [~] [T-5](t5.md) — fifth\n' >> "$repo/BOARD.md"; printf '# T-5\n' > "$repo/t5.md"
+git -C "$repo" add -A && git -C "$repo" commit -qm t5-board && git -C "$repo" push -q origin HEAD:main
+branch build/t5 five.txt five
+out=$(run build/t5 T-5) || problem "checkbox case exited $?"
+git -C "$repo" fetch -q origin
+git -C "$repo" show origin/main:BOARD.md | grep -q '^- \[x\] T-5 — fifth · [0-9a-f]\{8\}$' || problem "checkbox line of T-5 not marked done"
+
 if [ "$fail" -ne 0 ]; then
   echo "contracts: FAILED" >&2
   exit 1

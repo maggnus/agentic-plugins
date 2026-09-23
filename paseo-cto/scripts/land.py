@@ -99,18 +99,26 @@ def mark_board(tree, land, task, sha, outcome):
     board = tree / land["board"]
     text = board.read_text()
     ident = re.escape(task)
-    row = re.compile(r"^\| (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") \| (\w+) \| ([^|]*?) ?\| ([^|]*)\|$", re.M)
-    match = row.search(text)
+    table = re.compile(r"^\| (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") \| (\w+) \| ([^|]*?) ?\| ([^|]*)\|$", re.M)
+    checkbox = re.compile(r"^- \[.\] (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") — (.*?)(?: · [0-9a-f]{7,40})?$", re.M)
+    match = table.search(text) or checkbox.search(text)
     if not match:
         raise Stop(1, f"board: no row for {task} in {land['board']}")
-    first = match.group(1)
-    if match.group(2) and land.get("deleteTaskFile"):
-        task_file = (board.parent / match.group(2)).resolve()
+    link = match.group(2)
+    if link and land.get("deleteTaskFile"):
+        task_file = (board.parent / link).resolve()
         if task_file.is_file() and tree.resolve() in task_file.parents:
             task_file.unlink()
         first = task
-    new_outcome = outcome or match.group(4).strip()
-    text = text[:match.start()] + f"| {first} | done | {new_outcome} | {sha} |" + text[match.end():]
+    else:
+        first = match.group(1)
+    if match.re is table:
+        new_outcome = outcome or match.group(4).strip()
+        line = f"| {first} | done | {new_outcome} | {sha} |"
+    else:
+        new_outcome = outcome or match.group(3).strip()
+        line = f"- [x] {first} — {new_outcome} · {sha}"
+    text = text[:match.start()] + line + text[match.end():]
     board.write_text(text)
     if land.get("boardCheck"):
         code, output = shell(tree, land["boardCheck"])
