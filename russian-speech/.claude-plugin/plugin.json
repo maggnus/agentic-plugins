@@ -1,7 +1,7 @@
 {
   "name": "russian-speech",
-  "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships compact style rules, a short terminology table, and reporting templates in one skill file.",
-  "version": "1.1.0",
+  "description": "Coherent Russian technical prose after long work or context compaction: reconstruct meaning from working notes instead of translating them literally. Preserve technical terms and facts without inventing causes or completed actions.",
+  "version": "1.1.1",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

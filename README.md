@@ -1,7 +1,8 @@
 # Claude/Codex plugins
 
-Personal plugin repository (`maggnus`). Each plugin is packaged for both Claude Code and Codex, is
-versioned on its own, and installs from the remote marketplace pinned to an immutable release tag.
+Personal plugin repository (`maggnus`) for exactly two platforms: Claude Code and Codex.
+Each plugin is packaged for both platforms, versioned on its own, and installed from the remote
+marketplace pinned to an immutable release tag.
 A local directory, a moving branch, or an unpinned marketplace is not a valid installation source.
 
 ## `brief`
@@ -14,12 +15,12 @@ decision is read from. It tracks no work and lands no change: whoever executes t
 from it. See [brief/README.md](brief/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.2"
 claude plugin install brief@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.2
 codex plugin add brief@maggnus
 ```
 
@@ -31,13 +32,13 @@ and a one-line status. Models and reasoning effort are owner decisions recorded 
 settings. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
-PASEO_CTO_TAG=v12.0.1
+PASEO_CTO_TAG=v12.0.2
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v12.0.1
+PASEO_CTO_TAG=v12.0.2
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -50,28 +51,28 @@ the diff before a risky change lands, and a reviewer and author who converge on 
 returns. See [team/README.md](team/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.2"
 claude plugin install team@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.2
 codex plugin add team@maggnus
 ```
 
 ## `russian-speech`
 
-Grammatical, engineer-to-engineer Russian technical prose: meaning-first translation of engineering
-terms, no literal calques, exact resource names preserved. See
+Coherent Russian technical prose: reconstruct meaning from compressed working notes instead of
+translating them literally, preserving technical terms and facts. See
 [russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.2"
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.2
 codex plugin add russian-speech@maggnus
 ```
 
@@ -79,6 +80,10 @@ Adding the marketplace once is enough for all four; the command is repeated so e
 installed on its own.
 
 ## Release
+
+Every plugin change requires a version bump in both its Claude Code and Codex manifests and
+publication to GitHub. Keep their base versions equal; Codex also receives a fresh cache-busting
+suffix. A local edit alone is not a completed delivery.
 
 One tag publishes the whole repository, and its name is the `paseo-cto` base version. Bump that
 version in the [Claude](paseo-cto/.claude-plugin/plugin.json) and
@@ -91,16 +96,16 @@ gh workflow run release.yml -R maggnus/agentic-plugins                 # or on G
 gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true # validation only
 ```
 
-Both paths run the contract and work-tree tests, stamp the work tooling, refresh the Codex
-cache-busting suffix, verify that the Claude and Codex packages stay in sync, and refuse a version
-whose tag already exists.
+Both paths run the contract tests, refresh the paseo-cto Codex cache-busting suffix, verify that
+the Claude Code and Codex packages stay in sync, and refuse a version whose tag already exists.
+When manually preparing a release, also refresh the Codex suffix for every changed sibling plugin.
 
 ## Upgrade
 
 Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
-PASEO_CTO_TAG=v12.0.1
+PASEO_CTO_TAG=v12.0.2
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install <plugin>@maggnus --scope user

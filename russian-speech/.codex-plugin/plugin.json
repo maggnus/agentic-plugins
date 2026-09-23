@@ -1,7 +1,7 @@
 {
   "name": "russian-speech",
-  "version": "1.1.0+codex.20260923153240",
-  "description": "Literate Russian technical prose for the agent: a normative style skill plus an always-on SessionStart directive. Grammatical engineer-to-engineer Russian, meaning-first translation of engineering terms, no literal calques (lane, identity, reconcile, gate, trigger), exact resource names preserved. Ships compact style rules, a short terminology table, and reporting templates in one skill file.",
+  "version": "1.1.1+codex.20260923155505",
+  "description": "Coherent Russian technical prose after long work or context compaction: reconstruct meaning from working notes instead of translating them literally. Preserve technical terms and facts without inventing causes or completed actions.",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
@@ -10,13 +10,12 @@
   "interface": {
     "displayName": "Russian Speech",
     "shortDescription": "Literate Russian technical prose",
-    "longDescription": "Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first translation of engineering terms, no literal calques, exact product/API/resource names preserved, no anthropomorphized components, no color metaphors for CI/CD state. Ships compact style rules, a short terminology table, and reporting templates in one skill file.",
+    "longDescription": "Coherent Russian technical prose after long work or context compaction: reconstruct meaning from working notes instead of translating them literally. Preserve technical terms and facts without inventing causes or completed actions.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
-      "Russian technical writing style",
-      "Compact engineering terminology rules",
-      "Status and defect report templates"
+      "Russian technical writing",
+      "Meaning reconstruction from compressed context"
     ],
     "defaultPrompt": [
       "Use $russian-speech:russian-speech to write grammatical Russian technical prose following the compact style rules."

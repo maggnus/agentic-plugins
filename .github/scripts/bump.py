@@ -22,7 +22,7 @@ TYPE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?(?P<breaking>!)
 # — a commit message explaining how the level is derived, for instance — is not a breaking change.
 BREAKING_FOOTER_RE = re.compile(r"^BREAKING[ -]CHANGE:", re.M)
 VERSION_TAG_RE = re.compile(r"v\d+\.\d+\.\d+")
-README_FILES = ("README.md", "paseo-cto/README.md")
+README_FILES = ("README.md", "paseo-cto/README.md", "russian-speech/README.md")
 
 
 def git(*args: str) -> str:

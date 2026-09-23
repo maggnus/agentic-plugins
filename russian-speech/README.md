@@ -1,18 +1,35 @@
 # `russian-speech`
 
-Makes the agent write grammatical, engineer-to-engineer Russian technical prose: meaning-first
-translation of engineering terms, no literal calques, exact product/API/resource names preserved, no
-anthropomorphized components, no colour metaphors for CI/CD state.
+Treats compressed working notes as facts to understand, not a draft to translate literally.
+The agent reconstructs their meaning and writes a coherent Russian explanation, preserving
+technical terms and facts without inventing causes or completed actions.
 
-The first rule is to comprehend, not translate: internal notes, agent reports and logs (often
-compressed English) are never carried into Russian line by line — the message answers what happened,
-why it matters to the reader and what comes next, in the writer's own words.
-
-Ships the skill with the normative replacement table (lane → контур, identity → сервисная учётная
-запись, reconcile → синхронизировать, gate → проверка, trigger → событие запуска, …), the
-engineering status template and the pre-send self-check. All instructions are contained in
-[`SKILL.md`](skills/russian-speech/SKILL.md); no additional reference files are required.
+[`SKILL.md`](skills/russian-speech/SKILL.md) contains the core rule and a wrong/right example.
 
 In Claude Code a SessionStart hook injects a compact style directive into every session, so the base
 register always applies. Codex has no such hook: there the style applies through implicit skill
 invocation or explicitly as `$russian-speech:russian-speech`.
+
+## Install from GitHub
+
+Supports **Claude Code and Codex**. Install from
+[maggnus/agentic-plugins](https://github.com/maggnus/agentic-plugins) at the immutable release
+`v12.0.2`. Do not install from a local directory.
+
+### Claude Code
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.2" --scope user
+claude plugin install russian-speech@maggnus --scope user
+```
+
+### Codex
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.2
+codex plugin add russian-speech@maggnus
+```
+
+If `maggnus` is already configured at another release, follow the repository's
+[upgrade instructions](../README.md#upgrade) with `russian-speech` as the plugin name.
+Restart Claude Code or start a new Codex conversation after installation.

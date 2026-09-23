@@ -3,6 +3,16 @@
 One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
 their own and move inside the same tag. Entries record what changed in the method, not every commit.
 
+## v12.0.2 — russian-speech 1.1.1
+
+- Reduce the skill to its core rule and one wrong/right example: reconstruct meaning from
+  compressed working notes, then explain it in Russian without inventing facts.
+- Align the Claude Code session directive and both platform manifests with the shorter skill.
+- Restore GitHub installation instructions for Claude Code and Codex in the plugin README,
+  pinned to this immutable release. Require a version bump and publication for every plugin change.
+- Include the plugin README when automatically updating release tags in installation commands.
+- paseo-cto is unchanged; its version moves to 12.0.2 to name the shared release tag.
+
 ## v12.0.1 — russian-speech 1.1.0
 
 - **russian-speech: comprehend, do not translate.** The first rule of the skill and of the

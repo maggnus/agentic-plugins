@@ -1,6 +1,6 @@
 {
   "name": "paseo-cto",
-  "version": "12.0.1+codex.20260923153346",
+  "version": "12.0.2",
   "description": "A fast CTO loop for Claude Code and Codex: dispatch plan tasks to isolated Paseo agents, accept by risk, land each accepted branch with one command that merges, checks, marks the board, pushes and watches the rollout, and report one status line. Models and effort remain owner decisions.",
   "author": {
     "name": "Maksim Korenev",
