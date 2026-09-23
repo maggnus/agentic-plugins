@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Derive the next release from the commits since the last tag and apply it.
 
-The repository publishes one tag per release, named after the paseo-cto base version,
-because upgrade.py and the installed-release check both resolve `vN.N.N` that way.
-Every plugin whose files changed is bumped at the level its commits imply; paseo-cto
-is bumped at least one patch even when only another plugin changed, so the tag exists.
+All plugins share one base version and one release tag. The highest change level
+among the release commits applies to every plugin, regardless of commit scope.
 """
 
 import argparse
@@ -22,7 +20,6 @@ TYPE_RE = re.compile(r"^(?P<type>[a-z]+)(?:\((?P<scope>[^)]*)\))?(?P<breaking>!)
 # — a commit message explaining how the level is derived, for instance — is not a breaking change.
 BREAKING_FOOTER_RE = re.compile(r"^BREAKING[ -]CHANGE:", re.M)
 VERSION_TAG_RE = re.compile(r"v\d+\.\d+\.\d+")
-README_FILES = ("README.md", "paseo-cto/README.md", "russian-speech/README.md")
 
 
 def git(*args: str) -> str:
@@ -73,11 +70,6 @@ def commits_since(tag: str | None) -> list[tuple[str, str]]:
     return out
 
 
-def changed_paths(tag: str | None) -> list[str]:
-    span = f"{tag}..HEAD" if tag else "HEAD"
-    return git("diff", "--name-only", span).splitlines()
-
-
 def write_version(plugin_dir: str, base: str, stamp: str) -> None:
     claude = ROOT / plugin_dir / ".claude-plugin/plugin.json"
     data = json.loads(claude.read_text())
@@ -90,11 +82,39 @@ def write_version(plugin_dir: str, base: str, stamp: str) -> None:
     codex.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
+def refresh_codex() -> int:
+    """Refresh all Codex suffixes together, refusing inconsistent base versions."""
+    sources = plugins()
+    versions = set()
+    codex_manifests = []
+    for source in sources.values():
+        claude = json.loads((ROOT / source / ".claude-plugin/plugin.json").read_text())
+        path = ROOT / source / ".codex-plugin/plugin.json"
+        codex = json.loads(path.read_text())
+        versions.update((claude["version"], codex["version"].split("+codex.", 1)[0]))
+        codex_manifests.append((path, codex))
+    if len(versions) != 1:
+        print("bump: all plugins must share one base version", file=sys.stderr)
+        return 1
+    version = versions.pop()
+    stamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
+    for path, manifest in codex_manifests:
+        manifest["version"] = f"{version}+codex.{stamp}"
+        path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
+    print(f"bump: all Codex manifests use {version}+codex.{stamp}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--level", choices=("auto", "patch", "minor", "major"), default="auto")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--refresh-codex", action="store_true")
     args = parser.parse_args()
+    if args.refresh_codex:
+        if args.dry_run or args.level != "auto":
+            parser.error("--refresh-codex cannot be combined with --dry-run or --level")
+        return refresh_codex()
 
     tag = last_tag()
     commits = commits_since(tag)
@@ -103,38 +123,27 @@ def main() -> int:
         return 2
 
     sources = plugins()
-    paths = changed_paths(tag)
-    touched = {name for name, src in sources.items() if any(p.startswith(f"{src}/") for p in paths)}
-    touched.add("paseo-cto")  # the tag is its version, so it always moves
-
-    levels = {}
-    for subject, body in commits:
-        level = args.level if args.level != "auto" else level_of(subject, body)
-        scope = (TYPE_RE.match(subject).group("scope") if TYPE_RE.match(subject) else None) or ""
-        targets = [scope] if scope in sources else sorted(touched)
-        for name in targets:
-            order = ("patch", "minor", "major")
-            levels[name] = max(levels.get(name, "patch"), level, key=order.index)
+    order = ("patch", "minor", "major")
+    level = args.level if args.level != "auto" else max(
+        (level_of(subject, body) for subject, body in commits), key=order.index)
+    current = tag[1:] if tag else json.loads(
+        (ROOT / sources["paseo-cto"] / ".claude-plugin/plugin.json").read_text())["version"]
+    version = bump(current, level)
 
     stamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-    released = {}
-    for name in sorted(touched):
-        current = json.loads((ROOT / sources[name] / ".claude-plugin/plugin.json").read_text())["version"]
-        released[name] = bump(current, levels.get(name, "patch"))
-
-    new_tag = "v" + released["paseo-cto"]
+    new_tag = "v" + version
     print(f"bump: {tag or 'none'} -> {new_tag}")
-    for name, version in released.items():
-        print(f"  {name}: {version} ({levels.get(name, 'patch')})")
+    for name in sorted(sources):
+        print(f"  {name}: {version} ({level})")
 
     if args.dry_run:
         return 0
 
-    for name, version in released.items():
-        write_version(sources[name], version, stamp)
-    for readme in README_FILES:
-        path = ROOT / readme
-        path.write_text(VERSION_TAG_RE.sub(new_tag, path.read_text()))
+    for source in sources.values():
+        write_version(source, version, stamp)
+    for path in [ROOT / "README.md", *(ROOT / source / "README.md" for source in sources.values())]:
+        if path.is_file():
+            path.write_text(VERSION_TAG_RE.sub(new_tag, path.read_text()))
 
     print(new_tag)
     return 0

@@ -1,8 +1,8 @@
 # Claude/Codex plugins
 
 Personal plugin repository (`maggnus`) for exactly two platforms: Claude Code and Codex.
-Each plugin is packaged for both platforms, versioned on its own, and installed from the remote
-marketplace pinned to an immutable release tag.
+All plugins share one release version, are packaged for both platforms, and are installed from
+the remote marketplace pinned to an immutable release tag.
 A local directory, a moving branch, or an unpinned marketplace is not a valid installation source.
 
 ## `brief`
@@ -15,12 +15,12 @@ decision is read from. It tracks no work and lands no change: whoever executes t
 from it. See [brief/README.md](brief/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.3"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.4"
 claude plugin install brief@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.3
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.4
 codex plugin add brief@maggnus
 ```
 
@@ -32,13 +32,13 @@ and a one-line status. Models and reasoning effort are owner decisions recorded 
 settings. See [paseo-cto/README.md](paseo-cto/README.md).
 
 ```sh
-PASEO_CTO_TAG=v12.0.3
+PASEO_CTO_TAG=v12.0.4
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}"
 claude plugin install paseo-cto@maggnus
 ```
 
 ```sh
-PASEO_CTO_TAG=v12.0.3
+PASEO_CTO_TAG=v12.0.4
 codex plugin marketplace add maggnus/agentic-plugins --ref "$PASEO_CTO_TAG"
 codex plugin add paseo-cto@maggnus
 ```
@@ -51,12 +51,12 @@ the diff before a risky change lands, and a reviewer and author who converge on 
 returns. See [team/README.md](team/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.3"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.4"
 claude plugin install team@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.3
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.4
 codex plugin add team@maggnus
 ```
 
@@ -67,12 +67,12 @@ translating them literally, preserving technical terms and facts. See
 [russian-speech/README.md](russian-speech/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.3"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.4"
 claude plugin install russian-speech@maggnus
 ```
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.3
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.4
 codex plugin add russian-speech@maggnus
 ```
 
@@ -81,14 +81,18 @@ installed on its own.
 
 ## Release
 
-Every plugin change requires a version bump in both its Claude Code and Codex manifests and
-publication to GitHub. Keep their base versions equal; Codex also receives a fresh cache-busting
-suffix. A local edit alone is not a completed delivery.
+Every change requires a new shared version and publication to GitHub. All plugins use that
+version in their Claude Code manifests; all Codex manifests use the same base version plus one
+shared cache-busting suffix. The Git tag is `v` followed by the shared version. A published tag
+is never moved, and a local edit alone is not a completed delivery.
 
-One tag publishes the whole repository, and its name is the `paseo-cto` base version. Bump that
-version in the [Claude](paseo-cto/.claude-plugin/plugin.json) and
-[Codex](paseo-cto/.codex-plugin/plugin.json) manifests to the same value first; a published tag is
-never moved.
+Commit the changes, then run the local release script. It derives the next shared version from
+all commits since the last release: `feat` raises the minor version, a breaking change raises
+the major version, and other changes raise the patch version. Commit scopes do not create
+independent plugin versions. All manifests and README installation tags are updated together.
+
+For GitHub Actions, first run `python3 .github/scripts/bump.py`, commit the resulting manifests
+and README changes, and push them. The workflow publishes the prepared version.
 
 ```sh
 bash paseo-cto/scripts/release.sh                                      # from a local clone
@@ -96,16 +100,15 @@ gh workflow run release.yml -R maggnus/agentic-plugins                 # or on G
 gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true # validation only
 ```
 
-Both paths run the contract tests, refresh the paseo-cto Codex cache-busting suffix, verify that
-the Claude Code and Codex packages stay in sync, and refuse a version whose tag already exists.
-When manually preparing a release, also refresh the Codex suffix for every changed sibling plugin.
+Both paths run the contract tests, refresh the shared Codex suffix for all plugins, verify that
+every package uses the same version, and refuse a version whose tag already exists.
 
 ## Upgrade
 
 Re-pin the marketplace to the new tag and reinstall the plugins that are in use:
 
 ```sh
-PASEO_CTO_TAG=v12.0.3
+PASEO_CTO_TAG=v12.0.4
 claude plugin marketplace remove maggnus --scope user
 claude plugin marketplace add "maggnus/agentic-plugins@${PASEO_CTO_TAG}" --scope user
 claude plugin install <plugin>@maggnus --scope user

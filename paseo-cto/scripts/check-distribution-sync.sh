@@ -72,7 +72,7 @@ for name, body in (("README.md", readme), ("paseo-cto/README.md", plugin_readme)
     stale = sorted({tag for tag in re.findall(r"v\d+\.\d+\.\d+", body) if tag != release_tag})
     require(not stale, f"{name} still names {', '.join(stale)} instead of {release_tag}")
 
-# Sibling plugins ship in the same tag and must be as installable on Codex as on Claude.
+# Every plugin shares the release version on both platforms.
 for name in ("brief", "team", "russian-speech"):
     sibling_root = root.parent / name
     require((sibling_root / "README.md").is_file(), f"{name}/README.md is missing")
@@ -86,6 +86,10 @@ for name in ("brief", "team", "russian-speech"):
 
     sibling_claude = json.loads(sibling_claude_path.read_text())
     sibling_codex = json.loads(sibling_codex_path.read_text())
+    require(sibling_claude.get("version") == claude_version,
+            f"{name} version differs from the shared release version {claude_version}")
+    require(sibling_codex.get("version") == codex_version,
+            f"{name} Codex version differs from the shared release version {codex_version}")
     require(sibling_claude.get("name") == name, f"{name} Claude manifest name does not match")
     require(sibling_codex.get("name") == name, f"{name} Codex manifest name does not match")
     require(sibling_claude.get("version", "") ==

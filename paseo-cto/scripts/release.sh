@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automated release script for paseo-cto
+# Automated release script for all repository plugins
 # Runs all validation steps, updates Codex cachebuster, creates tag, and pushes.
 
 set -euo pipefail
@@ -88,11 +88,13 @@ bash paseo-cto/scripts/test-plugin-contracts.sh
 
 # 2. Update Codex cachebuster
 echo "release: updating Codex cachebuster..."
-python3 ~/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py paseo-cto
+python3 .github/scripts/bump.py --refresh-codex
 
 # 3. Validate plugin
 echo "release: validating plugin..."
-python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py paseo-cto
+while IFS= read -r plugin; do
+    python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py "$plugin"
+done < <(jq -r '.plugins[].source' .claude-plugin/marketplace.json)
 
 # 4. Distribution sync check
 echo "release: checking distribution sync..."
@@ -101,7 +103,7 @@ bash paseo-cto/scripts/check-distribution-sync.sh
 # The cachebuster changes a tracked file; the tag must carry it.
 if ! git diff --quiet; then
     echo "release: committing cachebuster..."
-    git add paseo-cto/.codex-plugin/plugin.json
+    git add -- '*/.codex-plugin/plugin.json'
     git commit -m "chore: update codex cachebuster for $tag"
 fi
 

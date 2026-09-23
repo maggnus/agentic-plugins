@@ -14,19 +14,19 @@ invocation or explicitly as `$russian-speech:russian-speech`.
 
 Supports **Claude Code and Codex**. Install from
 [maggnus/agentic-plugins](https://github.com/maggnus/agentic-plugins) at the immutable release
-`v12.0.3`. Do not install from a local directory.
+`v12.0.4`. Do not install from a local directory.
 
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.3" --scope user
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.4" --scope user
 claude plugin install russian-speech@maggnus --scope user
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.3
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.4
 codex plugin add russian-speech@maggnus
 ```
 

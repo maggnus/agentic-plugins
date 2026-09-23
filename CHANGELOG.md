@@ -1,7 +1,17 @@
 # Changelog
 
-One tag per release, named after the `paseo-cto` base version. Sibling plugins are versioned on
-their own and move inside the same tag. Entries record what changed in the method, not every commit.
+All plugins share one version and one immutable tag per release. Codex packages add the same
+technical cache-busting suffix. Releases before v12.0.4 used independent plugin versions.
+
+## v12.0.4 — one version for all plugins
+
+- Unify brief, paseo-cto, russian-speech and team at 12.0.4 for Claude Code and Codex.
+- Derive a single release version from all commits and update every plugin, including when
+  only one plugin or repository documentation changes.
+- Use one Codex cache-busting suffix across every package in local and GitHub Actions releases.
+- Reject inconsistent versions before publication. Add seven release tests covering migration,
+  scoped changes, repository-only changes, version selection, dry runs and mismatch rejection.
+- Update repository instructions and installation documentation to require shared versions.
 
 ## v12.0.3 — repository installation policy
 

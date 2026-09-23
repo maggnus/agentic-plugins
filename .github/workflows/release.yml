@@ -67,17 +67,7 @@ jobs:
           bash paseo-cto/scripts/test-plugin-contracts.sh
 
       - name: Update the Codex cachebuster
-        run: |
-          python3 - "${{ steps.version.outputs.version }}" <<'PY'
-          import json, pathlib, sys, time
-          version = sys.argv[1]
-          path = pathlib.Path("paseo-cto/.codex-plugin/plugin.json")
-          manifest = json.loads(path.read_text())
-          stamp = time.strftime("%Y%m%d%H%M%S", time.gmtime())
-          manifest["version"] = f"{version}+codex.{stamp}"
-          path.write_text(json.dumps(manifest, indent=2) + "\n")
-          print(manifest["version"])
-          PY
+        run: python3 .github/scripts/bump.py --refresh-codex
 
       - name: Distribution sync check
         run: bash paseo-cto/scripts/check-distribution-sync.sh
@@ -89,7 +79,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if ! git diff --quiet; then
-            git add paseo-cto/.codex-plugin/plugin.json
+            git add -- '*/.codex-plugin/plugin.json'
             git commit -m "chore: update codex cachebuster for $tag"
           fi
           git tag "$tag"
