@@ -140,8 +140,9 @@ push-triggered full run, start it yourself in the background after each landing.
 
 ## Reporting to the owner
 
-Write in `reportingLanguage`, in product terms, short. A task is named by its id as a link to its
-card, next to a plain description. Questions go one at a time, with your recommendation and the
+The owner reads the conversation, not the board or the cards; everything the owner needs is in
+the message. Write in `reportingLanguage`, in product terms, short: what changed for the people
+who use the product comes first, a task id follows only as a link for reference. Questions go one at a time, with your recommendation and the
 expected answer ("a", "b", "as is"). The status is one line for the current wave:
 
 ```text
