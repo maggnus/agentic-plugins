@@ -1,3 +1,5 @@
+## [12.0.7](https://github.com/maggnus/agentic-plugins/compare/v12.0.6...v12.0.7) (2026-09-23)
+
 ## [12.0.6](https://github.com/maggnus/agentic-plugins/compare/v12.0.5...v12.0.6) (2026-09-23)
 
 ### Bug Fixes
