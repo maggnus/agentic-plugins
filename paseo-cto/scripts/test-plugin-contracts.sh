@@ -62,6 +62,7 @@ cat > "$repo/BOARD.md" <<'MD'
 | [T-4](t4.md) | active | fourth |  |
 MD
 printf 'base\n' > "$repo/shared.txt"
+printf '# T-1\n' > "$repo/t1.md"
 git -C "$repo" add -A && git -C "$repo" commit -qm base && git -C "$repo" push -q origin HEAD:main
 
 branch() { # name file content [base]
@@ -71,7 +72,7 @@ branch() { # name file content [base]
   git -C "$repo" switch -q --detach origin/main
 }
 settings() { # check busy
-  printf '{"land":{"board":"BOARD.md","check":"%s","busy":"%s","pollSeconds":1,"busyMaxMinutes":1}}' "$1" "$2" \
+  printf '{"land":{"board":"BOARD.md","check":"%s","busy":"%s","pollSeconds":1,"busyMaxMinutes":1,"deleteTaskFile":true}}' "$1" "$2" \
     > "$sandbox/settings.json"
 }
 run() { (cd "$repo" && python3 "$land" "$@" --settings "$sandbox/settings.json" 2>/dev/null); }
@@ -83,8 +84,9 @@ branch build/t1 one.txt one
 out=$(run build/t1 T-1 --outcome "done well") || problem "clean merge exited $?"
 [[ $out == "LANDED T-1 "* ]] || problem "clean merge printed: $out"
 git -C "$repo" fetch -q origin
-git -C "$repo" show origin/main:BOARD.md | grep -q '^| \[T-1\](t1.md) | done | done well | [0-9a-f]\{8\} |$' \
-  || problem "board row of T-1 not marked done"
+git -C "$repo" show origin/main:BOARD.md | grep -q '^| T-1 | done | done well | [0-9a-f]\{8\} |$' \
+  || problem "board row of T-1 not marked done and unlinked"
+git -C "$repo" cat-file -e origin/main:t1.md 2>/dev/null && problem "task file of T-1 not deleted"
 [ ! -e "$sandbox/.land-T-1" ] || problem "merge worktree left behind"
 
 # 2. conflict goes back to the author and leaves origin untouched

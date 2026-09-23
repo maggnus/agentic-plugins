@@ -22,6 +22,7 @@ Project settings live in <git-common-dir>/paseo-cto/SETTINGS.json under "land":
     mainBranch   default "main";  remote  default "origin"
     pollSeconds  default 60;  busyMaxMinutes  default 30
     commitTrailer  text appended to the commit message
+    deleteTaskFile  when true, the task file the row links is deleted and the row unlinked
 """
 
 import argparse
@@ -97,14 +98,19 @@ def wait_while_busy(repo, land):
 def mark_board(tree, land, task, sha, outcome):
     board = tree / land["board"]
     text = board.read_text()
-    row = re.compile(r"^(\| \[" + re.escape(task) + r"\]\([^)]*\) \| )(\w+)( \| )([^|]*)( \| )([^|]*)(\|)$", re.M)
+    ident = re.escape(task)
+    row = re.compile(r"^\| (\[" + ident + r"\]\(([^)]*)\)|" + ident + r") \| (\w+) \| ([^|]*?) ?\| ([^|]*)\|$", re.M)
     match = row.search(text)
     if not match:
         raise Stop(1, f"board: no row for {task} in {land['board']}")
-    new_outcome = outcome or match.group(4)
-    text = text[:match.start()] + (
-        match.group(1) + "done" + match.group(3) + new_outcome + match.group(5) + sha + " " + match.group(7)
-    ) + text[match.end():]
+    first = match.group(1)
+    if match.group(2) and land.get("deleteTaskFile"):
+        task_file = (board.parent / match.group(2)).resolve()
+        if task_file.is_file() and tree.resolve() in task_file.parents:
+            task_file.unlink()
+        first = task
+    new_outcome = outcome or match.group(4).strip()
+    text = text[:match.start()] + f"| {first} | done | {new_outcome} | {sha} |" + text[match.end():]
     board.write_text(text)
     if land.get("boardCheck"):
         code, output = shell(tree, land["boardCheck"])
