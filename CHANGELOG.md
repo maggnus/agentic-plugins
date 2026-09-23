@@ -1,3 +1,9 @@
+## [12.0.5](https://github.com/maggnus/agentic-plugins/compare/v12.0.4...v12.0.5) (2026-09-23)
+
+### Bug Fixes
+
+* **ci:** automate shared releases with semantic-release ([7facc85](https://github.com/maggnus/agentic-plugins/commit/7facc85c2c2a8823cc2b6487906ce3e7bf70bcf0))
+
 # Changelog
 
 All plugins share one version and one immutable tag per release. Codex packages add the same
