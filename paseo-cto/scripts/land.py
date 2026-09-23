@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Land one accepted branch on the main branch in a single command.
 
-    python3 land.py <branch> <task-id> [--outcome TEXT] [--settings PATH] [--keep]
+    python3 land.py <branch> <task-id>[,<task-id>...] [--outcome TEXT] [--settings PATH] [--keep]
 
 Steps: wait while a release is busy; merge the branch into a temporary worktree cut from the
 remote main; run the project's check; mark the task done on the board in the same merge commit;
@@ -119,7 +119,7 @@ def conflicts(tree):
 def land_branch(repo, args, land):
     remote, main = land["remote"], land["mainBranch"]
     top = pathlib.Path(git(repo, "rev-parse", "--show-toplevel").stdout.strip())
-    tree = top.parent / f".land-{args.task}"
+    tree = top.parent / f".land-{args.task.split(',')[0]}"
     if tree.exists():
         raise Stop(3, f"{tree} already exists; remove it or land under another id")
 
@@ -143,7 +143,8 @@ def land_branch(repo, args, land):
                 print(tail(output), file=sys.stderr)
                 raise Stop(1, f"check: exit {code}")
 
-        mark_board(tree, land, args.task, head[:8], args.outcome)
+        for task in args.task.split(","):
+            mark_board(tree, land, task, head[:8], args.outcome)
         message = f"Merge branch '{args.branch}' ({args.task})"
         if land.get("commitTrailer"):
             message += "\n\n" + land["commitTrailer"]
