@@ -1,14 +1,12 @@
 name: Release
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Expected release version (e.g. 10.3.1). Must match the plugin manifest; omit to use the manifest value.'
-        required: false
-        type: string
       dry_run:
-        description: 'Run validation only, do not commit, tag or push'
+        description: 'Check the next release without committing, tagging or publishing'
         required: false
         type: boolean
         default: false
@@ -16,77 +14,35 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
-      - name: Resolve version from the manifests
-        id: version
+      - run: npm ci
+      - run: npm test
+      - name: Publish shared release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
-          claude_version=$(python3 -c "import json;print(json.load(open('paseo-cto/.claude-plugin/plugin.json'))['version'])")
-          codex_base=$(python3 -c "import json;print(json.load(open('paseo-cto/.codex-plugin/plugin.json'))['version'].split('+codex.')[0])")
-          if [ "$claude_version" != "$codex_base" ]; then
-            echo "manifest versions differ: Claude $claude_version, Codex $codex_base" >&2
-            exit 1
+          if [ "$DRY_RUN" = "true" ]; then
+            npm run release -- --dry-run
+          else
+            npm run release
           fi
-          requested="${{ github.event.inputs.version }}"
-          if [ -n "$requested" ] && [ "$requested" != "$claude_version" ]; then
-            echo "requested $requested but the manifests carry $claude_version; bump the manifests first" >&2
-            exit 1
-          fi
-          if ! printf '%s' "$claude_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "invalid version format: $claude_version" >&2
-            exit 1
-          fi
-          echo "version=$claude_version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$claude_version" >> "$GITHUB_OUTPUT"
-          echo "Release version: $claude_version"
-
-      - name: Refuse an existing tag
-        run: |
-          tag="${{ steps.version.outputs.tag }}"
-          if git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null; then
-            echo "tag $tag already exists; a published release tag is never moved" >&2
-            exit 1
-          fi
-
-      - name: Contract tests
-        run: |
-          bash paseo-cto/scripts/test-plugin-contracts.sh
-
-      - name: Update the Codex cachebuster
-        run: python3 .github/scripts/bump.py --refresh-codex
-
-      - name: Distribution sync check
-        run: bash paseo-cto/scripts/check-distribution-sync.sh
-
-      - name: Commit, tag and push
-        if: ${{ github.event.inputs.dry_run != 'true' }}
-        run: |
-          tag="${{ steps.version.outputs.tag }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --quiet; then
-            git add -- '*/.codex-plugin/plugin.json'
-            git commit -m "chore: update codex cachebuster for $tag"
-          fi
-          git tag "$tag"
-          git push origin HEAD:main
-          git push origin "$tag"
-          echo "Release $tag published"
-
-      - name: Report a dry run
-        if: ${{ github.event.inputs.dry_run == 'true' }}
-        run: echo "Validation passed for ${{ steps.version.outputs.tag }}; nothing was committed, tagged or pushed"

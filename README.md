@@ -86,22 +86,29 @@ version in their Claude Code manifests; all Codex manifests use the same base ve
 shared cache-busting suffix. The Git tag is `v` followed by the shared version. A published tag
 is never moved, and a local edit alone is not a completed delivery.
 
-Commit the changes, then run the local release script. It derives the next shared version from
-all commits since the last release: `feat` raises the minor version, a breaking change raises
-the major version, and other changes raise the patch version. Commit scopes do not create
-independent plugin versions. All manifests and README installation tags are updated together.
+After a push to `main`, [GitHub Actions](.github/workflows/release.yml) runs the tests and
+[semantic-release](https://github.com/semantic-release/semantic-release). It chooses one version
+from the commits since the last tag: `feat` raises the minor version, `!` or `BREAKING CHANGE`
+raises the major version, and other changes raise the patch version, including documentation.
 
-For GitHub Actions, first run `python3 .github/scripts/bump.py`, commit the resulting manifests
-and README changes, and push them. The workflow publishes the prepared version.
+The release updates every plugin manifest and README installation tag, updates `CHANGELOG.md`,
+creates a `chore(release)` commit, pushes an immutable tag and publishes a GitHub Release.
+The Codex suffix is shared across all plugins. Do not bump versions or create release tags manually.
+Concurrent releases are serialized; the generated commit uses `[skip ci]` to avoid another run.
 
 ```sh
-bash paseo-cto/scripts/release.sh                                      # from a local clone
-gh workflow run release.yml -R maggnus/agentic-plugins                 # or on GitHub Actions
-gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true # validation only
+npm ci
+npm test
+# Commit and push the source changes; GitHub Actions publishes the release.
+git push origin main
+# Optional manual run or preview:
+gh workflow run release.yml -R maggnus/agentic-plugins
+gh workflow run release.yml -R maggnus/agentic-plugins -f dry_run=true
 ```
 
-Both paths run the contract tests, refresh the shared Codex suffix for all plugins, verify that
-every package uses the same version, and refuse a version whose tag already exists.
+A preview checks the next version without committing or publishing. The release preparation
+and commit/tag behavior are tested against a temporary Git repository by `npm test`.
+The built-in `GITHUB_TOKEN` needs `contents: write`; no npm publication or npm token is used.
 
 ## Upgrade
 

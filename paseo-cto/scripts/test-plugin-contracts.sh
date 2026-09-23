@@ -8,7 +8,7 @@ plugin_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
 fail=0
 problem() { echo "contracts: $*" >&2; fail=1; }
 
-python3 "$plugin_root/../.github/scripts/test_bump.py" || fail=1
+python3 "$plugin_root/../.github/scripts/test_prepare_release.py" || fail=1
 
 # --- text invariants -------------------------------------------------------------------------
 python3 - "$plugin_root" <<'PY' || fail=1
