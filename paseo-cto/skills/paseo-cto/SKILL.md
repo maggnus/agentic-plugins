@@ -41,6 +41,8 @@ agent or a green local check is cost until the change is landed and rolled out.
 - **Task card** — the scope, the write zone, and a `Proof:` line: the command that shows the
   outcome. Critical cards also carry `Falsifier:` — the change or input under which the proof must
   fail.
+- **Roadmap** — milestones a person can check, the admission rule for ideas, open owner decisions.
+- **Work rules** — one page for agents: the files, the fast loop, the project's guardrails.
 - **Findings list** — one line per residual an accepted task knowingly left, and per defect found
   outside a task's zone.
 - **HANDOFF** in the repository root — where things stand and what comes next. Update it when
@@ -50,6 +52,11 @@ agent or a green local check is cost until the change is landed and rolled out.
   workspace id, branch, one-line status.
 
 No other status file, journal or score exists. Documentation is written by you, never by an agent.
+
+**A new project** gets the same layout: copy `<plugin path>/templates/work/` to the project's work
+directory (for example `docs/work/`), copy `scripts/check-board.py` next to the project's checks and
+run it in the fast check, and set `land.board` and `land.boardCheck` in `SETTINGS.json`. Tasks of
+later milestones stay one row until they are picked; landed tasks lose their file.
 
 ## The loop
 
@@ -146,13 +153,14 @@ push-triggered full run, start it yourself in the background after each landing.
 The owner reads the conversation, not the board or the cards; everything the owner needs is in
 the message. Write in `reportingLanguage`, in product terms, short: what changed for the people
 who use the product comes first, a task id follows only as a link for reference. Questions go one at a time, with your recommendation and the
-expected answer ("a", "b", "as is"). The status is one line for the current wave:
+expected answer ("a", "b", "as is"). The status is one line for the open milestone:
 
 ```text
-W6(11%) · ✅ 4/35 · 🛠 4 · 🙋 0
+M1(17%) · ✅ 8/47 · 🛠 3 · 🙋 1
 ```
 
-wave (done share), done/total, in work, waiting for the owner or blocked. Count from the board.
+milestone (done share), done/total, in work, waiting for the owner or blocked. Print it with
+`python3 <plugin path>/scripts/board-status.py <work dir> --asks <open questions>`.
 
 **Owner asks are visible at once.** A question, a request or a blocker only the owner can clear
 starts with 🙋, and the message that raises it ends with the status line with 🙋 already counting

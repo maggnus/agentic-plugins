@@ -31,6 +31,11 @@ spent its own on manual merges, and a runtime dependency broke the running envir
   message that raises it ends with the status line already counting it; the answer's message ends
   with the line again.
 - The heartbeat is gone: agents notify on finish.
+- **One layout for every project.** `templates/work/` gives the board (a table with a mark column
+  `[x]` `[~]` `[!]` `[=]` `[ ]`, linked tasks, commit and the time of the last change), the task
+  shape, roadmap, work rules and findings; `check-board.py` checks the board and `board-status.py`
+  prints the status line for the open milestone. `land.py` marks the row, stamps the time and
+  deletes the landed task file.
 
 ## v11.0.1 — paseo-cto 11.0.1
 

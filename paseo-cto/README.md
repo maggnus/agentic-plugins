@@ -24,6 +24,14 @@ Operating needs a Paseo agent seat.
 - **Agents stay useful.** Checks run in the foreground; the same builder takes the next task in its
   zone; documentation is written by the CTO, not by agents.
 
+## One layout for every project
+
+`templates/work/` holds the files a project's work directory starts from: `BOARD.md` (a table per
+group, one row per task: mark `[x]` `[~]` `[!]` `[=]` `[ ]`, task linked to its file, outcome,
+commit, time of the last change), `TASK.md` (the shape of `tasks/<id>.md`), `ROADMAP.md`,
+`WORKFLOW.md` and `FINDINGS.md`. [`scripts/check-board.py`](scripts/check-board.py) keeps the board
+honest and [`scripts/board-status.py`](scripts/board-status.py) prints the owner's status line.
+
 ## Project settings
 
 `<git-common-dir>/paseo-cto/SETTINGS.json`, shared by every worktree of the repository:
@@ -61,7 +69,9 @@ python3 "$PASEO_CTO_PLUGIN/skills/paseo-cto/scripts/upgrade.py" --tag v12.0.0
 
 - skills `paseo-cto`, `paseo-builder`, `paseo-reviewer`, `paseo-researcher`, with one Codex
   metadata file each;
-- `scripts/land.py` and its test in `scripts/test-plugin-contracts.sh`;
+- `scripts/land.py`, `scripts/check-board.py`, `scripts/board-status.py` and their test in
+  `scripts/test-plugin-contracts.sh`;
+- `templates/work/` — the board, task, roadmap, work rules and findings files;
 - [Claude](.claude-plugin/plugin.json) and [Codex](.codex-plugin/plugin.json) manifests.
 
 A Codex builder needs write access to the repository's Git common directory to commit inside its

@@ -44,6 +44,24 @@ for message in errors:
 sys.exit(1 if errors else 0)
 PY
 
+# --- board check and status line ----------------------------------------------------------
+board_dir=$(mktemp -d)
+cp "$plugin_root/templates/work/"{BOARD,ROADMAP,WORKFLOW,FINDINGS}.md "$board_dir/"
+mkdir "$board_dir/tasks"; printf '# A-1b\n' > "$board_dir/tasks/A-1b.md"
+python3 - "$board_dir/BOARD.md" <<'PY2'
+import sys, pathlib
+p = pathlib.Path(sys.argv[1]); t = p.read_text()
+t = t.replace("| [ ] | <ID>a | <what becomes true> |  | <dd.mm hh:mm> |",
+              "| [x] | A-1a | first | 1a2b3c4d | 23.09 10:00 |\n| [~] | [A-1b](tasks/A-1b.md) | second |  | 23.09 11:00 |\n| [!] | A-1c | third |  | 23.09 12:00 |\n| [ ] | A-1d | fourth |  | 23.09 12:30 |")
+p.write_text(t)
+PY2
+python3 "$plugin_root/scripts/check-board.py" "$board_dir" >/dev/null 2>&1 || problem "board check refused a valid board"
+status=$(python3 "$plugin_root/scripts/board-status.py" "$board_dir" --asks 1)
+[ "$status" = "M1(25%) · ✅ 1/4 · 🛠 1 · 🙋 2" ] || problem "status line: $status"
+sed -i.bak 's/| \[x\] | A-1a | first | 1a2b3c4d |/| [x] | A-1a | first |  |/' "$board_dir/BOARD.md"
+python3 "$plugin_root/scripts/check-board.py" "$board_dir" >/dev/null 2>&1 && problem "board check passed a done row without a commit"
+rm -rf "$board_dir"
+
 # --- land.py ---------------------------------------------------------------------------------
 land="$plugin_root/scripts/land.py"
 sandbox=$(mktemp -d)
