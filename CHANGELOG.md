@@ -1,3 +1,9 @@
+## [12.2.0](https://github.com/maggnus/agentic-plugins/compare/v12.1.1...v12.2.0) (2026-10-03)
+
+### Features
+
+* **rad-ai:** add scored review rounds and calculated stage reports ([907d97e](https://github.com/maggnus/agentic-plugins/commit/907d97ebe1ab1f01ab5b2da7f990fd72913a4430))
+
 ## [12.1.1](https://github.com/maggnus/agentic-plugins/compare/v12.1.0...v12.1.1) (2026-10-03)
 
 ### Bug Fixes
