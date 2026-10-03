@@ -17,14 +17,14 @@ from it. See [brief/README.md](brief/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.1"
 claude plugin install brief@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.1
 codex plugin add brief@maggnus
 ```
 
@@ -38,14 +38,14 @@ settings. See [paseo-cto/README.md](paseo-cto/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.1"
 claude plugin install paseo-cto@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.1
 codex plugin add paseo-cto@maggnus
 ```
 
@@ -59,14 +59,14 @@ returns. See [team/README.md](team/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.1"
 claude plugin install team@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.1
 codex plugin add team@maggnus
 ```
 
@@ -79,14 +79,14 @@ translating them literally, preserving technical terms and facts. See
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.1"
 claude plugin install russian-speech@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.1
 codex plugin add russian-speech@maggnus
 ```
 
@@ -100,14 +100,14 @@ references and skill metadata. See [rad-ai/README.md](rad-ai/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.1"
 claude plugin install rad-ai@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.1
 codex plugin add rad-ai@maggnus
 ```
 

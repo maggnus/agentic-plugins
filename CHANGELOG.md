@@ -1,3 +1,9 @@
+## [12.1.1](https://github.com/maggnus/agentic-plugins/compare/v12.1.0...v12.1.1) (2026-10-03)
+
+### Bug Fixes
+
+* **rad-ai:** validate quoted skill metadata and record installation evidence ([70c672e](https://github.com/maggnus/agentic-plugins/commit/70c672ed9cdcd479b18327d50e4f9cedeedceb20))
+
 ## [12.1.0](https://github.com/maggnus/agentic-plugins/compare/v12.0.8...v12.1.0) (2026-10-03)
 
 ### Features
