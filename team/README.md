@@ -25,13 +25,13 @@ Invoke as `$team:team` in Codex or `/team:team` in Claude. It is not a smaller c
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.0.8"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.1.0"
 claude plugin install team@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.8
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.1.0
 codex plugin add team@maggnus
 ```

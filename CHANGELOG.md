@@ -1,3 +1,9 @@
+## [12.1.0](https://github.com/maggnus/agentic-plugins/compare/v12.0.8...v12.1.0) (2026-10-03)
+
+### Features
+
+* **rad-ai:** add compact standalone RAD skills and validation ([322b6f4](https://github.com/maggnus/agentic-plugins/commit/322b6f44ecf45c2a0812ad6c1acb5c0afb7b4471))
+
 ## [12.0.8](https://github.com/maggnus/agentic-plugins/compare/v12.0.7...v12.0.8) (2026-10-03)
 
 ## [12.0.7](https://github.com/maggnus/agentic-plugins/compare/v12.0.6...v12.0.7) (2026-09-23)
