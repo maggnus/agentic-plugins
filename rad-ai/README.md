@@ -20,6 +20,45 @@ in this package.
 Package checks reject violations. The main instruction retains the complete decision process;
 references supply the contract fields and broad-dependency investigation.
 
+## Review and stage reports
+
+Text reviews begin with `ACCEPT R2 (9/10)` or `RETURN R2 (8/10)`.
+`R2` identifies the outcome's second review round; rounds advance on corrected
+resubmission and survive repeated reads, restarts and reviewer changes. Scores are
+ordinal assessments from 1 to 10, using the lowest applicable code, evidence or
+observed user-path axis. Requirements determine the verdict at every score.
+Unavailable assessment uses `UNVERIFIED R2 (n/a)`; JSON exposes `verdict`, `round`
+and nullable `score` alongside the evidence fields.
+
+Every progress report recalculates the current stage from reconciled source records:
+
+```text
+W5(57%) 📋 35 ⚙️ 3 🙋 1
+```
+
+`W5` is an example stage label. `📋` counts distinct noncancelled stage tasks;
+the percentage is completed tasks divided by that total, rounded to the nearest
+integer with halves rounded up. `⚙️` counts implementation and review tasks.
+`🙋` counts distinct unresolved decisions requiring human authority; one decision
+blocking several tasks counts once. Completion requires current contracted
+acceptance, including delivery when required. Reopening work or adding tasks can
+reduce the percentage. Empty stages use 0%; missing or contradictory records
+produce an unavailable report rather than invented zero values.
+
+The optional stateless formatter reads a fresh JSON view of existing records:
+
+```sh
+python3 rad-ai/skills/rad-ai/scripts/report.py status current-stage.json
+python3 rad-ai/skills/rad-ai/scripts/report.py verdict current-review.json
+```
+
+Stage input has `stage`, `tasks` with `id` and `state`, and `decisions` with `id`,
+`state` and boolean `requires_human`. Task states are `ready`, `active`, `review`,
+`blocked`, `done`, `cancelled`; decision states are `open`, `resolved`.
+Review input has `verdict`, positive integer `round`, and integer `score` from 1
+to 10, or null for `UNVERIFIED`. The formatter stores no task state or displayed
+values. Its use is optional; the complete reporting rules are in the skill.
+
 ## Invoke
 
 | Role | Codex | Claude Code |
@@ -65,6 +104,6 @@ GitHub Actions release after source changes reach `main`.
 
 ## Source checks
 
-`npm test` includes package integrity, the instruction budget and shared-release checks.
+`npm test` includes package integrity, the instruction budget, calculated-report tests and shared-release checks.
 `python3 rad-ai/scripts/check-package.py` validates this package without installing it.
 Behavioral evaluation is separate from structural validation.

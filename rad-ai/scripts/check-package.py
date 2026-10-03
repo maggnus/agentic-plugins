@@ -43,7 +43,8 @@ def check(root: Path) -> list[str]:
         body = path.read_text()
         words = len(body.split())
         total += words
-        require(body.isascii(), f"{path}: operational text must use English ASCII text")
+        prose = body.translate(str.maketrans("", "", "📋⚙️🙋"))
+        require(prose.isascii(), f"{path}: operational prose must be English; only reporting icons are allowed")
         if path.name == "SKILL.md":
             main = path.parent.name == "rad-ai"
             word_limit, line_limit = (500, 70) if main else (200, 30)

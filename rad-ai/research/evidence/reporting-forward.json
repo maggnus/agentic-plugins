@@ -1,0 +1,21 @@
+{
+  "model": "gpt-6-luna",
+  "validation": "independent source forward test; no installation or source mutation",
+  "input_sha256": "fb58fa51872324c103877f3b4b9e3901eb159b9fdc8b4d049e1ec4362ae09db0",
+  "observed_lines": [
+    "RETURN R2 (8/10)",
+    "W5(57%) 📋 35 ⚙️ 3 🙋 1",
+    "W5(60%) 📋 35 ⚙️ 2 🙋 0",
+    "RETURN R2 (8/10)"
+  ],
+  "checks": {
+    "review_round_after_resubmission": 2,
+    "review_round_on_repeat": 2,
+    "lowest_observed_axis_score": 8,
+    "first_completion_fraction": "20/35",
+    "second_completion_fraction": "21/35",
+    "duplicate_human_decision_counted_once": true,
+    "cached_percent_and_total_ignored": true
+  },
+  "limitation": "This validates reporting behavior on supplied records, not a new implementation assessment or productivity effect."
+}

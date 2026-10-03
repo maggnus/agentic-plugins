@@ -40,3 +40,7 @@ Full YAML validation then identified an unquoted colon in the main description. 
 Claude Code runtime invocation remains unverified: its service denied model access for the current account. Installation and component inventory do not establish execution. Additional agent validation uses gpt-6-luna. The [published-package observation](evidence/published-readiness.json) identifies its exact limitation.
 
 Agent token accounting is retained as reported. Exact resolved model identity and complete elapsed time were not captured, limiting reproducibility of agent behavior and preventing a productivity comparison. The reported partial cycle time is not used as time-to-acceptance.
+
+## Scored review and calculated progress
+
+An independent gpt-6-luna source test used [current records](../evals/reporting/records.json) and [a reporting request](../evals/reporting/REQUEST.md), without test expectations. It produced `RETURN R2 (8/10)`, recalculated stage progress from 57% to 60% after completion and decision resolution, deduplicated the human question, and preserved R2 on a repeated read. [Observed output](evidence/reporting-forward.json) identifies the input hash and limits. Deterministic tests additionally cover reopened and cancelled tasks, empty stages, half-up rounding, missing/conflicting input and repeated reads of a mutated source file.

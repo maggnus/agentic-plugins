@@ -44,6 +44,24 @@ Scale is described by authored code, module boundaries, affected consumers, depe
 
 After interruption, reconcile current requirements, revisions, outstanding work and observations before continuing. Invalidate only affected evidence and preserve independent completed outcomes. At a budget boundary, reduce scope or stop dependent work while preserving quality constraints.
 
+## Reporting protocol
+
+Text acceptance records use `ACCEPT Rn (s/10)` and `RETURN Rn (s/10)`;
+unavailable assessment uses `UNVERIFIED Rn (n/a)`. The round belongs to one
+outcome, starts at 1 and advances after corrected resubmission. Repeated reads,
+restart and reviewer changes preserve the round. The score is the minimum of
+applicable observed code, evidence and user-path axes under the included rubric.
+It is an ordinal judgment, not a probability or an acceptance threshold.
+
+Stage status is a derived view: `<stage>(p%) 📋 N ⚙️ A 🙋 B`. Source records
+are reconciled before each report. N counts distinct noncancelled tasks, D counts
+current completion at the contracted target, A counts implementation/review, and
+B counts distinct unresolved human-authority decisions. Compute p as 100D/N,
+rounding halves up; empty-stage percentage is 0 by convention. Missing or
+contradictory input remains unavailable. Displayed percentages and counts are not
+stored as a second source of state. Task-count percentage is not an estimate of
+remaining effort, elapsed time or quality.
+
 ## Instruction budget
 
 All operational material is English and contained under `skills/`. The main instruction is limited to 500 whitespace-delimited words and 70 lines; each role to 200 words and 30 lines. Operational Markdown and interface metadata together are limited to 1200 words. References must remain within `skills/`; research is not loaded as hidden operational detail. Package checks enforce these constraints.

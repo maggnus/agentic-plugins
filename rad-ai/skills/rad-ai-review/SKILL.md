@@ -5,12 +5,12 @@ description: "Independently accept, return or identify unverified RAD changes ag
 
 # RAD acceptance
 
-Obtain outcome, criteria, exclusions, invariants, consumers, risk, base and candidate revisions. Establish the actual revision; inspect the complete diff and affected paths. Verify reported evidence.
+Obtain criteria, exclusions, invariants, consumers, risk, base/candidate revisions and review history. Verify revision, diff and evidence.
 
-Exercise the user path, relevant failures and consumer contracts. Evaluate boundaries, compatibility, dependencies and abstractions. Check whether significant evidence can reject the defect it guards. Critical consequences require independent review and discriminating evidence. Check combined compatibility separately.
+Exercise user paths, failures and consumers. Assess boundaries, compatibility, dependencies and discriminating evidence. Critical consequences require independent review and discriminating evidence. Combined compatibility requires separate assessment.
 
-Return `ACCEPT` when requirements and required checks hold; `RETURN` for a contracted defect or insufficient required evidence; `UNVERIFIED` when a required observation, revision or criterion cannot be established. Separate adjacent findings from contracted defects.
+Start text reports `ACCEPT Rn (s/10)` when requirements hold or `RETURN Rn (s/10)` for contracted defects or insufficient required evidence. Unavailable observations use `UNVERIFIED Rn (n/a)`. Start R1 per outcome; advance after corrected resubmission, not repeated reads, restart or reviewer change.
 
-Report revision, findings with location, reproduction and violated requirement, observed commands and exit statuses, and unchecked conditions. Requested JSON uses `verdict`, `commit`, `findings`, `checks`, `unchecked`.
+Use the [rubric](../rad-ai/references/contracts.md): score the lowest applicable observed code/evidence/user-path axis, 1-10. Verdict follows requirements at any score. Separate adjacent findings. State the score basis, revision, findings with reproduction and violated requirement, commands, exit statuses and unchecked conditions. JSON uses `verdict`, `round`, `score`, `commit`, `findings`, `checks`, `unchecked`; unavailable scores are null.
 
-Reassess corrections against unchanged criteria. Do not edit or deliver. Lack of new evidence ends the correction loop with the remaining condition.
+Reassess corrections against unchanged criteria. Do not edit or deliver. Without new evidence, identify the remaining condition.

@@ -1,0 +1,354 @@
+{
+  "review": {
+    "outcome": "T7",
+    "last_round": 1,
+    "last_verdict": "RETURN",
+    "last_candidate": "A",
+    "resubmitted_candidate": "B",
+    "correction_submitted": true,
+    "current_verdict": "RETURN",
+    "observed_axes": {
+      "code": 9,
+      "evidence": 8,
+      "user_path": 10
+    }
+  },
+  "before": {
+    "stage": "W5",
+    "tasks": [
+      {
+        "id": "T1",
+        "state": "done"
+      },
+      {
+        "id": "T2",
+        "state": "done"
+      },
+      {
+        "id": "T3",
+        "state": "done"
+      },
+      {
+        "id": "T4",
+        "state": "done"
+      },
+      {
+        "id": "T5",
+        "state": "done"
+      },
+      {
+        "id": "T6",
+        "state": "done"
+      },
+      {
+        "id": "T7",
+        "state": "done"
+      },
+      {
+        "id": "T8",
+        "state": "done"
+      },
+      {
+        "id": "T9",
+        "state": "done"
+      },
+      {
+        "id": "T10",
+        "state": "done"
+      },
+      {
+        "id": "T11",
+        "state": "done"
+      },
+      {
+        "id": "T12",
+        "state": "done"
+      },
+      {
+        "id": "T13",
+        "state": "done"
+      },
+      {
+        "id": "T14",
+        "state": "done"
+      },
+      {
+        "id": "T15",
+        "state": "done"
+      },
+      {
+        "id": "T16",
+        "state": "done"
+      },
+      {
+        "id": "T17",
+        "state": "done"
+      },
+      {
+        "id": "T18",
+        "state": "done"
+      },
+      {
+        "id": "T19",
+        "state": "done"
+      },
+      {
+        "id": "T20",
+        "state": "done"
+      },
+      {
+        "id": "T21",
+        "state": "active"
+      },
+      {
+        "id": "T22",
+        "state": "active"
+      },
+      {
+        "id": "T23",
+        "state": "review"
+      },
+      {
+        "id": "T24",
+        "state": "blocked"
+      },
+      {
+        "id": "T25",
+        "state": "ready"
+      },
+      {
+        "id": "T26",
+        "state": "ready"
+      },
+      {
+        "id": "T27",
+        "state": "ready"
+      },
+      {
+        "id": "T28",
+        "state": "ready"
+      },
+      {
+        "id": "T29",
+        "state": "ready"
+      },
+      {
+        "id": "T30",
+        "state": "ready"
+      },
+      {
+        "id": "T31",
+        "state": "ready"
+      },
+      {
+        "id": "T32",
+        "state": "ready"
+      },
+      {
+        "id": "T33",
+        "state": "ready"
+      },
+      {
+        "id": "T34",
+        "state": "ready"
+      },
+      {
+        "id": "T35",
+        "state": "ready"
+      }
+    ],
+    "decisions": [
+      {
+        "id": "D1",
+        "state": "open",
+        "requires_human": true
+      },
+      {
+        "id": "D2",
+        "state": "resolved",
+        "requires_human": true
+      },
+      {
+        "id": "D3",
+        "state": "open",
+        "requires_human": false
+      },
+      {
+        "id": "D1",
+        "state": "open",
+        "requires_human": true
+      }
+    ],
+    "percent": 100,
+    "total": 999
+  },
+  "after": {
+    "stage": "W5",
+    "tasks": [
+      {
+        "id": "T1",
+        "state": "done"
+      },
+      {
+        "id": "T2",
+        "state": "done"
+      },
+      {
+        "id": "T3",
+        "state": "done"
+      },
+      {
+        "id": "T4",
+        "state": "done"
+      },
+      {
+        "id": "T5",
+        "state": "done"
+      },
+      {
+        "id": "T6",
+        "state": "done"
+      },
+      {
+        "id": "T7",
+        "state": "done"
+      },
+      {
+        "id": "T8",
+        "state": "done"
+      },
+      {
+        "id": "T9",
+        "state": "done"
+      },
+      {
+        "id": "T10",
+        "state": "done"
+      },
+      {
+        "id": "T11",
+        "state": "done"
+      },
+      {
+        "id": "T12",
+        "state": "done"
+      },
+      {
+        "id": "T13",
+        "state": "done"
+      },
+      {
+        "id": "T14",
+        "state": "done"
+      },
+      {
+        "id": "T15",
+        "state": "done"
+      },
+      {
+        "id": "T16",
+        "state": "done"
+      },
+      {
+        "id": "T17",
+        "state": "done"
+      },
+      {
+        "id": "T18",
+        "state": "done"
+      },
+      {
+        "id": "T19",
+        "state": "done"
+      },
+      {
+        "id": "T20",
+        "state": "done"
+      },
+      {
+        "id": "T21",
+        "state": "done"
+      },
+      {
+        "id": "T22",
+        "state": "active"
+      },
+      {
+        "id": "T23",
+        "state": "review"
+      },
+      {
+        "id": "T24",
+        "state": "blocked"
+      },
+      {
+        "id": "T25",
+        "state": "ready"
+      },
+      {
+        "id": "T26",
+        "state": "ready"
+      },
+      {
+        "id": "T27",
+        "state": "ready"
+      },
+      {
+        "id": "T28",
+        "state": "ready"
+      },
+      {
+        "id": "T29",
+        "state": "ready"
+      },
+      {
+        "id": "T30",
+        "state": "ready"
+      },
+      {
+        "id": "T31",
+        "state": "ready"
+      },
+      {
+        "id": "T32",
+        "state": "ready"
+      },
+      {
+        "id": "T33",
+        "state": "ready"
+      },
+      {
+        "id": "T34",
+        "state": "ready"
+      },
+      {
+        "id": "T35",
+        "state": "ready"
+      }
+    ],
+    "decisions": [
+      {
+        "id": "D1",
+        "state": "resolved",
+        "requires_human": true
+      },
+      {
+        "id": "D2",
+        "state": "resolved",
+        "requires_human": true
+      },
+      {
+        "id": "D3",
+        "state": "open",
+        "requires_human": false
+      },
+      {
+        "id": "D1",
+        "state": "resolved",
+        "requires_human": true
+      }
+    ],
+    "percent": 100,
+    "total": 999
+  }
+}
