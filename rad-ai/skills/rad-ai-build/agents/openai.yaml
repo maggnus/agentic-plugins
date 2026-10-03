@@ -1,0 +1,7 @@
+interface:
+  display_name: "RAD implementation"
+  short_description: "Implement a bounded outcome and report observed evidence"
+  default_prompt: "Use $rad-ai:rad-ai-build to implement this outcome against its RAD contract."
+
+policy:
+  allow_implicit_invocation: true

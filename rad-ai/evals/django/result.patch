@@ -1,0 +1,183 @@
+diff --git a/django/utils/text.py b/django/utils/text.py
+index 6297e4b..7ceb1a5 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -468 +468 @@ def unescape_string_literal(s):
+-def slugify(value, allow_unicode=False):
++def slugify(value, allow_unicode=False, *, max_length=None):
+@@ -473 +473,3 @@ def slugify(value, allow_unicode=False):
+-    trailing whitespace, dashes, and underscores.
++    trailing whitespace, dashes, and underscores. If 'max_length' is supplied,
++    limit the result to that many code points, stripping trailing dashes and
++    underscores after truncation.
+@@ -474,0 +477,5 @@ def slugify(value, allow_unicode=False):
++    if max_length is not None:
++        if isinstance(max_length, bool) or not isinstance(max_length, int):
++            raise TypeError("max_length must be a positive integer.")
++        if max_length <= 0:
++            raise ValueError("max_length must be a positive integer.")
+@@ -485 +492,4 @@ def slugify(value, allow_unicode=False):
+-    return re.sub(r"[-\s]+", "-", value).strip("-_")
++    value = re.sub(r"[-\s]+", "-", value).strip("-_")
++    if max_length is not None:
++        value = value[:max_length].rstrip("-_")
++    return value
+diff --git a/docs/ref/utils.txt b/docs/ref/utils.txt
+index ae5d524..01c6492 100644
+--- a/docs/ref/utils.txt
++++ b/docs/ref/utils.txt
+@@ -940 +940 @@ appropriate entities.
+-.. function:: slugify(value, allow_unicode=False)
++.. function:: slugify(value, allow_unicode=False, *, max_length=None)
+@@ -965,0 +966,19 @@ appropriate entities.
++    The keyword-only ``max_length`` argument limits the normalized slug to at
++    most that many Unicode code points. Any trailing hyphens or underscores
++    exposed by truncation are removed, so the result may be shorter than
++    ``max_length``. The default, ``None``, leaves the length unlimited.
++    Otherwise, ``max_length`` must be a positive integer, excluding booleans.
++    Other types raise :exc:`TypeError`; zero or negative integers raise
++    :exc:`ValueError`.
++
++    .. code-block:: pycon
++
++        >>> slugify("Hello World", max_length=6)
++        'hello'
++        >>> slugify("你好 World", allow_unicode=True, max_length=4)
++        '你好-w'
++
++    .. versionchanged:: 6.2
++
++        The ``max_length`` argument was added.
++
+diff --git a/tests/utils_tests/test_text.py b/tests/utils_tests/test_text.py
+index 7fd767c..cc6f03b 100644
+--- a/tests/utils_tests/test_text.py
++++ b/tests/utils_tests/test_text.py
+@@ -9 +9 @@ from django.utils import text
+-from django.utils.functional import lazystr
++from django.utils.functional import Promise, lazy, lazystr
+@@ -372,0 +373,4 @@ class TestUtilsText(SimpleTestCase):
++                self.assertEqual(text.slugify(value, is_unicode), output)
++                self.assertEqual(
++                    text.slugify(value, is_unicode, max_length=None), output
++                )
+@@ -376,0 +381,119 @@ class TestUtilsText(SimpleTestCase):
++    def test_slugify_max_length(self):
++        items = (
++            ("Hello, World!", 8, "hello-wo"),
++            ("Hello, World!", 1, "h"),
++            ("Hello", 5, "hello"),
++            ("Hello", 100, "hello"),
++            ("Hello", sys.maxsize + 1, "hello"),
++            ("__ École & café __", 7, "ecole-c"),
++            ("\ufb03 World", 2, "ff"),
++            (12345, 3, "123"),
++            ("", 1, ""),
++            (" --_!_-- ", 1, ""),
++        )
++        for value, max_length, expected in items:
++            with self.subTest(value=value, max_length=max_length):
++                self.assertEqual(text.slugify(value, max_length=max_length), expected)
++
++        class IntegerLength(int):
++            pass
++
++        self.assertEqual(text.slugify("Hello", max_length=IntegerLength(2)), "he")
++
++    def test_slugify_max_length_unicode(self):
++        items = (
++            ("你好 World", 2, "你好"),
++            ("你好 World", 3, "你好"),
++            ("你好 World", 4, "你好-w"),
++            ("你好", 10, "你好"),
++            ("ＦＯＯ bar", 3, "foo"),
++            ("e\u0301clair", 1, "é"),
++            ("İstanbul", 2, "is"),
++            ("\U00010400\U00010401 World", 1, "\U00010428"),
++        )
++        for value, max_length, expected in items:
++            with self.subTest(value=value, max_length=max_length):
++                self.assertEqual(
++                    text.slugify(value, allow_unicode=True, max_length=max_length),
++                    expected,
++                )
++
++    def test_slugify_max_length_separators(self):
++        items = (
++            ("foo bar", 4, "foo"),
++            ("foo___bar", 5, "foo"),
++            ("foo_-__bar", 7, "foo"),
++            ("foo---bar", 4, "foo"),
++            ("a_-b", 3, "a"),
++            ("foo_bar", 5, "foo_b"),
++        )
++        for value, max_length, expected in items:
++            for allow_unicode in (False, True):
++                with self.subTest(
++                    value=value, max_length=max_length, allow_unicode=allow_unicode
++                ):
++                    self.assertEqual(
++                        text.slugify(value, allow_unicode, max_length=max_length),
++                        expected,
++                    )
++
++    def test_slugify_max_length_invalid_type(self):
++        class IndexLength:
++            def __index__(self):
++                return 3
++
++        for max_length in (True, False, 1.5, "3", b"3", [], {}, IndexLength()):
++            with self.subTest(max_length=max_length):
++                with self.assertRaisesMessage(
++                    TypeError, "max_length must be a positive integer."
++                ):
++                    text.slugify("Hello", max_length=max_length)
++
++    def test_slugify_max_length_invalid_value(self):
++        for max_length in (0, -1):
++            with self.subTest(max_length=max_length):
++                with self.assertRaisesMessage(
++                    ValueError, "max_length must be a positive integer."
++                ):
++                    text.slugify("", max_length=max_length)
++
++    def test_slugify_max_length_keyword_only(self):
++        with self.assertRaises(TypeError):
++            text.slugify("Hello", False, 3)
++
++    def test_slugify_lazy(self):
++        for allow_unicode, max_length, expected in (
++            (False, None, "world"),
++            (True, None, "你好-world"),
++            (False, 3, "wor"),
++            (True, 3, "你好"),
++        ):
++            with self.subTest(allow_unicode=allow_unicode, max_length=max_length):
++                calls = []
++
++                def get_value():
++                    calls.append(True)
++                    return "你好 World"
++
++                result = text.slugify(
++                    lazy(get_value, str)(), allow_unicode, max_length=max_length
++                )
++                self.assertIsInstance(result, Promise)
++                self.assertEqual(calls, [])
++                self.assertEqual(str(result), expected)
++                self.assertEqual(calls, [True])
++
++    def test_slugify_lazy_invalid_max_length(self):
++        for max_length, exception in (
++            (True, TypeError),
++            ("3", TypeError),
++            (0, ValueError),
++        ):
++            with self.subTest(max_length=max_length):
++                result = text.slugify(lazystr("Hello"), max_length=max_length)
++                self.assertIsInstance(result, Promise)
++                with self.assertRaisesMessage(
++                    exception, "max_length must be a positive integer."
++                ):
++                    str(result)
++

@@ -71,7 +71,7 @@ for name, body in (("README.md", readme), ("paseo-cto/README.md", plugin_readme)
     require(not stale, f"{name} still names {', '.join(stale)} instead of {release_tag}")
 
 # Every plugin shares the release version on both platforms.
-for name in ("brief", "team", "russian-speech"):
+for name in ("brief", "team", "russian-speech", "rad-ai"):
     sibling_root = root.parent / name
     require((sibling_root / "README.md").is_file(), f"{name}/README.md is missing")
 

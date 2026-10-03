@@ -9,6 +9,7 @@ import { analyzeCommits } from '@semantic-release/commit-analyzer';
 
 const root = resolve(import.meta.dirname, '../..');
 const config = JSON.parse(readFileSync(join(root, '.releaserc.json')));
+const plugins = JSON.parse(readFileSync(join(root, '.claude-plugin/marketplace.json'))).plugins;
 const logger = { log() {}, error() {}, success() {} };
 
 test('version selection covers features, breaking changes and documentation', async () => {
@@ -32,7 +33,7 @@ test('semantic-release commits all manifests and pushes a tag; rerun is a no-op'
     const origin = join(temp, 'origin.git');
     mkdirSync(cwd);
     // These are test fixtures, not installed plugins.
-    for (const path of ['brief', 'team', 'russian-speech', 'paseo-cto', '.claude-plugin',
+    for (const path of [...plugins.map(plugin => plugin.source), '.claude-plugin',
       '.github/scripts/prepare_release.py', '.releaserc.json', 'README.md', 'CHANGELOG.md']) {
       cpSync(join(root, path), join(cwd, path), { recursive: true });
     }
@@ -65,7 +66,7 @@ test('semantic-release commits all manifests and pushes a tag; rerun is a no-op'
     assert.match(git('log', '-1', '--format=%s'), /^chore\(release\): .* \[skip ci\]$/);
     assert.equal(git('status', '--porcelain'), '');
     const codex = new Set();
-    for (const name of ['brief', 'team', 'russian-speech', 'paseo-cto']) {
+    for (const { name } of plugins) {
       assert.equal(JSON.parse(git('show', `HEAD:${name}/.claude-plugin/plugin.json`)).version, expected);
       codex.add(JSON.parse(git('show', `HEAD:${name}/.codex-plugin/plugin.json`)).version);
     }

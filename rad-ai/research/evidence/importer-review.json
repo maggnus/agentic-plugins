@@ -1,0 +1,174 @@
+{
+  "verdict": "RETURN",
+  "candidate": "536a83339b0dc2d0161e6b81f7769edb673a39a7",
+  "fixture": "../../evals/importer",
+  "findings": [
+    {
+      "id": "R1",
+      "severity": "high",
+      "classification": "contracted_defect",
+      "location": "inbox.py:17",
+      "evidence_checks": [
+        "duplicate_later_existing",
+        "duplicate_within_batch_new",
+        "duplicate_within_batch_existing",
+        "invalid_later_new",
+        "invalid_later_existing"
+      ]
+    },
+    {
+      "id": "R2",
+      "severity": "medium",
+      "classification": "contracted_defect",
+      "location": "inbox.py:16",
+      "evidence_checks": [
+        "missing_value_cell"
+      ]
+    }
+  ],
+  "scenario_results": [
+    {
+      "name": "valid_new_store",
+      "exit_status": 0,
+      "assertions": {
+        "exit_status": true,
+        "json_state": true
+      },
+      "passed": true
+    },
+    {
+      "name": "valid_append_preserves_entries",
+      "exit_status": 0,
+      "assertions": {
+        "exit_status": true,
+        "json_state": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_first_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_later_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": false,
+        "diagnostic_present": true
+      },
+      "passed": false
+    },
+    {
+      "name": "duplicate_within_batch_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": false,
+        "diagnostic_present": true
+      },
+      "passed": false
+    },
+    {
+      "name": "duplicate_within_batch_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": false,
+        "diagnostic_present": true
+      },
+      "passed": false
+    },
+    {
+      "name": "invalid_first_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "invalid_later_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": false,
+        "diagnostic_present": true
+      },
+      "passed": false
+    },
+    {
+      "name": "invalid_later_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": false,
+        "diagnostic_present": true
+      },
+      "passed": false
+    },
+    {
+      "name": "missing_input_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_input_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "repeated_import",
+      "exit_status": 2,
+      "assertions": {
+        "first_exit_status": true,
+        "repeat_exit_status": true,
+        "store_unchanged": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "blank_integer",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_value_cell",
+      "exit_status": 1,
+      "assertions": {
+        "exit_status": false,
+        "store_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": false
+    }
+  ],
+  "unchecked": [
+    "Filesystem write failure, process crash and concurrent imports",
+    "Original base revision unavailable in initial root-commit fixture"
+  ]
+}

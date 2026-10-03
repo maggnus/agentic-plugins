@@ -1,0 +1,7 @@
+interface:
+  display_name: "RAD AI"
+  short_description: "Bounded development cycles with evidence-based acceptance"
+  default_prompt: "Use $rad-ai:rad-ai to develop this application through a bounded RAD cycle with explicit quality and architecture criteria."
+
+policy:
+  allow_implicit_invocation: true

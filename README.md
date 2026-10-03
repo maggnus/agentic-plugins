@@ -90,12 +90,26 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.8
 codex plugin add russian-speech@maggnus
 ```
 
-## В разработке: `rad-ai`
+## `rad-ai`
 
-Адаптация Rapid Application Development к разработке приложений ИИ-агентами, с целью
-сократить время до принятого результата при сохранении качества кода и архитектуры
-от небольшого приложения до гигантской кодовой базы. Подготовлен [план до первого выпуска навыков](rad-ai/PLAN.md).
-Исследование и практическая проверка предстоят; плагин пока недоступен для установки.
+A self-contained experimental RAD cycle for AI agents: bounded outcomes, discriminating
+experiments, implementation, integration and acceptance under explicit quality and architecture
+constraints. The English operational package is limited to 1200 words, including its roles,
+references and skill metadata. See [rad-ai/README.md](rad-ai/README.md).
+
+### Claude Code
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.0.8"
+claude plugin install rad-ai@maggnus
+```
+
+### Codex
+
+```sh
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.8
+codex plugin add rad-ai@maggnus
+```
 
 ## Release
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "RAD acceptance"
+  short_description: "Independent assessment of behavior and architecture"
+  default_prompt: "Use $rad-ai:rad-ai-review to assess this change against its RAD contract."
+
+policy:
+  allow_implicit_invocation: true

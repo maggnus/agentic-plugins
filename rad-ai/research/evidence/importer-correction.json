@@ -1,0 +1,11 @@
+{
+  "commit": "c22155f8d49ad919d5636bbafeac18ce1e51b6a7",
+  "check_command": [
+    "python3",
+    "-m",
+    "unittest",
+    "-v"
+  ],
+  "fixed_exit_status": 0,
+  "original_exit_status": 1
+}

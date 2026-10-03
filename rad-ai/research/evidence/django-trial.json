@@ -1,0 +1,54 @@
+{
+  "base_revision": "7847227a3fecde4b2a169552b84c60c6286b6025",
+  "result_state": "uncommitted patch on base revision",
+  "patch_sha256": "00db75a1da762cc595798ab380e99e2047c6e2648d1eca3d6d7e6c033932fcc0",
+  "production_python_files": 907,
+  "production_python_lines": 165617,
+  "test_python_files": 2011,
+  "test_python_lines": 357506,
+  "changed_paths": [
+    "django/utils/text.py",
+    "docs/ref/utils.txt",
+    "tests/utils_tests/test_text.py"
+  ],
+  "checks": [
+    {
+      "command": "python -B tests/runtests.py utils_tests.test_text template_tests.filter_tests.test_slugify --parallel 1",
+      "initial_exit_status": 0,
+      "initial_tests": 26,
+      "new_checks_on_original_exit_status": 1,
+      "new_checks_on_original_failures": 10,
+      "new_checks_on_original_subtest_errors": 52,
+      "candidate_exit_status": 0,
+      "candidate_tests": 34
+    },
+    {
+      "command": "python -B tests/runtests.py utils_tests template_tests.filter_tests --parallel 1",
+      "exit_status": 0,
+      "tests": 1171,
+      "skipped": 20
+    },
+    {
+      "command": "documentation doctest and patch/scope validation",
+      "exit_status": 0,
+      "examples": 4
+    }
+  ],
+  "agent_usage": {
+    "input_tokens": 466108,
+    "cached_input_tokens": 424448,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 8880,
+    "reasoning_output_tokens": 1381
+  },
+  "unchecked": [
+    "Full framework suite",
+    "Formatter and Sphinx checks",
+    "Comparative acceleration",
+    "Longitudinal architecture effects",
+    "Giant-codebase capability",
+    "Exact resolved model identifier was not captured"
+  ],
+  "archived_patch_sha256": "e42a9f3bf583196b46472b84b7be70310bbcb4a64deeda674b9a975d565316c0",
+  "archived_patch_format": "zero-context unified diff; apply with --unidiff-zero"
+}

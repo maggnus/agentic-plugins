@@ -1,0 +1,183 @@
+{
+  "verdict": "ACCEPT",
+  "candidate": "c22155f8d49ad919d5636bbafeac18ce1e51b6a7",
+  "base": "536a83339b0dc2d0161e6b81f7769edb673a39a7",
+  "scenario_results": [
+    {
+      "name": "valid_new_store",
+      "exit_status": 0,
+      "assertions": {
+        "exit_status": true,
+        "json_state": true
+      },
+      "passed": true
+    },
+    {
+      "name": "valid_append_preserves_entries",
+      "exit_status": 0,
+      "assertions": {
+        "exit_status": true,
+        "json_state": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_first_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_later_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_within_batch_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "duplicate_within_batch_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "invalid_first_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "invalid_later_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "invalid_later_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_input_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_input_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "blank_integer",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_value_cell",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_value_later_new",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "missing_value_later_existing",
+      "exit_status": 2,
+      "assertions": {
+        "exit_status": true,
+        "store_unchanged_or_absent": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "repeated_import",
+      "exit_status": 2,
+      "assertions": {
+        "first_exit_status": true,
+        "repeat_exit_status": true,
+        "store_unchanged": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    },
+    {
+      "name": "combined_compatibility",
+      "exit_status": 2,
+      "assertions": {
+        "successful_append_exit": true,
+        "preserves_existing_integer_consumers": true,
+        "later_duplicate_exit": true,
+        "accepted_store_unchanged": true,
+        "diagnostic_present": true
+      },
+      "passed": true
+    }
+  ],
+  "unchecked": [
+    "Concurrent imports and process termination",
+    "Other Python versions and operating systems"
+  ],
+  "adjacent_finding": "Filesystem failure during writing is not guarded by transactional file replacement; that behavior is outside this input-rejection contract."
+}

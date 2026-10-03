@@ -1,0 +1,26 @@
+{
+  "name": "rad-ai",
+  "description": "Self-contained Rapid Application Development for AI agents: bounded outcomes, discriminating experiments, implementation, integration and evidence-based acceptance under explicit quality and architecture constraints.",
+  "version": "12.0.8+codex.20261003081900",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "RAD AI",
+    "shortDescription": "Bounded development cycles with explicit quality constraints",
+    "longDescription": "Self-contained Rapid Application Development for AI agents: bounded outcomes, discriminating experiments, implementation, integration and evidence-based acceptance under explicit quality and architecture constraints. Experimental method; comparative acceleration and giant-codebase capability remain unverified.",
+    "developerName": "Maksim Korenev",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Bounded RAD cycles",
+      "Dependency-aware implementation",
+      "Independent acceptance",
+      "Revision-bound evidence"
+    ],
+    "defaultPrompt": [
+      "Use $rad-ai:rad-ai to develop this application through a bounded RAD cycle."
+    ]
+  }
+}
