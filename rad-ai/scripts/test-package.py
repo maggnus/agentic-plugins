@@ -54,6 +54,13 @@ class PackageTests(unittest.TestCase):
         (self.root / "skills/rad-ai-review/agents/openai.yaml").unlink()
         self.assert_rejected()
 
+    def test_unquoted_description_cannot_pass_as_valid_yaml(self):
+        path = self.root / "skills/rad-ai/SKILL.md"
+        lines = path.read_text().splitlines()
+        lines[2] = "description: A bounded cycle: implement and accept"
+        path.write_text("\n".join(lines) + "\n")
+        self.assert_rejected()
+
     def test_operational_language(self):
         path = self.root / "skills/rad-ai/references/contracts.md"
         path.write_text("\u0442\u0435\u043a\u0441\u0442\n")

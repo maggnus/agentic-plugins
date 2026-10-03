@@ -1,6 +1,6 @@
 ---
 name: rad-ai-build
-description: Implement one bounded RAD outcome against its contract and return the exact revision with observed evidence.
+description: "Implement one bounded RAD outcome against its contract and return the exact revision with observed evidence."
 ---
 
 # RAD implementation

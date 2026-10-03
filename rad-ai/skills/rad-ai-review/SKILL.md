@@ -1,6 +1,6 @@
 ---
 name: rad-ai-review
-description: Independently accept, return or identify unverified RAD changes against their contract, revision, architecture and observed behavior.
+description: "Independently accept, return or identify unverified RAD changes against their contract, revision, architecture and observed behavior."
 ---
 
 # RAD acceptance

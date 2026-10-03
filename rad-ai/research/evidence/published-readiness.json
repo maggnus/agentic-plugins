@@ -1,0 +1,19 @@
+{
+  "delivery_ready": false,
+  "next_step": "End at the assessment boundary. No implementation, test execution, delegation, or delivery is authorized. Before a separately authorized delivery cycle, establish acceptance evidence against candidate revision B for balance preservation, mixed-version compatibility, and recovery; the required independent review is also currently unavailable.",
+  "reasons": [
+    "The successful tests supplied are for revision A and do not establish acceptance of revision B, which rewrites stored identifiers.",
+    "The migration has critical data-loss and recovery consequences. The installed RAD AI instruction requires independent review and evidence for critical consequences; no independent reviewer is available.",
+    "Recovery behavior has not been exercised.",
+    "The ten-minute delivery budget does not establish missing acceptance evidence or delivery conditions."
+  ],
+  "unchecked": [
+    "Whether revision B preserves every balance.",
+    "Whether mixed-version compatibility holds on revision B.",
+    "Whether the recovery procedure works.",
+    "Independent review of the critical migration outcome."
+  ],
+  "skill_source": "installed rad-ai main instruction from the immutable v12.1.0 package",
+  "model": "gpt-6-luna",
+  "limitation": "The instruction body was read directly; a malformed YAML description in this release required correction for reliable skill discovery."
+}

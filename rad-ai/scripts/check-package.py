@@ -52,7 +52,12 @@ def check(root: Path) -> list[str]:
             require(body.startswith("---\n") and "\n---\n" in body[4:], f"{path}: frontmatter missing")
             frontmatter = body.split("---", 2)[1] if body.startswith("---") else ""
             require(f"name: {path.parent.name}\n" in frontmatter, f"{path}: name differs from directory")
-            require(bool(re.search(r"^description: \S", frontmatter, re.M)), f"{path}: description missing")
+            description = re.search(r"^description: (.+)$", frontmatter, re.M)
+            try:
+                value = json.loads(description.group(1)) if description else None
+                require(isinstance(value, str) and bool(value), f"{path}: description must be a nonempty string")
+            except ValueError:
+                errors.append(f"{path}: description must be JSON-quoted for valid single-line YAML")
             require((path.parent / "agents/openai.yaml").is_file(), f"{path}: Codex metadata missing")
         for target in re.findall(r"\]\(([^)]+)\)", body):
             resolved = (path.parent / target.split("#", 1)[0]).resolve()

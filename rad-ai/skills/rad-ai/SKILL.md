@@ -1,6 +1,6 @@
 ---
 name: rad-ai
-description: Run a bounded Rapid Application Development cycle for application creation or evolution: investigate uncertainty, implement, integrate and accept outcomes against explicit quality constraints.
+description: "Run a bounded Rapid Application Development cycle for application creation or evolution: investigate uncertainty, implement, integrate and accept outcomes against explicit quality constraints."
 ---
 
 # RAD AI

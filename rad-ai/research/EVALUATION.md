@@ -1,6 +1,6 @@
 # Practical evaluation
 
-Status: in progress, 2026-10-03. The evaluated claim is bounded workflow and decision feasibility. Comparative acceleration, optimal concurrency, longitudinal architecture quality and giant-codebase capability are not measured by this pilot.
+Initial release validation: 2026-10-03. The evaluated claim is bounded workflow and decision feasibility. Comparative acceleration, optimal concurrency, longitudinal architecture quality and giant-codebase capability are not measured by this pilot.
 
 ## Protocol
 
@@ -20,6 +20,7 @@ Source validation reads the packaged instruction directly; it does not install o
 | Reassessment | `ACCEPT` on corrected revision; 17 independently exercised scenarios passed. Filesystem interruption is recorded separately | Input-rejection defects closed under the unchanged contract; crash/concurrency durability is not established |
 | Native larger-system trial | Three permitted files changed; 34 targeted tests passed. Broader consumer suite: 1171 run, 20 skipped, exit 0; four documentation examples passed | Bounded implementation and local verification completed; no upstream delivery or whole-system claim |
 | Independent package assessment | `gpt-6-luna` returned `ACCEPT`; `npm test`, fixture reproduction and staged diff checks passed | Structural constraints, source claims and release preparation were assessed; published installation remains a separate check |
+| Published-package assessment | `gpt-6-luna` read the installed v12.1.0 instruction and returned `delivery_ready: false` for stale migration evidence, absent independent review and untested recovery | Decision behavior was observed; YAML discovery validation separately found a formatting defect |
 | Native Claude Code execution | Command exits 1; the service reports that the account cannot use Claude Code; model usage and cost are zero | Application or skill behavior was not exercised on this host; runtime verification remains unavailable |
 
 Initial application source and contract are in [the fixture](../evals/importer/CONTRACT.md). Selected observations are in [review evidence](evidence/importer-review.json) [correction evidence](evidence/importer-correction.json), [reassessment](evidence/importer-accepted.json), and [larger-system evidence](evidence/django-trial.json). The larger trial contract and licensed patch are in `evals/django/`. Complete local transcripts are retained separately from the distributed operational instruction.
@@ -32,6 +33,10 @@ Different tasks, hosts and executors in this pilot cannot support a causal compa
 
 ## Platform verification
 
-Both platform manifests and shared skill structure are checked from source. Publication, immutable-tag installation, component discovery and a Codex runtime invocation are pending. Claude Code runtime invocation requires an authorized account with model access; packaging and installation checks do not substitute for it.
+[Captured native-client observations](evidence/installation-v12.1.0.json) contain commands, exit statuses, installed versions, component inventory, release status, skill hashes and the matching commit. The first skills release, v12.1.0, was published by GitHub Actions and installed through both native clients from its immutable tag. Claude Code listed all three components; Codex installation matched the published commit and shared version. The model assessment read the installed instruction body and produced the expected refusal to deliver without required evidence.
+
+Full YAML validation then identified an unquoted colon in the main description. The corrected source quotes all descriptions and adds a discriminating package test for this failure. Behavioral body content is unchanged. Corrected releases require native discovery and runtime checks after publication.
+
+Claude Code runtime invocation remains unverified: its service denied model access for the current account. Installation and component inventory do not establish execution. Additional agent validation uses gpt-6-luna. The [published-package observation](evidence/published-readiness.json) identifies its exact limitation.
 
 Agent token accounting is retained as reported. Exact resolved model identity and complete elapsed time were not captured, limiting reproducibility of agent behavior and preventing a productivity comparison. The reported partial cycle time is not used as time-to-acceptance.

@@ -1,0 +1,186 @@
+{
+  "tag": {
+    "isDraft": false,
+    "isPrerelease": false,
+    "publishedAt": "2026-10-03T09:18:08Z",
+    "tagName": "v12.1.0",
+    "url": "https://github.com/maggnus/agentic-plugins/releases/tag/v12.1.0"
+  },
+  "release_run": {
+    "conclusion": "success",
+    "headSha": "322b6f44ecf45c2a0812ad6c1acb5c0afb7b4471",
+    "status": "completed",
+    "url": "https://github.com/maggnus/agentic-plugins/actions/runs/37112560150"
+  },
+  "published_commit": "90abfaa399650644509ffb041f02c5b7b9de272d",
+  "codex_marketplace_commit": "90abfaa399650644509ffb041f02c5b7b9de272d",
+  "codex_installed_version": "12.1.0+codex.20261003091804",
+  "claude_installed_version": "12.1.0",
+  "skill_hashes": {
+    "codex": {
+      "skills/rad-ai-review/SKILL.md": "c5022efe77a78f8969a4af048afcef7ea0e40686c1e06fc65b41854eba91933c",
+      "skills/rad-ai-build/SKILL.md": "ff6926835c90f164326ad53fef7059ee4633777d7a2238e6b152323bd0e7ea01",
+      "skills/rad-ai/SKILL.md": "0b88452363c526e461c87b0780bcb0c5ad7b9ba54acba4fa7db6037a9bd92484"
+    },
+    "claude": {
+      "skills/rad-ai-review/SKILL.md": "c5022efe77a78f8969a4af048afcef7ea0e40686c1e06fc65b41854eba91933c",
+      "skills/rad-ai-build/SKILL.md": "ff6926835c90f164326ad53fef7059ee4633777d7a2238e6b152323bd0e7ea01",
+      "skills/rad-ai/SKILL.md": "0b88452363c526e461c87b0780bcb0c5ad7b9ba54acba4fa7db6037a9bd92484"
+    }
+  },
+  "observations": [
+    {
+      "command": [
+        "codex",
+        "plugin",
+        "list",
+        "--marketplace",
+        "maggnus",
+        "--json"
+      ],
+      "exit_status": 0,
+      "stdout": "{\"installed\": [{\"pluginId\": \"rad-ai@maggnus\", \"name\": \"rad-ai\", \"marketplaceName\": \"maggnus\", \"version\": \"12.1.0+codex.20261003091804\", \"installed\": true, \"enabled\": true, \"source\": {\"source\": \"local\", \"path\": \"/Users/maggnus/.codex/.tmp/marketplaces/maggnus/rad-ai\"}, \"marketplaceSource\": {\"sourceType\": \"git\", \"source\": \"https://github.com/maggnus/agentic-plugins.git\"}, \"installPolicy\": \"AVAILABLE\", \"authPolicy\": \"ON_INSTALL\"}]}\n"
+    },
+    {
+      "command": [
+        "codex",
+        "plugin",
+        "marketplace",
+        "list",
+        "--json"
+      ],
+      "exit_status": 0,
+      "stdout": "{\"marketplaces\": [{\"name\": \"maggnus\", \"root\": \"/Users/maggnus/.codex/.tmp/marketplaces/maggnus\", \"marketplaceSource\": {\"sourceType\": \"git\", \"source\": \"https://github.com/maggnus/agentic-plugins.git\"}}]}\n"
+    },
+    {
+      "command": [
+        "git",
+        "-C",
+        "/Users/maggnus/.codex/.tmp/marketplaces/maggnus",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_status": 0,
+      "stdout": "90abfaa399650644509ffb041f02c5b7b9de272d\n"
+    },
+    {
+      "command": [
+        "claude",
+        "plugin",
+        "list",
+        "--json"
+      ],
+      "exit_status": 0,
+      "stdout": "[{\"id\": \"rad-ai@maggnus\", \"version\": \"12.1.0\", \"scope\": \"user\", \"enabled\": true, \"installPath\": \"/Users/maggnus/.claude/plugins/cache/maggnus/rad-ai/12.1.0\", \"installedAt\": \"2026-10-03T09:22:18.983Z\", \"lastUpdated\": \"2026-10-03T09:22:18.983Z\", \"projectEnabled\": false}]\n"
+    },
+    {
+      "command": [
+        "claude",
+        "plugin",
+        "details",
+        "rad-ai@maggnus"
+      ],
+      "exit_status": 0,
+      "stdout": "rad-ai 12.1.0\n  Description: Self-contained Rapid Application Development for AI agents: bounded outcomes, discriminating experiments, implementation, integration and evidence-based acceptance under explicit quality and architecture constraints.\n  Source: rad-ai@maggnus\n\nComponent inventory\n  Skills (3)  rad-ai, rad-ai-build, rad-ai-review\n  Agents (0)\n  Hooks (0)\n  MCP servers (0)\n  LSP servers (0)\n\nProjected token cost\n  Always-on:   ~122 tok   added to every session\n\nPer-component (rounded)\n  component      always-on  on-invoke\n  rad-ai-review        ~40       ~290\n  rad-ai-build         ~30       ~300\n  rad-ai               ~50       ~880\n\n  On-invoke cost is paid each time a skill or agent fires.\n  Token counts are estimates and may differ from actual usage.\n"
+    },
+    {
+      "command": [
+        "gh",
+        "release",
+        "view",
+        "v12.1.0",
+        "--repo",
+        "maggnus/agentic-plugins",
+        "--json",
+        "tagName,url,publishedAt,isDraft,isPrerelease"
+      ],
+      "exit_status": 0,
+      "stdout": "{\"isDraft\":false,\"isPrerelease\":false,\"publishedAt\":\"2026-10-03T09:18:08Z\",\"tagName\":\"v12.1.0\",\"url\":\"https://github.com/maggnus/agentic-plugins/releases/tag/v12.1.0\"}\n"
+    },
+    {
+      "command": [
+        "gh",
+        "run",
+        "view",
+        "37112560150",
+        "--repo",
+        "maggnus/agentic-plugins",
+        "--json",
+        "status,conclusion,url,headSha"
+      ],
+      "exit_status": 0,
+      "stdout": "{\"conclusion\":\"success\",\"headSha\":\"322b6f44ecf45c2a0812ad6c1acb5c0afb7b4471\",\"status\":\"completed\",\"url\":\"https://github.com/maggnus/agentic-plugins/actions/runs/37112560150\"}\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "v12.1.0"
+      ],
+      "exit_status": 0,
+      "stdout": "90abfaa399650644509ffb041f02c5b7b9de272d\n"
+    }
+  ],
+  "original_installation_actions": [
+    {
+      "command": [
+        "codex",
+        "plugin",
+        "marketplace",
+        "add",
+        "maggnus/agentic-plugins",
+        "--ref",
+        "v12.1.0",
+        "--json"
+      ],
+      "exit_status": 0
+    },
+    {
+      "command": [
+        "codex",
+        "plugin",
+        "add",
+        "rad-ai@maggnus",
+        "--json"
+      ],
+      "exit_status": 0,
+      "observed_version": "12.1.0+codex.20261003091804"
+    },
+    {
+      "command": [
+        "claude",
+        "plugin",
+        "marketplace",
+        "add",
+        "maggnus/agentic-plugins@v12.1.0"
+      ],
+      "exit_status": 0
+    },
+    {
+      "command": [
+        "claude",
+        "plugin",
+        "install",
+        "rad-ai@maggnus",
+        "--json"
+      ],
+      "exit_status": 0,
+      "outcome": "ok"
+    }
+  ],
+  "limitation": "Claude Code model execution was denied; inventory and installation do not verify runtime behavior.",
+  "recorded_installation_failure": {
+    "command": [
+      "codex",
+      "plugin",
+      "marketplace",
+      "add",
+      "maggnus/agentic-plugins",
+      "--ref",
+      "v12.1.0",
+      "--json"
+    ],
+    "exit_status": 1,
+    "observed": "Marketplace already registered from a different source; native remove and re-add were required."
+  }
+}
