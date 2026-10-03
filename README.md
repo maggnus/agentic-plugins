@@ -90,6 +90,13 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v12.0.7
 codex plugin add russian-speech@maggnus
 ```
 
+## В разработке: `rad-ai`
+
+Адаптация Rapid Application Development к разработке приложений ИИ-агентами, с целью
+сократить время до принятого результата при сохранении качества кода и архитектуры
+от небольшого приложения до гигантской кодовой базы. Подготовлен [план до первого выпуска навыков](rad-ai/PLAN.md).
+Исследование и практическая проверка предстоят; плагин пока недоступен для установки.
+
 ## Release
 
 Every change requires a new shared version and publication to GitHub. All plugins use that
