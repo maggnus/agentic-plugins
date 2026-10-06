@@ -6,7 +6,7 @@
     "node": ">=24.10.0"
   },
   "scripts": {
-    "test": "node .github/scripts/test-release.mjs && bash paseo-cto/scripts/test-plugin-contracts.sh && bash paseo-cto/scripts/check-distribution-sync.sh && python3 rad-ai/scripts/check-package.py && python3 rad-ai/scripts/test-package.py && python3 rad-ai/scripts/test-report.py",
+    "test": "node .github/scripts/test-release.mjs && bash paseo-cto/scripts/test-plugin-contracts.sh && bash paseo-cto/scripts/check-distribution-sync.sh && python3 rad-ai/scripts/check-package.py && python3 rad-ai/scripts/test-package.py && python3 rad-ai/scripts/test-report.py && python3 -m unittest discover -s open-design/tests -v",
     "release": "semantic-release"
   },
   "devDependencies": {

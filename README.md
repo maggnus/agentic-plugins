@@ -111,6 +111,19 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v12.2.0
 codex plugin add rad-ai@maggnus
 ```
 
+## `open-design`
+
+Real project interfaces through OpenDesign: isolated worktrees when needed, existing preview
+servers visible inside OD, bounded source-editing runs and acceptance in the project's renderer.
+Optional per project; supports Codex and Claude Code. See [open-design/README.md](open-design/README.md).
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.2.0"
+claude plugin install open-design@maggnus
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.2.0
+codex plugin add open-design@maggnus
+```
+
 ## Release
 
 Every change requires a new shared version and publication to GitHub. All plugins use that

@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenDesign"
+  short_description: "Real project UI with visible OpenDesign previews"
+  default_prompt: "Use $open-design to refine this project's real interface with a visible preview and verify the result."

@@ -29,6 +29,11 @@
       "name": "rad-ai",
       "source": "./rad-ai",
       "description": "Self-contained Rapid Application Development for AI agents: bounded outcomes, discriminating experiments, implementation, integration and evidence-based acceptance under explicit quality and architecture constraints."
+    },
+    {
+      "name": "open-design",
+      "source": "./open-design",
+      "description": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance."
     }
   ]
 }

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Project preview</title>
+<style>
+html,body{height:100%;margin:0;font:14px system-ui,sans-serif;background:#f4f4f4;color:#171717}
+body{display:flex;flex-direction:column}nav{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border-bottom:1px solid #ccc}
+button,a{font:inherit;border:1px solid #bbb;border-radius:6px;background:white;color:inherit;padding:6px 10px;text-decoration:none;cursor:pointer}
+button[aria-pressed=true]{background:#171717;color:white}iframe{width:100%;flex:1;min-height:0;border:0;background:white}
+small{padding:4px 10px;color:#555}button:focus-visible,a:focus-visible{outline:2px solid #171717;outline-offset:2px}
+</style></head><body>
+<nav aria-label="Project views"><span id="tabs"></span><button id="reload">Reload view</button><a id="external" target="_blank" rel="noopener noreferrer">Open separately</a></nav>
+<small>Live project server. Changes belong to the source components; this page contains no copied UI.</small>
+<iframe id="view" title="Project view"></iframe>
+<script>
+const views=/*VIEWS*/[];
+const frame=document.querySelector('#view');let active=0;
+function select(index){active=index;frame.title=views[index].name;frame.src=views[index].url;document.querySelector('#external').href=views[index].url;for(const [i,b] of [...document.querySelector('#tabs').children].entries())b.setAttribute('aria-pressed',String(i===index));}
+for(const [i,view] of views.entries()){const button=document.createElement('button');button.textContent=view.name;button.addEventListener('click',()=>select(i));document.querySelector('#tabs').append(button);}
+document.querySelector('#reload').addEventListener('click',()=>{frame.src='about:blank';requestAnimationFrame(()=>select(active));});
+select(0);
+</script></body></html>

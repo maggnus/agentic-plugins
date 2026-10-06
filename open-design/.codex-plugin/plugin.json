@@ -1,0 +1,26 @@
+{
+  "name": "open-design",
+  "description": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance.",
+  "version": "12.2.0+codex.20261003104911",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OpenDesign",
+    "shortDescription": "Real project UI with visible OpenDesign previews",
+    "longDescription": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance.",
+    "developerName": "Maksim Korenev",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Repository-native UI",
+      "Isolated Git worktrees",
+      "Local live previews",
+      "Owned process lifecycle"
+    ],
+    "defaultPrompt": [
+      "Use $open-design:open-design to refine this project interface with a visible preview."
+    ]
+  }
+}
