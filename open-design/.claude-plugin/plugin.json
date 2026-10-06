@@ -1,7 +1,7 @@
 {
   "name": "open-design",
   "description": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance.",
-  "version": "12.2.0",
+  "version": "12.3.0",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

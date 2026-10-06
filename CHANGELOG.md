@@ -1,3 +1,9 @@
+## [12.3.0](https://github.com/maggnus/agentic-plugins/compare/v12.2.0...v12.3.0) (2026-10-06)
+
+### Features
+
+* **open-design:** add shared project-native visual workflow ([d5aebea](https://github.com/maggnus/agentic-plugins/commit/d5aebea2f8bef5134547fe1f19ee5814b1caa708))
+
 ## [12.2.0](https://github.com/maggnus/agentic-plugins/compare/v12.1.1...v12.2.0) (2026-10-03)
 
 ### Features

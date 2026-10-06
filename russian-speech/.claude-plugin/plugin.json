@@ -1,7 +1,7 @@
 {
   "name": "russian-speech",
   "description": "Coherent Russian technical prose after long work or context compaction: reconstruct meaning from working notes instead of translating them literally. Preserve technical terms and facts without inventing causes or completed actions.",
-  "version": "12.2.0",
+  "version": "12.3.0",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

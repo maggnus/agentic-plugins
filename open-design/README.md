@@ -14,9 +14,9 @@ and Git on macOS/Linux, with no Python dependencies. Native Windows lifecycle su
 Install only the published immutable release, never this local directory.
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.2.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.3.0"
 claude plugin install open-design@maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.2.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.3.0
 codex plugin add open-design@maggnus
 ```
 
