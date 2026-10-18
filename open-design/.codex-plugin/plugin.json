@@ -1,6 +1,6 @@
 {
   "name": "open-design",
-  "description": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance.",
+  "description": "Develop real repository interfaces through the OpenDesign MCP, with existing project components, application previews and project-native acceptance.",
   "version": "12.3.1+codex.20261018100605",
   "author": {
     "name": "Maksim Korenev",
@@ -9,15 +9,15 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "OpenDesign",
-    "shortDescription": "Real project UI with visible OpenDesign previews",
-    "longDescription": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance.",
+    "shortDescription": "Real project UI through the OpenDesign MCP",
+    "longDescription": "Develop real repository interfaces through the OpenDesign MCP, with existing project components, application previews and project-native acceptance.",
     "developerName": "Maksim Korenev",
     "category": "Developer Tools",
     "capabilities": [
       "Repository-native UI",
-      "Isolated Git worktrees",
-      "Local live previews",
-      "Owned process lifecycle"
+      "OpenDesign MCP workflow",
+      "Existing application previews",
+      "Project-native acceptance"
     ],
     "defaultPrompt": [
       "Use $open-design:open-design to refine this project interface with a visible preview."

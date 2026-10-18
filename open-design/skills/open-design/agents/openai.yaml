@@ -1,4 +1,4 @@
 interface:
   display_name: "OpenDesign"
-  short_description: "Real project UI with visible OpenDesign previews"
-  default_prompt: "Use $open-design to refine this project's real interface with a visible preview and verify the result."
+  short_description: "Real project UI through the OpenDesign MCP"
+  default_prompt: "Use $open-design through the connected OpenDesign MCP to refine this project's real interface and verify the result."

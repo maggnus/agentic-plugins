@@ -113,8 +113,9 @@ codex plugin add rad-ai@maggnus
 
 ## `open-design`
 
-Real project interfaces through OpenDesign: isolated worktrees when needed, existing preview
-servers visible inside OD, bounded source-editing runs and acceptance in the project's renderer.
+Real project interfaces through the OpenDesign MCP: bounded source-editing runs, previews of
+the existing application and acceptance in the project's renderer. Preview services use the
+repository's own commands; the plugin bundles no local bridge or process manager.
 Optional per project; supports Codex and Claude Code. See [open-design/README.md](open-design/README.md).
 
 ```sh

@@ -33,7 +33,7 @@
     {
       "name": "open-design",
       "source": "./open-design",
-      "description": "Create and refine real project interfaces through OpenDesign, with isolated worktrees, owned local preview services and project-native acceptance."
+      "description": "Develop real repository interfaces through the OpenDesign MCP, with existing project components, application previews and project-native acceptance."
     }
   ]
 }

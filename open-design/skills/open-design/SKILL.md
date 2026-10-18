@@ -1,43 +1,36 @@
 ---
 name: open-design
-description: "Create and refine real project interfaces through OpenDesign with a visible live preview. Use when OpenDesign is requested or a project opts in with .open-design.json; preserve its existing components, design system and acceptance process."
+description: "Develop real repository interfaces through the OpenDesign MCP while preserving project components, design tokens and acceptance rules. Use for OpenDesign UI development and review; simple project or file queries can use MCP directly."
 ---
 
 # OpenDesign project workflow
 
-Use OpenDesign as the agent conversation and visual review workspace. The repository owns the components, design tokens and acceptance criteria. A preview page embeds the real running application; it is not a second implementation.
+Use the connected OpenDesign MCP for project context, files and generation. The repository owns the components, design tokens and acceptance criteria. A preview consumes the real application; it is not a second implementation.
 
-## Choose the scope
+## Establish context
 
-Read the project's entry point and current task. Coordinate with its active owner before shared writes. Identify the actual UI package, existing preview command, affected states/themes/viewports and the smallest acceptance check. Do not broaden a component task into a redesign or make OpenDesign mandatory for unrelated work.
+Read the repository entry point and current task. Identify the canonical UI package, existing preview commands and affected states, themes and viewports. Coordinate with the active owner before shared writes. A separate conversation does not establish file isolation; follow the repository's rules for separate worktrees and integration.
 
-A project opts in by maintaining `.open-design.json`, described in [configuration](references/configuration.md). A config supplied outside the repository works too. Inspect its commands before running them; configuration is executable project intent, not a permission grant. Do not replace another preview server, invent ports, weaken browser protections, or copy secrets and ignored local files into a workspace.
+Discover the available MCP tools and follow their current schemas. For the design the user has open, use active context; for an explicitly selected project, resolve it once and pass its exact id in subsequent calls. Prefer `get_artifact` for an entry file and its dependencies, `get_file` for a known file, and `search_files` for locating content. Use `get_project` when the local source directory is needed. Do not infer project paths from names.
 
-## Connect and isolate
+The MCP connection is supplied separately by OpenDesign. If it is unavailable, report the missing connection; do not substitute private HTTP requests, scrape application state or install a local bridge. This plugin bundles no MCP server or application.
 
-The helper is `scripts/od_bridge.py` relative to this skill. It requires Python 3.11+, Git, macOS/Linux and a running official OpenDesign **0.24.1 or 0.25.0**. It needs no Python packages. See [operations](references/operations.md) for installation, connection recovery and limitations.
+## Commission bounded work
 
-1. Run `python3 <helper> discover`, then `doctor`. Discovery identifies one desktop instance through process inventory; explicit `connect --daemon <origin> --web <origin>` is the fallback. Never use bare `od` on macOS: that may be the system octal-dump utility.
-2. Prefer an isolated worktree when another agent is active. `prepare --repo <repo> --name <name> [--ref <commit>]` creates a normal OD-owned project and populates its directory with a new Git worktree. It reports project, conversation, branch and directory. Dirty sources require an explicit committed ref; uncommitted work and `.env.local` are not copied. Use the project's own dependency/build commands in that directory.
-3. An existing OD project selected through its UI can instead be used directly. Supply its id to `up`; the helper obtains its real directory from OD. This edits that workspace in place. Desktop folder-import consent is not bypassed.
-4. Run `up --project <id> --config <file>`. It starts only configured services, waits for local readiness and registers a small preview artifact. Open the reported project URL, select the reported `previewFile` under Design Files, then Preview. Tabs choose real project views; Reload view recreates the nested frame; Open separately is the fallback.
+For generation, follow the MCP brief workflow; skip questions only when the user has asked to do so. Preserve the user's chosen execution mode and model. Discover available agents rather than guessing runtime identifiers. For OpenDesign Cloud, use the MCP sign-in workflow and distinguish authentication from usable allowance; never infer funding or model availability from sign-in alone.
 
-## Account and provider choice
+The prompt names the outcome, allowed paths, design sources, exclusions and checks. Require canonical repository components and previews that mount the same implementation. Project instructions outrank generic artifact conventions. Do not copy secrets or ignored local configuration into an OD project.
 
-Registration, desktop sign-in, usable model allowance and the selected agent are separate facts. Before relying on OpenDesign Hosted, run `account --refresh`. It reports only login state, plan, balance and enabled model ids; it omits credentials and personal identity. If `modelCatalogFresh` is false, availability is unverified: retry `account` after the existing refresh finishes rather than using a stale catalog as permission to run.
+Use `start_run` with a stable `requestId` generated once per confirmed action. After a lost response, reuse the same id and payload; do not create another run while the original is in progress. Poll `get_run` every 30–60 seconds and keep the user informed. A waiting deadline ends observation, not the run: cancel only at the user's explicit request. Follow the MCP recovery instructions for failures.
 
-Hosted can remove separate CLI/API-key setup when the account has usable funding or allowance. Free registration does not guarantee recurring credits, every model, better design quality, or faster exports. Local AI and the user's own provider key remain valid; signing in is not permission to switch an existing project's agent/model or spend credits on a test. See [account capabilities](references/account.md) for the distinction and current official sources. This check creates no model run, project upload, publication, subscription or API key.
+The available `start_run` schema may not support selecting a conversation. If the task requires a specific existing conversation, establish that the connected tools support it before starting; do not silently create a replacement conversation.
 
-## Send bounded work
+## Preview and accept
 
-Use `run --project <id> --conversation <id> --agent <id> --model <model> --prompt-file <file>`, then `wait --run <id> --timeout <seconds>`. The owner/project chooses the model; an existing agent default can be passed explicitly as `default`. Do not imply that an unresolved default identifies the actual model. A wait deadline requests cancellation and reports failure; inspect before retrying. Do not assume mid-turn steering works.
+Use the repository's existing commands to start, inspect and stop its preview services. Reuse an available application view; do not replace another session's server or introduce a parallel process manager. If a preview wrapper is needed, register it through `create_artifact` and have it embed the existing application without copied styling or components. Keep generated artifacts out of product commits. Do not weaken browser protections to make embedding work.
 
-The task must name the outcome, allowed paths, design sources, exclusions and checks. Require real repository-native components, reuse of existing primitives, and examples mounting the same implementation. Tell OD that generic HTML/artifact conventions do not override the project. Source-only output may have no OD artifact card; inspect the Git diff rather than asking for a duplicate mockup. OD may also index build files produced by another process: do not attribute them to its agent.
+Verify the actual revision in the project's renderer: affected themes and viewports, fonts, meaningful interaction states, browser errors and events. For an embedded preview, confirm that the application appears inside OD and that a real source change becomes visible. If embedding fails, report the limitation and use the direct view; nested editing, screenshots and comments are not guaranteed to behave like native artifacts.
 
-## Accept and hand over
+Source-only work may have no artifact card; inspect the Git diff instead of requesting a duplicate mockup. Build files may come from another process, so do not attribute them to the OD agent without evidence.
 
-Check the actual revision and meaningful behavior in the project's renderer. Verify affected themes and viewports, real fonts, loading/error/disabled states as applicable, browser errors and interaction events. For an embedded preview, confirm the application appears **inside OD** and that an actual source change becomes visible; screenshots outside OD do not establish that connection. Frame replacement can reset state. If refresh, fonts or embedding fail, report the limitation and use the direct view until corrected; do not silently claim equivalence to a native design editor.
-
-Preserve project review and owner-acceptance requirements. Do not merge, publish or change API/design authority merely because OD succeeded. Report the source revision, project/view links, observed checks and remaining gaps. Generated preview HTML, its artifact manifest and OD's `.file-versions/` are tooling output, not product code; do not stage them accidentally.
-
-Use `status --project <id>` and `down --project <id>` for services owned by this helper. Down preserves files, worktrees, projects and external servers. Leave a review session running when useful, state that explicitly, and provide its stop command. Installation/distribution rules belong to the plugin repository; never install a local plugin checkout or modify an installed cache.
+Preserve project review and owner acceptance. Report the source revision, project/view links, observed checks and remaining gaps. Leave useful review services running and identify their repository-owned stop command. Plugin changes belong in its source repository and published releases, never in the installed cache.
