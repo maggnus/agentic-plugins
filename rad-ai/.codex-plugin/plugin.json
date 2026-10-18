@@ -1,7 +1,7 @@
 {
   "name": "rad-ai",
   "description": "Self-contained Rapid Application Development for AI agents: bounded outcomes, discriminating experiments, implementation, integration and evidence-based acceptance under explicit quality and architecture constraints.",
-  "version": "12.3.1+codex.20261018100605",
+  "version": "12.3.2+codex.20261018201418",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

@@ -9,9 +9,9 @@ design system, source files and acceptance rules.
 Install only the published immutable release, never this local directory.
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.3.1"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.3.2"
 claude plugin install open-design@maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.3.1
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.3.2
 codex plugin add open-design@maggnus
 ```
 

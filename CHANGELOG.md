@@ -1,3 +1,9 @@
+## [12.3.2](https://github.com/maggnus/agentic-plugins/compare/v12.3.1...v12.3.2) (2026-10-18)
+
+### Bug Fixes
+
+* **open-design:** replace local bridge with MCP workflow ([f80aba1](https://github.com/maggnus/agentic-plugins/commit/f80aba19333e2341c9a70aa22153b9f26d10aaf3))
+
 ## [12.3.1](https://github.com/maggnus/agentic-plugins/compare/v12.3.0...v12.3.1) (2026-10-18)
 
 ### Bug Fixes
