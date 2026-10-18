@@ -138,6 +138,56 @@ class BridgeTests(unittest.TestCase):
         self.assertNotIn('<script>attack()', page)
         self.assertIn('textContent=view.name', page)
 
+    def test_connect_accepts_supported_versions_but_not_mixed_or_unknown_origins(self):
+        def response(version, web_version=None):
+            def get(url, data=None, timeout=8):
+                if url.endswith('/api/health'):
+                    v = web_version if web_version and url.startswith(self.c['web']) else version
+                    return json.dumps({'ok': True, 'version': v}).encode()
+                if url.endswith('/api/projects'):
+                    return b'{"projects": [{"id": "existing"}]}'
+                return b'<html>OpenDesign</html>'
+            return get
+        for version in bridge.SUPPORTED:
+            with self.subTest(version=version), patch.object(bridge, 'request', side_effect=response(version)):
+                self.assertEqual(bridge.connect(**self.c), self.c)
+        for version, other in [('0.25.0', '0.24.1'), ('99.0.0', None)]:
+            with self.subTest(version=version, other=other), patch.object(bridge, 'request', side_effect=response(version, other)):
+                with self.assertRaises(ValueError): bridge.connect(**self.c)
+
+    def test_account_omits_identity_credentials_and_locked_models(self):
+        status = {'loggedIn': True, 'sessionState': 'authenticated', 'user': {'email': 'private@example.invalid'},
+                  'configPath': '/private/key.json', 'token': 'secret',
+                  'account': {'plan': 'free', 'balanceUsd': '0.5000', 'accessToken': 'nested-secret'}}
+        catalog = {'source': 'remote', 'models': [
+            {'id': 'available', 'enabled': True, 'default': True, 'metadata': {'private': 'omit'}},
+            {'id': 'locked', 'enabled': False, 'default': False}]}
+        def get(c, path, data=None):
+            return catalog if path == '/api/amr/models' else status
+        with patch.object(bridge, 'api', side_effect=get) as mocked:
+            result = bridge.account_status(self.c, refresh=True)
+        self.assertEqual(result, {'loggedIn': True, 'sessionState': 'authenticated',
+                         'account': {'plan': 'free', 'balanceUsd': '0.5000'},
+                         'modelCatalogFresh': True, 'enabledModels': [{'id': 'available', 'default': True}]})
+        self.assertEqual([call.args[1] for call in mocked.call_args_list],
+                         ['/api/integrations/vela/status?refresh=1', '/api/amr/models'])
+
+    def test_stale_catalog_and_unauthenticated_session_do_not_claim_availability(self):
+        status = {'loggedIn': True, 'sessionState': 'authenticated'}
+        for catalog in [{'source': 'preset'}, {'source': 'remote', 'stale': True},
+                        {'source': 'remote', 'refreshing': True}]:
+            catalog['models'] = [{'id': 'old-model', 'enabled': True}]
+            with self.subTest(catalog=catalog), patch.object(bridge, 'api', side_effect=[status, catalog]):
+                result = bridge.account_status(self.c)
+                self.assertFalse(result['modelCatalogFresh'])
+                self.assertEqual(result['enabledModels'], [])
+        for status in [{'loggedIn': False, 'sessionState': 'logged_out'},
+                       {'loggedIn': True, 'sessionState': 'reauth_required'}]:
+            with self.subTest(status=status), patch.object(bridge, 'api', return_value=status) as mocked:
+                result = bridge.account_status(self.c)
+                self.assertNotIn('enabledModels', result)
+                self.assertEqual(mocked.call_count, 1)
+
     def test_prepare_checkout_does_not_copy_dirty_files_or_secrets(self):
         repo = self.root / 'repo'; repo.mkdir()
         def git(*args): return subprocess.check_output(['git', '-C', str(repo), *args], text=True).strip()

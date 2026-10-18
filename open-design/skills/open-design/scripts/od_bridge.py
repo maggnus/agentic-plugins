@@ -19,7 +19,7 @@ import uuid
 
 STATE = Path(os.environ.get('AGENTIC_OD_HOME', str(Path.home() / '.config/agentic-open-design')))
 SCRIPT = Path(__file__).resolve()
-SUPPORTED = '0.24.1'
+SUPPORTED = ('0.24.1', '0.25.0')
 CHILDREN = {}  # Reap workers when this invocation is also their parent.
 
 
@@ -71,8 +71,8 @@ def api(connection, path, data=None):
 def connection():
     c = read(STATE / 'connection.json')
     health = api(c, '/api/health')
-    if not health.get('ok') or health.get('version') != SUPPORTED:
-        raise ValueError(f'Tested OpenDesign {SUPPORTED} required; run connect after a restart/update')
+    if not health.get('ok') or health.get('version') not in SUPPORTED:
+        raise ValueError(f'Tested OpenDesign {", ".join(SUPPORTED)} required; run connect after a restart/update')
     return c
 
 
@@ -80,10 +80,14 @@ def connect(daemon, web):
     c = {'daemon': local_url(daemon), 'web': local_url(web)}
     if any(any((u.path, u.query, u.fragment)) for u in map(urllib.parse.urlsplit, c.values())):
         raise ValueError('Connection URLs must be origins, without paths')
+    versions = set()
     for origin in c.values():
         health = json.loads(request(origin + '/api/health'))
-        if not health.get('ok') or health.get('version') != SUPPORTED:
-            raise ValueError(f'Expected OpenDesign {SUPPORTED} on both origins')
+        if not health.get('ok') or health.get('version') not in SUPPORTED:
+            raise ValueError(f'Expected OpenDesign {", ".join(SUPPORTED)} on both origins')
+        versions.add(health['version'])
+    if len(versions) != 1:
+        raise ValueError('Web and daemon versions differ; reconnect to one desktop instance')
     # The desktop static-file port is not its web/API proxy. Verify both together.
     if b'<html' not in request(c['web'] + '/').lower():
         raise ValueError('web must serve the OpenDesign UI and API, not just the daemon')
@@ -111,7 +115,7 @@ def discover():
         origin = f'http://127.0.0.1:{port}'
         try:
             health = json.loads(request(origin + '/api/health', timeout=2))
-            if health.get('ok') and health.get('version') == SUPPORTED:
+            if health.get('ok') and health.get('version') in SUPPORTED:
                 apis.append(origin)
                 try:
                     if b'<html' in request(origin + '/', timeout=2).lower():
@@ -132,6 +136,28 @@ def project(c, project_id):
     info = api(c, '/api/projects/' + project_id)
     root = Path(info['resolvedDir']).resolve()
     return info, root
+
+
+def account_status(c, refresh=False):
+    """Read account/model availability without exposing credentials or changing providers."""
+    status = api(c, '/api/integrations/vela/status' + ('?refresh=1' if refresh else ''))
+    account = status.get('account') or {}
+    result = {
+        'loggedIn': status.get('loggedIn') is True,
+        'sessionState': status.get('sessionState'),
+        'account': {k: account[k] for k in ('plan', 'balanceUsd') if k in account},
+    }
+    if not result['loggedIn'] or result['sessionState'] != 'authenticated':
+        return result
+    catalog = api(c, '/api/amr/models')
+    fresh = catalog.get('source') == 'remote' and not catalog.get('stale') and not catalog.get('refreshing')
+    result['modelCatalogFresh'] = fresh
+    result['enabledModels'] = [
+        {'id': model['id'], 'default': model.get('default') is True}
+        for model in catalog.get('models', [])
+        if fresh and model.get('enabled') is True and isinstance(model.get('id'), str)
+    ]
+    return result
 
 
 def git(repo, *args):
@@ -400,6 +426,7 @@ def main():
     sub = p.add_subparsers(dest='command', required=True)
     q = sub.add_parser('connect'); q.add_argument('--daemon', required=True); q.add_argument('--web', required=True)
     sub.add_parser('discover'); sub.add_parser('doctor')
+    q = sub.add_parser('account'); q.add_argument('--refresh', action='store_true')
     q = sub.add_parser('prepare'); q.add_argument('--repo', required=True); q.add_argument('--name', required=True); q.add_argument('--ref'); q.add_argument('--branch')
     q = sub.add_parser('up'); q.add_argument('--project', required=True); q.add_argument('--config', type=Path, required=True); q.add_argument('--timeout', type=float, default=60)
     q = sub.add_parser('down'); q.add_argument('--project', required=True)
@@ -425,7 +452,9 @@ def main():
     else:
         c = connection()
         if args.command == 'doctor':
-            result = {**c, 'version': SUPPORTED, 'state': str(STATE)}
+            result = {**c, 'version': api(c, '/api/health')['version'], 'state': str(STATE)}
+        elif args.command == 'account':
+            result = account_status(c, args.refresh)
         elif args.command == 'prepare':
             result = prepare(c, args.repo, args.name, args.ref, args.branch)
         elif args.command == 'up':

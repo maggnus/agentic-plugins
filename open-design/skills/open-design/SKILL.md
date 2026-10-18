@@ -15,12 +15,18 @@ A project opts in by maintaining `.open-design.json`, described in [configuratio
 
 ## Connect and isolate
 
-The helper is `scripts/od_bridge.py` relative to this skill. It requires Python 3.11+, Git, macOS/Linux and a running official OpenDesign **0.24.1**. It needs no Python packages. See [operations](references/operations.md) for installation, connection recovery and limitations.
+The helper is `scripts/od_bridge.py` relative to this skill. It requires Python 3.11+, Git, macOS/Linux and a running official OpenDesign **0.24.1 or 0.25.0**. It needs no Python packages. See [operations](references/operations.md) for installation, connection recovery and limitations.
 
 1. Run `python3 <helper> discover`, then `doctor`. Discovery identifies one desktop instance through process inventory; explicit `connect --daemon <origin> --web <origin>` is the fallback. Never use bare `od` on macOS: that may be the system octal-dump utility.
 2. Prefer an isolated worktree when another agent is active. `prepare --repo <repo> --name <name> [--ref <commit>]` creates a normal OD-owned project and populates its directory with a new Git worktree. It reports project, conversation, branch and directory. Dirty sources require an explicit committed ref; uncommitted work and `.env.local` are not copied. Use the project's own dependency/build commands in that directory.
 3. An existing OD project selected through its UI can instead be used directly. Supply its id to `up`; the helper obtains its real directory from OD. This edits that workspace in place. Desktop folder-import consent is not bypassed.
 4. Run `up --project <id> --config <file>`. It starts only configured services, waits for local readiness and registers a small preview artifact. Open the reported project URL, select the reported `previewFile` under Design Files, then Preview. Tabs choose real project views; Reload view recreates the nested frame; Open separately is the fallback.
+
+## Account and provider choice
+
+Registration, desktop sign-in, usable model allowance and the selected agent are separate facts. Before relying on OpenDesign Hosted, run `account --refresh`. It reports only login state, plan, balance and enabled model ids; it omits credentials and personal identity. If `modelCatalogFresh` is false, availability is unverified: retry `account` after the existing refresh finishes rather than using a stale catalog as permission to run.
+
+Hosted can remove separate CLI/API-key setup when the account has usable funding or allowance. Free registration does not guarantee recurring credits, every model, better design quality, or faster exports. Local AI and the user's own provider key remain valid; signing in is not permission to switch an existing project's agent/model or spend credits on a test. See [account capabilities](references/account.md) for the distinction and current official sources. This check creates no model run, project upload, publication, subscription or API key.
 
 ## Send bounded work
 
