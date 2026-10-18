@@ -1,3 +1,9 @@
+## [12.3.1](https://github.com/maggnus/agentic-plugins/compare/v12.3.0...v12.3.1) (2026-10-18)
+
+### Bug Fixes
+
+* **open-design:** check hosted account availability and support desktop 0.25 ([af2a657](https://github.com/maggnus/agentic-plugins/commit/af2a6571d75a842f5d16efc1335cedc9c803e565))
+
 ## [12.3.0](https://github.com/maggnus/agentic-plugins/compare/v12.2.0...v12.3.0) (2026-10-06)
 
 ### Features
