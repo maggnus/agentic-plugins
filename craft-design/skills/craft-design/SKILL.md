@@ -46,8 +46,9 @@ task needs: every file you read stays in context.
      direction). A library system or direction may seed it; read one block with
      `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
 
-   The contract governs tokens, fonts, radii, shadows and ornament; the entry's
-   template keeps its structure, and its aesthetic rules yield to the contract.
+   The contract governs tokens, fonts, radii, shadows and ornament; reuse the
+   template's working code, but the spec decides the sections, and the entry's
+   aesthetic rules yield to the contract.
 
 No entry fits? Work from the charter alone; that is a valid OD run.
 
@@ -107,8 +108,9 @@ node <skill>/scripts/shot.mjs design/<slug>/index.html --width 1440,390
 
 It renders each width at an exact viewport (below 600 a phone, 844 tall), prints
 one PNG path per width and a line with the page height and any horizontal
-overflow with the offending elements. `--at <y|selector>` scrolls first, `--full`
-captures the whole page, `--height` and `--out` are optional. View PNGs with the
+overflow with the offending elements. `--full` captures the whole page (use it
+for pages longer than a few screens), `--at <y|selector>` scrolls first,
+`--height` and `--out` are optional. View PNGs with the
 host's image reading. It needs Chrome, Chromium, Edge or Brave; without one,
 deliver on static checks and say so.
 

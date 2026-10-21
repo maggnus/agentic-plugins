@@ -128,8 +128,9 @@ once, in prose.
 
 1. Read every file the entry requires (`assets/template.html`, `layouts.md`,
    `checklist.md`, `DESIGN.md`) in full before building.
-2. Start from the template's structure and working code; restyle it to the
-   contract instead of rewriting what works.
+2. Reuse the template's working code (reset, grid, components, scripts) and
+   restyle it to the contract; the design spec decides which sections exist,
+   their order and their types.
 3. Fill every slot with specific, plausible content written for this subject,
    place and audience, in the user's language: no `{{placeholder}}`, lorem ipsum,
    empty sections, `—`, `…` or "уточняется". Keep every real value the user gave.
@@ -172,12 +173,11 @@ recheck only the affected area.
    visible where the license requires them.
 5. **Render once the build is complete.** For a responsive page run
    `scripts/shot.mjs <file> --width 1440,390`; fixed-size artifacts use their own
-   size. Read the overflow line for each width and view the PNGs. Take further
-   shots (`--at <selector>`, `--full`) only for a specific doubt or to recheck a
-   fix. If the script fails, allow one diagnostic; then deliver on static checks
+   size, adding `--full` for a page longer than a few screens. Read the overflow
+   line for each width and view the PNGs. Take further shots (`--at <selector>`)
+   only for a specific doubt or to recheck a fix. If the script fails, allow one diagnostic; then deliver on static checks
    and state which ones you ran.
-6. **Look at it as an art director,** on the shots of the first screen and the
-   whole page: what draws the eye first; what makes this place memorable; would
+6. **Look at it as an art director,** on these shots: what draws the eye first; what makes this place memorable; would
    any line fit a competitor; do scale, density and background change from
    section to section; does every action help the visitor. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
@@ -261,9 +261,10 @@ principles; the figures in them are examples, not a house style to repeat.
   figure, one highlight), not sprinkled.
 - Display and body faces differ; one family only for utilitarian or data-dense
   briefs.
-- A web font in the contract must really load: a Google Fonts `<link>` with the
-  weights used, `display=swap` and the script's subset (Cyrillic for Russian),
-  followed by a fallback stack. In the shots, confirm the display face rendered.
+- A web font in the contract must really load: a reachable `@font-face` file or
+  an authorized source such as Google Fonts, with the weights used, the script's
+  glyphs (Cyrillic for Russian) and a fallback stack. In the shots, confirm the
+  display face rendered.
 - One decisive flourish per design; three is noise.
 
 ### Text and language
