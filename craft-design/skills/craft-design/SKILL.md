@@ -115,6 +115,10 @@ deliver on static checks and say so.
 
 ## Images
 
+The client's own venue, people and products without supplied photos get
+art-directed placeholders (charter, Visual finish), not stock. For named real
+places or objects, or when the user asks for photos:
+
 ```sh
 node <skill>/scripts/images.mjs search "espresso bar interior" [--source openverse]
 node <skill>/scripts/images.mjs get '<ref from search>' design/<slug> --name hero
@@ -131,9 +135,10 @@ parameterized controls (accent, type scale, density, motion, theme).
 
 Clarify with the host's question tool, never a `<question-form>` block. Read
 `<skill>/references/brief.md` (question bank, host formats) before asking. Ask
-only when a gap changes direction, structure or format; missing facts become
-labeled placeholders. When another agent or a script invoked you, never ask:
-decide and list your assumptions.
+only when a gap changes direction, structure or format, or the subject itself is
+unclear; missing details of a known subject become realistic demo content. Skip
+questions only when the host cannot ask or the user said not to; then decide and
+list your assumptions.
 
 ## Provenance
 

@@ -61,10 +61,11 @@ materially change the direction, structure or delivery format; then read
 
 - Enough information, an explicit "skip questions / just build", or a local
   revision of an existing design: do not ask.
-- Missing facts alone (address, hours, prices, menu, team, metrics) are no reason
-  to ask: build with labeled placeholders (see Read and reuse).
-- Invoked by another agent, a script or a non-interactive run: never ask; choose,
-  build and list your assumptions in the summary.
+- An unknown subject is a gap ("a site for my studio": studio of what, for
+  whom?): ask. Missing details of a known subject (address, hours, prices, menu,
+  team, metrics) are not: fill them with demo content (see Read and reuse).
+- Only when questions are impossible (the host has no way to ask, a
+  non-interactive run) or forbidden: choose, build and list your assumptions.
 - Answers already given are locked; never ask the same thing again.
 - An active design system locks the visual direction: do not ask about brand,
   style, theme or palette.
@@ -111,12 +112,13 @@ once, in prose.
    `checklist.md`, `DESIGN.md`) in full before building.
 2. Start from the existing template and its style rules; do not rewrite CSS that
    already works.
-3. Fill every template slot: no `{{placeholder}}`, lorem ipsum, empty sections or
-   stubs. Write the design copy yourself (headlines, descriptions, microcopy) in
-   the user's language. Facts you were not given (address, hours, prices, menu
-   items, names, metrics, reviews, contacts) stay honest placeholders that look
-   finished in place (`ул. Пример, 1`, `—:— — —:—`), carry `data-placeholder` and
-   are listed in the summary; never present an invented fact as real.
+3. Fill every slot with specific, plausible content written for this subject,
+   place and audience, in the user's language: no `{{placeholder}}`, lorem ipsum,
+   empty sections, `—`, `…` or "уточняется". Details you were not given (menu
+   and prices at local levels, hours, a believable address, product names,
+   dashboard data) become realistic demo values; the summary names them as demo
+   values to replace. Never invent facts about real named people, companies or
+   products, and no hype: vanity counters, awards, fake testimonials.
 4. Keep runtime bindings an entry explicitly requires (for example `{{data.*}}`
    shared by `template.html` and `data.json`).
 5. Search the workspace before declaring a file missing; do not reread unchanged
@@ -134,11 +136,12 @@ the artifact delivered in the turn must be complete.
 One full pass, in order. Fix what you find, change only what is necessary, and
 recheck only the affected area.
 
-1. **Code and content:** unclosed tags, missing `</script>`, leftover
-   placeholders, empty sections; walk the main interaction once.
+1. **Code and content:** unclosed tags, missing `</script>`, leftover template
+   slots, empty sections, generic lines; walk every interaction once (each tab,
+   control and form path, including errors and success).
 2. **Entry requirements:** every P0 item of the entry's checklist.
 3. **Visual and interaction quality:** intent, hierarchy, execution, content
-   specificity, restraint; overlaps, clipping, outline-only charts, duplicate
+   specificity, restraint, the Quality bar; overlaps, clipping, outline-only charts, duplicate
    primary CTAs; hover, focus and active states one by one with paired colors and
    no loss of contrast.
 4. **Imagery and provenance:** correct real images for named referents; every
@@ -171,9 +174,9 @@ Files are the source of truth. Write them first, then briefly say which files
 changed, the result and open issues; never paste the full source into the reply.
 Unless the user asks for several files, the main HTML is complete and
 self-contained (inline CSS and JS), with images as files in `img/` beside it; a
-multi-file artifact uses `index.html` as the entry. The summary lists the
-placeholders to replace, image credits and, when you did not ask, your
-assumptions.
+multi-file artifact uses `index.html` as the entry. The summary lists the demo
+values to replace, the photos to shoot (image placeholders), image credits and,
+when you did not ask, your assumptions.
 
 ## Design craft
 
@@ -187,12 +190,39 @@ assumptions.
 - several solid buttons for one action in a viewport, icons beside every heading;
 - Inter, Roboto, Arial or Fraunces as display faces (fine for body) unless the
   visual contract names them;
-- invented metrics, filler copy;
-- warm beige or cream backgrounds unless the brand or direction specifies them;
+- vanity metrics and filler copy that fits any business ("для вашего хорошего
+  дня", "всё начинается с зерна");
+- beige or cream as a default background; use warm paper tones only when the
+  domain or the contract calls for them (food, coffee, print, craft);
 - designer-only or presenter-only control panels inside a product artifact.
 
-Without real values, use honest labeled placeholders; never fabricate data. Add
-no sections or features beyond what the brief and the chosen entry imply.
+Add no sections or features beyond what the brief and the chosen entry imply.
+
+### Quality bar
+
+The target is Claude Design–grade work, whatever the style:
+
+- **Specific content.** Every block says something concrete about this subject:
+  what, when, how much, for whom ("Жарим по вторникам и пятницам прямо в зале.
+  Дата обжарки — на каждой пачке."). A line that would fit any business is
+  rewritten. Lists carry real attributes (origin, roast date, weight, price).
+- **It works.** A prototype, not a picture: tabs switch content, toggles and
+  steppers change state, forms validate with inline errors and end in a success
+  state, unavailable options look and behave disabled, derived details update
+  (open now, totals, the chosen slot summarized). Plain JS state in one script;
+  no dead buttons, no `href="#"` primary actions.
+- **Typographic voice.** One characterful display face at decisive scale (a
+  landing hero up to `clamp(44px, 9.5vw, 148px)`, line-height 0.9–1, negative
+  tracking), a quiet body face, and a mono for labels, meta and figures when it
+  suits. Size contrast carries the hierarchy, not boxes and shadows.
+- **Structure without card soup.** Hairline-ruled lists and tables, numbered
+  strips, full-bleed bands alternating light, dark and tinted inside one
+  container width; cards only for genuinely separate objects.
+- **Intrinsic responsiveness.** `repeat(auto-fit, minmax(min(100%, Npx), 1fr))`,
+  `flex-wrap` and `clamp()` for type, spacing and media heights, so 390 and 1440
+  both work with few media queries; the mobile header stays one compact row.
+- **One memorable move**, for example an oversized wordmark closing the page or a
+  live status pill.
 
 ### Color and typography
 
@@ -265,19 +295,22 @@ or textures matter. Sourcing order:
 2. A named real referent (person, product, logo, cover, artwork, event, landmark,
    place) needs its correct real image, found with the host's authorized search
    or fetch tools and localized. Never generate, draw or substitute it.
-3. Demo content defaults to real, well-known referents with real images; do not
-   invent catalog items to avoid sourcing.
-4. For atmospheric subjects, search real photography first; generate only when
-   the user wants a generated style or a genuine search failed. A client's own
-   venue, team or product you have no photos of gets atmospheric stock photos,
-   noted in the summary as "replace with your own"; never pass them off as the
-   client's.
+3. A demo catalog of a public category (books, albums, films, gadgets) uses real,
+   well-known items with their real images; do not invent them to avoid sourcing.
+4. The client's own venue, team, food or product you have no photos of gets an
+   art-directed placeholder, not stock: a block at the final ratio and radius in
+   a palette tone (flat or a subtle diagonal hatch,
+   `repeating-linear-gradient(135deg, A 0 10px, B 10px 20px)`) with a small mono
+   caption describing the shot ("фото: зал кофейни утром, свет из окна"). Stock
+   would pass a stranger's room off as the client's. Use real photos for these
+   only when the user asks for them.
 5. Generate with the host's own image tool when appropriate, only for the few
    surfaces that matter, never to bypass factual sourcing.
 6. When licensing or privacy rules out every source, use a deliberate labeled
    placeholder and state the limitation in the summary.
 
-Search and download with `scripts/images.mjs` (Wikimedia Commons, then
+For named referents and requested photos, search and download with
+`scripts/images.mjs` (Wikimedia Commons, then
 Openverse); it keeps only licenses that allow commercial use and modification
 (CC0, public domain, CC BY, CC BY-SA), downsizes and records credits in
 `img/CREDITS.md`. Use Unsplash or Pexels only from a known page URL. CC BY and
