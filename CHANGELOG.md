@@ -1,3 +1,11 @@
+## [12.4.3](https://github.com/maggnus/agentic-plugins/compare/v12.4.2...v12.4.3) (2026-10-21)
+
+### Bug Fixes
+
+* **craft-design:** capture complete pages at the original viewport ([0d679ec](https://github.com/maggnus/agentic-plugins/commit/0d679ecb0b4e1fc4847e8ce17ad6972ea2d7e050))
+* **craft-design:** design spec instead of fixed directions, example-value mode ([bd8c728](https://github.com/maggnus/agentic-plugins/commit/bd8c7285c5fec06b6eb2adac3ea8ed1d9671865a))
+* **craft-design:** spec decides sections, any reachable web font, full-page review shots ([88e5ee8](https://github.com/maggnus/agentic-plugins/commit/88e5ee833703016cae8540128e371e7fd5abc5c5))
+
 ## [12.4.2](https://github.com/maggnus/agentic-plugins/compare/v12.4.1...v12.4.2) (2026-10-21)
 
 ### Bug Fixes
