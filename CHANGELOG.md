@@ -1,3 +1,9 @@
+## [12.4.0](https://github.com/maggnus/agentic-plugins/compare/v12.3.2...v12.4.0) (2026-10-21)
+
+### Features
+
+* **craft-design:** add OpenDesign-grade design plugin with live preview ([937441a](https://github.com/maggnus/agentic-plugins/commit/937441a412312c71653218c284f906354f90ab93))
+
 ## [12.3.2](https://github.com/maggnus/agentic-plugins/compare/v12.3.1...v12.3.2) (2026-10-18)
 
 ### Bug Fixes
