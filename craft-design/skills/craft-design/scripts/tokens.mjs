@@ -62,7 +62,7 @@ function delimiter(text, from, end, chars) {
 }
 
 function htmlParts(html) {
-  const styles = [], inline = [], svgColors = [], links = [];
+  const styles = [], inline = [], svgColors = [], links = [], scripts = [];
   let i = 0, svg = 0;
   while ((i = html.indexOf('<', i)) >= 0) {
     if (html.startsWith('<!--', i)) { const e = html.indexOf('-->', i + 4); i = e < 0 ? html.length : e + 3; continue; }
@@ -89,10 +89,11 @@ function htmlParts(html) {
       const close = new RegExp(`</${tag}\\s*>`, 'ig'); close.lastIndex = end + 1;
       const found = close.exec(html);
       if (tag === 'style') styles.push({ css: html.slice(end + 1, found?.index ?? html.length), start: end + 1 });
+      if (tag === 'script') scripts.push(html.slice(end + 1, found?.index ?? html.length));
       i = found ? close.lastIndex : html.length;
     } else { if (tag === 'svg' && html[end - 1] === '/') svg--; i = end + 1; }
   }
-  return { styles, inline, svgColors, links };
+  return { styles, inline, svgColors, links, scripts };
 }
 
 export function themeRange(html, parts = htmlParts(html)) {
@@ -198,6 +199,14 @@ export function inspectHtml(html) {
   for (const a of parts.svgColors) for (const name of refs(a.value)) {
     used.add(name);
     if (!definitions.has(name)) warn('undefined-token', `${name} is not declared in this HTML`, a.start, 'svg [' + a.name + ']');
+  }
+  // Scripts may set tokens by name, including built names such as `--flora-${c}`.
+  for (const js of parts.scripts) {
+    for (const m of js.matchAll(/--[\w-]+/g)) {
+      if (/\$\{/.test(js.slice(m.index + m[0].length, m.index + m[0].length + 2))) {
+        for (const name of definitions.keys()) if (name.startsWith(m[0])) used.add(name);
+      } else used.add(m[0]);
+    }
   }
   // Follow local aliases, including forward references, without treating every
   // geometric custom property (such as --columns: 3) as a design value.

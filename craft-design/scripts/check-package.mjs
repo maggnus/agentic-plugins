@@ -183,6 +183,9 @@ assert.deepEqual(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent:
 assert.throws(() => themeRange(goodTokens.replace('/* tokens:end */', '/* tokens:start */')), /exactly one ordered/);
 assert.throws(() => themeRange('<style>p{content:"/* tokens:start */ :root{} /* tokens:end */"}</style>'), /exactly one ordered/, 'quoted marker text cannot be used for extract or sync');
 assert.deepEqual(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent: #b12642; --illustration: #123456;').replace('</body>', '<svg><path fill="var(--illustration)"/></svg></body>')).warnings, [], 'SVG presentation attributes can reference tokens');
+const scripted = goodTokens.replace('--accent: #b12642;', '--accent: #b12642; --flora-rose: #c34; --flora-sky: #8ac; --chart: #123;')
+  .replace('</body>', '<script>const v = c => `var(--flora-${c})`; el.style.setProperty("--chart", "1");</script></body>');
+assert.deepEqual(inspectHtml(scripted).warnings, [], 'tokens referenced from scripts, including built names, count as used');
 
 const runTokens = (args, options = {}) => spawnSync(process.execPath, [tokenScript, ...args], { encoding: 'utf8', timeout: 60000, ...options });
 const noBrowser = { env: { ...process.env, CHROME_PATH: join(work, 'no-browser') } };

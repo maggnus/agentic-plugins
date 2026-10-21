@@ -168,9 +168,11 @@ once, in prose.
    A detail you were not given (menu and prices at local levels, hours, address,
    product names, dashboard data) becomes a consistent example value, whoever's
    business it is: mark its element `data-demo`, list all of them in an HTML
-   comment at the top of the file, add one quiet visible note for the visitor
-   (footer or beside the first such block: «Цены, адрес и расписание — примерные,
-   для макета») and never present them as confirmed. Never
+   comment at the top of the file, add a quiet visible note for the visitor
+   beside the blocks carrying key example values (prices, address and hours,
+   schedule; also live statuses computed from them, such as "open now") and in
+   the footer («Цены, адрес и расписание — примерные, для макета»), and never
+   present them as confirmed. Never
    invent facts about real third parties, achievements, awards, ratings or
    testimonials. Example values must be replaced or confirmed before the page
    is published.
@@ -199,6 +201,13 @@ recheck only the affected area.
    workshop → its date), the phone keeps a way to every section from anywhere on
    a long page, and a prototype's success state promises nothing that will not
    happen (no "мы позвоним", "SMS придёт").
+   Check results, not clicks: out-of-range input (a past or distant date, zero
+   or too many), totals for several items or people (per person or in total,
+   said plainly), and the next step after success names where the request goes.
+   Never switch off native validation (`novalidate`) without re-implementing its
+   limits. A prototype form says it is a demo beside the submit button, before
+   the action, not only after it. The visitor can always reach the business:
+   address or area, hours, a phone or messenger.
 2. **Entry requirements:** every P0 item of the entry's checklist, except
    aesthetic items the contract overrides; "no invented metrics" is met by
    marked example values.
@@ -279,6 +288,9 @@ principles; the figures in them are examples, not a house style to repeat.
   what, when, how much, for whom ("Жарим по вторникам и пятницам прямо в зале.
   Дата обжарки — на каждой пачке."). A line that would fit any business is
   rewritten. Lists carry real attributes (origin, roast date, weight, price).
+  Each main section helps a decision (what to choose, how much, when, where, how
+  to get it); a section that only sets a mood is cut or merged, and the art idea
+  grows out of those facts, not beside them.
 - **It works.** A prototype, not a picture: tabs switch content, toggles and
   steppers change state, forms validate with inline errors and end in a success
   state, unavailable options look and behave disabled, derived details update
@@ -377,8 +389,10 @@ or textures matter. Sourcing order:
    well-known items with their real images; do not invent them to avoid sourcing.
 4. The client's own venue, team, food or product you have no photos of gets an
    art-directed placeholder, not stock: a block at the final ratio in the
-   palette, styled to the concept, with a short caption describing the shot to
-   take ("фото: зал кофейни утром, свет из окна"). Stock
+   palette, styled to the concept, with a short caption that reads as a future
+   photo ("здесь будет фото: зал утром, свет из окна"); never caption an
+   illustration as a photo. A placeholder is never the largest visual of the
+   page. Stock
    would pass a stranger's room off as the client's. Use real photos for these
    only when the user asks for them. Keep placeholders few and varied, never a
    grid of identical blurred blocks: where visitors choose by the picture
