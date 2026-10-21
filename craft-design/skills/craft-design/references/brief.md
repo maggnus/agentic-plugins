@@ -24,8 +24,9 @@ Pick only unanswered questions that matter:
 | `scale` | short text | number of pages, screens or the content scope |
 | `constraints` | long text | must-use elements, things to avoid, other limits |
 
-The `brand` answer routes the design phase: `pick_direction` → choose from
-`library/directions.md` (offer the five by label when the user wants to compare);
+The `brand` answer routes the design phase: `pick_direction` → author the design
+spec (charter, Lock brand and direction); a library system or direction may
+seed it;
 `brand_spec` or `reference_match` → ask for the actual spec, URL or screenshot if
 it was not attached. Label options in the user's words ("Magazine-style layout",
 not "Editorial") and keep labels short.

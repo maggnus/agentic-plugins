@@ -14,7 +14,7 @@ task needs: every file you read stays in context.
 ## Load in levels
 
 1. **Always:** this file, then `<skill>/references/charter.md` before the first
-   artifact of a conversation. It is the design method: brief, direction, plan,
+   artifact of a conversation. It is the design method: brief, design spec, plan,
    build, verification, refinement and craft rules.
 2. **Find, never browse.** `<skill>/library/catalog.tsv` has one row per entry
    (`kind id mode platform scenario design_system craft path summary`), about
@@ -42,13 +42,12 @@ task needs: every file you read stays in context.
    - a user brand source (spec, URL, screenshot) → extract real values into
      `brand-spec.md` as the charter says;
    - a design system the user names or the project already uses → see below;
-   - otherwise one direction: pick from
-     `grep '^direction' <skill>/library/catalog.tsv | cut -f2,9 | cut -c1-200`,
-     then read only its block:
+   - otherwise your design spec for this subject (charter, Lock brand and
+     direction). A library system or direction may seed it; read one block with
      `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
 
    The contract governs tokens, fonts, radii, shadows and ornament; the entry's
-   template keeps its structure but takes those values from the contract.
+   template keeps its structure, and its aesthetic rules yield to the contract.
 
 No entry fits? Work from the charter alone; that is a valid OD run.
 

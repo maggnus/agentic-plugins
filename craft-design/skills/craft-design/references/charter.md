@@ -36,9 +36,11 @@ When instructions conflict, the earlier item wins:
 
 1. The user's explicit request in the current turn.
 2. The chosen library entry and the visual contract (brand source, design system
-   or direction): the entry governs workflow and structure; the contract governs
-   tokens, fonts, radii, shadows and ornament, and wins over the entry's template
-   styles and over the craft defaults below. Neither may replace a named
+   or your design spec): the entry governs workflow and structure; the contract
+   governs tokens, fonts, radii, shadows and ornament. An entry's or checklist's
+   aesthetic rules (serif display, accent budget, system fonts, one flourish,
+   image treatment) are that template's defaults and yield to the contract, as
+   do the craft defaults below. Neither may replace a named
    real-world referent with generated, drawn, generic, look-alike or fictional
    imagery unless the user explicitly asks for fictional content.
 3. The user's and the project's standing instructions.
@@ -91,14 +93,30 @@ Summarize the system in one sentence. User sources outrank design-system tokens.
 **The user chose a brand spec or reference match but gave no source:** ask for it
 and end the turn. Do not invent tokens or guess a domain.
 
-**Otherwise:** bind the active design system strictly; with none, choose the best
-direction from `library/directions.md` for the domain, audience and tone, bind its
-palette, fonts and posture verbatim and do not ask again. Only state colors
-(hover, focus, disabled, success, warning, danger) may be derived from its tokens
-in `oklch()`. Never infer colors or fonts from a name.
+**A design system is active** (named by the user or used by the project): bind
+it strictly. Only state colors (hover, focus, disabled, success, warning,
+danger) may be derived from its tokens in `oklch()`.
 
-Before building, state in one or two sentences the entry, the visual contract and
-the target widths you will verify.
+**Otherwise, author a design spec** for this subject before choosing any look,
+in a few lines, and keep it as a comment at the top of the HTML so later edits
+hold to it:
+
+- audience and situation: who arrives, from where, on which device;
+- what they must learn and do (for a café: what's served, when, where, how to
+  come); these decide the section types and the main scenario;
+- the thesis: one specific line the page stands on;
+- the concept: display and body faces, palette with one accent, density, the
+  rhythm of sections and the focal point of the first screen;
+- one memorable move that belongs to this subject.
+
+Library systems (`grep '^system' library/catalog.tsv`) and directions are
+optional starting points: adopt one whole, borrow from it or ignore it, but the
+spec must fit the subject, not the other way round. Fonts and colors come from
+the concept, never inferred from a business name. Once stated, the spec is the
+visual contract; do not ask about it again.
+
+Before building, state in one or two sentences the entry, the contract (the
+system, or the spec's thesis and concept) and the widths you will verify.
 
 ### 2. Plan
 
@@ -110,15 +128,18 @@ once, in prose.
 
 1. Read every file the entry requires (`assets/template.html`, `layouts.md`,
    `checklist.md`, `DESIGN.md`) in full before building.
-2. Start from the existing template and its style rules; do not rewrite CSS that
-   already works.
+2. Start from the template's structure and working code; restyle it to the
+   contract instead of rewriting what works.
 3. Fill every slot with specific, plausible content written for this subject,
    place and audience, in the user's language: no `{{placeholder}}`, lorem ipsum,
-   empty sections, `—`, `…` or "уточняется". Details you were not given (menu
-   and prices at local levels, hours, a believable address, product names,
-   dashboard data) become realistic demo values; the summary names them as demo
-   values to replace. Never invent facts about real named people, companies or
-   products, and no hype: vanity counters, awards, fake testimonials.
+   empty sections, `—`, `…` or "уточняется". Keep every real value the user gave.
+   A detail you were not given (menu and prices at local levels, hours, address,
+   product names, dashboard data) becomes a consistent example value, whoever's
+   business it is: mark its element `data-demo`, list all of them in an HTML
+   comment at the top of the file, and never present them as confirmed. Never
+   invent facts about real third parties, achievements, awards, ratings or
+   testimonials. Example values must be replaced or confirmed before the page
+   is published.
 4. Keep runtime bindings an entry explicitly requires (for example `{{data.*}}`
    shared by `template.html` and `data.json`).
 5. Search the workspace before declaring a file missing; do not reread unchanged
@@ -139,7 +160,9 @@ recheck only the affected area.
 1. **Code and content:** unclosed tags, missing `</script>`, leftover template
    slots, empty sections, generic lines; walk every interaction once (each tab,
    control and form path, including errors and success).
-2. **Entry requirements:** every P0 item of the entry's checklist.
+2. **Entry requirements:** every P0 item of the entry's checklist, except
+   aesthetic items the contract overrides; "no invented metrics" is met by
+   marked example values.
 3. **Visual and interaction quality:** intent, hierarchy, execution, content
    specificity, restraint, the Quality bar; overlaps, clipping, outline-only charts, duplicate
    primary CTAs; hover, focus and active states one by one with paired colors and
@@ -153,6 +176,11 @@ recheck only the affected area.
    shots (`--at <selector>`, `--full`) only for a specific doubt or to recheck a
    fix. If the script fails, allow one diagnostic; then deliver on static checks
    and state which ones you ran.
+6. **Look at it as an art director,** on the shots of the first screen and the
+   whole page: what draws the eye first; what makes this place memorable; would
+   any line fit a competitor; do scale, density and background change from
+   section to section; does every action help the visitor. A weak answer allows
+   one revision of composition and copy, not only spacing; then shoot again.
 
 ## Refinement phase
 
@@ -172,6 +200,7 @@ redo the design phase only for an explicit redesign or a new artifact.
 
 Files are the source of truth. Write them first, then briefly say which files
 changed, the result and open issues; never paste the full source into the reply.
+When the page carries example values, the first sentence says so.
 Unless the user asks for several files, the main HTML is complete and
 self-contained (inline CSS and JS), with images as files in `img/` beside it; a
 multi-file artifact uses `index.html` as the entry. The summary lists the demo
@@ -200,7 +229,8 @@ Add no sections or features beyond what the brief and the chosen entry imply.
 
 ### Quality bar
 
-The target is Claude Design–grade work, whatever the style:
+The target is Claude Design–grade work, whatever the style. These are
+principles; the figures in them are examples, not a house style to repeat.
 
 - **Specific content.** Every block says something concrete about this subject:
   what, when, how much, for whom ("Жарим по вторникам и пятницам прямо в зале.
@@ -211,27 +241,29 @@ The target is Claude Design–grade work, whatever the style:
   state, unavailable options look and behave disabled, derived details update
   (open now, totals, the chosen slot summarized). Plain JS state in one script;
   no dead buttons, no `href="#"` primary actions.
-- **Typographic voice.** One characterful display face at decisive scale (a
-  landing hero up to `clamp(44px, 9.5vw, 148px)`, line-height 0.9–1, negative
-  tracking), a quiet body face, and a mono for labels, meta and figures when it
-  suits. Size contrast carries the hierarchy, not boxes and shadows.
-- **Structure without card soup.** Hairline-ruled lists and tables, numbered
-  strips, full-bleed bands alternating light, dark and tinted inside one
-  container width; cards only for genuinely separate objects.
+- **Typographic voice.** A display face with character for this subject, set at
+  a scale that decides the page, with a body face that stays quiet; size
+  contrast carries the hierarchy, not boxes and shadows.
+- **Form follows content.** An assortment becomes dense rows, a menu becomes
+  switchable lists, a visit becomes a booking or route; ruled lists and tables
+  over card grids, cards only for genuinely separate objects. Sections differ
+  in type, density and background, so the page has a rhythm.
 - **Intrinsic responsiveness.** `repeat(auto-fit, minmax(min(100%, Npx), 1fr))`,
   `flex-wrap` and `clamp()` for type, spacing and media heights, so 390 and 1440
   both work with few media queries; the mobile header stays one compact row.
-- **One memorable move**, for example an oversized wordmark closing the page or a
-  live status pill.
+- **One memorable move** that belongs to this subject, not a repeated trick.
 
 ### Color and typography
 
-- Take the palette from the visual contract, never from the host's chrome; with
-  only a brand name or domain, use a direction.
-- Derive missing state colors with `oklch()`; do not invent hex.
-- One accent color, at most twice per screen.
+- Take the palette from the visual contract, never from the host's chrome.
+- Derive missing state colors with `oklch()` from the contract's tokens.
+- One accent color, spent where it carries meaning (the primary action, the key
+  figure, one highlight), not sprinkled.
 - Display and body faces differ; one family only for utilitarian or data-dense
   briefs.
+- A web font in the contract must really load: a Google Fonts `<link>` with the
+  weights used, `display=swap` and the script's subset (Cyrillic for Russian),
+  followed by a fallback stack. In the shots, confirm the display face rendered.
 - One decisive flourish per design; three is noise.
 
 ### Text and language
@@ -298,10 +330,9 @@ or textures matter. Sourcing order:
 3. A demo catalog of a public category (books, albums, films, gadgets) uses real,
    well-known items with their real images; do not invent them to avoid sourcing.
 4. The client's own venue, team, food or product you have no photos of gets an
-   art-directed placeholder, not stock: a block at the final ratio and radius in
-   a palette tone (flat or a subtle diagonal hatch,
-   `repeating-linear-gradient(135deg, A 0 10px, B 10px 20px)`) with a small mono
-   caption describing the shot ("фото: зал кофейни утром, свет из окна"). Stock
+   art-directed placeholder, not stock: a block at the final ratio in the
+   palette, styled to the concept, with a short caption describing the shot to
+   take ("фото: зал кофейни утром, свет из окна"). Stock
    would pass a stranger's room off as the client's. Use real photos for these
    only when the user asks for them.
 5. Generate with the host's own image tool when appropriate, only for the few

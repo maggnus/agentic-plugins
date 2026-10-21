@@ -35,7 +35,7 @@ The `od:` block in each `ENTRY.md` frontmatter means:
   artifact the entry produces;
 - `platform` / `surface` and `scenario` — where and for what it is used;
 - `design_system.requires` — whether a visual contract must be bound first; a
-  brand spec, a design system or a direction all satisfy it, and "the active /
+  brand spec, a design system or your design spec all satisfy it, and "the active /
   injected DESIGN.md" in entry text means that contract (`sections` lists the
   `DESIGN.md` sections it relies on);
 - `craft.requires` — craft files to read from `library/craft/`;
