@@ -1,0 +1,4 @@
+interface:
+  display_name: "Craft Design"
+  short_description: "OpenDesign-grade HTML design with a live preview"
+  default_prompt: "Use $craft-design to design this as a standalone HTML artifact, start the live preview and verify the result."

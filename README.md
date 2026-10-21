@@ -125,6 +125,20 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v12.3.2
 codex plugin add open-design@maggnus
 ```
 
+## `craft-design`
+
+OpenDesign-grade design of standalone HTML artifacts without the OpenDesign app: a design
+charter, 113 skills and templates, 152 design systems, five visual directions and craft rules,
+loaded on demand from one router skill, plus a local live preview with element comments and
+headless screenshots. Supports Codex and Claude Code. See [craft-design/README.md](craft-design/README.md).
+
+```sh
+claude plugin marketplace add "maggnus/agentic-plugins@v12.3.2"
+claude plugin install craft-design@maggnus
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.3.2
+codex plugin add craft-design@maggnus
+```
+
 ## Release
 
 Every change requires a new shared version and publication to GitHub. All plugins use that

@@ -1,0 +1,26 @@
+{
+  "name": "craft-design",
+  "description": "Design standalone HTML artifacts with an OpenDesign-grade method and a live preview: a design charter, 113 skills and templates, 152 design systems, five visual directions and craft rules, loaded on demand from one router skill.",
+  "version": "12.3.2+codex.20261018201418",
+  "author": {
+    "name": "Maksim Korenev",
+    "email": "unzoom@gmail.com"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Craft Design",
+    "shortDescription": "OpenDesign-grade HTML design with a live preview",
+    "longDescription": "Design standalone HTML artifacts with an OpenDesign-grade method and a live preview: a design charter, 113 skills and templates, 152 design systems, five visual directions and craft rules, loaded on demand from one router skill.",
+    "developerName": "Maksim Korenev",
+    "category": "Design",
+    "capabilities": [
+      "Design charter and brief",
+      "On-demand skill, design-system and direction library",
+      "Live preview with element comments",
+      "Headless screenshots"
+    ],
+    "defaultPrompt": [
+      "Use $craft-design:craft-design to design a landing page and open the live preview."
+    ]
+  }
+}

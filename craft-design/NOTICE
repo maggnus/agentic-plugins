@@ -1,0 +1,16 @@
+craft-design
+Copyright Maksim Korenev
+
+The directory skills/craft-design/library/ and the adapted texts in
+skills/craft-design/references/charter.md and references/platforms.md are
+derived from OpenDesign (https://github.com/nexu-io/open-design), licensed
+under the Apache License, Version 2.0; see LICENSE-open-design. The exact
+upstream version and commit are recorded in skills/craft-design/library/SOURCE.json.
+
+Changes made by craft-design: entries were selected (placeholder stubs,
+OpenDesign-only, export, paid media, video, Figma and presentation entries
+removed); every nested SKILL.md was renamed to ENTRY.md; large entries were
+split into sections; large sample images were downscaled; adaptation notes were
+prepended to entries that depend on the OpenDesign desktop app; design-system
+previews and source evidence were omitted. Individual entries keep their own
+license notes where upstream provided them.
