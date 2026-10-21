@@ -1,3 +1,9 @@
+## [12.4.1](https://github.com/maggnus/agentic-plugins/compare/v12.4.0...v12.4.1) (2026-10-21)
+
+### Bug Fixes
+
+* **craft-design:** exact-viewport checks, image sourcing and clearer agent rules ([27e526b](https://github.com/maggnus/agentic-plugins/commit/27e526bd2b2911e96212ebfde58b94f701a47134))
+
 ## [12.4.0](https://github.com/maggnus/agentic-plugins/compare/v12.3.2...v12.4.0) (2026-10-21)
 
 ### Features
