@@ -1,13 +1,15 @@
 # Platform delivery contracts
 
-Adapted from OpenDesign. Read when the brief names a platform, several targets or
-an app prototype.
+Adapted from OpenDesign. Read for native platforms (iOS, Android, tablet,
+desktop app), several targets, app prototypes or device frames; a responsive web
+page needs only the first point below.
 
 - **Responsive web** is one product adapting across breakpoints. Verify no
   horizontal scroll at 360/390/430/600/768/820/1024/1366/1440/1920px; use
   `clamp()` scales and container queries; the mobile layout is a redesign with
   prioritized content and real navigation. The preview's width switch and
-  `scripts/shot.mjs --width <px>` cover the checks.
+  `scripts/shot.mjs --width 1440,390` (add widths for doubtful breakpoints) cover
+  the checks.
 - **Multi-target briefs** get one real file per target (`mobile-ios.html`,
   `mobile-android.html`, `tablet.html`, `desktop.html`) with native chrome and
   patterns: iPhone frame, Dynamic Island and 44px targets for iOS; Pixel frame,

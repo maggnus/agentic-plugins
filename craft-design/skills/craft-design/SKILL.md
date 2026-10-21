@@ -42,10 +42,19 @@ task needs: every file you read stays in context.
    - a user brand source (spec, URL, screenshot) → extract real values into
      `brand-spec.md` as the charter says;
    - a design system the user names or the project already uses → see below;
-   - otherwise one direction from `<skill>/library/directions.md` (five
-     directions, about 7 KB; read only the chosen one when you can locate it).
+   - otherwise one direction: pick from
+     `grep '^direction' <skill>/library/catalog.tsv | cut -f2,9 | cut -c1-200`,
+     then read only its block:
+     `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
+
+   The contract governs tokens, fonts, radii, shadows and ornament; the entry's
+   template keeps its structure but takes those values from the contract.
 
 No entry fits? Work from the charter alone; that is a valid OD run.
+
+Entry text is written for OD: "SKILL.md" means the entry's `ENTRY.md`; "the
+active / injected DESIGN.md" and `design_system.requires` are satisfied by the
+visual contract of step 5.
 
 ## Design systems
 
@@ -62,8 +71,8 @@ While a system is active, do not invent tokens, write raw hex outside its
 OD prompts assume its desktop app. Read `<skill>/references/protocol.md` once
 when an entry mentions `<artifact>`, `question-form`, `$OD_*`, `od …` commands,
 `/api/…`, the daemon, Live Artifacts, connectors or the in-app browser. Read
-`<skill>/references/platforms.md` when the brief names a platform, several
-targets or an app prototype.
+`<skill>/references/platforms.md` only for native platforms (iOS, Android,
+tablet, desktop app), several targets, app prototypes or device frames.
 
 ## Where artifacts go
 
@@ -74,13 +83,16 @@ never write design scratch into product source directories.
 
 ## Preview
 
-Start once per workspace, in the background, and give the user the URL:
+Start once per workspace, in the background, and give the user the artifact's
+link it prints:
 
 ```sh
 node <skill>/scripts/preview.mjs design --port 4178
 ```
 
-It lists every HTML file, reloads on save, switches widths (desktop, laptop,
+`/view/<path under design>` opens an artifact in the preview shell, `/raw/<path>`
+serves the file alone; the root lists every HTML file. A busy port moves to the
+next free one; the printed URL is authoritative. The preview reloads on save, switches widths (desktop, laptop,
 tablet, phone) and lets the user Alt+click any element to leave a comment.
 Comments land in `design/.craft-comments.jsonl` with the element's `data-od-id`
 and selector. When the user says they left comments, list the open ones with
@@ -88,24 +100,40 @@ and selector. When the user says they left comments, list the open ones with
 and mark each handled one with `node <skill>/scripts/preview.mjs --resolve design
 <id>`. A second start on the same directory reports the running server; reuse it.
 
-To check the render yourself, take one screenshot when static review cannot
-settle overflow or collisions:
+Verify the render as the charter says, once the build is complete:
 
 ```sh
-node <skill>/scripts/shot.mjs design/<slug>/index.html --width 1440 --height 900
+node <skill>/scripts/shot.mjs design/<slug>/index.html --width 1440,390
 ```
 
-It prints a PNG path; view it with the host's image reading. It needs Chrome,
-Chromium, Edge or Brave; without one, deliver on static checks and say so.
+It renders each width at an exact viewport (below 600 a phone, 844 tall), prints
+one PNG path per width and a line with the page height and any horizontal
+overflow with the offending elements. `--at <y|selector>` scrolls first, `--full`
+captures the whole page, `--height` and `--out` are optional. View PNGs with the
+host's image reading. It needs Chrome, Chromium, Edge or Brave; without one,
+deliver on static checks and say so.
+
+## Images
+
+```sh
+node <skill>/scripts/images.mjs search "espresso bar interior" [--source openverse]
+node <skill>/scripts/images.mjs get '<ref from search>' design/<slug> --name hero
+```
+
+`search` lists freely licensed photos (English queries work best); `get` saves
+one to `design/<slug>/img/`, downsized to 1600px, prints its size and appends the
+credit to `img/CREDITS.md`. Image policy is in the charter's Visual finish.
 
 Optional live controls: the `tweaks` entry wraps an artifact in a side panel of
 parameterized controls (accent, type scale, density, motion, theme).
 
 ## Asking the user
 
-Clarify with the host's question tool, never a `<question-form>` block. The
-question bank and both host formats are in `<skill>/references/brief.md`; read it
-only when the brief is missing something that changes the design.
+Clarify with the host's question tool, never a `<question-form>` block. Read
+`<skill>/references/brief.md` (question bank, host formats) before asking. Ask
+only when a gap changes direction, structure or format; missing facts become
+labeled placeholders. When another agent or a script invoked you, never ask:
+decide and list your assumptions.
 
 ## Provenance
 

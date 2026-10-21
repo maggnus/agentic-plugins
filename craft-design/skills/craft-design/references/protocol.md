@@ -10,7 +10,7 @@ of an entry overrides this table.
 | "Emit" / "end with" an `<artifact identifier="slug" type="text/html" title="…">` block | Write the HTML to `design/<slug>/index.html` (or the named file). Never put source in the reply; summarize the files. |
 | `<question-form>` JSON, `[form answers — …]` | Ask with the host's question tool as `brief.md` describes; the answers are locked the same way. |
 | `"$OD_NODE_BIN" "$OD_BIN" tools directions --id <id>` | Read that direction in `library/directions.md`. |
-| `od … export --format image`, "render the artifact" | `node <skill>/scripts/shot.mjs <file> --width <px>`, at most once per task. |
+| `od … export --format image`, "render the artifact" | `node <skill>/scripts/shot.mjs <file> --width <px>[,<px>]`, as the charter's verification step says. |
 | `od media generate --surface image` | The host's own image generation, if any; otherwise real images or a labeled placeholder. |
 | `od media generate --surface video`, `media scaffold`, `media wait`, `.mp4` delivery | Not available. Deliver the HTML composition itself (motion frames loop in the browser) and say video rendering is out of scope. |
 | `od brand preview` / `od brand finalize` | See the adaptation note in `brand-extract`. |
@@ -34,8 +34,10 @@ The `od:` block in each `ENTRY.md` frontmatter means:
 - `mode` — prototype, template, design, utility, image and so on: what kind of
   artifact the entry produces;
 - `platform` / `surface` and `scenario` — where and for what it is used;
-- `design_system.requires` — whether a design system or direction must be bound
-  first (`sections` lists the `DESIGN.md` sections it relies on);
+- `design_system.requires` — whether a visual contract must be bound first; a
+  brand spec, a design system or a direction all satisfy it, and "the active /
+  injected DESIGN.md" in entry text means that contract (`sections` lists the
+  `DESIGN.md` sections it relies on);
 - `craft.requires` — craft files to read from `library/craft/`;
 - `inputs` / `parameters` — values to collect; ask only for required ones that
   the brief does not already give, and use declared defaults otherwise;
@@ -43,4 +45,5 @@ The `od:` block in each `ENTRY.md` frontmatter means:
   hints; ignore them.
 
 Paths inside an entry are relative to that entry's directory, for example
-`assets/template.html` means `library/skills/<id>/assets/template.html`.
+`assets/template.html` means `library/skills/<id>/assets/template.html`; a
+`SKILL.md` in its text or file trees is that entry's `ENTRY.md`.

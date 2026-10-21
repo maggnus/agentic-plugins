@@ -248,13 +248,24 @@ async function existing(p) {
   } catch { return null; }
 }
 
+// Artifacts open at /view/<path under root>; print the pattern and the current files.
+function announce(p, running) {
+  const base = `http://${host}:${p}/`;
+  console.log(`craft-design preview${running ? ' already running' : ''}: ${base}  (root: ${root})`);
+  console.log(`artifacts open at ${base}view/<path under root>, for example ${base}view/<slug>/index.html`);
+  for (const file of htmlFiles().slice(0, 12)) console.log(`  ${base}view/${encodeURI(file)}`);
+}
+
 async function listen(p, attempts = 20) {
-  const other = await existing(p);
-  if (other === root) { console.log(`craft-design preview already running: http://${host}:${p}/  (root: ${root})`); process.exit(0); }
-  server.once('error', err => {
+  if (await existing(p) === root) { announce(p, true); process.exit(0); }
+  const onListening = () => { server.off('error', onError); announce(server.address().port, false); };
+  const onError = err => {
+    server.off('listening', onListening);
     if (err.code === 'EADDRINUSE' && attempts > 1) listen(p + 1, attempts - 1);
     else { console.error(`craft-design preview: ${err.message}`); process.exit(1); }
-  });
-  server.listen(p, host, () => console.log(`craft-design preview: http://${host}:${p}/  (root: ${root})`));
+  };
+  server.once('error', onError);
+  server.once('listening', onListening);
+  server.listen(p, host);
 }
 listen(port);

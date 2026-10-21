@@ -1,30 +1,40 @@
 #!/usr/bin/env node
-// craft-design screenshot: render an HTML file or URL with an installed
-// Chromium-family browser in headless mode and print the PNG path.
+// craft-design screenshot: render an HTML file or URL at an exact CSS viewport
+// with an installed Chromium-family browser, print the PNG path and a layout
+// report (viewport, page height, horizontal overflow).
 //
-//   node shot.mjs <file-or-url> [--width 1440] [--height 900] [--out shot.png] [--wait 1500]
+//   node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full]
+//                               [--at <y|css-selector>] [--out shot.png] [--wait 1500]
 //
-// Set CHROME_PATH to choose the browser explicitly.
+// --width takes one or more comma-separated widths (one PNG each); widths below
+// 600 emulate a phone (mobile viewport, touch, height 844 unless --height is
+// given). --full captures the whole page; --at scrolls to a CSS offset or to the
+// first element matching a selector. Set CHROME_PATH to choose the browser.
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, statSync } from 'node:fs';
+import { spawn, execFileSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : fallback; };
-const width = Number(flag('--width', 1440));
-const height = Number(flag('--height', 900));
+const bool = name => { const i = args.indexOf(name); return i >= 0 ? (args.splice(i, 1), true) : false; };
+const widths = String(flag('--width', '1440')).split(',').map(Number);
+const heightFlag = flag('--height');
 const wait = Number(flag('--wait', 1500));
-let out = flag('--out');
+const at = flag('--at', '');
+const full = bool('--full');
+const outFlag = flag('--out');
 const target = args[0];
-if (!target) { console.error('usage: node shot.mjs <file-or-url> [--width 1440] [--height 900] [--out shot.png]'); process.exit(2); }
+if (!target || widths.some(w => !(w > 0)) || heightFlag !== undefined && !(Number(heightFlag) > 0)) {
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--out shot.png]');
+  process.exit(2);
+}
 
 const isUrl = /^[a-z][a-z\d+.-]*:\/\//i.test(target);
 if (!isUrl && !existsSync(target)) { console.error(`not found: ${target}`); process.exit(2); }
-// A craft-design preview page keeps an event stream open, which stalls headless
-// rendering; shoot the raw artifact behind it instead.
+// The preview's /view/ page is a shell around an iframe; shoot the artifact itself.
 const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(target)).href;
 
 function findBrowser() {
@@ -40,27 +50,136 @@ function findBrowser() {
 
 const browser = findBrowser();
 if (!browser) { console.error('no Chrome, Chromium, Edge or Brave found; set CHROME_PATH or review statically'); process.exit(3); }
+if (typeof WebSocket !== 'function') { console.error('Node 22 or newer is required (global WebSocket)'); process.exit(3); }
 
-if (!out) {
-  const dir = join(tmpdir(), 'craft-design-shots');
-  mkdirSync(dir, { recursive: true });
-  const name = isUrl ? new URL(target).hostname : basename(target).replace(/\.[^.]+$/, '');
-  out = join(dir, `${name}-${width}x${height}-${Date.now()}.png`);
+const shotDir = join(tmpdir(), 'craft-design-shots');
+const stem = isUrl ? new URL(target).pathname.split('/').filter(Boolean).slice(-2).join('-').replace(/\.[^.]+$/, '') || 'page'
+  : resolve(target).split(/[\\/]/).slice(-2).join('-').replace(/\.[^.]+$/, '');
+function outPath(width, height) {
+  if (outFlag) return resolve(widths.length > 1 ? outFlag.replace(/(\.png)?$/i, `-${width}.png`) : outFlag);
+  mkdirSync(shotDir, { recursive: true });
+  const where = full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '';
+  return join(shotDir, `${stem}-${width}x${height}${where}-${Date.now()}.png`);
 }
-out = resolve(out);
+
+// Measured inside the page against the requested width: a phone viewport grows
+// to fit wide content, so the layout width alone hides overflow.
+const MEASURE = width => `(() => {
+  const w = Math.min(${width}, document.documentElement.clientWidth);
+  const out = [];
+  for (const el of document.querySelectorAll('body *')) {
+    const r = el.getBoundingClientRect();
+    if (!r.width || r.right <= w + 1 && r.left >= -1) continue;
+    let p = el.parentElement, clipped = false;
+    for (; p && p !== document.body; p = p.parentElement) {
+      const s = getComputedStyle(p);
+      if (/(hidden|clip|auto|scroll)/.test(s.overflowX)) { const pr = p.getBoundingClientRect(); if (pr.right <= w + 1 && pr.left >= -1) { clipped = true; break; } }
+    }
+    if (clipped) continue;
+    const id = el.closest('[data-od-id]')?.getAttribute('data-od-id');
+    out.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList[0] ? '.' + el.classList[0] : '') + (id ? ' [' + id + ']' : '') + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
+    if (out.length >= 6) break;
+  }
+  return JSON.stringify({ innerWidth, viewport: w, page: document.documentElement.scrollHeight, scrollWidth: document.documentElement.scrollWidth, overflow: out });
+})()`;
 
 const profile = mkdtempSync(join(tmpdir(), 'craft-design-chrome-'));
-try {
-  execFileSync(browser, [
-    '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
-    '--mute-audio', `--user-data-dir=${profile}`, `--window-size=${width},${height}`,
-    `--virtual-time-budget=${wait}`, `--screenshot=${out}`, url,
-  ], { stdio: ['ignore', 'ignore', 'pipe'], timeout: 60000 });
-} catch (err) {
-  console.error(`screenshot failed: ${String(err.stderr || err.message).trim().split('\n').slice(-3).join(' ')}`);
-  process.exit(1);
-} finally {
-  rmSync(profile, { recursive: true, force: true });
+const chrome = spawn(browser, [
+  '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
+  '--mute-audio', `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank',
+], { stdio: ['ignore', 'ignore', 'pipe'] });
+
+function cleanup() {
+  try { chrome.kill('SIGKILL'); } catch {}
+  try { rmSync(profile, { recursive: true, force: true }); } catch {}
 }
-if (!existsSync(out) || statSync(out).size === 0) { console.error('screenshot failed: no image written'); process.exit(1); }
-console.log(out);
+function fail(message) { console.error(`screenshot failed: ${message}`); cleanup(); process.exit(1); }
+const timer = setTimeout(() => fail('timed out after 60 s'), 60000);
+
+const endpoint = await new Promise((resolvePromise, reject) => {
+  let log = '';
+  chrome.stderr.on('data', chunk => {
+    log += chunk;
+    const match = log.match(/DevTools listening on (ws:\/\/\S+)/);
+    if (match) resolvePromise(match[1]);
+  });
+  chrome.on('exit', code => reject(new Error(`browser exited (${code}): ${log.trim().split('\n').slice(-2).join(' ')}`)));
+}).catch(err => fail(err.message));
+
+const socket = new WebSocket(endpoint);
+await new Promise((ok, ko) => { socket.onopen = ok; socket.onerror = () => ko(new Error('cannot connect to the browser')); }).catch(err => fail(err.message));
+let seq = 0;
+const pending = new Map();
+const listeners = [];
+socket.onmessage = event => {
+  const msg = JSON.parse(event.data);
+  if (msg.id && pending.has(msg.id)) {
+    const { ok, ko } = pending.get(msg.id);
+    pending.delete(msg.id);
+    msg.error ? ko(new Error(msg.error.message)) : ok(msg.result);
+  } else if (msg.method) for (const l of listeners) l(msg);
+};
+const send = (method, params = {}, sessionId) => new Promise((ok, ko) => {
+  const id = ++seq;
+  pending.set(id, { ok, ko });
+  socket.send(JSON.stringify({ id, method, params, ...(sessionId && { sessionId }) }));
+});
+const once = (method, sessionId) => new Promise(ok => listeners.push(msg => { if (msg.method === method && msg.sessionId === sessionId) ok(msg.params); }));
+
+const SCROLL = `(() => {
+  const at = ${JSON.stringify(at)};
+  const el = /^\\d+$/.test(at) ? null : document.querySelector(at);
+  if (!el && !/^\\d+$/.test(at)) return 'no element matches ' + at;
+  window.scrollTo(0, el ? el.getBoundingClientRect().top + scrollY : Number(at));
+  return '';
+})()`;
+
+async function shoot(width) {
+  const mobile = width < 600;
+  const height = Number(heightFlag ?? (mobile ? 844 : 900));
+  const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
+  const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
+  const s = (method, params) => send(method, params, sessionId);
+  const metricsFor = h => ({ width, height: h, deviceScaleFactor: 1, mobile, screenWidth: width, screenHeight: height });
+  await s('Page.enable');
+  await s('Emulation.setDeviceMetricsOverride', metricsFor(height));
+  if (mobile) await s('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  const loaded = once('Page.loadEventFired', sessionId);
+  const nav = await s('Page.navigate', { url });
+  if (nav.errorText) throw new Error(`${nav.errorText} (${url})`);
+  await Promise.race([loaded, new Promise(ok => setTimeout(ok, 20000))]);
+  await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
+  await new Promise(ok => setTimeout(ok, wait));
+  if (at) {
+    const missing = (await s('Runtime.evaluate', { expression: SCROLL, returnByValue: true })).result.value;
+    if (missing) throw new Error(missing);
+  }
+  const metrics = JSON.parse((await s('Runtime.evaluate', { expression: MEASURE(width), returnByValue: true })).result.value);
+  const params = { format: 'png' };
+  if (full) {
+    const page = Math.min(metrics.page, 16000);
+    await s('Emulation.setDeviceMetricsOverride', metricsFor(page));
+    await new Promise(ok => setTimeout(ok, 300));
+    params.clip = { x: 0, y: 0, width, height: page, scale: 1 };
+    params.captureBeyondViewport = true;
+  }
+  const { data } = await s('Page.captureScreenshot', params);
+  const out = outPath(width, height);
+  writeFileSync(out, Buffer.from(data, 'base64'));
+  await send('Target.closeTarget', { targetId });
+  const layout = metrics.innerWidth === width ? '' : `, laid out ${metrics.innerWidth}px wide`;
+  const overflow = metrics.scrollWidth > width + 1 || metrics.overflow.length
+    ? `HORIZONTAL OVERFLOW (page ${metrics.scrollWidth}px): ${metrics.overflow.join('; ') || 'source not found'}`
+    : 'no horizontal overflow';
+  console.log(out);
+  console.log(`  ${width}x${height}${mobile ? ' mobile' : ''}${layout}, page height ${metrics.page}px, ${overflow}`);
+}
+
+try {
+  for (const width of widths) await shoot(width);
+} catch (err) {
+  fail(err.message);
+}
+clearTimeout(timer);
+socket.close();
+cleanup();

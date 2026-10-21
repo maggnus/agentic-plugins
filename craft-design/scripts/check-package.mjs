@@ -3,7 +3,7 @@
 // integrity and a smoke run of the bundled scripts.
 
 import assert from 'node:assert/strict';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
@@ -105,11 +105,13 @@ assert.ok(!kitHtml.includes('</script> ') && kitHtml.includes('"host":"example
 const port = 47000 + Math.floor(Math.random() * 2000);
 const server = spawn(process.execPath, [join(scripts, 'preview.mjs'), root, '--port', String(port)], { stdio: ['ignore', 'pipe', 'inherit'] });
 try {
+  let printed = '';
   const base = await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('preview did not start')), 10000);
     server.stdout.on('data', chunk => {
-      const url = String(chunk).match(/http:\/\/[\d.]+:\d+\//)?.[0];
-      if (url) { clearTimeout(timer); resolve(url); }
+      printed += chunk;
+      const url = printed.match(/http:\/\/[\d.]+:\d+\//)?.[0];
+      if (url && printed.includes('view/demo/index.html')) { clearTimeout(timer); resolve(url); }
     });
   });
   assert.match(await (await fetch(base)).text(), /demo\/index\.html/);
@@ -124,6 +126,17 @@ try {
   assert.match(listed, new RegExp(comment.id));
   execFileSync(process.execPath, [join(scripts, 'preview.mjs'), '--resolve', root, comment.id]);
   assert.deepEqual(await (await fetch(`${base}api/comments`)).json(), []);
+  // Screenshots need a local browser; CI runners lack a usable Chrome sandbox.
+  if (!process.env.CI) {
+    writeFileSync(join(root, 'demo/wide.html'), '<!doctype html><meta name="viewport" content="width=device-width"><body style="margin:0"><div data-od-id="wide" style="width:700px;height:40px"></div>');
+    const shot = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/wide.html'), '--width', '1440,390', '--wait', '0', '--out', join(work, 'shot.png')], { encoding: 'utf8' });
+    if (shot.status !== 3) {
+      assert.equal(shot.status, 0, `shot.mjs runs: ${shot.stderr}`);
+      assert.match(shot.stdout, /1440x900, page height \d+px, no horizontal overflow/);
+      assert.match(shot.stdout, /390x844 mobile.*HORIZONTAL OVERFLOW.*\[wide\]/);
+      assert.ok(existsSync(join(work, 'shot-390.png')), 'one PNG per width');
+    }
+  }
 } finally {
   server.kill();
   rmSync(work, { recursive: true, force: true });

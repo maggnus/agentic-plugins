@@ -34,10 +34,14 @@ tokens. Everything else is read on demand:
 `scripts/preview.mjs` is a dependency-free Node server bound to `127.0.0.1`: a list of
 artifacts, live reload on save, desktop/laptop/tablet/phone widths, and Alt+click comments that
 are stored next to the artifacts for the agent and copied to the clipboard. `scripts/shot.mjs`
-takes a headless screenshot with an installed Chrome, Chromium, Edge or Brave.
-`scripts/brand-kit.mjs` renders the brand-extract kit page from `brand.json`.
+renders one or more exact viewport widths (phone emulation below 600px) with an installed
+Chrome, Chromium, Edge or Brave and reports horizontal overflow with the offending elements.
+`scripts/images.mjs` searches Wikimedia Commons or Openverse for photos under licenses that
+allow commercial use and modification, downloads them into the artifact's `img/` and keeps
+`img/CREDITS.md`. `scripts/brand-kit.mjs` renders the brand-extract kit page from `brand.json`.
 
-Requirements: Node.js 20 or newer; a Chromium-family browser for screenshots.
+Requirements: Node.js 22 or newer; a Chromium-family browser for screenshots; network access
+for image search.
 
 ## Library
 
