@@ -250,6 +250,12 @@ for (const id of readdirSync(join(odRoot, 'design-systems')).sort()) {
   const target = join(stage, 'design-systems', id);
   mkdirSync(target, { recursive: true });
   for (const file of config.designSystemFiles) if (existsSync(join(source, file))) cpSync(join(source, file), join(target, file));
+  // Upstream adapters declare `@theme { --x: var(--x) }`: Tailwind then emits
+  // self-references in its theme layer, and utilities ignore token overrides in
+  // nested scopes (a dark band, a second theme). `@theme inline` makes utilities
+  // read the live tokens.css variables instead.
+  const adapter = join(target, 'tailwind-v4.css');
+  if (existsSync(adapter)) writeFileSync(adapter, readFileSync(adapter, 'utf8').replace(/^@theme\s*\{/m, '@theme inline {'));
   let manifest = {};
   if (existsSync(join(target, 'manifest.json'))) {
     manifest = JSON.parse(readFileSync(join(target, 'manifest.json'), 'utf8'));

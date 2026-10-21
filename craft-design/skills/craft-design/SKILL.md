@@ -46,7 +46,8 @@ task needs: every file you read stays in context.
      direction). A library system or direction may seed it; read one block with
      `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
 
-   The contract governs tokens, fonts, radii, shadows and ornament; reuse the
+   The contract governs tokens, fonts, radii, shadows and ornament and is
+   written as the theme (charter, Materialize the contract as a theme); reuse the
    template's working code, but the spec decides the sections, and the entry's
    aesthetic rules yield to the contract.
 
@@ -60,8 +61,8 @@ visual contract of step 5.
 
 `<skill>/library/design-systems/<id>/` holds a normalized package. Read in this
 order and stop when you have enough: `USAGE.md` (what to load for which task) →
-`DESIGN.md` (visual principles) → `tokens.css`, pasted verbatim into the first
-`<style>`. `components.manifest.json`, `components.html`, `tailwind-v4.css` and
+`DESIGN.md` (visual principles) → `tokens.css`, pasted verbatim as the theme
+between `/* tokens:start */` and `/* tokens:end */`. `components.manifest.json`, `components.html`, `tailwind-v4.css` and
 `design-tokens.json` are optional depth. Bundled packages carry no `preview/`.
 While a system is active, do not invent tokens, write raw hex outside its
 `:root`, or ask about brand, style or palette.
@@ -113,6 +114,15 @@ for pages longer than a few screens), `--at <y|selector>` scrolls first,
 `--height` and `--out` are optional. View PNGs with the
 host's image reading. It needs Chrome, Chromium, Edge or Brave; without one,
 deliver on static checks and say so.
+
+```sh
+node <skill>/scripts/tokens.mjs check design/<slug>/index.html --width 1440,390
+node <skill>/scripts/tokens.mjs extract design/<slug>/index.html --out design/<brand>/tokens.css
+node <skill>/scripts/tokens.mjs sync design/<brand>/tokens.css design/<brand>/*/index.html
+```
+
+`check` warns about values outside the theme and tokens no element follows;
+`extract` and `sync` share one brand theme between artifacts.
 
 ## Images
 

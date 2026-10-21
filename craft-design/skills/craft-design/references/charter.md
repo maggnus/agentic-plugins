@@ -105,8 +105,9 @@ hold to it:
 - what they must learn and do (for a café: what's served, when, where, how to
   come); these decide the section types and the main scenario;
 - the thesis: one specific line the page stands on;
-- the concept: display and body faces, palette with one accent, density, the
-  rhythm of sections and the focal point of the first screen;
+- the concept: display and body faces, palette with one accent, type and
+  spacing scale, density, the rhythm of sections and the focal point of the
+  first screen; it becomes the theme below;
 - one memorable move that belongs to this subject.
 
 Library systems (`grep '^system' library/catalog.tsv`) and directions are
@@ -114,6 +115,36 @@ optional starting points: adopt one whole, borrow from it or ignore it, but the
 spec must fit the subject, not the other way round. Fonts and colors come from
 the concept, never inferred from a business name. Once stated, the spec is the
 visual contract; do not ask about it again.
+
+**Materialize the contract as a theme,** whatever the branch. The first
+`<style>` opens with the theme between `/* tokens:start */` and
+`/* tokens:end */`: a `:root` registry with the library systems' names (colors
+`--bg --surface --fg --fg-2 --muted --border --accent --accent-on` and state
+colors; `--font-display --font-body --font-mono`; `--text-xs`…`--text-4xl`,
+`--leading-*`; `--space-1`…`--space-12`; `--radius-*`; `--elev-*`;
+`--motion-*`), extra names allowed. An active system's `tokens.css` is that
+registry verbatim; a brand spec's values are expanded into it; a design spec's
+concept is written into it.
+
+- Responsive values live in the theme: `clamp()` inside a token, or a media
+  query that reassigns `:root` tokens.
+- Alternative surfaces (a dark band, a second theme) are scopes inside the theme
+  (`.on-dark`, `[data-theme=night]`) that reassign tokens.
+- Outside the theme every color, font family, font size, radius and shadow is
+  `var(--…)` or derived from one (`color-mix()`, `oklch(from var(--accent) …)`);
+  component variables point at tokens. Geometry stays literal: grid tracks,
+  widths, positions, ratios, `0`, 1px hairlines.
+
+So one token change restyles the whole artifact at every width.
+
+**One brand or product, one theme.** Save the first artifact's theme as
+`design/<brand>/tokens.css` (`scripts/tokens.mjs extract`). Later artifacts of
+that brand inline it verbatim and reuse its components. A theme change edits that
+file, then `tokens.mjs sync` writes it into every artifact. In an existing
+project, its own tokens (CSS variables, a Tailwind theme, token JSON) are the
+theme: use and extend them in place and add no `design/` token files. Use Tailwind
+only when the project already does or the user asks; then the theme feeds
+`@theme inline`.
 
 Before building, state in one or two sentences the entry, the contract (the
 system, or the spec's thesis and concept) and the widths you will verify.
@@ -137,7 +168,9 @@ once, in prose.
    A detail you were not given (menu and prices at local levels, hours, address,
    product names, dashboard data) becomes a consistent example value, whoever's
    business it is: mark its element `data-demo`, list all of them in an HTML
-   comment at the top of the file, and never present them as confirmed. Never
+   comment at the top of the file, add one quiet visible note for the visitor
+   (footer or beside the first such block: «Цены, адрес и расписание — примерные,
+   для макета») and never present them as confirmed. Never
    invent facts about real third parties, achievements, awards, ratings or
    testimonials. Example values must be replaced or confirmed before the page
    is published.
@@ -161,6 +194,11 @@ recheck only the affected area.
 1. **Code and content:** unclosed tags, missing `</script>`, leftover template
    slots, empty sections, generic lines; walk every interaction once (each tab,
    control and form path, including errors and success).
+   Then walk each visitor path to its end: whatever an option needs exists on
+   the page (pickup → address and hours; a custom order → a field for wishes; a
+   workshop → its date), the phone keeps a way to every section from anywhere on
+   a long page, and a prototype's success state promises nothing that will not
+   happen (no "мы позвоним", "SMS придёт").
 2. **Entry requirements:** every P0 item of the entry's checklist, except
    aesthetic items the contract overrides; "no invented metrics" is met by
    marked example values.
@@ -171,13 +209,17 @@ recheck only the affected area.
 4. **Imagery and provenance:** correct real images for named referents; every
    photo a local file in `img/`, no hotlinks; intrinsic ratios preserved; credits
    visible where the license requires them.
-5. **Render once the build is complete.** For a responsive page run
+5. **Theme:** run `scripts/tokens.mjs check <file> --width 1440,390` and fix
+   each warning: literals outside the theme, undefined tokens, a token no element
+   follows at some width, and unused tokens of your own spec (a library system's
+   scale stays whole).
+6. **Render once the build is complete.** For a responsive page run
    `scripts/shot.mjs <file> --width 1440,390`; fixed-size artifacts use their own
    size, adding `--full` for a page longer than a few screens. Read the overflow
    line for each width and view the PNGs. Take further shots (`--at <selector>`)
    only for a specific doubt or to recheck a fix. If the script fails, allow one diagnostic; then deliver on static checks
    and state which ones you ran.
-6. **Look at it as an art director,** on these shots: what draws the eye first; what makes this place memorable; would
+7. **Look at it as an art director,** on these shots: what draws the eye first; what makes this place memorable; would
    any line fit a competitor; do scale, density and background change from
    section to section; does every action help the visitor. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
@@ -189,8 +231,9 @@ redo the design phase only for an explicit redesign or a new artifact.
 
 1. **Change only what the user named,** everywhere it applies. Edit the file in
    place; never rebuild it from memory.
-2. **Keep the design system bound every turn:** no drift, no raw hex, no new
-   palette.
+2. **Keep the theme bound every turn:** a change of color, type, radius or
+   shadow is a token change, not a component patch; no drift, no raw values
+   outside the theme, no new palette. Then `tokens.mjs check`.
 3. **Keep locked constraints** (fonts, colors, "do not change X") until the user
    changes them; a later explicit request wins over an earlier constraint.
 4. **Verify:** reopen each modified file and confirm every requested change and
@@ -296,8 +339,10 @@ Only disabled may lower contrast. Every focusable element has a visible
 
 ### Sizing
 
-Touch targets at least 44px; print text at least 12pt; no horizontal scroll on
-mobile; redesign for small screens instead of squeezing the desktop layout.
+Touch targets at least 44px; screen text at least 12px and body copy at least
+15px on a phone; print text at least 12pt; no horizontal scroll on mobile, and no
+block wider than its container; redesign for small screens instead of squeezing
+the desktop layout.
 
 ### Layout integrity
 
@@ -335,7 +380,11 @@ or textures matter. Sourcing order:
    palette, styled to the concept, with a short caption describing the shot to
    take ("фото: зал кофейни утром, свет из окна"). Stock
    would pass a stranger's room off as the client's. Use real photos for these
-   only when the user asks for them.
+   only when the user asks for them. Keep placeholders few and varied, never a
+   grid of identical blurred blocks: where visitors choose by the picture
+   (bouquets, dishes, products), give each item a visual made from the concept
+   (a simple object illustration in the palette, a color or typographic
+   composition of its real attributes), and put the shot list in the summary.
 5. Generate with the host's own image tool when appropriate, only for the few
    surfaces that matter, never to bypass factual sourcing.
 6. When licensing or privacy rules out every source, use a deliberate labeled

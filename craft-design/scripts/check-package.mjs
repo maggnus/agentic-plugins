@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
+import { inspectHtml, themeRange } from '../skills/craft-design/scripts/tokens.mjs';
 
 const plugin = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = join(plugin, '..');
@@ -131,6 +132,89 @@ const work = mkdtempSync(join(tmpdir(), 'craft-design-check-'));
 const root = join(work, 'design');
 mkdirSync(join(root, 'demo'), { recursive: true });
 writeFileSync(join(root, 'demo/index.html'), '<!doctype html><h1 data-od-id="title">Demo</h1>');
+// Theme fixtures live with the screenshot demos and require no installed plugin.
+const tokenScript = join(scripts, 'tokens.mjs');
+const goodTokens = `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>/* tokens:start */
+:root {
+  --bg: #fcfaf7; --fg: #14232e; --accent: #b12642;
+  --font-display: Georgia, serif;
+  --text-4xl: clamp(36px, 4vw, 64px); --space-4: 19px; --radius-card: 13px;
+}
+@media (max-width: 600px) { :root { --text-4xl: 36px; --space-4: 17px; } }
+.on-dark { --bg: #19394a; --fg: #fdf0df; }
+/* tokens:end */
+@font-face { font-family: "Fixture face"; src: local("Georgia"); }
+@keyframes example { from { color: red; } to { color: blue; } }
+body { margin: 0; color: var(--fg); background: var(--bg); font-family: var(--font-display); }
+h1 { font-size: var(--text-4xl); margin: 0; }
+.card { padding: var(--space-4); border-radius: var(--radius-card); }
+.on-dark { color: var(--fg); background: var(--bg); }
+.accent { color: var(--accent); }
+/* Strings, selectors and ignored rules must not become declarations. */
+.card[data-note="a;b:c"]::before { content: "red; { font-size: 99px; var(--not-a-token) /* text */ }"; }
+</style>
+<body><h1 id="title">Theme test</h1><p class="accent">Accent</p>
+<section class="card on-dark">Local theme</section>
+<div style="color:var(--accent);width:100%;display:grid;grid-template-columns:1fr 2fr">Inline</div></body>`;
+const badTokens = goodTokens.replace('--bg: #fcfaf7;', '--unused: 22px; --bg: #fcfaf7;').replace('</style>', `
+.bad { color: #abcdef; background: var(--missing); }
+@media (max-width: 600px) { h1 { font-size: 36px; } }
+</style>`).replace('</body>', '<p class="bad" style="font-size:15px">Bad</p></body>');
+const goodFile = join(root, 'demo/tokens-good.html'), badFile = join(root, 'demo/tokens-bad.html');
+writeFileSync(goodFile, goodTokens);
+writeFileSync(badFile, badTokens);
+assert.deepEqual(inspectHtml(goodTokens).warnings, [], 'good theme passes static checks, including local themes and ignored rules');
+const badWarnings = inspectHtml(badTokens).warnings;
+assert.ok(badWarnings.some(w => w.code === 'literal' && /color/.test(w.message) && w.selector === '.bad' && w.line > 1));
+assert.ok(badWarnings.some(w => w.code === 'literal' && /font-size/.test(w.message) && /@media.*h1/.test(w.selector)), 'responsive literals retain their location');
+assert.ok(badWarnings.some(w => w.code === 'literal' && /\[style\]/.test(w.selector)), 'inline styles are checked');
+assert.ok(badWarnings.some(w => w.code === 'undefined-token' && /--missing/.test(w.message)));
+assert.ok(badWarnings.some(w => w.code === 'unused-token' && /--unused/.test(w.message)));
+assert.ok(inspectHtml('<style>h1{color:red}</style>').warnings.some(w => w.code === 'theme-markers'));
+assert.ok(inspectHtml('<style>/* tokens:start */ /* tokens:end */</style>').warnings.some(w => w.code === 'theme-registry'), 'empty markers do not constitute a theme');
+const svgWarnings = inspectHtml(goodTokens.replace('</body>', '<svg><path fill="#123456"/><path stroke="red"/></svg></body>')).warnings;
+assert.equal(svgWarnings.length, 1);
+assert.match(svgWarnings[0].message, /^2 literal color occurrence/);
+assert.equal(svgWarnings[0].code, 'svg-colors');
+assert.ok(inspectHtml(goodTokens.replace('color: var(--accent);', '--local-color: red; color: var(--local-color);')).warnings.some(w => w.code === 'literal' && /--local-color/.test(w.message)), 'literal local aliases cannot hide decorative values');
+assert.deepEqual(inspectHtml(goodTokens.replace('color: var(--accent);', 'color: oklch(from var(--accent) l c h / .8);')).warnings, [], 'derived colors remain valid');
+assert.deepEqual(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent: #b12642; --animation-color: red;').replace('from { color: red;', 'from { color: var(--animation-color);')).warnings, [], 'references in ignored keyframes still count as use');
+assert.throws(() => themeRange(goodTokens.replace('/* tokens:end */', '/* tokens:start */')), /exactly one ordered/);
+assert.throws(() => themeRange('<style>p{content:"/* tokens:start */ :root{} /* tokens:end */"}</style>'), /exactly one ordered/, 'quoted marker text cannot be used for extract or sync');
+assert.deepEqual(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent: #b12642; --illustration: #123456;').replace('</body>', '<svg><path fill="var(--illustration)"/></svg></body>')).warnings, [], 'SVG presentation attributes can reference tokens');
+
+const runTokens = (args, options = {}) => spawnSync(process.execPath, [tokenScript, ...args], { encoding: 'utf8', timeout: 60000, ...options });
+const noBrowser = { env: { ...process.env, CHROME_PATH: join(work, 'no-browser') } };
+const staticGood = runTokens(['check', goodFile, '--strict'], noBrowser);
+assert.equal(staticGood.status, 3, staticGood.stderr);
+assert.match(staticGood.stdout, /browser unavailable: static checks only/);
+const staticBad = runTokens(['check', badFile, '--strict'], noBrowser);
+assert.equal(staticBad.status, 1, 'strict static warnings take precedence over no browser');
+assert.match(staticBad.stdout, /undefined-token/);
+assert.equal(read(goodFile), goodTokens, 'check does not change HTML');
+
+const sharedTokens = join(root, 'demo/tokens.css');
+let operation = runTokens(['extract', goodFile, '--out', sharedTokens]);
+assert.equal(operation.status, 0, operation.stderr);
+const range = themeRange(goodTokens), originalTheme = goodTokens.slice(range.start, range.end);
+assert.equal(read(sharedTokens), originalTheme, 'extract preserves theme contents exactly');
+const copyFile = join(root, 'demo/tokens-copy.html');
+writeFileSync(copyFile, goodTokens);
+operation = runTokens(['sync', sharedTokens, copyFile]);
+assert.equal(operation.status, 0, operation.stderr);
+assert.equal(read(copyFile), goodTokens, 'unchanged round trip is byte-identical');
+const updatedTheme = originalTheme.replace('#b12642', '#bc2345');
+writeFileSync(sharedTokens, updatedTheme);
+operation = runTokens(['sync', sharedTokens, copyFile, join(root, 'demo/index.html')]);
+assert.equal(operation.status, 2, 'missing markers are reported without changing that file');
+assert.match(operation.stdout, /updated:/);
+assert.match(operation.stderr, /not changed:.*index.html/);
+assert.equal(read(join(root, 'demo/index.html')), '<!doctype html><h1 data-od-id="title">Demo</h1>');
+assert.equal(read(copyFile), goodTokens.slice(0, range.start) + updatedTheme + goodTokens.slice(range.end), 'sync preserves all content outside the theme');
+operation = runTokens(['extract', copyFile, '--out', sharedTokens]);
+assert.equal(operation.status, 0, operation.stderr);
+assert.equal(read(sharedTokens), updatedTheme, 'updated theme also survives extract');
 writeFileSync(join(root, 'brand.json'), JSON.stringify({ name: 'Demo', sourceUrl: 'https://www.example.com/', note: '</script> ' }));
 const kit = execFileSync(process.execPath, [join(scripts, 'brand-kit.mjs'), join(root, 'brand.json'), '--status', 'ready'], { encoding: 'utf8' }).trim();
 const kitHtml = read(kit);
@@ -163,6 +247,22 @@ try {
   assert.deepEqual(await (await fetch(`${base}api/comments`)).json(), []);
   // Screenshots need a local browser; CI runners lack a usable Chrome sandbox.
   if (!process.env.CI) {
+    const checked = runTokens(['check', goodFile, '--width', '1440,390', '--strict']);
+    if (checked.status !== 3) {
+      assert.equal(checked.status, 0, `good theme has no warnings, including mutations: ${checked.stdout}\n${checked.stderr}`);
+      assert.match(checked.stdout, /1440px --text-4xl: [1-9]\d* element\(s\) changed; restored/);
+      assert.match(checked.stdout, /390px --text-4xl: [1-9]\d* element\(s\) changed; restored/);
+      assert.match(checked.stdout, /tokens: 0 warning/);
+      const broken = runTokens(['check', badFile, '--width', '1440,390']);
+      assert.equal(broken.status, 0, `warnings are nonblocking by default: ${broken.stderr}`);
+      assert.match(broken.stdout, /1440px --text-4xl: [1-9]\d* element\(s\) changed; restored/);
+      assert.match(broken.stdout, /mutation-no-effect:.*390px --text-4xl/);
+      assert.match(broken.stdout, /possible-duplicate:.*390px --text-4xl:.*h1#title.*font-size/);
+      const strict = runTokens(['check', badFile, '--width', '390', '--strict']);
+      assert.equal(strict.status, 1, strict.stderr);
+      assert.equal(read(goodFile), goodTokens, 'browser mutations leave the good file unchanged');
+      assert.equal(read(badFile), badTokens, 'browser mutations leave the bad file unchanged');
+    }
     writeFileSync(join(root, 'demo/wide.html'), '<!doctype html><meta name="viewport" content="width=device-width"><body style="margin:0"><div data-od-id="wide" style="width:700px;height:40px"></div>');
     const shot = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/wide.html'), '--width', '1440,390', '--wait', '0', '--out', join(work, 'shot.png')], { encoding: 'utf8' });
     if (shot.status !== 3) {
