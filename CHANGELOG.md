@@ -1,3 +1,9 @@
+## [12.5.0](https://github.com/maggnus/agentic-plugins/compare/v12.4.3...v12.5.0) (2026-10-21)
+
+### Features
+
+* **craft-design:** every design ends in one bound theme ([6c41633](https://github.com/maggnus/agentic-plugins/commit/6c4163351beb0369bf57b322d82efe51fc8b32f3))
+
 ## [12.4.3](https://github.com/maggnus/agentic-plugins/compare/v12.4.2...v12.4.3) (2026-10-21)
 
 ### Bug Fixes
