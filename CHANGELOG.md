@@ -1,3 +1,9 @@
+## [12.5.1](https://github.com/maggnus/agentic-plugins/compare/v12.5.0...v12.5.1) (2026-10-21)
+
+### Bug Fixes
+
+* **craft-design:** sections serve decisions, scenarios are checked by results ([bb4ca9b](https://github.com/maggnus/agentic-plugins/commit/bb4ca9b2f61d95dfcde55586cab2538604422ccb))
+
 ## [12.5.0](https://github.com/maggnus/agentic-plugins/compare/v12.4.3...v12.5.0) (2026-10-21)
 
 ### Features
