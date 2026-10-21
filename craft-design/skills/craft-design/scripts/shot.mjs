@@ -8,7 +8,8 @@
 //
 // --width takes one or more comma-separated widths (one PNG each); widths below
 // 600 emulate a phone (mobile viewport, touch, height 844 unless --height is
-// given). --full captures the whole page; --at scrolls to a CSS offset or to the
+// given). --full loads lazy images and captures up to 16000px without changing
+// the viewport; --at scrolls to a CSS offset or to the
 // first element matching a selector. Set CHROME_PATH to choose the browser.
 
 import { spawn, execFileSync } from 'node:child_process';
@@ -130,8 +131,28 @@ const SCROLL = `(() => {
   const at = ${JSON.stringify(at)};
   const el = /^\\d+$/.test(at) ? null : document.querySelector(at);
   if (!el && !/^\\d+$/.test(at)) return 'no element matches ' + at;
-  window.scrollTo(0, el ? el.getBoundingClientRect().top + scrollY : Number(at));
+  window.scrollTo({ top: el ? el.getBoundingClientRect().top + scrollY : Number(at), behavior: 'instant' });
   return '';
+})()`;
+
+const MAX_CAPTURE_HEIGHT = 16000;
+// Resizing the viewport to the page height changes vh layouts and triggers lazy
+// images after measurement. Visit the page at the requested viewport instead,
+// let those images settle, then measure and capture without resizing.
+const PREPARE_FULL = `(async () => {
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const step = Math.max(200, Math.floor(innerHeight * 0.8));
+  for (let y = 0; y < Math.min(document.documentElement.scrollHeight, ${MAX_CAPTURE_HEIGHT}); y += step) {
+    window.scrollTo({ top: y, behavior: 'instant' });
+    await pause(100);
+  }
+  await Promise.race([
+    Promise.all([...document.images].map(img => img.decode().catch(() => {}))),
+    pause(5000),
+  ]);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  await pause(100);
+  return [...document.images].filter(img => !img.complete || !img.naturalWidth).length;
 })()`;
 
 async function shoot(width) {
@@ -147,19 +168,28 @@ async function shoot(width) {
   const loaded = once('Page.loadEventFired', sessionId);
   const nav = await s('Page.navigate', { url });
   if (nav.errorText) throw new Error(`${nav.errorText} (${url})`);
-  await Promise.race([loaded, new Promise(ok => setTimeout(ok, 20000))]);
+  let loadTimer;
+  try {
+    await Promise.race([loaded, new Promise(ok => { loadTimer = setTimeout(ok, 20000); })]);
+  } finally {
+    clearTimeout(loadTimer);
+  }
   await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
   await new Promise(ok => setTimeout(ok, wait));
-  if (at) {
+  if (full) {
+    const prepared = await s('Runtime.evaluate', { expression: PREPARE_FULL, awaitPromise: true, returnByValue: true });
+    if (prepared.exceptionDetails) throw new Error('could not prepare the full page');
+    if (prepared.result.value) console.error(`warning: ${prepared.result.value} image(s) failed to load or were not ready within 5 s`);
+  } else if (at) {
     const missing = (await s('Runtime.evaluate', { expression: SCROLL, returnByValue: true })).result.value;
     if (missing) throw new Error(missing);
+    await new Promise(ok => setTimeout(ok, 100));
   }
   const metrics = JSON.parse((await s('Runtime.evaluate', { expression: MEASURE(width), returnByValue: true })).result.value);
   const params = { format: 'png' };
   if (full) {
-    const page = Math.min(metrics.page, 16000);
-    await s('Emulation.setDeviceMetricsOverride', metricsFor(page));
-    await new Promise(ok => setTimeout(ok, 300));
+    const page = Math.min(metrics.page, MAX_CAPTURE_HEIGHT);
+    if (metrics.page > page) console.error(`warning: full capture limited to ${page}px of ${metrics.page}px`);
     params.clip = { x: 0, y: 0, width, height: page, scale: 1 };
     params.captureBeyondViewport = true;
   }

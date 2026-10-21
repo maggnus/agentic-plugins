@@ -8,6 +8,7 @@ import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, w
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { inflateSync } from 'node:zlib';
 
 const plugin = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = join(plugin, '..');
@@ -22,6 +23,40 @@ function walk(dir, out = []) {
     if (entry.isDirectory()) walk(path, out); else out.push(path);
   }
   return out;
+}
+
+// Read actual screenshot pixels: a successful capture can still omit images or
+// crop the footer. Chrome writes 8-bit RGB/RGBA PNGs with standard row filters.
+function screenshot(path) {
+  const png = readFileSync(path);
+  assert.equal(png.subarray(1, 4).toString(), 'PNG');
+  const width = png.readUInt32BE(16), height = png.readUInt32BE(20);
+  assert.equal(png[24], 8, '8-bit screenshot');
+  assert.ok([2, 6].includes(png[25]), 'RGB or RGBA screenshot');
+  const channels = png[25] === 6 ? 4 : 3, chunks = [];
+  for (let offset = 8; offset < png.length;) {
+    const length = png.readUInt32BE(offset), type = png.toString('ascii', offset + 4, offset + 8);
+    if (type === 'IDAT') chunks.push(png.subarray(offset + 8, offset + 8 + length));
+    offset += length + 12;
+  }
+  const raw = inflateSync(Buffer.concat(chunks)), stride = width * channels;
+  const pixels = Buffer.alloc(stride * height);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    assert.ok(filter <= 4, 'known PNG row filter');
+    for (let x = 0; x < stride; x++) {
+      const i = y * stride + x;
+      const left = x >= channels ? pixels[i - channels] : 0;
+      const up = y ? pixels[i - stride] : 0;
+      const corner = y && x >= channels ? pixels[i - stride - channels] : 0;
+      const p = left + up - corner;
+      const paeth = Math.abs(p - left) <= Math.abs(p - up) && Math.abs(p - left) <= Math.abs(p - corner)
+        ? left : Math.abs(p - up) <= Math.abs(p - corner) ? up : corner;
+      const prediction = [0, left, up, Math.floor((left + up) / 2), paeth][filter];
+      pixels[i] = (raw[y * (stride + 1) + 1 + x] + prediction) & 255;
+    }
+  }
+  return { width, height, pixel: (x, y) => [...pixels.subarray((y * width + x) * channels, (y * width + x) * channels + 3)] };
 }
 
 // Manifests share the repository version and differ only by the Codex suffix.
@@ -135,6 +170,30 @@ try {
       assert.match(shot.stdout, /1440x900, page height \d+px, no horizontal overflow/);
       assert.match(shot.stdout, /390x844 mobile.*HORIZONTAL OVERFLOW.*\[wide\]/);
       assert.ok(existsSync(join(work, 'shot-390.png')), 'one PNG per width');
+
+      // No dimensions are reserved for this far-below-the-fold lazy image.
+      // Its decoded height must enter the report and the full-page capture.
+      writeFileSync(join(root, 'demo/lazy.svg'), '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000"><path fill="#0000ff" d="M0 0h1000v1000H0z"/></svg>');
+      writeFileSync(join(root, 'demo/full.html'), `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
+        <style>html{scroll-behavior:smooth}body{margin:0;background:white}img{display:block;width:100%;height:auto}</style>
+        <div style="height:50vh;background:red"></div><div id="target" style="height:80px;background:#ff00ff"></div>
+        <div style="height:4200px"></div><img src="lazy.svg" loading="lazy"><footer style="height:80px;background:#00ff00"></footer>`);
+      const full = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '1440,390', '--wait', '0', '--full', '--out', join(work, 'full.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(full.status, 0, `full capture runs: ${full.stderr}`);
+      for (const [width, viewportHeight] of [[1440, 900], [390, 844]]) {
+        const png = screenshot(join(work, `full-${width}.png`));
+        const expected = viewportHeight / 2 + 80 + 4200 + width + 80;
+        assert.equal(png.width, width);
+        assert.equal(png.height, expected, `full capture includes decoded image at ${width}px`);
+        assert.match(full.stdout, new RegExp(`${width}x${viewportHeight}.*page height ${expected}px, no horizontal overflow`));
+        assert.deepEqual(png.pixel(10, viewportHeight / 2 - 1), [255, 0, 0], 'vh uses the original viewport');
+        assert.deepEqual(png.pixel(10, viewportHeight / 2 + 1), [255, 0, 255], 'capture does not stretch vh layout');
+        assert.deepEqual(png.pixel(10, expected - 90), [0, 0, 255], 'lazy image is visible');
+        assert.deepEqual(png.pixel(10, expected - 1), [0, 255, 0], 'footer is not cropped');
+      }
+      const scrolled = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '390', '--wait', '0', '--at', '#target', '--out', join(work, 'at.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(scrolled.status, 0, `scrolled capture runs: ${scrolled.stderr}`);
+      assert.deepEqual(screenshot(join(work, 'at.png')).pixel(10, 0), [255, 0, 255], 'scroll target is reached even when CSS requests smooth scrolling');
     }
   }
 } finally {
