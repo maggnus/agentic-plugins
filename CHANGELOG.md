@@ -1,3 +1,9 @@
+## [12.4.2](https://github.com/maggnus/agentic-plugins/compare/v12.4.1...v12.4.2) (2026-10-21)
+
+### Bug Fixes
+
+* **craft-design:** Claude Design quality bar, demo content and image placeholders ([a952605](https://github.com/maggnus/agentic-plugins/commit/a952605831b09a591c184277461bf45ff708925c))
+
 ## [12.4.1](https://github.com/maggnus/agentic-plugins/compare/v12.4.0...v12.4.1) (2026-10-21)
 
 ### Bug Fixes
