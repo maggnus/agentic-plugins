@@ -1,3 +1,9 @@
+## [12.6.0](https://github.com/maggnus/agentic-plugins/compare/v12.5.1...v12.6.0) (2026-10-23)
+
+### Features
+
+* **craft-design:** strict token import, directions step and instruction priority ([94aa327](https://github.com/maggnus/agentic-plugins/commit/94aa32758eabf40e735537075538fc4850653378))
+
 ## [12.5.1](https://github.com/maggnus/agentic-plugins/compare/v12.5.0...v12.5.1) (2026-10-21)
 
 ### Bug Fixes
