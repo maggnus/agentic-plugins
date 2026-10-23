@@ -19,7 +19,12 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
-const flag = (name, fallback) => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : fallback; };
+const flag = (name, fallback) => {
+  const i = args.indexOf(name);
+  if (i < 0) return fallback;
+  if (args[i + 1] === undefined || args[i + 1].startsWith('--')) { console.error(`missing value for ${name}`); process.exit(2); }
+  return args.splice(i, 2)[1];
+};
 const bool = name => { const i = args.indexOf(name); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const widths = String(flag('--width', '1440')).split(',').map(Number);
 const heightFlag = flag('--height');
@@ -28,7 +33,9 @@ const at = flag('--at', '');
 const full = bool('--full');
 const outFlag = flag('--out');
 const target = args[0];
-if (!target || widths.some(w => !(w > 0)) || heightFlag !== undefined && !(Number(heightFlag) > 0)) {
+const unknown = args.filter(a => a.startsWith('--'));
+if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
+if (!target || args.length > 1 || widths.some(w => !(w > 0)) || heightFlag !== undefined && !(Number(heightFlag) > 0)) {
   console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--out shot.png]');
   process.exit(2);
 }

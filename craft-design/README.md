@@ -23,7 +23,8 @@ tokens. Everything else is read on demand:
 
 - `references/charter.md` — the design method (brief, direction, plan, build, verification,
   refinement, craft rules), read once per conversation before the first artifact;
-- `references/brief.md`, `protocol.md`, `platforms.md` — read only when the situation needs them;
+- `references/brief.md`, `protocol.md`, `platforms.md`, `print-and-diagrams.md` — read only when
+  the situation needs them;
 - `library/catalog.tsv` — one row per skill, template, design system, craft rule, direction and
   device frame, queried with `grep`, never read whole;
 - `library/skills/<id>/ENTRY.md` — the chosen entry only; large entries are split into
@@ -36,9 +37,15 @@ artifacts, live reload on save, desktop/laptop/tablet/phone widths, and Alt+clic
 are stored next to the artifacts for the agent and copied to the clipboard. `scripts/shot.mjs`
 renders one or more exact viewport widths (phone emulation below 600px) with an installed
 Chrome, Chromium, Edge or Brave and reports horizontal overflow with the offending elements.
-`scripts/images.mjs` searches Wikimedia Commons or Openverse for photos under licenses that
-allow commercial use and modification, downloads them into the artifact's `img/` and keeps
-`img/CREDITS.md`. `scripts/brand-kit.mjs` renders the brand-extract kit page from `brand.json`.
+`scripts/tokens.mjs` keeps the theme honest: `check` finds values outside the theme and tokens
+no element follows (with a browser it changes each token in turn and watches whether any computed
+style moves), `extract` and `sync` share one brand theme between artifacts, and `import` turns
+project token JSON (W3C Design Tokens, Style Dictionary or plain nested JSON, several files,
+aliases, arithmetic, light and dark values) into that theme, refusing with the token's path
+whatever it cannot carry faithfully. `scripts/images.mjs` searches Wikimedia Commons or Openverse for photos under
+licenses that allow commercial use and modification, downloads them into the artifact's `img/`
+and keeps `img/CREDITS.md`. `scripts/brand-kit.mjs` renders the brand-extract kit page from
+`brand.json`.
 
 Requirements: Node.js 22 or newer; a Chromium-family browser for screenshots; network access
 for image search.

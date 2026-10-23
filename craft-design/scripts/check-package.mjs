@@ -9,7 +9,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
-import { inspectHtml, themeRange } from '../skills/craft-design/scripts/tokens.mjs';
+import { importTokens, inspectHtml, themeRange } from '../skills/craft-design/scripts/tokens.mjs';
 
 const plugin = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = join(plugin, '..');
@@ -81,7 +81,7 @@ const front = router.match(/^---\n([\s\S]*?)\n---\n/)?.[1] ?? '';
 assert.match(front, /^name: craft-design$/m);
 const description = front.match(/^description: "(.*)"$/m)?.[1] ?? '';
 assert.ok(description.length > 40 && description.length <= 500, 'router description stays short');
-assert.ok(router.length < 8000, 'router body stays small');
+assert.ok(Buffer.byteLength(router, 'utf8') < 8000, 'router body stays small (bytes)');
 for (const ref of new Set(router.match(/<skill>\/[\w./-]+\.(?:md|mjs|tsv)/g))) {
   assert.ok(existsSync(join(skill, ref.slice('<skill>/'.length))), `router reference exists: ${ref}`);
 }
@@ -218,6 +218,113 @@ assert.equal(read(copyFile), goodTokens.slice(0, range.start) + updatedTheme + g
 operation = runTokens(['extract', copyFile, '--out', sharedTokens]);
 assert.equal(operation.status, 0, operation.stderr);
 assert.equal(read(sharedTokens), updatedTheme, 'updated theme also survives extract');
+
+// import: DTCG, Style Dictionary and plain JSON merge into one theme with a dark scope.
+const dtcg = { color: { $type: 'color', ink: { 0: { $value: '#ffffff' }, 950: { $value: '#0b0b0c', $description: 'Darkest ink.' } },
+  accent: { $root: { $value: { colorSpace: 'oklch', components: [0.62, 0.17, 262] } }, hover: { $value: { colorSpace: 'srgb', components: [0.2, 0.4, 0.8], alpha: 0.8, hex: '#3366cc' } } },
+  page: { $value: { light: '{color.ink.0}', dark: '{color.ink.950}' } }, veil: { $value: { colorSpace: 'hsl', components: [210, 50, 40], alpha: 0.5 } } },
+  font: { sans: { $type: 'fontFamily', $value: ['Inter Tight', 'system-ui', 'sans-serif'] }, weight: { $type: 'fontWeight', strong: { $value: 'semi-bold' } } },
+  size: { $type: 'dimension', base: { $value: { value: 16, unit: 'px' } }, lg: { $value: '{size.base} * 1.5' } },
+  ease: { out: { $type: 'cubicBezier', $value: [0.2, 0, 0, 1] } }, time: { fast: { $type: 'duration', $value: { value: 150, unit: 'ms' } } },
+  shadow: { card: { $type: 'shadow', $value: [{ offsetX: '0px', offsetY: '2px', blur: '6px', color: '{color.ink.950}' }, { offsetX: '0px', offsetY: '0px', blur: '0px', spread: '1px', color: '#00000022', inset: true }] } },
+  stroke: { $type: 'border', $value: { width: { value: 1, unit: 'px' }, style: 'solid', color: '{color.ink.950}' } },
+  move: { $type: 'transition', $value: { duration: '{time.fast}', timingFunction: '{ease.out}', delay: '0ms' } },
+  text: { body: { $type: 'typography', $value: { fontFamily: '{font.sans}', fontSize: '{size.base}', fontWeight: 400, lineHeight: 1.5, letterSpacing: { value: 0.1, unit: 'px' } } } },
+  wash: { $type: 'gradient', $value: [{ color: '{color.ink.0}', position: 0 }, { color: '#000', position: 1 }] },
+  named: { $value: '4px', $extensions: { 'craft-design': { name: '--gap-named' } } }, $extensions: { ignored: true } };
+const styleDictionary = { space: { md: { value: '8px', type: 'dimension', comment: 'Base step.' }, lg: { value: '{space.md.value}*2' } },
+  radius: { control: { value: { px: 10, rem: 0.625 }, purpose: 'Buttons and fields.', token: '--radius-ctl' } },
+  motion: { token: '--motion-ctl', duration: { value: '120ms', type: 'duration' } } };
+const plain = { ink: { 900: '#111' }, copy: '{ink.900}', stack: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'",
+  areas: '"head head"\n"side main"', tracking: -0.01, ratio: '12px/1.5', pair: '8px -4px', diff: '{space.lg}-{space.md}', sum: '16px+4px', half: '{space.md}/2',
+  weight: { light: 300, regular: 400, bold: 700 }, border: { light: '#eee', strong: '#999' }, canvas: { light: '#fff', dark: '#000' },
+  spacing: { px: '1px', 0: '0px' }, surface: { page: { token: '--page', value: '#fdfdfc' } }, '色': '#abcdef' };
+const modeSplit = { light: { panel: '#f4f4f4' }, dark: { panel: '#202020' } };
+const darkSet = { color: { accent: { $root: { $value: '#7aa2ff' } } }, surface: { page: { value: '#101010' } } };
+const registryMap = { '--bg': '{color.page}', '--fg': { light: '{color.ink.950}', dark: '{color.ink.0}' }, '--accent': '{color.accent}', '--font-body': '{font.sans}', '--space-4': '{space.md}', '--text-lg': '{size.lg}', '--page': '{surface.page}', '--muted': '#777' };
+const imported = importTokens({ sources: [{ file: 'dtcg.json', json: dtcg }, { file: 'sd.json', json: styleDictionary }, { file: 'plain.json', json: plain }, { json: modeSplit }], dark: [{ json: darkSet }], map: registryMap });
+assert.deepEqual(imported.warnings, [], 'clean sources import without warnings');
+const rootBlock = imported.css.slice(0, imported.css.indexOf('[data-theme=dark] {')), darkBlock = imported.css.slice(imported.css.indexOf('[data-theme=dark] {'));
+for (const line of ['--color-ink-950: #0b0b0c;', '--color-accent: oklch(0.62 0.17 262);', '--color-accent-hover: rgb(51 102 204 / 0.8);', '--color-page: var(--color-ink-0);', '--color-veil: hsl(210 50% 40% / 0.5);',
+  '--font-sans: "Inter Tight", system-ui, sans-serif;', '--font-weight-strong: 600;', '--size-base: 16px;', '--size-lg: calc(var(--size-base) * 1.5);', '--ease-out: cubic-bezier(0.2, 0, 0, 1);', '--time-fast: 150ms;',
+  '--shadow-card: 0px 2px 6px var(--color-ink-950), inset 0px 0px 0px 1px #00000022;', '--stroke: 1px solid var(--color-ink-950);', '--move: var(--time-fast) var(--ease-out) 0ms;',
+  '--text-body: 400 var(--size-base)/1.5 var(--font-sans);', '--text-body-letter-spacing: 0.1px;', '--wash: linear-gradient(var(--color-ink-0) 0%, #000 100%);', '--gap-named: 4px;',
+  '--space-lg: calc(var(--space-md) * 2);', '--radius-ctl: 10px;', '--motion-ctl-duration: 120ms;',
+  '--copy: var(--ink-900);', '--stack: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, \'Helvetica Neue\', Arial, \'Noto Sans\', sans-serif, \'Apple Color Emoji\', \'Segoe UI Emoji\';',
+  '--areas: "head head"\n"side main";', '--tracking: -0.01;', '--ratio: 12px/1.5;', '--pair: 8px -4px;', '--diff: calc(var(--space-lg) - var(--space-md));', '--sum: calc(16px + 4px);', '--half: calc(var(--space-md) / 2);',
+  '--weight-light: 300;', '--weight-bold: 700;', '--border-light: #eee;', '--border-strong: #999;', '--canvas: #fff;', '--spacing-px: 1px;', '--page: #fdfdfc;', '--色: #abcdef;', '--panel: #f4f4f4;',
+  '--bg: var(--color-page);', '--text-lg: var(--size-lg);', '--muted: #777;']) {
+  assert.ok(rootBlock.includes(`\n  ${line}\n`), `import emits ${line}`);
+}
+assert.ok(!/ignored|Darkest|Base step|purpose|--motion-ctl-token/.test(imported.css), 'format metadata and explicit names are not tokens');
+assert.ok(!/light-\$value|--color-page-light/.test(imported.css), 'a mode pair is one token, not two');
+for (const line of ['--color-page: var(--color-ink-950);', '--color-accent: #7aa2ff;', '--canvas: #000;', '--panel: #202020;', '--page: #101010;', '--fg: var(--color-ink-0);',
+  '--bg: var(--color-page);']) {
+  assert.ok(darkBlock.includes(`\n  ${line}\n`), `dark scope emits ${line}`);
+}
+assert.ok(!darkBlock.includes('--size-base') && !darkBlock.includes('--stroke') && !darkBlock.includes('--page-'), 'dark scope holds dark values and their dependents only, and never renames');
+assert.ok(imported.css.indexOf(':root {') < imported.css.indexOf('[data-theme=dark] {'), 'the registry precedes the dark scope');
+const withMapWarning = importTokens({ sources: [{ json: { fg: { $value: '#111' } } }], map: { '--fg': '#222', '--bg': '{fg}' } });
+assert.deepEqual(withMapWarning.warnings, ['map --fg replaces the source token of the same name']);
+assert.ok(withMapWarning.css.includes('--fg: #222;') && !withMapWarning.css.includes('--fg: #111'), 'the map wins over a source token of the same name, with a warning');
+assert.equal(importTokens({ sources: [{ json: { bg: { $value: '#fff' } } }], map: { '--bg': '{bg}' } }).css.split('\n').filter(l => l.startsWith('  --')).join(), '  --bg: #fff;', 'an identity map entry is a no-op');
+const mapped = importTokens({ sources: [{ json: dtcg }], map: { '--accent': '{color.accent.hover}', '--bg': '{color.page}' }, mappedOnly: true });
+assert.deepEqual([...new Set(mapped.css.match(/^  --[^:]+/gm).map(l => l.trim()))].sort(), ['--accent', '--bg', '--color-accent-hover', '--color-ink-0', '--color-ink-950', '--color-page'], 'mapped-only keeps map targets and their chains');
+const sdInput = { color: { brand: { value: 'red' } } };
+importTokens({ sources: [{ json: sdInput }, { json: { color: { brand: { value: 'blue' } } } }] });
+assert.equal(sdInput.color.brand.value, 'red', 'inputs are not mutated');
+assert.throws(() => importTokens({ sources: [{ json: JSON.parse('{"__proto__":{"polluted":"yes"}}') }] }), /__proto__/);
+assert.equal(({}).polluted, undefined, 'merge never touches Object.prototype');
+for (const [label, options, pattern] of [
+  ['alias cycle', { sources: [{ json: { a: { $value: '{b}' }, b: { $value: '{a}' } } }] }, /alias cycle --a → --b → --a/],
+  ['self reference', { sources: [{ json: { c: { $value: '{c}' } } }] }, /alias cycle --c → --c/],
+  ['unresolved alias', { sources: [{ json: { fg: { $value: '{ink.900}' } } }] }, /fg: unresolved alias \{ink\.900\}/],
+  ['alias to a group', { sources: [{ json: { ink: { 900: { $value: '#111' } }, fg: { $value: '{ink}' } } }] }, /fg: unresolved alias \{ink\}/],
+  ['unresolved alias inside a composite', { sources: [{ json: { s: { $type: 'shadow', $value: { offsetX: '0px', offsetY: '1px', color: '{nope}' } } } }] }, /unresolved alias \{nope\}/],
+  ['dark-only token', { sources: [{ json: { a: { $value: '#fff' } } }], dark: [{ json: { b: { $value: '#000' } } }] }, /b \(dark\): declared only in the dark set/],
+  ['dimension without a unit', { sources: [{ json: { size: { base: { value: 16, type: 'dimension' } } } }] }, /size\.base: dimension needs a unit \(16\)/],
+  ['dimension string without a unit', { sources: [{ json: { size: { $type: 'dimension', x: { $value: '16' } } } }] }, /size\.x: dimension needs a unit/],
+  ['unknown color space', { sources: [{ json: { c: { $type: 'color', $value: { colorSpace: 'cmyk', components: [0, 0, 0, 1] } } } }] }, /c: color needs colorSpace/],
+  ['$ref', { sources: [{ json: { size: { $value: { $ref: '#/space/$value' } } } }] }, /size: \$ref is not supported/],
+  ['$extends', { sources: [{ json: { ext: { $extends: '{color}', x: { $value: '#123' } } } }] }, /ext\.\$extends: \$extends is not supported/],
+  ['unsupported composite', { sources: [{ json: { s: { $type: 'strokeStyle', $value: { dashArray: ['1px'], lineCap: 'round' } } } }] }, /s: unsupported strokeStyle value/],
+  ['injected name', { sources: [{ json: { a: { token: '--ok: red; --bad', value: 'blue' } } }] }, /"--ok: red; --bad" is not a custom property name/],
+  ['injected map key', { sources: [{ json: { a: { $value: 'blue' } } }], map: { '--bad; color': 'red' } }, /map: "--bad; color" is not a custom property name/],
+  ['bad map key', { sources: [{ json: { a: { $value: 'blue' } } }], map: { bad: '1' } }, /map: "bad" is not a custom property name/],
+  ['bad dark selector', { sources: [{ json: { a: { $value: 'blue' } } }], darkSelector: '.x{}' }, /not a selector/],
+  ['name collision', { sources: [{ json: { fooBar: { $value: 'red' }, 'foo-bar': { $value: 'blue' } } }] }, /foo-bar and fooBar both become --foo-bar/],
+  ['value with a semicolon', { sources: [{ json: { d: { value: 'x; y' } } }] }, /d: value contains ; or \}/],
+  ['boolean value', { sources: [{ json: { flag: true } }] }, /flag: boolean is not a token value/],
+  ['null value', { sources: [{ json: { gone: null } }] }, /gone: null is not a token value/],
+  ['key without a CSS name', { sources: [{ json: { '!!': '#fff' } }] }, /!!: key cannot become a CSS name/],
+  ['bad cubic bezier', { sources: [{ json: { e: { $type: 'cubicBezier', $value: [1, 2] } } }] }, /e: cubicBezier needs four numbers/],
+  ['top level array', { sources: [{ json: { list: [{ a: 1 }] } }] }, /list: an array without \$type is not a token value/],
+]) assert.throws(() => importTokens(options), pattern, `import rejects ${label}`);
+const laterFile = importTokens({ sources: [{ file: 'a.json', json: { c: { $value: 'red' } } }, { file: 'b.json', json: { c: { $value: 'blue' } } }] });
+assert.deepEqual(laterFile.warnings, ['c.$value: redefined by b.json (the later file wins)']);
+assert.ok(laterFile.css.includes('--c: blue;'));
+assert.deepEqual(importTokens({ sources: [{ json: { a: { $value: 'var(--outside)' } } }] }).warnings, [':root: --a uses --outside, which this import does not declare']);
+assert.ok(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent: var(--loop); --loop: var(--accent);')).warnings.some(w => w.code === 'token-cycle' && /--accent → --loop → --accent/.test(w.message)), 'check reports alias cycles');
+const importedTheme = goodTokens.replace(/\/\* tokens:start \*\/[^]*\/\* tokens:end \*\//, `/* tokens:start */\n${imported.css}/* tokens:end */`)
+  .replace('var(--text-4xl)', 'var(--text-lg)').replace('var(--font-display)', 'var(--font-body)').replace('var(--radius-card)', 'var(--radius-ctl)');
+assert.ok(!inspectHtml(importedTheme).warnings.some(w => w.code !== 'unused-token'), 'an imported theme passes the static checks apart from unused scale steps');
+for (const [name, json] of Object.entries({ 'dtcg.json': dtcg, 'sd.json': styleDictionary, 'plain.json': plain, 'dark.json': darkSet, 'map.json': registryMap, 'cycle.json': { a: { $value: '{b}' }, b: { $value: '{a}' } } })) writeFileSync(join(root, name), JSON.stringify(json));
+operation = runTokens(['import', 'dtcg.json', 'sd.json', 'plain.json', '--dark', 'dark.json', '--map', 'map.json', '--out', join(root, 'brand/tokens.css')], { cwd: root });
+assert.equal(operation.status, 0, operation.stderr);
+assert.match(operation.stdout, /imported: .*brand\/tokens.css \(\d+ token\(s\), \d+ dark, 0 warning\(s\)\)/);
+assert.match(operation.stderr, /note: registry names not bound by the map: --surface, --fg-2, --border/, 'the CLI lists registry names the map leaves unbound');
+const written = read(join(root, 'brand/tokens.css'));
+assert.match(written, /^\/\* Imported by tokens\.mjs import: import dtcg\.json sd\.json plain\.json --dark dark\.json --map map\.json\. /, 'the header records the relative command');
+assert.ok(written.includes('--radius-ctl: 10px;') && written.includes('[data-theme=dark] {'), 'the CLI writes the function result');
+operation = runTokens(['import', join(root, 'cycle.json'), '--out', join(root, 'brand/cycle.css')]);
+assert.equal(operation.status, 2, 'an invalid import exits 2');
+assert.match(operation.stderr, /nothing written:\n  :root: alias cycle --a → --b → --a/);
+assert.ok(!existsSync(join(root, 'brand/cycle.css')), 'an invalid import writes nothing');
+operation = runTokens(['sync', join(root, 'brand/tokens.css'), copyFile]);
+assert.equal(operation.status, 0, 'an imported theme syncs into an artifact');
+assert.equal(runTokens(['import', join(root, 'dtcg.json'), '--dark']).status, 2, 'a flag without a value is an input error');
+assert.equal(runTokens(['import', join(root, 'dtcg.json'), '--out', copyFile]).status, 2, 'import refuses to overwrite HTML');
+assert.equal(read(copyFile).includes('--radius-ctl: 10px;'), true, 'sync placed the imported theme');
 writeFileSync(join(root, 'brand.json'), JSON.stringify({ name: 'Demo', sourceUrl: 'https://www.example.com/', note: '</script> ' }));
 const kit = execFileSync(process.execPath, [join(scripts, 'brand-kit.mjs'), join(root, 'brand.json'), '--status', 'ready'], { encoding: 'utf8' }).trim();
 const kitHtml = read(kit);

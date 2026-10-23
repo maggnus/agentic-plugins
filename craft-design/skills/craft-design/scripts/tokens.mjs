@@ -1,15 +1,20 @@
 #!/usr/bin/env node
 // Dependency-free theme diagnostics. Node 22+, an installed Chromium browser.
 // check HTML [--width 1440,390] [--strict] | sync CSS HTML… | extract HTML [--out CSS]
+// import JSON… [--dark JSON[,JSON]] [--map JSON] [--mapped-only] [--prefix name] [--dark-selector SEL] [--out CSS]
 // Exit: 0 completed (warnings allowed), 1 strict warnings, 2 input/runtime error,
 // 3 static checks completed but no browser available (strict warnings take priority).
 // Static analysis covers embedded styles and style attributes, not external CSS.
 // Mutation reports observable computed-style changes, not proof of author intent.
+// import reads W3C Design Tokens (DTCG), Style Dictionary or plain nested JSON,
+// merges the files, resolves {a.b.c} aliases to var() and arithmetic to calc(),
+// and writes one theme: a :root registry plus a dark scope. Lost or invalid
+// values are errors (exit 2, nothing written), never silent.
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const START = /^\/\*\s*tokens:start\s*\*\/$/;
@@ -227,9 +232,19 @@ export function inspectHtml(html) {
     }
     if (/^font$/.test(d.prop) && !tokenExpression(d.value)) warn('literal', 'font shorthand contains values outside the theme', d.start, d.selector);
   }
+  // Alias cycles make every token in the chain invalid at computed-value time.
+  const state = new Map();
+  const visit = (name, trail) => {
+    if (state.get(name) === 'done') return;
+    if (state.get(name) === 'open') { const d = definitions.get(name); warn('token-cycle', `alias cycle ${[...trail.slice(trail.indexOf(name)), name].join(' → ')}`, d.start, d.selector); return; }
+    state.set(name, 'open');
+    for (const ref of refs(definitions.get(name)?.value ?? '')) if (definitions.has(ref)) visit(ref, [...trail, name]);
+    state.set(name, 'done');
+  };
+  for (const name of definitions.keys()) visit(name, []);
   // A full system scale legitimately keeps steps a page does not use: one line.
   const unused = [...definitions].filter(([name]) => !used.has(name));
-  if (unused.length) warn('unused-token', `${unused.length} token(s) declared but never referenced by var(): ${unused.map(([name]) => name).join(', ')}`, unused[0][1].start, unused[0][1].selector);
+  if (unused.length) warn('unused-token', `${unused.length} token(s) declared but never referenced by var(): ${unused.slice(0, 40).map(([name]) => name).join(', ')}${unused.length > 40 ? `, … ${unused.length - 40} more` : ''}`, unused[0][1].start, unused[0][1].selector);
   if (svgCount) warn('svg-colors', `${svgCount} literal color occurrence(s) in SVG illustrations; review as one group`, parts.svgColors[0]?.start ?? 0, 'svg');
   for (const link of parts.links) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
   const registry = theme ? decls.filter(d => d.start >= theme.start && d.start < theme.end && d.prop.startsWith('--') && /(^|[\s>,]):root\b/.test(d.selector)) : [];
@@ -366,9 +381,326 @@ async function browserCheck(file, widths, tokens, report) {
   }
 }
 
+// ---- import: token JSON → theme CSS ----------------------------------------
+// Contract (also in charter.md, "One brand or product, one theme"):
+// - DTCG: a token is an object with $value; $type inherits down groups; $root
+//   is the group's own token; $description/$extensions/$deprecated are skipped;
+//   $extensions["craft-design"].name sets the custom property name; $ref and
+//   $extends are rejected.
+// - Style Dictionary: a token is an object with value; type, comment and other
+//   keys beside it are metadata; token: "--name" sets the name.
+// - Plain JSON: every string or number is a token, every object a group, except
+//   {light, dark} with scalar values (a themed token), {px, rem} with numbers
+//   (px wins) and a top-level {light, dark} of groups (a file split by mode).
+// - A key token: "--prefix" on a group prefixes its children.
+// Aliases {a.b.c} become var(); arithmetic becomes calc(); colors, composites
+// and arithmetic are rendered to valid CSS or rejected with the token path.
+const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const dict = () => Object.create(null);
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+const NAME = /^--[\p{L}\p{N}_-]+$/u;
+const kebab = s => String(s).replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, '$1-$2').replace(/[^\p{L}\p{N}-]+/gu, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').toLowerCase();
+const quoteFamily = f => /[^\w-]/.test(f) && !/^["']|^var\(/.test(f) ? `"${f}"` : f;
+const WEIGHTS = { thin: 100, hairline: 100, 'extra-light': 200, 'ultra-light': 200, light: 300, normal: 400, regular: 400, book: 400, medium: 500, 'semi-bold': 600, 'demi-bold': 600, bold: 700, 'extra-bold': 800, 'ultra-bold': 800, black: 900, heavy: 900, 'extra-black': 950, 'ultra-black': 950 };
+const COLOR_SPACES = { srgb: 'rgb', hsl: 'hsl', hwb: 'hwb', lab: 'lab', lch: 'lch', oklab: 'oklab', oklch: 'oklch', 'srgb-linear': 'color', 'display-p3': 'color', 'a98-rgb': 'color', 'prophoto-rgb': 'color', rec2020: 'color', 'xyz-d65': 'color', 'xyz-d50': 'color', xyz: 'color' };
+const DIMENSIONAL = new Set(['dimension', 'duration']);
+const sameKeys = (node, keys) => { const own = Object.keys(node); return own.length > 0 && own.every(k => keys.includes(k)); };
+const scalar = v => typeof v === 'string' || typeof v === 'number';
+const round = n => Math.round(n * 10000) / 10000;
+
+// Deep copy into prototype-free objects; inputs stay untouched.
+function clone(value, where) {
+  if (Array.isArray(value)) return value.map((v, i) => clone(v, `${where}[${i}]`));
+  if (!isObject(value)) return value;
+  const out = dict();
+  for (const key of Object.keys(value)) {
+    if (UNSAFE_KEYS.has(key)) throw new Error(`${where || 'root'}: key "${key}" is not allowed in token JSON`);
+    out[key] = clone(value[key], where ? `${where}.${key}` : key);
+  }
+  return out;
+}
+function merge(target, source, file, where, warn) {
+  for (const key of Object.keys(source)) {
+    const path = where ? `${where}.${key}` : key;
+    if (isObject(source[key]) && isObject(target[key])) merge(target[key], source[key], file, path, warn);
+    else { if (key in target) warn(`${path}: redefined by ${file ?? 'a later file'} (the later file wins)`); target[key] = source[key]; }
+  }
+  return target;
+}
+
+// Arithmetic: numbers with units, var(), + - * / and parentheses. Binary
+// operators are either spaced on both sides or on neither; "a -b" stays a list.
+// A lone "/" without an alias is a literal (12px/1.5, 1/-1), not a division.
+function arithmetic(text) {
+  const out = []; let i = 0;
+  const operand = () => out.length > 0 && !/^[-+*/(]$/.test(out[out.length - 1]);
+  const number = /^[-+]?\d*\.?\d+(?:e[-+]?\d+)?(?:[a-z]+|%)?/i;
+  while (i < text.length) {
+    const c = text[i], rest = text.slice(i);
+    let m;
+    if (/\s/.test(c)) { i++; continue; }
+    if ((m = rest.match(/^var\(--[^\s()]+\)/))) { if (operand()) return null; out.push(m[0]); i += m[0].length; continue; }
+    if (c === '(') { if (operand()) return null; out.push(c); i++; continue; }
+    if (c === ')') { if (!operand()) return null; out.push(c); i++; continue; }
+    if ('+-*/'.includes(c)) {
+      const before = i > 0 && /\s/.test(text[i - 1]), after = /\s/.test(text[i + 1] ?? ' ');
+      if (operand() && before === after) { out.push(c); i++; continue; }
+      if (operand() || !(m = rest.match(number))) return null;
+      out.push(m[0]); i += m[0].length; continue;
+    }
+    if ((m = rest.match(number))) { if (operand()) return null; out.push(m[0]); i += m[0].length; continue; }
+    return null;
+  }
+  if (!operand()) return null;
+  let depth = 0;
+  for (const t of out) { if (t === '(') depth++; else if (t === ')' && --depth < 0) return null; }
+  if (depth) return null;
+  const operators = out.filter(t => /^[-+*/]$/.test(t));
+  if (!operators.length || operators.every(t => t === '/') && !out.some(t => t.startsWith('var('))) return null;
+  return out.map(t => /^[-+*/]$/.test(t) ? ` ${t} ` : t).join('');
+}
+
+// Collect leaves: { path, name, type, light, dark } with raw JSON values.
+function flatten(node, name, path, type, out, ctx) {
+  const where = path || 'root';
+  if (!isObject(node)) {
+    if (!scalar(node)) { ctx.error(`${where}: ${node === null ? 'null' : Array.isArray(node) ? 'an array without $type' : typeof node} is not a token value`); return; }
+    out.push({ path, name, type, light: node }); return;
+  }
+  const has = k => Object.hasOwn(node, k);
+  const leaf = (raw, own, t) => {
+    if (isObject(raw) && sameKeys(raw, ['light', 'dark'])) out.push({ path, name: own, type: t, light: raw.light, dark: raw.dark });
+    else out.push({ path, name: own, type: t, light: raw });
+  };
+  if (has('$value')) {
+    const t = typeof node.$type === 'string' ? node.$type : type;
+    const ext = node.$extensions?.['craft-design']?.name;
+    if (has('$extends') || has('$ref')) ctx.error(`${where}: $extends and $ref are not supported`);
+    leaf(node.$value, typeof ext === 'string' ? ext : name, t); return;
+  }
+  if (has('value')) {
+    if (has('unit') && sameKeys(node, ['value', 'unit']) && typeof node.value === 'number') { out.push({ path, name, type: type ?? 'dimension', light: `${node.value}${node.unit}` }); return; }
+    const t = typeof node.type === 'string' ? node.type : type;
+    leaf(node.value, typeof node.token === 'string' ? node.token : name, t); return;
+  }
+  if (sameKeys(node, ['light', 'dark']) && Object.values(node).every(scalar)) { out.push({ path, name, type, light: node.light, dark: node.dark }); return; }
+  if (sameKeys(node, ['px', 'rem']) && Object.values(node).every(v => typeof v === 'number')) { out.push({ path, name, type: type ?? 'dimension', light: has('px') ? `${node.px}px` : `${node.rem}rem` }); return; }
+  const t = typeof node.$type === 'string' ? node.$type : type;
+  const own = typeof node.token === 'string' && node.token.startsWith('--') ? node.token : name;
+  for (const key of Object.keys(node)) {
+    const child = node[key], childPath = path ? `${path}.${key}` : key;
+    if (key === '$root') { flatten(child, own, path, t, out, ctx); continue; }
+    if (key === '$extends') { ctx.error(`${childPath}: $extends is not supported`); continue; }
+    if (/^\$(?:type|description|extensions|deprecated|schema)$/.test(key)) continue;
+    if (key.startsWith('$')) { ctx.warn(`${childPath}: unknown $-key ignored`); continue; }
+    if (key === 'token' && own !== name) continue;
+    const part = kebab(key);
+    if (!part) { ctx.error(`${childPath}: key cannot become a CSS name`); continue; }
+    flatten(child, own === '--' ? '--' + part : `${own}-${part}`, childPath, t, out, ctx);
+  }
+}
+
+// Render one raw value to CSS text; aliases become var(), formulas calc().
+function render(raw, type, where, ctx, emit) {
+  const text = (value, t = type, at = where) => render(value, t, at, ctx, emit);
+  if (raw == null || typeof raw === 'boolean') { ctx.error(`${where}: ${raw === undefined ? 'missing' : String(raw)} is not a token value`); return null; }
+  if (typeof raw === 'number') {
+    if (DIMENSIONAL.has(type) && raw !== 0) { ctx.error(`${where}: ${type} needs a unit (${raw})`); return null; }
+    return String(raw);
+  }
+  if (typeof raw === 'string') {
+    if (type === 'fontWeight' && WEIGHTS[raw.toLowerCase()] != null) return String(WEIGHTS[raw.toLowerCase()]);
+    if (DIMENSIONAL.has(type) && /^[-+]?\d*\.?\d+$/.test(raw) && Number(raw) !== 0) { ctx.error(`${where}: ${type} needs a unit (${raw})`); return null; }
+    let failed = false;
+    const substituted = raw.replace(/\{([^{}]+)\}/g, (all, ref) => {
+      const path = ref.trim().replace(/\.\$?value$/, ''), name = ctx.names.get(path);
+      if (!name) { failed = true; ctx.error(`${where}: unresolved alias {${ref}}`); return all; }
+      return `var(${name})`;
+    }).trim();
+    if (failed) return null;
+    if (/[;}]/.test(substituted)) { ctx.error(`${where}: value contains ; or } (${substituted.slice(0, 60)})`); return null; }
+    if (/^calc\(/.test(substituted)) return substituted;
+    const formula = arithmetic(substituted);
+    return formula ? `calc(${formula})` : substituted;
+  }
+  if (Array.isArray(raw)) {
+    if (type === 'cubicBezier') {
+      if (raw.length === 4 && raw.every(n => typeof n === 'number')) return `cubic-bezier(${raw.join(', ')})`;
+      ctx.error(`${where}: cubicBezier needs four numbers`); return null;
+    }
+    if (type === 'shadow') { const parts = raw.map((v, i) => text(v, 'shadow', `${where}[${i}]`)); return parts.includes(null) ? null : parts.join(', '); }
+    if (type === 'gradient') {
+      const stops = raw.map((stop, i) => isObject(stop) && 'color' in stop && typeof stop.position === 'number' ? [text(stop.color, 'color', `${where}[${i}].color`), `${round(stop.position * 100)}%`] : null);
+      if (stops.some(s => !s)) { ctx.error(`${where}: gradient stops need color and position`); return null; }
+      return stops.some(([c]) => c === null) ? null : `linear-gradient(${stops.map(s => s.join(' ')).join(', ')})`;
+    }
+    if (!raw.every(scalar)) { ctx.error(`${where}: array of ${type ?? 'unknown'} values is not supported`); return null; }
+    const parts = raw.map((v, i) => text(v, type === 'fontFamily' ? 'fontFamily' : type, `${where}[${i}]`));
+    return parts.includes(null) ? null : (type === 'fontFamily' ? parts.map(quoteFamily) : parts).join(', ');
+  }
+  if ('$ref' in raw) { ctx.error(`${where}: $ref is not supported`); return null; }
+  if (sameKeys(raw, ['px', 'rem']) && Object.values(raw).every(v => typeof v === 'number')) return Object.hasOwn(raw, 'px') ? `${raw.px}px` : `${raw.rem}rem`;
+  if (type === 'color' || 'colorSpace' in raw || 'hex' in raw) {
+    const { colorSpace, components, alpha, hex } = raw;
+    if (typeof hex === 'string' && !Array.isArray(components)) return alpha != null && alpha !== 1 ? `color(from ${hex} srgb r g b / ${alpha})` : hex;
+    const fn = COLOR_SPACES[colorSpace];
+    if (!fn || !Array.isArray(components) || components.length !== 3 || !components.every(c => typeof c === 'number' || c === 'none')) {
+      ctx.error(`${where}: color needs colorSpace (${Object.keys(COLOR_SPACES).join(', ')}) and three components`); return null;
+    }
+    const a = alpha != null && alpha !== 1 ? ` / ${alpha}` : '';
+    const c = components.map(v => typeof v === 'number' ? round(v) : v);
+    if (fn === 'rgb') { if (typeof hex === 'string' && !a) return hex; return `rgb(${c.map(v => typeof v === 'number' ? round(v * 255) : v).join(' ')}${a})`; }
+    if (fn === 'hsl' || fn === 'hwb') return `${fn}(${c[0]} ${c[1]}% ${c[2]}%${a})`;
+    if (fn === 'color') return `color(${colorSpace} ${c.join(' ')}${a})`;
+    return `${fn}(${c.join(' ')}${a})`;
+  }
+  if ('value' in raw && 'unit' in raw && sameKeys(raw, ['value', 'unit'])) return typeof raw.value === 'number' ? `${raw.value}${raw.unit}` : text(raw.value, type);
+  const field = (key, t, required = true) => {
+    if (!(key in raw)) { if (required) { ctx.error(`${where}: ${type} needs ${key}`); return null; } return ''; }
+    return text(raw[key], t, `${where}.${key}`);
+  };
+  const join = parts => parts.includes(null) ? null : parts.filter(Boolean).join(' ');
+  if (type === 'shadow' || 'offsetX' in raw && 'offsetY' in raw) {
+    return join([raw.inset ? 'inset' : '', field('offsetX', 'dimension'), field('offsetY', 'dimension'), field('blur', 'dimension', false), field('spread', 'dimension', false), field('color', 'color')]);
+  }
+  if (type === 'border') return join([field('width', 'dimension'), field('style', 'strokeStyle'), field('color', 'color')]);
+  if (type === 'transition') return join([field('duration', 'duration'), field('timingFunction', 'cubicBezier'), field('delay', 'duration', false)]);
+  if (type === 'typography') {
+    // The token is the `font` shorthand; letter-spacing cannot join it and
+    // becomes a sibling token.
+    const family = field('fontFamily', 'fontFamily'), size = field('fontSize', 'dimension');
+    const weight = field('fontWeight', 'fontWeight', false), leading = field('lineHeight', 'number', false);
+    const spacing = field('letterSpacing', 'dimension', false);
+    if ([family, size, weight, leading, spacing].includes(null)) return null;
+    if (spacing) emit('-letter-spacing', spacing);
+    return `${weight ? weight + ' ' : ''}${size}${leading ? '/' + leading : ''} ${family}`;
+  }
+  ctx.error(`${where}: unsupported ${type ? type + ' ' : ''}value (an object; supported composites: color, dimension, shadow, border, transition, typography, gradient)`);
+  return null;
+}
+
+export function importTokens({ sources, dark = [], map = null, prefix = '', darkSelector = '[data-theme=dark]', mappedOnly = false, command = '' }) {
+  const warnings = [], errors = [];
+  const ctx = { names: new Map(), warn: m => warnings.push(m), error: m => errors.push(m) };
+  if (!/^[^{};]+$/.test(darkSelector)) throw new Error(`dark selector "${darkSelector}" is not a selector`);
+  const root = prefix ? `--${kebab(prefix)}` : '--';
+  if (prefix && !NAME.test(root)) throw new Error(`prefix "${prefix}" cannot become a CSS name`);
+  // A file split by mode contributes its light groups to the sources and its
+  // dark groups to the dark set.
+  const split = (set, into, darkInto) => set.forEach(s => {
+    const json = clone(s.json, '');
+    if (sameKeys(json, ['light', 'dark']) && Object.values(json).every(isObject)) {
+      if (json.light) into.push({ file: s.file, json: json.light });
+      if (json.dark) darkInto.push({ file: s.file, json: json.dark });
+    } else into.push({ file: s.file, json });
+  });
+  const lightSet = [], darkSet = [];
+  split(sources, lightSet, darkSet); split(dark, darkSet, darkSet);
+  const tree = (set, label) => set.reduce((acc, s) => merge(acc, s.json, s.file && `${s.file}${label}`, '', ctx.warn), dict());
+  const leaves = [], overlay = [];
+  flatten(tree(lightSet, ''), root, '', undefined, leaves, ctx);
+  flatten(tree(darkSet, ' (dark)'), root, '', undefined, overlay, ctx);
+  // Names come from the light set only; a dark value reassigns by path.
+  const owners = new Map();
+  for (const leaf of leaves) {
+    if (!NAME.test(leaf.name)) { ctx.error(`${leaf.path || 'root'}: "${leaf.name}" is not a custom property name`); continue; }
+    const owner = owners.get(leaf.name);
+    if (owner !== undefined && owner !== leaf.path) ctx.error(`${leaf.path} and ${owner} both become ${leaf.name}; rename one or set an explicit name`);
+    owners.set(leaf.name, leaf.path);
+    ctx.names.set(leaf.path, leaf.name);
+  }
+  for (const leaf of overlay) {
+    const name = ctx.names.get(leaf.path);
+    if (!name) { ctx.error(`${leaf.path || 'root'} (dark): declared only in the dark set; give it a light value too`); continue; }
+    leaf.name = name;
+  }
+  const light = new Map(), night = new Map();
+  const put = (scope, name, raw, where, type) => {
+    if (raw === undefined) return;
+    const css = render(raw, type, where, ctx, (suffix, value) => scope.set(name + suffix, value));
+    if (css !== null) scope.set(name, css);
+  };
+  for (const leaf of leaves) { put(light, leaf.name, leaf.light, leaf.path || 'root', leaf.type); put(night, leaf.name, leaf.dark, `${leaf.path} (dark)`, leaf.type); }
+  for (const leaf of overlay) put(night, leaf.name, leaf.dark ?? leaf.light, `${leaf.path} (dark)`, leaf.type);
+  if (map) {
+    if (!isObject(map)) throw new Error('map must be an object of { "--name": value }');
+    for (const name of Object.keys(map)) {
+      if (!NAME.test(name)) { ctx.error(`map: "${name}" is not a custom property name`); continue; }
+      const spec = map[name], themed = isObject(spec) && sameKeys(spec, ['light', 'dark']);
+      const value = themed ? spec.light : spec, darkValue = themed ? spec.dark : undefined;
+      const own = typeof value === 'string' && ctx.names.get(value.trim().replace(/^\{|\}$/g, ''));
+      if (own === name) { if (darkValue !== undefined) put(night, name, darkValue, `map ${name} (dark)`); continue; } // identity: already named so
+      if (light.has(name) && value !== undefined) ctx.warn(`map ${name} replaces the source token of the same name`);
+      put(light, name, value, `map ${name}`); put(night, name, darkValue, `map ${name} (dark)`);
+    }
+  }
+  // Reference graph: every var() must resolve, no cycles in either scope.
+  const check = (scope, label, fallback) => {
+    const expr = name => scope.get(name) ?? fallback?.get(name);
+    const state = new Map();
+    const visit = (name, trail) => {
+      if (state.get(name) === 'done') return;
+      if (state.get(name) === 'open') { ctx.error(`${label}: alias cycle ${[...trail.slice(trail.indexOf(name)), name].join(' → ')}`); return; }
+      state.set(name, 'open');
+      for (const ref of refs(expr(name) ?? '')) {
+        if (expr(ref) === undefined) ctx.warn(`${label}: ${name} uses ${ref}, which this import does not declare`);
+        else visit(ref, [...trail, name]);
+      }
+      state.set(name, 'done');
+    };
+    for (const name of scope.keys()) visit(name, []);
+  };
+  check(light, ':root'); check(night, darkSelector, light);
+  if (errors.length) throw new Error(`${errors.length} error(s), nothing written:\n  ${errors.join('\n  ')}`);
+  // Custom properties resolve where they are declared, so a dark scope on an
+  // inner element needs every token whose chain reaches a dark value.
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const [name, css] of light) if (!night.has(name) && refs(css).some(ref => night.has(ref))) { night.set(name, css); grew = true; }
+  }
+  if (mappedOnly && map) {
+    const keep = new Set();
+    const add = name => { if (keep.has(name)) return; keep.add(name); for (const ref of refs(light.get(name) ?? '')) add(ref); for (const ref of refs(night.get(name) ?? '')) add(ref); };
+    Object.keys(map).forEach(add);
+    for (const name of [...light.keys()]) if (!keep.has(name)) light.delete(name);
+    for (const name of [...night.keys()]) if (!keep.has(name)) night.delete(name);
+  }
+  const ordered = scope => [...light.keys(), ...[...scope.keys()].filter(n => !light.has(n))].filter(n => scope.has(n));
+  const block = (selector, scope) => scope.size ? `${selector} {\n${ordered(scope).map(n => `  ${n}: ${scope.get(n)};`).join('\n')}\n}\n` : '';
+  const files = [...sources, ...dark].map(s => s.file).filter(Boolean).join(', ');
+  const css = `/* Imported by tokens.mjs import${command ? ': ' + command : files ? ' from ' + files : ''}. Edit the sources or the map and re-import; do not edit by hand. */\n`
+    + block(':root', light) + block(darkSelector, night);
+  return { css, warnings, count: light.size, darkCount: night.size };
+}
+
+export const REGISTRY = ['--bg', '--surface', '--fg', '--fg-2', '--muted', '--border', '--accent', '--accent-on', '--font-display', '--font-body', '--font-mono'];
+
 export async function main(argv) {
   const args = [...argv], command = args.shift();
   const take = (name, fallback) => { const i = args.indexOf(name); if (i < 0) return fallback; if (!args[i + 1] || args[i + 1].startsWith('--')) throw new Error(`missing value for ${name}`); return args.splice(i, 2)[1]; };
+  if (command === 'import') {
+    const out = take('--out'), darkFiles = take('--dark', ''), mapFile = take('--map'), prefix = take('--prefix', ''), darkSelector = take('--dark-selector', '[data-theme=dark]');
+    const mappedIndex = args.indexOf('--mapped-only'), mappedOnly = mappedIndex >= 0;
+    if (mappedOnly) args.splice(mappedIndex, 1);
+    if (!args.length || args.some(a => a.startsWith('--'))) throw new Error('usage: tokens.mjs import tokens.json… [--dark dark.json[,…]] [--map map.json] [--mapped-only] [--prefix name] [--dark-selector "[data-theme=dark]"] [--out tokens.css]');
+    const load = file => { try { const json = JSON.parse(readFileSync(file, 'utf8')); if (!isObject(json)) throw new Error('top level must be an object'); return { file: relative(process.cwd(), file) || file, json }; } catch (err) { throw new Error(`${file}: ${err.message}`); } };
+    const sources = args.map(load), dark = darkFiles.split(',').filter(Boolean).map(load), mapSource = mapFile ? load(mapFile) : null;
+    const command = ['import', ...sources.map(s => s.file), ...(dark.length ? ['--dark', dark.map(s => s.file).join(',')] : []), ...(mapSource ? ['--map', mapSource.file] : []),
+      ...(mappedOnly ? ['--mapped-only'] : []), ...(prefix ? ['--prefix', prefix] : []), ...(darkSelector !== '[data-theme=dark]' ? ['--dark-selector', darkSelector] : [])].join(' ');
+    const result = importTokens({ sources, dark, map: mapSource?.json ?? null, prefix, darkSelector, mappedOnly, command });
+    for (const w of result.warnings) console.error(`warning: ${w}`);
+    if (mapSource) {
+      const unbound = REGISTRY.filter(name => !new RegExp(`^  ${name}: `, 'm').test(result.css));
+      if (unbound.length) console.error(`note: registry names not bound by the map: ${unbound.join(', ')}`);
+    }
+    if (!out) { process.stdout.write(result.css); return 0; }
+    const target = resolve(out);
+    if (/\.html?$/i.test(target)) throw new Error('import writes CSS; use sync to place it into HTML');
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, result.css);
+    console.log(`imported: ${target} (${result.count} token(s), ${result.darkCount} dark, ${result.warnings.length} warning(s))`);
+    return 0;
+  }
   if (command === 'extract') {
     const out = take('--out');
     if (args.length !== 1 || args[0].startsWith('--')) throw new Error('usage: tokens.mjs extract file.html [--out tokens.css]');
@@ -394,7 +726,7 @@ export async function main(argv) {
     }
     return failed ? 2 : 0;
   }
-  if (command !== 'check') throw new Error('usage: tokens.mjs check|sync|extract …');
+  if (command !== 'check') throw new Error('usage: tokens.mjs check|sync|extract|import …');
   const widths = String(take('--width', '1440,390')).split(',').map(Number);
   const strictIndex = args.indexOf('--strict'), strict = strictIndex >= 0;
   if (strict) args.splice(strictIndex, 1);
