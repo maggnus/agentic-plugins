@@ -1,3 +1,9 @@
+## [12.6.1](https://github.com/maggnus/agentic-plugins/compare/v12.6.0...v12.6.1) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** every artifact uses an entry, its craft and a library seed ([fb22993](https://github.com/maggnus/agentic-plugins/commit/fb22993ab4a572cd6accbcd806f780f282244df0))
+
 ## [12.6.0](https://github.com/maggnus/agentic-plugins/compare/v12.5.1...v12.6.0) (2026-10-23)
 
 ### Features
