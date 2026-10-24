@@ -47,8 +47,8 @@ alike; host differences are named where they matter.
      `brand-spec.md` as the charter says;
    - a design system the user names or the project already uses → see below;
    - otherwise your design spec for this subject (charter, Lock brand and
-     direction), seeded from the library: query `^system` rows for the subject
-     and adopt a fitting one whole; else read one direction block with
+     direction); a library system or direction may inform it, never cap it.
+     Read one direction block with
      `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
 
    The contract governs tokens, fonts, radii, shadows and ornament and is

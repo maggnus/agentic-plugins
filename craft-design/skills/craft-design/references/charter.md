@@ -133,12 +133,17 @@ HTML so later edits hold to it:
   first screen; it becomes the theme below;
 - one memorable move that belongs to this subject.
 
-Seed the concept from the library before inventing one: query library systems
-(`grep '^system' library/catalog.tsv`) for the subject and its domain, and
-adopt a fitting system whole, its `tokens.css` verbatim as the theme; with no
-fitting system, start from the closest direction. Borrow or depart only where
-the subject demands it, and say where in the spec: the spec must fit the
-subject, not the other way round. Fonts and colors come from
+The concept starts from the subject: what only this place, product or
+person has (a material, a ritual, an object, a way of speaking) becomes the
+faces, the scale and the focal point. A safe, generic look is a failure as
+real as clutter; restraint belongs to the details, not to the idea. Library
+systems (`grep '^system' library/catalog.tsv`) and directions are references,
+not a ceiling: adopt a system whole only when the user names it or the
+subject belongs to that brand's family. A generated system (its `DESIGN.md`
+says "Token from style foundations") has no voice of its own: borrow at most a
+palette idea from it, never its faces or the whole. Say in the spec what you
+borrowed and where: the spec must fit the subject, not the other way round.
+Fonts and colors come from
 the concept, never inferred from a business name, and never carried over from
 the previous artifact of another brand. Once stated, the spec is the visual
 contract; do not ask about it again.
