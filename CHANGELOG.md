@@ -1,3 +1,9 @@
+## [12.6.8](https://github.com/maggnus/agentic-plugins/compare/v12.6.7...v12.6.8) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** shot.mjs captures states, catalog marks templated systems ([be699eb](https://github.com/maggnus/agentic-plugins/commit/be699eb66812aa65c6327b99259bd7161b440019)), closes [#fragment](https://github.com/maggnus/agentic-plugins/issues/fragment)
+
 ## [12.6.7](https://github.com/maggnus/agentic-plugins/compare/v12.6.6...v12.6.7) (2026-10-24)
 
 ### Bug Fixes
