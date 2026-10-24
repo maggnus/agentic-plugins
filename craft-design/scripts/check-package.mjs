@@ -82,6 +82,10 @@ assert.match(front, /^name: craft-design$/m);
 const description = front.match(/^description: "(.*)"$/m)?.[1] ?? '';
 assert.ok(description.length > 40 && description.length <= 500, 'router description stays short');
 assert.ok(Buffer.byteLength(router, 'utf8') < 8000, 'router body stays small (bytes)');
+for (const name of readdirSync(join(skill, 'references'))) {
+  const bytes = statSync(join(skill, 'references', name)).size;
+  assert.ok(bytes < 26000, `references/${name} fits one read without host truncation (${bytes} bytes)`);
+}
 for (const ref of new Set(router.match(/<skill>\/[\w./-]+\.(?:md|mjs|tsv)/g))) {
   assert.ok(existsSync(join(skill, ref.slice('<skill>/'.length))), `router reference exists: ${ref}`);
 }

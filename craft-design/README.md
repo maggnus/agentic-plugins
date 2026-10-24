@@ -21,8 +21,9 @@ codex plugin add craft-design@maggnus
 Only one skill is registered: [SKILL.md](skills/craft-design/SKILL.md), a router of about 1,300
 tokens. Everything else is read on demand:
 
-- `references/charter.md` — the design method (brief, direction, plan, build, verification,
-  refinement, craft rules), read once per conversation before the first artifact;
+- `references/charter.md` and `charter-craft.md` — the design method (brief, direction, plan,
+  build, verification, refinement) and the craft rules, read once per conversation before the
+  first artifact; split in two so that no host truncates a single read;
 - `references/brief.md`, `protocol.md`, `platforms.md`, `print-and-diagrams.md` — read only when
   the situation needs them;
 - `library/catalog.tsv` — one row per skill, template, design system, craft rule, direction and

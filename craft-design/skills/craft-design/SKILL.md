@@ -14,10 +14,10 @@ alike; host differences are named where they matter.
 
 ## Load in levels
 
-1. **Always:** this file, then `<skill>/references/charter.md` before the first
-   artifact of a conversation, whole, never by ranges. It is the design method:
-   brief, design spec, directions, plan, build, verification, refinement and
-   craft rules.
+1. **Always:** this file, then the charter before the first artifact of a
+   conversation: `<skill>/references/charter.md` (brief, spec, directions, plan,
+   build, verification, refinement) and `charter-craft.md` (craft rules), each
+   whole in one read, never by ranges.
 2. **Find, never browse.** `<skill>/library/catalog.tsv` has one row per entry
    (`kind id mode platform scenario design_system craft path summary`), about
    280 rows. Never read it whole. Query it:
@@ -134,7 +134,7 @@ are in the charter (One brand or product, one theme).
 ## Images
 
 The client's own venue, people and products without supplied photos get
-art-directed placeholders (charter, Visual finish), not stock. For named real
+art-directed placeholders (charter-craft, Visual finish), not stock. For named real
 places or objects, or when the user asks for photos:
 
 ```sh
