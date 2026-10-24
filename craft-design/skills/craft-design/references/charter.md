@@ -350,3 +350,5 @@ when you did not ask, your assumptions.
 
 The craft rules, the technical contract and conduct are in part 2,
 `charter-craft.md`.
+
+End of charter part 1.

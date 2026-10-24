@@ -8,7 +8,7 @@ description: "Design standalone HTML artifacts with an OpenDesign-grade method: 
 You are a senior digital product designer; the user is your manager. This skill
 is the router into a library adapted from OpenDesign (OD). Load as little as the
 task needs: every file you read stays in context. Claude Code and Codex run it
-alike; host differences are named where they matter.
+alike.
 
 `<skill>` below means the directory that contains this file.
 
@@ -17,7 +17,9 @@ alike; host differences are named where they matter.
 1. **Always:** this file, then the charter before the first artifact of a
    conversation: `<skill>/references/charter.md` (brief, spec, directions, plan,
    build, verification, refinement) and `charter-craft.md` (craft rules), each
-   whole in one read, never by ranges.
+   whole in its own unbatched command: hosts cut long tool results (Codex at
+   about 10k tokens). Each ends with "End of charter part N."; if missing,
+   reread that part alone.
 2. **Find, never browse.** `<skill>/library/catalog.tsv` has one row per entry
    (`kind id mode platform scenario design_system craft path summary`), about
    280 rows. Never read it whole. Query it:
@@ -34,9 +36,9 @@ alike; host differences are named where they matter.
    their `sections/` in a table: read only the sections the task needs. Read the
    entry's `assets/`, `references/` or `templates/` files when the entry tells you
    to; reuse its template instead of rewriting it. Check sizes first (`wc -c`):
-   a file over about 50 KB is never read whole; copy such a seed into the
-   artifact directory and edit it by search, and read long reference text by
-   heading (`grep -n '^#'`) in ranges.
+   a file over about 30 KB is never read whole (it would be cut); copy such a
+   seed into the artifact directory and edit it by search, and read long text
+   by heading in ranges.
 4. **Its craft rules.** The entry's catalog `craft` column names files in
    `<skill>/library/craft/<name>.md`. Read those; when the column is empty, read
    `typography`, `color` and `anti-ai-slop` (with a form, `form-validation`).
@@ -69,7 +71,7 @@ order and stop when you have enough: `USAGE.md` (what to load for which task) â†
 `DESIGN.md` (visual principles) â†’ `tokens.css`, pasted verbatim as the theme
 between `/* tokens:start */` and `/* tokens:end */`. `components.manifest.json`,
 `components.html`, `tailwind-v4.css` and `design-tokens.json` are optional
-depth. Bundled packages carry no `preview/`. While a system is active, do not
+depth. While a system is active, do not
 invent tokens, write raw hex outside its `:root`, or ask about brand, style or
 palette.
 
@@ -101,10 +103,9 @@ node <skill>/scripts/preview.mjs design --port 4178
 
 `/view/<path>` opens an artifact in the shell, `/raw/<path>` the file alone; the
 root lists every HTML file; a busy port moves on, the printed URL is
-authoritative. The preview reloads on save,
-switches widths (desktop, laptop, tablet, phone) and lets the user Alt+click any
-element to leave a comment, stored in `design/.craft-comments.jsonl` with the
-element's `data-od-id` and selector. `node <skill>/scripts/preview.mjs
+authoritative. It reloads on save, switches widths and lets the user Alt+click
+an element to leave a comment (`design/.craft-comments.jsonl`, with the
+element's `data-od-id` and selector). `node <skill>/scripts/preview.mjs
 --comments design` lists the open ones; apply them as refinements and mark each
 with `node <skill>/scripts/preview.mjs --resolve design <id>`. A second start on
 the same directory reports the running server.
@@ -142,7 +143,7 @@ node <skill>/scripts/images.mjs search "espresso bar interior" [--source openver
 node <skill>/scripts/images.mjs get '<ref from search>' design/<slug> --name hero
 ```
 
-`search` lists freely licensed photos (English queries work best); `get` saves
+`search` lists freely licensed photos (query in English); `get` saves
 one to `design/<slug>/img/`, downsized to 1600px, prints its size and appends the
 credit to `img/CREDITS.md`. The `tweaks` entry adds optional live controls
 (accent, type scale, density, motion, theme) around an artifact.

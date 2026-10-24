@@ -232,3 +232,5 @@ bare `const styles`.
 - Do not recreate copyrighted designs (another company's distinctive UI patterns
   or branded visual language). Sourcing a correctly attributed real image is not
   covered by this rule; never substitute a look-alike to work around it.
+
+End of charter part 2.
