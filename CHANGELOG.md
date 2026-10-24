@@ -1,3 +1,9 @@
+## [12.6.7](https://github.com/maggnus/agentic-plugins/compare/v12.6.6...v12.6.7) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** the spec turns each promise into evidence and a scenario ([337c1a4](https://github.com/maggnus/agentic-plugins/commit/337c1a4302d03a9cb83b40b611b234eb12d99eb2))
+
 ## [12.6.6](https://github.com/maggnus/agentic-plugins/compare/v12.6.5...v12.6.6) (2026-10-24)
 
 ### Bug Fixes
