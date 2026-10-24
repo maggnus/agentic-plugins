@@ -124,8 +124,15 @@ HTML so later edits hold to it:
 
 - audience and situation: who arrives, from where, on which device;
 - what they must learn and do (for a café: what's served, when, where, how to
-  come); these decide the section types and the main scenario;
-- the thesis: one specific line the page stands on;
+  come); these decide the section types and the main scenario, named as the
+  one action the artifact leads to;
+- for each promise in the brief, the evidence the artifact shows and the
+  interaction that uses it (fresh roast: a roast date per lot and its age;
+  laptop seats: count, sockets, Wi-Fi, a way to reserve; a dashboard's
+  question: the figure and the control that answers it); a promise left as a
+  label is a gap in the spec, not a style;
+- the thesis: one specific line the artifact stands on, which no competitor
+  could sign; a slogan that fits any café is rewritten before building;
 - (directions, when the look is open: see below; the chosen one feeds the
   concept)
 - the concept: display and body faces, palette with one accent, type and
