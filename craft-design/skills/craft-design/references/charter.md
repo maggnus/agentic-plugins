@@ -248,10 +248,12 @@ once, in prose.
    address, product names, dashboard data) becomes a consistent example value,
    whoever's business it is: mark its element `data-demo`, list all of them in
    an HTML comment at the top of the file, add a quiet visible note for the
-   visitor beside the blocks carrying key example values (prices, address and
-   hours, schedule; also live statuses computed from them, such as "open now")
-   and in the footer ("Prices, address and hours are example values for this
-   mockup", in the user's language), and never present them as confirmed. Never
+   visitor at the end of each section carrying key example values (prices,
+   address and hours, schedule; also live statuses computed from them, such as
+   "open now"), one note per section, never inside the first screen's headline
+   or focal block, and one in the footer ("Prices, address and hours are
+   example values for this mockup", in the user's language); never present
+   them as confirmed. Never
    invent facts about real third parties, achievements, awards, ratings or
    testimonials. Example values must be replaced or confirmed before the page
    is published.
@@ -502,7 +504,9 @@ or textures matter. Sourcing order:
    well-known items with their real images; do not invent them to avoid sourcing.
 4. The client's own venue, team, food or product you have no photos of gets an
    art-directed placeholder, not stock: a block at the final ratio in the
-   palette, styled to the concept, with a short caption that reads as a future
+   palette, composed from the concept (the subject's object drawn in outline,
+   a texture or a typographic composition), never a flat or blurred fill,
+   with a short caption that reads as a future
    photo ("photo to come: the room in the morning, window light"); never caption an
    illustration as a photo. A placeholder is never the largest visual of the
    page. Stock
