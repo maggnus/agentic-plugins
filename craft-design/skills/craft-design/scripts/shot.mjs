@@ -4,13 +4,17 @@
 // report (viewport, page height, horizontal overflow).
 //
 //   node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full]
-//                               [--at <y|css-selector>] [--out shot.png] [--wait 1500]
+//                               [--at <y|css-selector>] [--click <css-selector>]...
+//                               [--out shot.png] [--wait 1500]
 //
 // --width takes one or more comma-separated widths (one PNG each); widths below
 // 600 emulate a phone (mobile viewport, touch, height 844 unless --height is
 // given). --full loads lazy images and captures up to 16000px without changing
 // the viewport; --at scrolls to a CSS offset or to the
-// first element matching a selector. Set CHROME_PATH to choose the browser.
+// first element matching a selector. --click (repeatable) clicks the first
+// element matching each selector in order before the capture, and a file path
+// may end in #fragment, so a state (a tab, the back of a card, an open menu)
+// can be shot. Set CHROME_PATH to choose the browser.
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -25,6 +29,11 @@ const flag = (name, fallback) => {
   if (args[i + 1] === undefined || args[i + 1].startsWith('--')) { console.error(`missing value for ${name}`); process.exit(2); }
   return args.splice(i, 2)[1];
 };
+const clicks = [];
+for (let i = args.indexOf('--click'); i >= 0; i = args.indexOf('--click')) {
+  if (args[i + 1] === undefined || args[i + 1].startsWith('--')) { console.error('missing value for --click'); process.exit(2); }
+  clicks.push(args.splice(i, 2)[1]);
+}
 const bool = name => { const i = args.indexOf(name); return i >= 0 ? (args.splice(i, 1), true) : false; };
 const widths = String(flag('--width', '1440')).split(',').map(Number);
 const heightFlag = flag('--height');
@@ -36,14 +45,15 @@ const target = args[0];
 const unknown = args.filter(a => a.startsWith('--'));
 if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
 if (!target || args.length > 1 || widths.some(w => !(w > 0)) || heightFlag !== undefined && !(Number(heightFlag) > 0)) {
-  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--out shot.png]');
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png]');
   process.exit(2);
 }
 
 const isUrl = /^[a-z][a-z\d+.-]*:\/\//i.test(target);
-if (!isUrl && !existsSync(target)) { console.error(`not found: ${target}`); process.exit(2); }
+const [file, fragment = ''] = isUrl ? [target] : target.split(/(?=#)/, 2);
+if (!isUrl && !existsSync(file)) { console.error(`not found: ${file}`); process.exit(2); }
 // The preview's /view/ page is a shell around an iframe; shoot the artifact itself.
-const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(target)).href;
+const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(file)).href + fragment;
 
 function findBrowser() {
   if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
@@ -62,11 +72,11 @@ if (typeof WebSocket !== 'function') { console.error('Node 22 or newer is requir
 
 const shotDir = join(tmpdir(), 'craft-design-shots');
 const stem = isUrl ? new URL(target).pathname.split('/').filter(Boolean).slice(-2).join('-').replace(/\.[^.]+$/, '') || 'page'
-  : resolve(target).split(/[\\/]/).slice(-2).join('-').replace(/\.[^.]+$/, '');
+  : resolve(file).split(/[\\/]/).slice(-2).join('-').replace(/\.[^.]+$/, '');
 function outPath(width, height) {
   if (outFlag) return resolve(widths.length > 1 ? outFlag.replace(/(\.png)?$/i, `-${width}.png`) : outFlag);
   mkdirSync(shotDir, { recursive: true });
-  const where = full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '';
+  const where = (clicks.length || fragment ? '-state' : '') + (full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '');
   return join(shotDir, `${stem}-${width}x${height}${where}-${Date.now()}.png`);
 }
 
@@ -142,6 +152,13 @@ const SCROLL = `(() => {
   return '';
 })()`;
 
+// After a click or a #fragment, wait for the transitions and animations it started (finite
+// ones only, at most 3 s), so the shot shows the state and not the motion.
+const SETTLE = `new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok))).then(() => Promise.race([
+  Promise.all(document.getAnimations().filter(a => Number.isFinite(a.effect?.getComputedTiming().endTime)).map(a => a.finished.catch(() => null))),
+  new Promise(ok => setTimeout(ok, 3000)),
+])).then(() => new Promise(ok => setTimeout(ok, 100)))`;
+
 const MAX_CAPTURE_HEIGHT = 16000;
 // Resizing the viewport to the page height changes vh layouts and triggers lazy
 // images after measurement. Visit the page at the requested viewport instead,
@@ -183,6 +200,12 @@ async function shoot(width) {
   }
   await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
   await new Promise(ok => setTimeout(ok, wait));
+  if (fragment) await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+  for (const selector of clicks) {
+    const clicked = (await s('Runtime.evaluate', { expression: `(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return false; el.click(); return true; })()`, returnByValue: true })).result.value;
+    if (!clicked) throw new Error(`no element matches ${selector}`);
+    await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+  }
   if (full) {
     const prepared = await s('Runtime.evaluate', { expression: PREPARE_FULL, awaitPromise: true, returnByValue: true });
     if (prepared.exceptionDetails) throw new Error('could not prepare the full page');

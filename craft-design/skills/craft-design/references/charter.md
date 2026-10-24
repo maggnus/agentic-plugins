@@ -146,8 +146,8 @@ faces, the scale and the focal point. A safe, generic look is a failure as
 real as clutter; restraint belongs to the details, not to the idea. Library
 systems (`grep '^system' library/catalog.tsv`) and directions are references,
 not a ceiling: adopt a system whole only when the user names it or the
-subject belongs to that brand's family. A generated system (its `DESIGN.md`
-says "Token from style foundations") has no voice of its own: borrow at most a
+subject belongs to that brand's family. A generated system (its catalog
+summary starts "Templated palette") has no voice of its own: borrow at most a
 palette idea from it, never its faces or the whole. Say in the spec what you
 borrowed and where: the spec must fit the subject, not the other way round.
 Fonts and colors come from

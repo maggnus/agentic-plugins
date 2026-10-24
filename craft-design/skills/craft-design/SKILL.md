@@ -69,8 +69,7 @@ DESIGN.md" is the contract of step 5.
 `<skill>/library/design-systems/<id>/` holds a normalized package. Read in this
 order and stop when you have enough: `USAGE.md` (what to load for which task) →
 `DESIGN.md` (visual principles) → `tokens.css`, pasted verbatim as the theme
-between `/* tokens:start */` and `/* tokens:end */`. `components.manifest.json`,
-`components.html`, `tailwind-v4.css` and `design-tokens.json` are optional
+between `/* tokens:start */` and `/* tokens:end */`; other files are optional
 depth. While a system is active, do not
 invent tokens, write raw hex outside its `:root`, or ask about brand, style or
 palette.
@@ -119,7 +118,9 @@ node <skill>/scripts/shot.mjs design/<slug>/index.html --width 1440,390
 Each width renders at an exact viewport (below 600 a phone, 844 tall) to one
 PNG, with a line giving the page height and any horizontal overflow with the
 offending elements. `--full` captures a page longer than a few screens, `--at
-<y|selector>` scrolls first; `--height` and `--out` are optional. View the PNGs
+<y|selector>` scrolls first, `--click <selector>` (repeatable) or a
+`#fragment` opens a state (a tab, the card's back, a dialog); `--height` and
+`--out` are optional. View the PNGs
 with the host's image reading. Without Chrome, Chromium, Edge or Brave, deliver
 on static checks and say so.
 

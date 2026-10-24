@@ -267,8 +267,12 @@ for (const id of readdirSync(join(odRoot, 'design-systems')).sort()) {
   const category = manifest.category ?? design.match(/^> Category:\s*(.+)$/m)?.[1] ?? '';
   const blurb = design.match(/^> (?!Category:)(.+)$/m)?.[1] ?? manifest.description ?? '';
   const parts = existsSync(join(target, 'tokens.css')) ? 'tokens' : 'prose';
+  // Upstream generates some systems from a style template: every token reads
+  // "Token from style foundations" and the prose is generic. Mark them so a
+  // catalog query shows they carry a palette, not a studied brand.
+  const templated = design.includes('Token from style foundations') ? 'Templated palette, generic prose. ' : '';
   catalog.push(['system', id, 'design-system', '', oneLine(category), parts, list(manifest.craft?.suggested).join(','),
-    `library/design-systems/${id}/`, clip(oneLine(`${name}. ${blurb}`), 400)]);
+    `library/design-systems/${id}/`, clip(oneLine(`${templated}${name}. ${blurb}`), 400)]);
 }
 if (existsSync(join(odRoot, 'design-systems/_schema/defaults.css'))) {
   mkdirSync(join(stage, 'design-systems/_schema'), { recursive: true });

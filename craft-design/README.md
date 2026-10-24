@@ -37,7 +37,8 @@ tokens. Everything else is read on demand:
 artifacts, live reload on save, desktop/laptop/tablet/phone widths, and Alt+click comments that
 are stored next to the artifacts for the agent and copied to the clipboard. `scripts/shot.mjs`
 renders one or more exact viewport widths (phone emulation below 600px) with an installed
-Chrome, Chromium, Edge or Brave and reports horizontal overflow with the offending elements.
+Chrome, Chromium, Edge or Brave, opens states first on request (`--click <selector>`, a `#fragment`)
+and reports horizontal overflow with the offending elements.
 `scripts/tokens.mjs` keeps the theme honest: `check` finds values outside the theme and tokens
 no element follows (with a browser it changes each token in turn and watches whether any computed
 style moves), `extract` and `sync` share one brand theme between artifacts, and `import` turns

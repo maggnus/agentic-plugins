@@ -408,6 +408,18 @@ try {
       const scrolled = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '390', '--wait', '0', '--at', '#target', '--out', join(work, 'at.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(scrolled.status, 0, `scrolled capture runs: ${scrolled.stderr}`);
       assert.deepEqual(screenshot(join(work, 'at.png')).pixel(10, 0), [255, 0, 255], 'scroll target is reached even when CSS requests smooth scrolling');
+      writeFileSync(join(root, 'demo/state.html'), `<!doctype html><style>body{margin:0}#panel{height:100vh;background:red;transition:background-color .6s}
+        .on #panel{background:#0000ff}:target{background:#00ff00!important}</style>
+        <button id="open" onclick="document.body.classList.add('on')">open</button><div id="panel"></div>`);
+      const clicked = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/state.html'), '--width', '390', '--wait', '0', '--click', '#open', '--out', join(work, 'state.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(clicked.status, 0, `clicked capture runs: ${clicked.stderr}`);
+      assert.deepEqual(screenshot(join(work, 'state.png')).pixel(10, 400), [0, 0, 255], 'the click is captured after its transition ends');
+      const targeted = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), `${join(root, 'demo/state.html')}#panel`, '--width', '390', '--wait', '0', '--out', join(work, 'target.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(targeted.status, 0, `fragment capture runs: ${targeted.stderr}`);
+      assert.deepEqual(screenshot(join(work, 'target.png')).pixel(10, 400), [0, 255, 0], 'a #fragment in the file path opens that state');
+      const missing = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/state.html'), '--width', '390', '--wait', '0', '--click', '#nope', '--out', join(work, 'nope.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.notEqual(missing.status, 0, 'a selector that matches nothing fails the capture');
+      assert.match(missing.stderr + missing.stdout, /no element matches #nope/);
     }
   }
 } finally {
