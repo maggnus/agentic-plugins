@@ -1,3 +1,9 @@
+## [12.6.2](https://github.com/maggnus/agentic-plugins/compare/v12.6.1...v12.6.2) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** library systems inform the concept, never cap it ([efe57dd](https://github.com/maggnus/agentic-plugins/commit/efe57dd36f75360ffb67e41200f51b4e3cda41f6))
+
 ## [12.6.1](https://github.com/maggnus/agentic-plugins/compare/v12.6.0...v12.6.1) (2026-10-24)
 
 ### Bug Fixes
