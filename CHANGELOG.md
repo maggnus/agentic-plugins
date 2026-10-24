@@ -1,3 +1,9 @@
+## [12.6.3](https://github.com/maggnus/agentic-plugins/compare/v12.6.2...v12.6.3) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** demo notes close sections, placeholders carry a composition ([373e475](https://github.com/maggnus/agentic-plugins/commit/373e4752e275af7144b63198d6b40413076bf695))
+
 ## [12.6.2](https://github.com/maggnus/agentic-plugins/compare/v12.6.1...v12.6.2) (2026-10-24)
 
 ### Bug Fixes

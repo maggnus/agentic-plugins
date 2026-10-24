@@ -83,14 +83,14 @@ change in a large repository does not establish suitability for every part of th
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.6.2"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.6.3"
 claude plugin install rad-ai@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.6.2
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.6.3
 codex plugin add rad-ai@maggnus
 ```
 
