@@ -133,9 +133,12 @@ HTML so later edits hold to it:
   first screen; it becomes the theme below;
 - one memorable move that belongs to this subject.
 
-Library systems (`grep '^system' library/catalog.tsv`) and directions are
-optional starting points: adopt one whole, borrow from it or ignore it, but the
-spec must fit the subject, not the other way round. Fonts and colors come from
+Seed the concept from the library before inventing one: query library systems
+(`grep '^system' library/catalog.tsv`) for the subject and its domain, and
+adopt a fitting system whole, its `tokens.css` verbatim as the theme; with no
+fitting system, start from the closest direction. Borrow or depart only where
+the subject demands it, and say where in the spec: the spec must fit the
+subject, not the other way round. Fonts and colors come from
 the concept, never inferred from a business name, and never carried over from
 the previous artifact of another brand. Once stated, the spec is the visual
 contract; do not ask about it again.
@@ -303,6 +306,9 @@ recheck only the affected area.
    any line fit a competitor; do scale, density and background change from
    section to section; does every action help the visitor. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
+8. **The last shot is of the delivered file.** Any edit after the shots, even
+   one line, is followed by `shot.mjs` at the same widths and a look at the
+   PNGs before delivery.
 
 ## Refinement phase
 

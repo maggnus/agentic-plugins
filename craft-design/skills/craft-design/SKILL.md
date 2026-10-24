@@ -15,8 +15,9 @@ alike; host differences are named where they matter.
 ## Load in levels
 
 1. **Always:** this file, then `<skill>/references/charter.md` before the first
-   artifact of a conversation. It is the design method: brief, design spec,
-   directions, plan, build, verification, refinement and craft rules.
+   artifact of a conversation, whole, never by ranges. It is the design method:
+   brief, design spec, directions, plan, build, verification, refinement and
+   craft rules.
 2. **Find, never browse.** `<skill>/library/catalog.tsv` has one row per entry
    (`kind id mode platform scenario design_system craft path summary`), about
    280 rows. Never read it whole. Query it:
@@ -37,14 +38,17 @@ alike; host differences are named where they matter.
    artifact directory and edit it by search, and read long reference text by
    heading (`grep -n '^#'`) in ranges.
 4. **Its craft rules.** The entry's catalog `craft` column names files in
-   `<skill>/library/craft/<name>.md`. Read those; skip the rest. Frontmatter
-   `od.craft.requires` may also list rules not written upstream yet; ignore them.
+   `<skill>/library/craft/<name>.md`. Read those; when the column is empty, read
+   `typography`, `color` and `anti-ai-slop` (with a form, `form-validation`).
+   Skip the rest. Frontmatter `od.craft.requires` may also list
+   rules not written upstream yet; ignore them.
 5. **Its visual contract**, exactly one of:
    - a user brand source (spec, URL, screenshot) → extract real values into
      `brand-spec.md` as the charter says;
    - a design system the user names or the project already uses → see below;
    - otherwise your design spec for this subject (charter, Lock brand and
-     direction). A library system or direction may seed it; read one block with
+     direction), seeded from the library: query `^system` rows for the subject
+     and adopt a fitting one whole; else read one direction block with
      `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
 
    The contract governs tokens, fonts, radii, shadows and ornament and is
@@ -52,7 +56,9 @@ alike; host differences are named where they matter.
    template's working code, but the spec decides the sections, and the entry's
    aesthetic rules yield to the contract.
 
-No entry fits? Work from the charter alone; that is a valid OD run. In entry
+Every new artifact takes steps 2–5. An imperfect entry still gives its
+template, checklist and craft; the contract overrides its look. Skip the entry
+only when no row of the artifact's type matches, and name the queries. In entry
 text, "SKILL.md" is that entry's `ENTRY.md` and "the active / injected
 DESIGN.md" is the contract of step 5.
 
