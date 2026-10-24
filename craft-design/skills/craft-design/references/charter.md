@@ -309,7 +309,8 @@ recheck only the affected area.
    line for each width and view the PNGs. Take further shots (`--at <selector>`)
    only for a specific doubt or to recheck a fix. If the script fails, allow one diagnostic; then deliver on static checks
    and state which ones you ran.
-7. **Look at it as an art director,** on these shots: what draws the eye first; what makes this place memorable; would
+7. **Look at it as an art director,** on these shots: what draws the eye first, and would the first screen
+   hold as a poster seen across a room; what makes this place memorable; would
    any line fit a competitor; do scale, density and background change from
    section to section; does every action help the visitor. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
@@ -392,7 +393,12 @@ principles; the figures in them are examples, not a house style to repeat.
   no dead buttons, no `href="#"` primary actions.
 - **Typographic voice.** A display face with character for this subject, set at
   a scale that decides the page, with a body face that stays quiet; size
-  contrast carries the hierarchy, not boxes and shadows.
+  contrast carries the hierarchy, not boxes and shadows. On a landing or
+  marketing page the first screen is a poster: its focal element is the name
+  or one short line (a few words, not a sentence of facts) at poster scale,
+  about 8× the body size or more at 1440, or the subject's object drawn as
+  large; the facts and actions follow it in body size. Section titles keep a
+  clear step below it.
 - **Form follows content.** An assortment becomes dense rows, a menu becomes
   switchable lists, a visit becomes a booking or route; ruled lists and tables
   over card grids, cards only for genuinely separate objects. Sections differ
