@@ -1,3 +1,9 @@
+## [12.6.4](https://github.com/maggnus/agentic-plugins/compare/v12.6.3...v12.6.4) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** the first screen of a landing page is a poster ([bd7fb83](https://github.com/maggnus/agentic-plugins/commit/bd7fb83c41fa80d0281894f9f57aa3effa8cec14))
+
 ## [12.6.3](https://github.com/maggnus/agentic-plugins/compare/v12.6.2...v12.6.3) (2026-10-24)
 
 ### Bug Fixes
