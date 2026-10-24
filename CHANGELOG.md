@@ -1,3 +1,9 @@
+## [12.6.5](https://github.com/maggnus/agentic-plugins/compare/v12.6.4...v12.6.5) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** split the charter so no host truncates a single read ([74d0f12](https://github.com/maggnus/agentic-plugins/commit/74d0f122138b34413c388661df2bc6d9b030730e))
+
 ## [12.6.4](https://github.com/maggnus/agentic-plugins/compare/v12.6.3...v12.6.4) (2026-10-24)
 
 ### Bug Fixes

@@ -34,13 +34,13 @@ Invoke as `$brief:brief` in Codex or `/brief:brief` in Claude.
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.6.4"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.6.5"
 claude plugin install brief@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.6.4
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.6.5
 codex plugin add brief@maggnus
 ```
