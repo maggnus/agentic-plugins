@@ -1,3 +1,9 @@
+## [12.6.6](https://github.com/maggnus/agentic-plugins/compare/v12.6.5...v12.6.6) (2026-10-24)
+
+### Bug Fixes
+
+* **craft-design:** read each charter part alone and confirm its end ([f065efc](https://github.com/maggnus/agentic-plugins/commit/f065efcd6b0b58fdadee6a197964cf58c1542b40))
+
 ## [12.6.5](https://github.com/maggnus/agentic-plugins/compare/v12.6.4...v12.6.5) (2026-10-24)
 
 ### Bug Fixes
