@@ -1,7 +1,7 @@
 {
   "name": "open-design",
   "description": "Develop real repository interfaces through the OpenDesign MCP, with existing project components, application previews and project-native acceptance.",
-  "version": "12.6.8+codex.20261024142404",
+  "version": "12.7.0+codex.20261025014443",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"

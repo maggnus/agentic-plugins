@@ -1,3 +1,9 @@
+## [12.7.0](https://github.com/maggnus/agentic-plugins/compare/v12.6.8...v12.7.0) (2026-10-25)
+
+### Features
+
+* **craft-design:** a general design system, in its own terms ([6a0e3a0](https://github.com/maggnus/agentic-plugins/commit/6a0e3a0102e8f2f08ad82e7a5feb1c41b0174afa))
+
 ## [12.6.8](https://github.com/maggnus/agentic-plugins/compare/v12.6.7...v12.6.8) (2026-10-24)
 
 ### Bug Fixes
