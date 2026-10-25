@@ -10,5 +10,5 @@
 - `scripts/compare-recon.mjs`：读取原站与克隆站的侦察 JSON、路由图、交互证据，生成 `CLONE_REPORT.md`。
 - `scripts/visual-diff.mjs`：用浏览器 canvas 做截图像素差异，输出 visual score 和差异图。
 - `scripts/audit-clone.mjs`：扫描追踪脚本、原站品牌残留、日文残留、TODO、外部 URL 风险；带 `--recon --strict` 时额外校验字体自托管/图片落地/关键区块颜色逐字一致，有硬伤 exit 2。
-- `scripts/od-preview-rewrite.mjs`：把 HTML/CSS/SVG 里的项目根资源引用（如 `/reference-assets/main.css`）改成相对路径，保证 OpenDesign 文件预览和导出 zip 在嵌套路由下仍能加载资源。
+- `scripts/craft-preview-rewrite.mjs`：把 HTML/CSS/SVG 里的项目根资源引用（如 `/reference-assets/main.css`）改成相对路径，保证文件预览和导出 zip 在嵌套路由下仍能加载资源。
 - `scripts/dna-scaffold.mjs`：从侦察 JSON 生成 `design-dna.json` 设计身份骨架（字体/色候选/框架特效信号 best-effort 预填），给「视觉复刻 / 内容爆改」模式用。详见 `references/design-dna.md`。

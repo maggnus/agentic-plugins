@@ -11,7 +11,7 @@ triggers:
   - "animation craft"
   - "动效审查"
 disable-model-invocation: true
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

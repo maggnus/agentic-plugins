@@ -13,13 +13,13 @@ export function loadPlaywright() {
   const requireFromCwd = createRequire(path.join(process.cwd(), "noop.js"));
   const attempts = [
     () => {
-      const p = process.env.OD_PLAYWRIGHT_PACKAGE;
-      if (!p) throw new Error("OD_PLAYWRIGHT_PACKAGE unset");
+      const p = process.env.CRAFT_PLAYWRIGHT_PACKAGE;
+      if (!p) throw new Error("CRAFT_PLAYWRIGHT_PACKAGE unset");
       return requireFromScript(p);
     },
     () => {
-      const p = process.env.OD_PLAYWRIGHT_PATH;
-      if (!p) throw new Error("OD_PLAYWRIGHT_PATH unset");
+      const p = process.env.CRAFT_PLAYWRIGHT_PATH;
+      if (!p) throw new Error("CRAFT_PLAYWRIGHT_PATH unset");
       return requireFromScript(p);
     },
     () => requireFromScript("playwright"),
@@ -62,10 +62,10 @@ export function findSystemChromiumExecutable({
   env = process.env,
   homeDir = os.homedir(),
 } = {}) {
-  const configured = env.OD_BROWSER_EXECUTABLE_PATH;
+  const configured = env.CRAFT_BROWSER_EXECUTABLE_PATH;
   if (configured) {
     if (fs.existsSync(configured)) return configured;
-    throw new Error(`OD_BROWSER_EXECUTABLE_PATH does not exist: ${configured}`);
+    throw new Error(`CRAFT_BROWSER_EXECUTABLE_PATH does not exist: ${configured}`);
   }
 
   if (platform === "darwin") {
@@ -108,13 +108,13 @@ export async function launchChromium(chromium, options = {}) {
     : systemChromium;
   if (
     typeof daemonChromium.connectOverDaemon === "function"
-    && process.env.OD_DAEMON_URL
-    && process.env.OD_PROJECT_ID
+    && process.env.CRAFT_DAEMON_URL
+    && process.env.CRAFT_PROJECT_ID
   ) {
     try {
       return await daemonChromium.connectOverDaemon({
-        daemonUrl: process.env.OD_DAEMON_URL,
-        projectId: process.env.OD_PROJECT_ID,
+        daemonUrl: process.env.CRAFT_DAEMON_URL,
+        projectId: process.env.CRAFT_PROJECT_ID,
       });
     } catch {
       // Older daemons may not expose the broker. Fall back to direct launch.
@@ -137,8 +137,8 @@ export async function launchChromium(chromium, options = {}) {
   } catch (error) {
     throw new Error(
       "No compatible Chrome, Edge, or Chromium executable is available. " +
-        "Open Design does not download a browser during web-clone tasks. " +
-        "Install a system browser or set OD_BROWSER_EXECUTABLE_PATH to its executable. " +
+        "The studio does not download a browser during web-clone tasks. " +
+        "Install a system browser or set CRAFT_BROWSER_EXECUTABLE_PATH to its executable. " +
         `Browser launch detail: ${systemBrowserError?.message || error.message}`,
     );
   }

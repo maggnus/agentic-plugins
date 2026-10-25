@@ -1,6 +1,6 @@
 # Platform delivery contracts
 
-Adapted from OpenDesign. Read for native platforms (iOS, Android, tablet,
+Read for native platforms (iOS, Android, tablet,
 desktop app), several targets, app prototypes or device frames; a responsive web
 page needs only the first point below.
 

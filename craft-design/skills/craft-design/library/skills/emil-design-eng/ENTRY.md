@@ -11,7 +11,7 @@ triggers:
   - "invisible details"
   - "界面哲学"
   - "设计工程"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

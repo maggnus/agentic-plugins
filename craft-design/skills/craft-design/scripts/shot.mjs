@@ -94,7 +94,7 @@ const MEASURE = width => `(() => {
       if (/(hidden|clip|auto|scroll)/.test(s.overflowX)) { const pr = p.getBoundingClientRect(); if (pr.right <= w + 1 && pr.left >= -1) { clipped = true; break; } }
     }
     if (clipped) continue;
-    const id = el.closest('[data-od-id]')?.getAttribute('data-od-id');
+    const id = el.closest('[data-craft-id]')?.getAttribute('data-craft-id');
     out.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList[0] ? '.' + el.classList[0] : '') + (id ? ' [' + id + ']' : '') + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
     if (out.length >= 6) break;
   }

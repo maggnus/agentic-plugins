@@ -12,7 +12,7 @@ triggers:
   - "sre doc"
   - "service runbook"
   - "运维手册"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: engineering

@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "od-design-system-project/v1",
+  "schemaVersion": "craft-design-system-project/v1",
   "id": "huggingface",
   "name": "Hugging Face",
   "category": "AI & LLM",
-  "description": "Bundled OpenDesign package for Hugging Face, derived from curated DESIGN.md, tokens.css, and components.html fixtures.",
+  "description": "Bundled design-system package for Hugging Face, derived from curated DESIGN.md, tokens.css, and components.html fixtures.",
   "source": {
     "type": "bundled",
-    "origin": "OpenDesign curated bundled fixture"
+    "origin": "Curated bundled fixture"
   },
   "files": {
     "design": "DESIGN.md",

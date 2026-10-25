@@ -1,7 +1,7 @@
 ---
 name: orbit-general
 description: |
-  Open Orbit briefing skill — selected by the Orbit pipeline when the
+  Atlas Orbit briefing skill — selected by the Orbit pipeline when the
   user has two or more connectors connected. Pulls the past 24 hours of
   activity from every authenticated connector (GitHub, Linear, Notion,
   Slack, 飞书, Calendar, Gmail, Drive, Sentry, Vercel, …) and renders a
@@ -19,7 +19,7 @@ triggers:
   - "每日简报"
   - "早安简报"
   - "跨工具汇总"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: orbit
@@ -28,10 +28,10 @@ od:
     entry: index.html
   design_system:
     requires: false
-  example_prompt: "Generate today's Open Orbit morning briefing. I have ~10 connectors connected (GitHub, Linear, Notion, Calendar, 飞书, Sentry, Vercel, Slack, Gmail, Drive). Pull yesterday's activity from each and render the editorial bento dashboard."
+  example_prompt: "Generate today's Atlas Orbit morning briefing. I have ~10 connectors connected (GitHub, Linear, Notion, Calendar, 飞书, Sentry, Vercel, Slack, Gmail, Drive). Pull yesterday's activity from each and render the editorial bento dashboard."
 ---
 
-> **craft-design adaptation.** There is no Orbit pipeline or OpenDesign connector
+> **craft-design adaptation.** There is no Orbit pipeline or connector service
 > here. Reproduce `example.html` with mock content by default. Use real items only
 > when the matching source is reachable through tools the agent already has (a
 > connected MCP server or CLI), and never put credentials into the artifact.
@@ -86,7 +86,7 @@ tokens into the output.
 - Use exclusively the colors / fonts / radii / chrome defined in
   `example.html`.
 
-This is a hard constraint: an Orbit briefing must read as Open Orbit's
+This is a hard constraint: an Orbit briefing must read as Atlas Orbit's
 own editorial bento language, not as the user's brand.
 
 ## Canvas tokens (use these exact values)
@@ -153,8 +153,8 @@ Connector icons must be monochrome line SVG (1.5 stroke).
    with the person's name + waiting reason underneath in 12px muted.
 
 7. **Footer** — single line, ~52px.
-   Left: `Open Orbit · auto-generated 06:42 · N connectors`.
-   Right: `由 Nexu Labs 出品`.
+   Left: `Atlas Orbit · auto-generated 06:42 · N connectors`.
+   Right: `由 Acme Labs 出品`.
    Border-top 1px, all text 12px muted.
 
 ## Connector → UI mapping (pick the matching family)
@@ -199,7 +199,7 @@ If still ambiguous, fall back to a status-dot list (the safest default).
 | Render every module as the same card shape | Vary by family — Alert = big red number + heatmap; Status = status-dot list; Files = thumbnail grid; Comms = avatar + quote |
 | Render Sentry / PagerDuty as a plain list | Big red Cormorant number + 7-day heatmap + latest error line (`TypeError: …`) |
 | Render Calendar as a plain text agenda | Visualize on the horizontal timeline at the top; module form is an agenda list with start-time gutter |
-| Use placeholder names like "Service A / Project X" | Infer plausible real names from the connector type — GitHub → `nexu-io/open-design`, Sentry → `frontend-prod`, Linear → `ENG / DES` cycle 24, Stripe → `Pro plan / Acme Co.` |
+| Use placeholder names like "Service A / Project X" | Infer plausible real names from the connector type — GitHub → `acme/atlas`, Sentry → `frontend-prod`, Linear → `ENG / DES` cycle 24, Stripe → `Pro plan / Acme Co.` |
 | Use lorem ipsum filler | Write specific mock copy that reads as a real workday — names, numbers, errors, paths, percentages |
 | Mix emoji and SVG icons in the same module set | Use monochrome line SVGs (1.5 stroke) consistently for all connector icons; emoji are reserved for hero greeting and section anchors only |
 | Square or rounded-square avatars | Always circles; sizes 28 / 32 / 40 / 44 px depending on context |

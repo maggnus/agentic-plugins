@@ -1,6 +1,6 @@
 ## Video production and dual delivery
 
-For video briefs, use Open Design's existing local HyperFrames renderer during
+For video briefs, use the studio's existing local HyperFrames renderer during
 Build. It needs no video-generation API key. Do not ask the user to render it
 manually or run a second renderer. Plan declares `hyperframes-html` as the
 production route, editable source as canonical, and MP4 as a required derived
@@ -8,7 +8,7 @@ output. For interactive briefs use `html` and source only.
 
 Keep source and MP4 paths in the readable plan and in the composition's MP4
 link. The exporter checks its actual output path and the declared audio policy;
-Open Design does not parse or freeze a model-authored plan. Do not add machine
+The studio does not parse or freeze a model-authored plan. Do not add machine
 blocks or a contract-repair turn.
 
 Apply this delivery guidance only to the user's actual current video-motion
@@ -19,7 +19,7 @@ animation in a prototype remain runnable HTML. Follow-ups may directly edit an
 existing film; re-render only when the requested change affects the video.
 
 1. Scaffold a visible source directory with the native shell tool:
-   `"$OD_NODE_BIN" "$OD_BIN" media scaffold --project "$OD_PROJECT_ID" --composition-dir "motion-source/film"`.
+   `craft media scaffold --project "$CRAFT_PROJECT_ID" --composition-dir "motion-source/film"`.
    Use a new descriptive directory for a new film; edit the existing source on
    revisions. Keep `hyperframes.json`, `meta.json`, HTML and local assets there.
 2. Author `motion-source/film/index.html`. Its composition root must have
@@ -27,7 +27,7 @@ existing film; re-render only when the requested change affects the video.
    `data-height` and `data-fps`. Register the seekable master timeline at
    `window.__timelines.main`. Use actual GSAP animations, not a placeholder
    timeline. Keep assets/fonts local and relative to this source directory.
-   Include `<meta name="od-motion-output" content="video">` and
+   Include `<meta name="craft-motion-output" content="video">` and
    `<link rel="alternate" type="video/mp4" href="../../film.mp4">` in the head.
    The href must identify the actual planned MP4 inside the project. The
    interactive equivalent declares `content="interactive"` and needs no MP4.
@@ -39,8 +39,8 @@ existing film; re-render only when the requested change affects the video.
    exact frame from the finished MP4. Do not generate a separate invented cover,
    change the video's opening for the cover, or bake preview containers into it.
 3. Render through the host:
-   `"$OD_NODE_BIN" "$OD_BIN" media generate --project "$OD_PROJECT_ID" --surface video --model hyperframes-html --composition-dir "motion-source/film" --output "film.mp4"`.
-   If it returns a task ID, use `"$OD_NODE_BIN" "$OD_BIN" media wait <id>` and wait for success.
+   `craft media generate --project "$CRAFT_PROJECT_ID" --surface video --model hyperframes-html --composition-dir "motion-source/film" --output "film.mp4"`.
+   If it returns a task ID, use `craft media wait <id>` and wait for success.
    A queued task, HTML preview or failed command is not a completed film.
 4. Preserve the source and assets, and link BOTH the actual MP4 and the source
    HTML in the final response using project-relative Markdown links. The file

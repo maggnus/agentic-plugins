@@ -17,7 +17,7 @@ triggers:
   - editorial document
   - print-grade page
   - kami landing
-od:
+craft:
   category: brand-page
   surface: web
   mode: prototype
@@ -176,7 +176,7 @@ example's `<style>` block):
 - `.code` — ivory-bg, 1px-border code block
 - `.footer-kicker` — mega serif 500 word
 
-Tag every editable element with `data-od-id="<unique-slug>"` so the
+Tag every editable element with `data-craft-id="<unique-slug>"` so the
 host app's comment mode can target it.
 
 ### 4. Self-check before delivering
@@ -205,7 +205,7 @@ host app's comment mode can target it.
 design-templates/kami-landing/
 ├── SKILL.md                 # this contract
 ├── README.md                # human quick-start
-└── example.html             # canonical OpenDesign rendering
+└── example.html             # canonical rendering
 ```
 
 ## Boundaries

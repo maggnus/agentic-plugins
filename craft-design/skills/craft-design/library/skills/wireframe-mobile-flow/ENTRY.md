@@ -18,7 +18,7 @@ triggers:
   - "low fidelity"
   - "移动端线框"
   - "App 流程图"
-od:
+craft:
   mode: prototype
   platform: auto
   scenario: design
@@ -71,7 +71,7 @@ scribbly) but keep the connectors and annotations loose and informal.
    - Defined dark device-frame borders, medium-grey content blocks on white
      screens, and a single accent color for arrows and annotations so the
      board reads clearly even as a small thumbnail.
-   - `data-od-id` on the header, each phone screen, the connectors, and the
+   - `data-craft-id` on the header, each phone screen, the connectors, and the
      annotations.
 5. **Self-check**:
    - The three main phones are visible in a ~1280px viewport; the flow reads

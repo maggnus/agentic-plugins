@@ -18,11 +18,10 @@ example_tagline: "Aurora Violet 流体"
 example_desc: "多层 radial-gradient 呼吸背景 + difference 文字"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · vfx-liquid-background"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

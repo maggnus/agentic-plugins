@@ -15,7 +15,7 @@ triggers:
   - "opportunity solution tree"
   - "usability findings dashboard"
   - "qualitative research board"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: research

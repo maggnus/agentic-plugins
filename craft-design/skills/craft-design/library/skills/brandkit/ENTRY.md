@@ -7,7 +7,7 @@ triggers:
   - "brand guidelines board"
   - "logo system"
   - "identity board"
-od:
+craft:
   mode: image
   surface: image
   platform: desktop

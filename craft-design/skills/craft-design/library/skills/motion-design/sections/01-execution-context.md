@@ -2,7 +2,7 @@
 
 Follow the active host's task route, stage, capability, and delivery contract.
 This skill supplies motion craft; it does not create tool access or change the
-host's workflow. In OD Next, retain its Core, general orchestration, keyed
+host's workflow. In the studio, retain its Core, general orchestration, keyed
 production-ready marker, and ship-on-write default. Plan in ordinary language;
 author during production. Never emit Plan Contract or Runtime State blocks,
 request protocol repair, or claim a host-frozen delivery contract. Only actual

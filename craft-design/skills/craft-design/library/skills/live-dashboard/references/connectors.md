@@ -1,7 +1,7 @@
 # Connectors
 
 `live-dashboard` is a **Live Artifact**. The values it shows are not
-hard-coded — they are polled from a connector at runtime. The OD daemon
+hard-coded — they are polled from a connector at runtime. The studio daemon
 (0.4.0+) ships a Composio connector catalog and a `connectors.json`
 contract that artifacts emit alongside `index.html`.
 
@@ -15,7 +15,7 @@ This keeps screenshots, the picker preview, and offline use working.
 > [`design-templates/live-artifact/SKILL.md`](../../live-artifact/SKILL.md): it is
 > *file-shaped* (`artifact.json` + `template.html` + `data.json` +
 > `provenance.json`) and *CLI-shaped* on the agent side (the agent calls
-> `"$OD_NODE_BIN" "$OD_BIN" tools live-artifacts {create,update}` and
+> `craft tools live-artifacts {create,update}` and
 > `tools connectors {list,execute}` rather than HTTP). The renderer is
 > scalar-only `html_template_v1` (`apps/daemon/src/live-artifacts/render.ts`).
 >
@@ -24,11 +24,11 @@ This keeps screenshots, the picker preview, and offline use working.
 > live behaviors (refresh-on-open, manual Refresh, auto-refresh, stale
 > pill) run in-page rather than at template-render time. Polling
 > therefore needs an HTTP shape, which is what the rest of this file
-> describes (`POST /api/od/connectors/poll`).
+> describes (`POST /api/craft/connectors/poll`).
 >
 > Treat the HTTP shape below as a **forward-looking proposal** that
 > sits alongside the file/CLI contract: the daemon does not yet expose
-> `POST /api/od/connectors/poll` (`apps/daemon/src/server.ts` /
+> `POST /api/craft/connectors/poll` (`apps/daemon/src/server.ts` /
 > `apps/daemon/src/live-artifacts/`), so out-of-the-box the artifact
 > renders against the seeded sample data and the Refresh button only
 > tweens the fixture. When the daemon-team route lands, only
@@ -45,7 +45,7 @@ Emit one `connectors.json` at the project root next to `index.html`:
 
 ```json
 {
-  "schema": "od.connector/1",
+  "schema": "craft.connector/1",
   "primary": "notion",
   "freshness": {
     "auto_refresh_seconds": 30,
@@ -101,7 +101,7 @@ same shape with provider-specific `endpoint` strings.
 1. Read `connectors.json` from the artifact dir.
 2. Look up `bindings[primary].provider` in the Composio catalog.
 3. Resolve `auth_ref` against the daemon-owned media configuration. The narrow
-   `OD_MEDIA_CONFIG_DIR` override applies to `media-config.json` only;
+   `CRAFT_MEDIA_CONFIG_DIR` override applies to `media-config.json` only;
    otherwise the daemon must derive the file from its already-resolved
    `RUNTIME_DATA_DIR`. Do not infer a path from the project cwd or restate one
    here. Before changing this lookup, read root `AGENTS.md` → **Daemon data
@@ -121,12 +121,11 @@ same shape with provider-specific `endpoint` strings.
 
 ## Wiring inside `index.html`
 
-The artifact does **not** call Composio directly. It calls the OD
-daemon's local proxy:
+The artifact does **not** call Composio directly. It calls the studio daemon's local proxy:
 
 ```js
 async function poll(readId) {
-  const res = await fetch(`/api/od/connectors/poll`, {
+  const res = await fetch(`/api/craft/connectors/poll`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ project: "<project_id>", read: readId })
@@ -137,7 +136,7 @@ async function poll(readId) {
 ```
 
 `<project_id>` is injected by the daemon at render time via a
-`<meta name="od:project" content="...">` tag. The artifact reads it
+`<meta name="craft:project" content="...">` tag. The artifact reads it
 once on mount.
 
 ---

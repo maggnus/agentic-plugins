@@ -1,4 +1,4 @@
-# HTML Anything 0.1 已发布
+# Pageforge 0.1 已发布
 
 ## 一句话
 任何文档 → 世界级好看的 HTML, 用你本地的 AI agent
@@ -10,4 +10,4 @@
 - 一键复制到公众号 / 推特 / 知乎
 
 ## CTA
-github.com/your-org/html-anything · 一行命令跑起来
+github.com/your-org/pageforge · 一行命令跑起来

@@ -12,7 +12,7 @@ triggers:
   - "harden ui"
   - "live review"
   - "反 AI 味"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

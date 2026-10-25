@@ -26,7 +26,7 @@
 })();</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1440">
-<title>Open Orbit — 每日简报</title>
+<title>Atlas Orbit — 每日简报</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -638,7 +638,7 @@
 <div class="container">
 
   <!-- ═══ Hero ═══ -->
-  <div class="hero" data-od-id="hero">
+  <div class="hero" data-craft-id="hero">
     <svg class="hero-sun" viewBox="0 0 48 48" fill="none">
       <circle cx="24" cy="24" r="10" fill="var(--orange)"/>
       <g stroke="var(--orange)" stroke-width="2" stroke-linecap="round">
@@ -657,7 +657,7 @@
   </div>
 
   <!-- ═══ KPI Strip ═══ -->
-  <div class="kpi-strip" data-od-id="kpi-strip">
+  <div class="kpi-strip" data-craft-id="kpi-strip">
     <div class="kpi-card" style="background:rgba(216,106,71,0.06);">
       <div class="kpi-icon" style="background:rgba(216,106,71,0.12);">
         <svg viewBox="0 0 20 20" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round"><circle cx="10" cy="10" r="7.5"/><polyline points="7,10 9.5,12.5 13.5,7.5"/></svg>
@@ -706,7 +706,7 @@
   </div>
 
   <!-- ═══ Top 3 ═══ -->
-  <div class="top3" data-od-id="top3">
+  <div class="top3" data-craft-id="top3">
     <div class="top3-card">
       <div class="top3-num">1</div>
       <div class="top3-body">
@@ -749,7 +749,7 @@
   </div>
 
   <!-- ═══ Bento Connector Grid ═══ -->
-  <div class="bento" data-od-id="bento-grid">
+  <div class="bento" data-craft-id="bento-grid">
 
     <!-- ── 1. GitHub (A: 代码协作) — span 2 col ── -->
     <div class="bento-card">
@@ -1236,14 +1236,14 @@
   </div><!-- /bento -->
 
   <!-- ═══ Footer ═══ -->
-  <div class="footer" data-od-id="footer">
+  <div class="footer" data-craft-id="footer">
     <div class="orbit-logo">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--muted)" stroke-width="1.2">
         <circle cx="8" cy="8" r="6"/>
         <circle cx="8" cy="8" r="2" fill="var(--muted)" stroke="none"/>
         <ellipse cx="8" cy="8" rx="6" ry="2.5" transform="rotate(30 8 8)"/>
       </svg>
-      Open Orbit
+      Atlas Orbit
     </div>
     <div>auto-generated · 06:42</div>
   </div>
@@ -1253,16 +1253,16 @@
 <script>
   // Inject CTA links into each bento card based on its connector title.
   const connectorLinks = {
-    'GitHub': 'https://github.com/nexu-io/open-design',
-    'GitLab': 'https://gitlab.com/nexu-io/open-design',
-    'Sentry': 'https://nexu.sentry.io/issues/?statsPeriod=24h',
-    'Vercel': 'https://vercel.com/nexu/open-design',
-    'Linear': 'https://linear.app/nexu/team/ENG/active',
-    'Slack': 'https://nexu.slack.com',
+    'GitHub': 'https://github.com/acme/atlas',
+    'GitLab': 'https://gitlab.com/acme/atlas',
+    'Sentry': 'https://acme.sentry.io/issues/?statsPeriod=24h',
+    'Vercel': 'https://vercel.com/acme/atlas',
+    'Linear': 'https://linear.app/acme/team/ENG/active',
+    'Slack': 'https://acme.slack.com',
     'Gmail': 'https://mail.google.com/mail/u/0/#inbox',
-    'Notion': 'https://www.notion.so/nexu',
-    'Jira': 'https://nexu.atlassian.net/jira/your-work',
-    'Trello': 'https://trello.com/nexu',
+    'Notion': 'https://www.notion.so/acme',
+    'Jira': 'https://acme.atlassian.net/jira/your-work',
+    'Trello': 'https://trello.com/acme',
     'Drive': 'https://drive.google.com/drive/u/0/recent',
     '飞书 IM': 'https://www.feishu.cn/messenger',
     '飞书文档': 'https://www.feishu.cn/drive/home'
@@ -1282,9 +1282,9 @@
 
   // Make Top 3 cards clickable (entire tile is the link).
   const top3Links = [
-    'https://github.com/nexu-io/open-design/pull/1842',
-    'https://www.notion.so/nexu/Onboarding-Flow-v3',
-    'https://nexu.sentry.io/issues/?project=auth-service&statsPeriod=24h'
+    'https://github.com/acme/atlas/pull/1842',
+    'https://www.notion.so/acme/Onboarding-Flow-v3',
+    'https://acme.sentry.io/issues/?project=auth-service&statsPeriod=24h'
   ];
   document.querySelectorAll('.top3-card').forEach((card, i) => {
     const url = top3Links[i];

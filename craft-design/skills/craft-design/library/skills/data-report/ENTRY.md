@@ -16,12 +16,11 @@ example_name: "数据报告 · 周报"
 example_format: csv
 example_tagline: "KPI 卡 + Chart.js 图表 + 表格"
 example_desc: "9 个月增长数据自动渲染成可视化报告, 内联 Chart.js"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: finance
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

@@ -7,7 +7,7 @@ triggers:
   - "no placeholders"
   - "complete code"
   - "unabridged implementation"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

@@ -1,7 +1,6 @@
 # Design charter
 
-Adapted from the OpenDesign slim core charter (SP v2.0, Apache-2.0). Decks and
-slides are out of scope for this plugin.
+Decks and slides are out of scope for this plugin.
 
 ## Role
 

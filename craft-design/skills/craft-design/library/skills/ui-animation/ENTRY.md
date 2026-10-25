@@ -17,7 +17,7 @@ triggers:
   - "easing"
   - "gesture"
 license: MIT
-od:
+craft:
   mode: utility
   category: animation-motion
   upstream: "https://github.com/mblode/agent-skills"
@@ -34,7 +34,7 @@ original order, and the final checks are part of the contract.
 
 | Section | Size |
 |---|---|
-| [Open Design execution context](sections/01-open-design-execution-context.md) | 2 KB |
+| [Studio execution context](sections/01-studio-execution-context.md) | 2 KB |
 | [Reference files](sections/02-reference-files.md) | 4 KB |
 | [Core rules](sections/03-core-rules.md) | 2 KB |
 | [Motion design principles](sections/04-motion-design-principles.md) | 2 KB |

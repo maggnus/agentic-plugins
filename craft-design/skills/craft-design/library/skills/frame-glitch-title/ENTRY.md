@@ -19,12 +19,11 @@ example_tagline: "cyan / magenta 像散 + CRT 扫描线"
 example_desc: "巨大标题 + 数据腐败伪影 + 角落 ASCII 噪点 chunks"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · glitch"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
   featured: 0.14
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

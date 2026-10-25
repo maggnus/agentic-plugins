@@ -1,6 +1,6 @@
 ## Author reliable editable motion
 
-For a new Open Design film, use timeline-driven HTML with GSAP and optional
+For a new film, use timeline-driven HTML with GSAP and optional
 SVG/Canvas. HTML/SVG suit typography, crisp diagrams and UI; Canvas suits dense
 marks, fields and procedural worlds. Combine them when useful. Preserve an
 existing supported renderer instead of rebuilding it just to fit this default.
@@ -10,7 +10,7 @@ small configuration. Group each scene's elements and motion together. Separate
 content/data from drawing. Reuse geometry and cached textures; cap offscreen
 work and particle counts. Keep a scene stable at any requested timestamp.
 
-The Open Design video composition contract:
+The video composition contract:
 
 ```html
 <div id="main" data-composition-id="main" data-start="0"
@@ -66,10 +66,10 @@ the MP4 exporter seeks with them suppressed.
 Audio-reactive motion needs a precomputed envelope or known beat map when exact
 replay matters. Never imply that an arbitrary pulse is analysis of the music.
 
-Open Design scaffolds and embeds shared source playback: open the HTML to
+The studio scaffolds and embeds shared source playback: open the HTML to
 automatically loop the film, with no separate player bar. Click the picture to
 pause/resume or unlock audio blocked by browser autoplay. The internal
-`window.__odMotionPlayer` interface retains play/pause, seek and replay. Preserve its `script[data-od-motion-source-player]`. Do not create
+`window.__odMotionPlayer` interface retains play/pause, seek and replay. Preserve its `script[data-craft-motion-source-player]`. Do not create
 competing controls or start a second playback clock. The renderer sets
 `window.__odMotionRender` before author scripts to disable preview chrome and
 scaling during capture. The scaffold includes pinned GSAP 3.14.2 at

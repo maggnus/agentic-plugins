@@ -18,12 +18,11 @@ example_tagline: "灵感来自 @trq212 的推文"
 example_desc: "围绕「AI 时代 HTML > Markdown」的延伸评论, 含原推附注与可点击链接"
 example_source_url: "https://x.com/trq212/status/2052809885763747935"
 example_source_label: "@trq212 / x.com"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: marketing
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

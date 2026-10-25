@@ -4,7 +4,7 @@
 - Commit: `d861767d180008d27675819932070a670a3ae43f`
 - License: MIT; see LICENSE.
 
-## Open Design changes
+## Studio changes
 
 - Replaced the upstream orchestration entrypoint with a functional host adapter; removed model-tier routing, forced three-way selection, independent-agent review and standalone export requirements.
 - Grouped all 35 numbered style cards, all nine grammar cards and 11 craft references into ASCII-named Markdown bundles; original card bodies are preserved as upstream reference, explicitly not local commands.

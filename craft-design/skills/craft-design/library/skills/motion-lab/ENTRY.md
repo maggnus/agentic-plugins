@@ -17,13 +17,13 @@ triggers:
   - "hover"
   - "scroll"
 license: MIT
-od:
+craft:
   mode: utility
   category: animation-motion
   upstream: https://github.com/yangxu128/Motion.Lab
   source-commit: fbfda036aadbc1b46547bce8a7a57ec12bf73485
 ---
-## Open Design 宿主约定
+## 宿主约定
 
 这是当前任务中的功能技能。保留用户选定的任务类型、品牌、技术栈、当前阶段和交付格式；不要因为 @ 选择而改成视频项目。规划阶段只规划，实现阶段才写代码。检查、渲染和导出仅在宿主当前阶段允许且工具真实可用时执行；技能不能额外开启独立 Agent、强制审批或绕过宿主交付边界。
 

@@ -15,13 +15,13 @@ triggers:
   - "交互媒体"
   - "序列帧"
 license: MIT
-od:
+craft:
   mode: utility
   category: animation-motion
   upstream: https://github.com/oil-oil/oil-motion
   source-commit: 07e31f2265f80caa8f2c1df825d85ac24a46307c
 ---
-## Open Design 宿主约定
+## 宿主约定
 
 这是当前任务中的功能技能。保留用户选定的任务类型、品牌、技术栈、当前阶段和交付格式；不要因为 @ 选择而改成视频项目。规划阶段只规划，实现阶段才写代码。检查、渲染和导出仅在宿主当前阶段允许且工具真实可用时执行；技能不能额外开启独立 Agent、强制审批或绕过宿主交付边界。
 

@@ -39,7 +39,7 @@ Avoid generic filler vibes like:
 
 Avoid fake brand slop:
 - Acme
-- Nexus
+- Acmes
 - Flowbit
 - Quantumly
 - NovaCore

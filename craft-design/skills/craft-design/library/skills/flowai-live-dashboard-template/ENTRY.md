@@ -16,7 +16,7 @@ triggers:
   - "workspace admin dashboard"
   - "团队管理后台"
   - "可交互后台"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: operations

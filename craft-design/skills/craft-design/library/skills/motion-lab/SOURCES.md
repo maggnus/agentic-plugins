@@ -4,7 +4,7 @@
 - Commit: `fbfda036aadbc1b46547bce8a7a57ec12bf73485`
 - License: MIT; see LICENSE.
 
-## Open Design changes
+## Studio changes
 
 - The upstream README declares MIT; this checkout has no separate LICENSE file. Preserved the declaration URL and contributor attribution in LICENSE.
 - Adapted the workflow from lib/skill.ts; exported all 160 records from data/effects.ts into an index and four category references. IDs, descriptions, parameters and HTML/CSS/JS snippets retain upstream values.

@@ -386,7 +386,7 @@
     <div class="main-area">
       <!-- breadcrumb -->
       <div class="breadcrumb">
-        <a href="#">Open Orbit</a>
+        <a href="#">Atlas Orbit</a>
         <span>/</span>
         <a href="#">每日简报</a>
         <span>/</span>
@@ -399,21 +399,21 @@
       </div>
 
       <!-- page content -->
-      <div class="page-content" data-od-id="page-body">
-        <h1 class="page-title" data-od-id="headline">📒 Notion · 昨日 3 条与你相关</h1>
-        <p class="page-subtitle">2026-05-06 你好 · 由 Open Orbit 自动生成</p>
+      <div class="page-content" data-craft-id="page-body">
+        <h1 class="page-title" data-craft-id="headline">📒 Notion · 昨日 3 条与你相关</h1>
+        <p class="page-subtitle">2026-05-06 你好 · 由 Atlas Orbit 自动生成</p>
 
         <hr class="notion-divider" />
 
         <!-- callout -->
-        <div class="notion-callout" data-od-id="callout">
+        <div class="notion-callout" data-craft-id="callout">
           <span class="callout-icon">💡</span>
           <div>今日简报仅包含 <strong>Notion</strong> 连接器的变更。共 3 条通知，其中 1 条 @ 提到了你。</div>
         </div>
 
         <!-- 文档变更 -->
         <h2 class="notion-h2"><span class="emoji-anchor">📝</span>文档变更</h2>
-        <ul class="notion-bullet-list" data-od-id="doc-changes">
+        <ul class="notion-bullet-list" data-craft-id="doc-changes">
           <li>
             <span class="page-link">《Q3 OKR》</span>
             <span class="person">Marie</span> 编辑了 2 段
@@ -430,7 +430,7 @@
 
         <!-- 评论 / @ 提及 -->
         <h2 class="notion-h2"><span class="emoji-anchor">💬</span>评论 / @ 提及</h2>
-        <ul class="notion-bullet-list" data-od-id="mentions">
+        <ul class="notion-bullet-list" data-craft-id="mentions">
           <li>
             <span class="page-link">团队周报</span>
             <span class="person">Lily</span> 在「设计进度」段落 <span class="mention">@你</span>
@@ -448,7 +448,7 @@
         <!-- 数据库变更 -->
         <h2 class="notion-h2"><span class="emoji-anchor">🗄️</span>数据库变更</h2>
 
-        <div class="notion-table-wrap" data-od-id="db-table">
+        <div class="notion-table-wrap" data-craft-id="db-table">
           <div class="notion-table-header">
             <span class="db-icon">📊</span> 项目追踪
           </div>
@@ -501,7 +501,7 @@
     return (s || '').replace(/《|》/g, '').trim().replace(/\s+/g, '-').replace(/[^\p{L}\p{N}-]/gu, '');
   }
   function notionUrl(title) {
-    return 'https://www.notion.so/nexu/' + slugify(title);
+    return 'https://www.notion.so/acme/' + slugify(title);
   }
   document.querySelectorAll('.page-link').forEach(span => {
     const url = notionUrl(span.textContent);

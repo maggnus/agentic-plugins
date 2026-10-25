@@ -9,7 +9,7 @@ rest are guidance for agents and reviewers and are flagged inline as
 honest.
 
 > Adapted from [refero_skill](https://github.com/referodesign/refero_skill)
-> (MIT), tightened to match OpenDesign's lint surface.
+> (MIT), tightened to match this library's lint surface.
 
 ## The seven cardinal sins
 
@@ -57,7 +57,7 @@ These are the patterns the linter blocks at P0 (must-fix):
 
 ## Polish tells (P2 — nice to fix)
 
-- **Sections without `data-od-id`** — comment mode can't target them.
+- **Sections without `data-craft-id`** — comment mode can't target them.
 - **Decorative blob / wave SVG backgrounds** *(guidance, not
   auto-checked)* — meaningless geometry.
 - **Perfect symmetric layout with no visual tension** *(guidance, not

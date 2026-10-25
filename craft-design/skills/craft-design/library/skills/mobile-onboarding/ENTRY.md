@@ -12,7 +12,7 @@ triggers:
   - "phone signup"
   - "app onboarding"
   - "移动端引导"
-od:
+craft:
   mode: prototype
   platform: mobile
   scenario: design

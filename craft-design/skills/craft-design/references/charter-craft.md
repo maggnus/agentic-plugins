@@ -30,7 +30,7 @@ Add no sections or features beyond what the brief and the chosen entry imply.
 
 ### Quality bar
 
-The target is Claude Design–grade work, whatever the style. These are
+The target is finished, shippable work, whatever the style. These are
 principles; the figures in them are examples, not a house style to repeat.
 
 - **Specific content.** Every block says something concrete about this subject:
@@ -206,7 +206,7 @@ product-scale controls.
 
 ### Inspectable HTML
 
-Add `data-od-id="kebab-case-id"` to regions, headings, CTAs, controls and repeated
+Add `data-craft-id="kebab-case-id"` to regions, headings, CTAs, controls and repeated
 cards the user may point at; repeated cards get unique ids (`feature-card-speed`).
 Decoration needs none. The preview's comments use these ids.
 

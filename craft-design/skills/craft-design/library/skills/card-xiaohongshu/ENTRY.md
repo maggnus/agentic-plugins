@@ -16,12 +16,11 @@ example_name: "小红书图文卡 · AI 工具习惯"
 example_format: markdown
 example_tagline: "7 张连排, 莫兰迪渐变"
 example_desc: "干货卡片合集, 适合截图发小红书 / 朋友圈"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: marketing
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

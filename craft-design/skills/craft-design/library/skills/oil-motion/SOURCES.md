@@ -4,7 +4,7 @@
 - Commit: `07e31f2265f80caa8f2c1df825d85ac24a46307c`
 - License: MIT; see LICENSE.
 
-## Open Design changes
+## Studio changes
 
 - Preserved all local media processing scripts, controller assets and relevant reference guides.
 - Replaced provider-specific generation and credential setup with host tools; excluded upstream image/video clients and credential UI.

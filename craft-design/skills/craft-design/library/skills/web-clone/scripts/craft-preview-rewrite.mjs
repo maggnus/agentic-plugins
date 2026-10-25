@@ -4,9 +4,9 @@ import path from "node:path";
 
 function usage() {
   console.log(`Usage:
-  node scripts/od-preview-rewrite.mjs [--project <clone-dir>]
+  node scripts/craft-preview-rewrite.mjs [--project <clone-dir>]
 
-Rewrites project-root asset URLs in HTML/CSS/SVG files so OpenDesign's
+Rewrites project-root asset URLs in HTML/CSS/SVG files so Atlas's
 file preview and exported zip can render the clone from nested entry files.
 `);
 }
@@ -193,8 +193,8 @@ try {
   for (const file of changed) {
     console.log(path.relative(projectRoot, file).split(path.sep).join("/"));
   }
-  console.log(`od-preview-rewrite: ${changed.length} file(s) updated`);
+  console.log(`craft-preview-rewrite: ${changed.length} file(s) updated`);
 } catch (error) {
-  console.error(`od-preview-rewrite failed: ${error.message}`);
+  console.error(`craft-preview-rewrite failed: ${error.message}`);
   process.exit(1);
 }

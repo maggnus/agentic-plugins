@@ -7,7 +7,7 @@ triggers:
   - "floating chat"
   - "live chat widget"
 
-od:
+craft:
   mode: "prototype"
   platform: "desktop"
   scenario: "engineering"

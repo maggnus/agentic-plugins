@@ -13,7 +13,7 @@ triggers:
   - "Q&A"
   - "常见问题"
   - "帮助中心"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: support
@@ -63,7 +63,7 @@ Produce a single FAQ page with collapsible accordion sections, search, and categ
    - Search filters questions by matching text in question or answer.
    - Category filters show/hide questions based on `data-category`.
    - Smooth transitions for expand/collapse (max-height or grid-template-rows).
-   - `data-od-id` on header, search, categories, accordion container, footer.
+   - `data-craft-id` on header, search, categories, accordion container, footer.
 5. **Self-check**:
    - Questions are specific and realistic (not generic placeholders).
    - Answers are concise (2–4 sentences) but complete.

@@ -14,7 +14,7 @@ triggers:
   - "social research"
   - "最近30天"
   - "社区反馈"
-od:
+craft:
   mode: prototype
   preview:
     type: markdown
@@ -26,7 +26,7 @@ od:
 
 # Last30Days Research Skill
 
-This skill adapts the upstream Last30Days workflow for OpenDesign. It includes
+This skill adapts the upstream Last30Days workflow. It includes
 the runtime-minimum Python engine under `scripts/`, but it does not add slash
 commands, provider settings, daemon routes, bundled API keys, or browser/social
 connectors outside the copied engine.
@@ -51,7 +51,7 @@ unavailable, use the absolute skill root fallback provided in the skill preamble
 
 The upstream engine may create a raw support file such as
 `research/last30days/<topic>-raw.md`. Treat that file as evidence support. Then
-write the final OD report yourself at
+write the final report yourself at
 `research/last30days/<safe-topic-slug>.md`, using the Markdown Report Contract
 below.
 
@@ -65,7 +65,7 @@ provenance the user does need.
 
 - Prefer the bundled Last30Days engine for recent community/social research
   when runtime requirements are available.
-- Use available OD research/search capability, public web pages, user-provided
+- Use available research/search capability, public web pages, user-provided
   files, and accessible public sources only as fallback or supplement.
 - Do not claim access to Reddit, X/Twitter, YouTube transcripts, TikTok,
   Instagram, Hacker News, Polymarket, GitHub, Perplexity, Brave, or any other

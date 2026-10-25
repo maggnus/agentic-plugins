@@ -16,7 +16,7 @@ triggers:
   - "social sentiment"
   - "推特情绪"
   - "X 上怎么说"
-od:
+craft:
   mode: prototype
   preview:
     type: markdown

@@ -14,7 +14,7 @@ triggers:
   - "界面动效"
   - "emil kowalski"
 license: MIT
-od:
+craft:
   mode: utility
   category: animation-motion
   upstream: "https://github.com/emilkowalski/skills"
@@ -23,7 +23,7 @@ od:
 
 # Building Animations
 
-## Open Design execution context
+## Studio execution context
 
 Use this as a functional helper on the user's current interface or accepted
 brief. Keep the host's task route, current stage, tool availability, and output

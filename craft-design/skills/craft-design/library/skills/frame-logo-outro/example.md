@@ -3,7 +3,7 @@
 > Midnight Indigo 调色, 用作视频结尾的品牌 reveal
 
 ## 品牌
-HTML Anything
+Pageforge
 
 ## Tagline
 Anything → beautiful HTML

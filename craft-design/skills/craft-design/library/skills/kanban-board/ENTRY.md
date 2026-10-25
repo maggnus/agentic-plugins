@@ -12,7 +12,7 @@ triggers:
   - "trello"
   - "jira board"
   - "看板"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: operations

@@ -14,7 +14,7 @@ triggers:
   - "交易分析面板模板"
   - "华尔街风格看板"
   - "高科技金融 dashboard 模板"
-od:
+craft:
   mode: template
   platform: desktop
   scenario: live-artifacts

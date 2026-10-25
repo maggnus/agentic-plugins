@@ -18,12 +18,11 @@ example_tagline: "HTML-in-Canvas 设备秀"
 example_desc: "iPhone 屏幕 + MacBook 屏幕都嵌入真实 UI 内容, 玻璃镜头折射"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · vfx-iphone-device"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: product
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

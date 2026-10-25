@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // craft-design brand kit: render brand.html from a (possibly partial) brand.json
-// with the brand-extract template, the way OpenDesign's `od brand preview` does.
+// with the brand-extract template, the way a desktop design app previews a brand.
 //
 //   node brand-kit.mjs <dir>/brand.json [--status extracting|ready|draft|failed] [--out <dir>/brand.html]
 //
@@ -47,9 +47,9 @@ const json = JSON.stringify(payload).replace(/<\//g, '<\\/').replace(/\u2028/g, 
 const fontFace = existsSync(join(dir, 'fonts/fonts.css')) ? '@import url("fonts/fonts.css");' : '';
 
 const html = readFileSync(TEMPLATE, 'utf8')
-  .split('__OD_BRAND_PAYLOAD__').join(json)
-  .split('__OD_BRAND_FONTFACE__').join(fontFace)
-  .split('__OD_BRAND_LANG__').join('en')
-  .split('__OD_BRAND_TITLE__').join('Brand Kit');
+  .split('__CRAFT_BRAND_PAYLOAD__').join(json)
+  .split('__CRAFT_BRAND_FONTFACE__').join(fontFace)
+  .split('__CRAFT_BRAND_LANG__').join('en')
+  .split('__CRAFT_BRAND_TITLE__').join('Brand Kit');
 writeFileSync(out, html);
 console.log(out);

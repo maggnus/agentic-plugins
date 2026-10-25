@@ -1,7 +1,7 @@
 ---
 name: orbit-gmail
 description: |
-  Open Orbit briefing skill — selected by the Orbit pipeline when
+  Atlas Orbit briefing skill — selected by the Orbit pipeline when
   Gmail is the user's only connected connector, or when the user
   explicitly scopes their daily digest to Gmail. Pulls the past 24
   hours of inbox activity (replies awaited, mentions, cc, auto-
@@ -16,7 +16,7 @@ triggers:
   - "email summary"
   - "gmail 简报"
   - "邮件摘要"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: orbit
@@ -25,10 +25,10 @@ od:
     entry: index.html
   design_system:
     requires: false
-  example_prompt: "Generate today's Open Orbit Gmail briefing. Gmail is my only connected connector — pull yesterday's mail and render it as the opened Orbit Daily Digest email inside Gmail's reading view."
+  example_prompt: "Generate today's Atlas Orbit Gmail briefing. Gmail is my only connected connector — pull yesterday's mail and render it as the opened Orbit Daily Digest email inside Gmail's reading view."
 ---
 
-> **craft-design adaptation.** There is no Orbit pipeline or OpenDesign connector
+> **craft-design adaptation.** There is no Orbit pipeline or connector service
 > here. Reproduce `example.html` with mock content by default. Use real items only
 > when the matching source is reachable through tools the agent already has (a
 > connected MCP server or CLI), and never put credentials into the artifact.
@@ -133,11 +133,11 @@ Type stack:
       / spacer / prev / next.
 
    b. **Email subject area** — `<h1 class="email-subject">` with the
-      digest subject (e.g. `☀ 你昨天的 6 封重要邮件 — Open Orbit
+      digest subject (e.g. `☀ 你昨天的 6 封重要邮件 — Atlas Orbit
       Daily`) followed by an inline `Orbit` tag.
 
-   c. **Sender row** — round avatar `O` + `Open Orbit
-      <orbit@opendesign.local>` + 收件人 `我 ▾` + date right-aligned +
+   c. **Sender row** — round avatar `O` + `Atlas Orbit
+      <orbit@atlas.local>` + 收件人 `我 ▾` + date right-aligned +
       reply icon + more icon.
 
    d. **Digest body** (`<div class="digest-body">`):

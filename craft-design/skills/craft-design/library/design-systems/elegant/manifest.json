@@ -1,12 +1,12 @@
 {
-  "schemaVersion": "od-design-system-project/v1",
+  "schemaVersion": "craft-design-system-project/v1",
   "id": "elegant",
   "name": "Elegant",
   "category": "Professional & Corporate",
-  "description": "Bundled OpenDesign package for Elegant, derived from curated DESIGN.md, tokens.css, and components.html fixtures.",
+  "description": "Bundled design-system package for Elegant, derived from curated DESIGN.md, tokens.css, and components.html fixtures.",
   "source": {
     "type": "bundled",
-    "origin": "OpenDesign curated bundled fixture"
+    "origin": "Curated bundled fixture"
   },
   "files": {
     "design": "DESIGN.md",

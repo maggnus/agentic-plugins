@@ -264,7 +264,7 @@ async function mutateTheme(tokens) {
   probe.style.cssText = 'position:fixed;left:-10000px;visibility:hidden;pointer-events:none';
   root.append(probe);
   const elements = [...document.querySelectorAll('body,body *')].filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
-  const label = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.getAttribute('data-od-id') ? `[data-od-id="${el.getAttribute('data-od-id')}"]` : el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '');
+  const label = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.getAttribute('data-craft-id') ? `[data-craft-id="${el.getAttribute('data-craft-id')}"]` : el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '');
   const results = [];
   const restore = () => original === null ? root.removeAttribute('style') : root.setAttribute('style', original);
   try {

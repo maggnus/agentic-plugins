@@ -1,7 +1,7 @@
 ---
 name: login-flow
 description: Mobile login and authentication flow screens
-od:
+craft:
   mode: prototype
   platform: mobile
 triggers:

@@ -17,7 +17,7 @@ triggers:
   - "long-form poster"
   - "杂志海报"
   - "报纸版式"
-od:
+craft:
   featured: 0.02
   mode: prototype
   platform: desktop
@@ -68,7 +68,7 @@ Sunday paper. Long-form, deliberate, type-driven.
    - Background uses a creamy paper tint (`#f3eee2` or DS canvas) plus a
      subtle paper noise (`radial-gradient` dots at low opacity).
    - 2-column body grid via CSS Grid; min-width 1100px page.
-   - `data-od-id` on header, headline, deck, each cell, footer.
+   - `data-craft-id` on header, headline, deck, each cell, footer.
 5. **Self-check**:
    - Type hierarchy is unmistakable — headline owns the page.
    - Strikethrough + italic accent both appear, exactly once each.

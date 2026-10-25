@@ -18,7 +18,7 @@ triggers:
   - "low fidelity"
   - "标注线框图"
   - "redline 标注"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: design
@@ -66,7 +66,7 @@ hand-drawn or scribbly.
    the accent color + a short mono/sans note, e.g. "① Sticky nav, 64px, condenses
    on scroll", "② Hero H1 48/56, CTA pair primary+ghost", "③ 5 partner logos,
    greyscale", "④ 3-up at ≥960px → 1-up mobile", "⑤ 4-col footer, legal row".
-   Mark the panel and each row with `data-od-id`.
+   Mark the panel and each row with `data-craft-id`.
 
 5. **Self-check**:
    - Every numbered pin on the canvas has exactly one matching spec row.

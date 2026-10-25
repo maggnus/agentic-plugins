@@ -9,7 +9,7 @@ triggers:
   - "cross-review"
   - "Claude CLI review"
   - "monitor PR"
-od:
+craft:
   mode: utility
 ---
 

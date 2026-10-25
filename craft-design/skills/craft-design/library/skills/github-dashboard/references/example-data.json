@@ -1,9 +1,9 @@
 {
   "repository": {
-    "name": "open-design",
-    "fullName": "nexu-io/open-design",
-    "url": "https://github.com/nexu-io/open-design",
-    "description": "Local-first, open-source alternative to Anthropic's Claude Design. 19 Skills · 71 brand-grade Design Systems · Generate web/desktop/mobile prototypes · slides · images · videos",
+    "name": "atlas",
+    "fullName": "acme/atlas",
+    "url": "https://github.com/acme/atlas",
+    "description": "Local-first, open-source toolkit for maps and routing. 19 Packages · 71 Map styles · Web, desktop and mobile builds",
     "language": "TypeScript",
     "license": "Apache-2.0",
     "created": "Apr 28, 2026",
@@ -124,7 +124,7 @@
     {
       "typeText": "ISSUE",
       "typeClass": "issue",
-      "title": "Fix OpenDesign not reading the latest model list from Codex CLI",
+      "title": "Fix Atlas not reading the latest tile list from the CLI",
       "label": "bug",
       "labelClass": "danger-pill",
       "author": "shangxinyu1",

@@ -8,7 +8,7 @@ triggers:
   - "premium landing page"
   - "portfolio redesign"
   - "visual taste"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

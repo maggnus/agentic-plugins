@@ -10,7 +10,7 @@ This policy belongs to video motion; do not add sound to ordinary prototypes,
 documents, slides or interactive motion unless their brief calls for it.
 
 Record the audio decision in the ordinary plan. Declare
-`<meta name="od-motion-audio" content="required">` for an audible film or
+`<meta name="craft-motion-audio" content="required">` for an audible film or
 `content="silent"` for intentional silence. This is composition metadata for
 the actual exporter, not a model-output planning contract.
 For `required`, author real local audio assets inside the composition directory:

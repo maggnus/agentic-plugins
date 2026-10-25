@@ -12,7 +12,7 @@ triggers:
   - "compare plans"
   - "定价"
   - "套餐"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: sales
@@ -54,7 +54,7 @@ Produce a single-screen pricing page that respects the active DESIGN.md.
 4. **Write** one self-contained HTML document:
    - `<!doctype html>` through `</html>`, CSS in one inline `<style>`.
    - CSS Grid for the plan-card row; CSS Grid for the comparison table.
-   - `data-od-id` on each tier card and each table row.
+   - `data-craft-id` on each tier card and each table row.
 5. **Money rendering**: use the display font for the big number, body for the
    currency and "/mo" — sizes per DESIGN.md scale.
 6. **Self-check**:

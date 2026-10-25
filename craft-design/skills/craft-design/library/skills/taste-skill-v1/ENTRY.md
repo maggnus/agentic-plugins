@@ -7,7 +7,7 @@ triggers:
   - "high agency frontend"
   - "anti slop v1"
   - "visual density"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

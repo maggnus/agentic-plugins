@@ -1,7 +1,7 @@
 ---
 name: orbit-github
 description: |
-  Open Orbit briefing skill — selected by the Orbit pipeline when
+  Atlas Orbit briefing skill — selected by the Orbit pipeline when
   GitHub is the user's only connected connector, or when the user
   explicitly scopes their daily digest to GitHub. Pulls the past 24
   hours of PRs, review requests, issues, CI runs, and merges from the
@@ -15,7 +15,7 @@ triggers:
   - "pr digest"
   - "github 简报"
   - "代码活动汇总"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: orbit
@@ -24,10 +24,10 @@ od:
     entry: index.html
   design_system:
     requires: false
-  example_prompt: "Generate today's Open Orbit GitHub briefing. GitHub is my only connected connector — pull yesterday's PRs, review requests, issues, CI runs, and merges and render them as a GitHub Notifications + PR-diff page."
+  example_prompt: "Generate today's Atlas Orbit GitHub briefing. GitHub is my only connected connector — pull yesterday's PRs, review requests, issues, CI runs, and merges and render them as a GitHub Notifications + PR-diff page."
 ---
 
-> **craft-design adaptation.** There is no Orbit pipeline or OpenDesign connector
+> **craft-design adaptation.** There is no Orbit pipeline or connector service
 > here. Reproduce `example.html` with mock content by default. Use real items only
 > when the matching source is reachable through tools the agent already has (a
 > connected MCP server or CLI), and never put credentials into the artifact.
@@ -145,7 +145,7 @@ Type stack:
    green `+` prefixed lines and `#ffebe9` / `#dafbe1` row tints.
 
 6. **Footer** — single line, 12px muted:
-   `Open Orbit · auto-generated 06:42 · GitHub only`.
+   `Atlas Orbit · auto-generated 06:42 · GitHub only`.
 
 ## Pill / chip rules
 
@@ -167,5 +167,5 @@ Type stack:
 | Use lorem ipsum | Write real-shaped GitHub copy: PR titles like `feat: orbit briefing card`, branches like `chore/upgrade-deps`, commit subjects under 72 chars |
 | Render a CI failure as a normal row | Wrap in a red-bordered card (`#cf222e` border, `#ffebe9` bg) with a red `✗` glyph and run name |
 | Render a review request as a normal row | Sit it in the yellow attention block (`#fff8c5` bg, `#d4a72c` border) with reviewer status dots row |
-| Use placeholder repo names like `org/repo` | Use `nexu-io/open-design` (this org's actual primary repo) |
+| Use placeholder repo names like `org/repo` | Use `acme/atlas` (this org's actual primary repo) |
 | Pluck arbitrary label colors | Use realistic dev-team hues — `bug` red, `enhancement` blue, `documentation` light blue, `frontend` purple |

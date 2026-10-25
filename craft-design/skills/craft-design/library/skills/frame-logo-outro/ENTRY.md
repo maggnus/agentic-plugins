@@ -13,18 +13,17 @@ featured: 40
 recommended: 8
 tags: ["logo", "outro", "branding", "end-card", "frame"]
 example_id: sample-frame-logo-outro
-example_name: "品牌 Logo 收尾 · HTML Anything"
+example_name: "品牌 Logo 收尾 · Pageforge"
 example_format: markdown
 example_tagline: "Midnight Indigo + glow bloom"
 example_desc: "Logo 装配 + 品牌名 + tagline + CTA, 视频片尾用"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · logo-outro"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
   featured: 0.16
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html
@@ -59,6 +58,6 @@ od:
 - **绝不**: 用外链 logo 图片; logo 必须用纯 CSS / 内联 SVG 几何绘制。
 - 入场动画用 `@keyframes` + `animation-delay`; 可被 `prefers-reduced-motion` 关闭。
 - 字体: 西文 `Inter Tight` / `SF Pro Display` / `Manrope`; 中文 `Noto Sans SC` weight 700。
-- 必须用用户提供的品牌名 + tagline; 若没有, 跑 fallback "HTML Anything" / "Anything → beautiful HTML"。
+- 必须用用户提供的品牌名 + tagline; 若没有, 跑 fallback "Pageforge" / "Anything → beautiful HTML"。
 - 单文件 HTML; 整个动画完成后 freeze (不要 loop, 这是视频结尾帧)。
 - 顶部可选 5px ribbon (accent 色) 增加品牌识别。

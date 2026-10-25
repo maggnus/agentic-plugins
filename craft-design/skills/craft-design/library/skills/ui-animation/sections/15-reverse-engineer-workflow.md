@@ -6,7 +6,7 @@ Resolve every `scripts/` command below relative to the installed skill directory
 
 **Dependencies:** Check for `ffmpeg` / `ffprobe` and a Python environment with
 `opencv-python`, `numpy`, and `scipy` before running the measurement scripts.
-Do not assume these are installed by Open Design. Reuse an available isolated
+Do not assume these are installed by the studio. Reuse an available isolated
 Python environment; any dependency setup must respect the host's authorization.
 If only ffmpeg is available, extract frames and label the analysis as a visual
 estimate. If media inspection is unavailable, state the missing capability;

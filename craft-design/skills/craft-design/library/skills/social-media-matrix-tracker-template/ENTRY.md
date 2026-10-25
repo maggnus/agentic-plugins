@@ -24,7 +24,7 @@ triggers:
   - "内容运营数据看板"
   - "抖音数据看板"
   - "小红书数据看板"
-od:
+craft:
   mode: template
   platform: desktop
   scenario: live-artifacts

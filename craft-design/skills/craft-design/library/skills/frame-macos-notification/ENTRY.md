@@ -18,11 +18,10 @@ example_tagline: "Big Sur 磨砂玻璃 banner"
 example_desc: "App icon + 标题 + 双行正文, 视频角落叠加用"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · macos-notification"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

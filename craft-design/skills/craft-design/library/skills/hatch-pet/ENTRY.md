@@ -9,7 +9,7 @@ triggers:
   - "animated pet"
   - "孵化宠物"
   - "电子宠物"
-od:
+craft:
   mode: image
   surface: image
   scenario: personal
@@ -29,14 +29,14 @@ od:
 ---
 
 > **craft-design adaptation.** The sprite-sheet workflow and its scripts apply as
-> written. The parts that hand the result to OpenDesign's daemon or pet settings do
+> written. The parts that hand the result to a desktop app's daemon or pet settings do
 > not exist here: deliver the files into the user's chosen directory and tell them
 > where they are.
 
 # Hatch Pet
 
-> **OpenDesign integration.** This is the unmodified Codex `hatch-pet` skill,
-> vendored under `skills/hatch-pet/` so any OpenDesign agent can run it. After
+> **Studio integration.** This is the unmodified Codex `hatch-pet` skill,
+> vendored under `skills/hatch-pet/` so any agent can run it. After
 > the skill finishes packaging, the resulting `spritesheet.webp` (under
 > `${CODEX_HOME:-$HOME/.codex}/pets/<pet-name>/`) can be imported into the
 > floating pet companion via **Settings → General → Pets → Import Codex sprite**. The

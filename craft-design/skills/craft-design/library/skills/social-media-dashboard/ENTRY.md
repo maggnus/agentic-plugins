@@ -18,7 +18,7 @@ triggers:
   - "社媒后台"
   - "创作者后台"
   - "社交媒体仪表盘"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: creator
@@ -85,7 +85,7 @@ Produce a single-screen, creator-facing social media analytics dashboard.
    - `<!doctype html>` through `</html>`, CSS in one inline `<style>` block.
    - CSS Grid for page-level layout; Flexbox inside cards.
    - Semantic HTML: `<header>`, `<main>`, `<section>`, `<article>`.
-   - Tag each logical region with `data-od-id="slug"` for comment mode:
+   - Tag each logical region with `data-craft-id="slug"` for comment mode:
      `header`, `hero`, `ask`, `platform-switcher`, `kpis`,
      `follower-growth`, `top-post`, `trending`, `top-comments`.
 6. **Charts**: inline SVG only, no JS libraries.

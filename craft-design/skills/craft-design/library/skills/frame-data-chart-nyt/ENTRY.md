@@ -18,11 +18,10 @@ example_tagline: "编辑级图表 + 错峰揭示"
 example_desc: "8 年周活跃用户折线 + NYT red accent + 注释 mono"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · data-chart"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html
@@ -46,7 +45,7 @@ od:
   - 折线: 1-2 条线, 主线 ink 实心 2.5px, 次线 dashed 1.5px; 数据点用 6px 实心圆; 关键点旁标注 `2024 · 412M` 黑色 mono 小字。
   - 柱状: 全部 ink 单色或加 1 道 accent 高亮柱; 柱顶大数字; 柱底类目斜体 (Cheltenham italic)。
   - 范围带 (range band): 浅灰填充 `#e6e2d2` 包络 + 中线 ink。
-- **底部 source + footnote** (10px mono, opacity 0.6): "Source: 用户数据 · Chart by html-anything"。
+- **底部 source + footnote** (10px mono, opacity 0.6): "Source: 用户数据 · Chart by pageforge"。
 - **错峰揭示动画**: 标题 fade-in (0s), kicker (200ms), 折线 stroke-dashoffset 1.2s ease-out (400ms), 数据标签依次 100ms 间隔。可被 `prefers-reduced-motion` 关闭。
 
 【设计细节】

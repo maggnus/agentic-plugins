@@ -4,7 +4,7 @@
 
 - `assets/template.html` exists and opens directly from disk.
 - `example.html` renders the default sample in an iframe without a build step.
-- SKILL frontmatter uses `od.mode: template`, `od.scenario: live-artifacts`, and `od.outputs.primary: index.html`.
+- SKILL frontmatter uses `craft.mode: template`, `craft.scenario: live-artifacts`, and `craft.outputs.primary: index.html`.
 - The template preserves a three-page editorial narrative in one scene flow.
 - Each page dwell is <= 3 seconds in the default timeline.
 - Includes high-end transitions (multi-column wipe) and layered text reveal motion.

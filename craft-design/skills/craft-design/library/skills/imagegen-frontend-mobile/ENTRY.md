@@ -7,7 +7,7 @@ triggers:
   - "mobile UI concept"
   - "ios app mockup"
   - "android app mockup"
-od:
+craft:
   mode: image
   surface: image
   platform: mobile

@@ -18,12 +18,11 @@ example_tagline: "Reddit dark mode + vote rail"
 example_desc: "一条 AITA 风格故事 + 12.3k upvotes + 1.2k comments"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · reddit-post"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: marketing
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

@@ -5,11 +5,11 @@
 - Author and license: see the bundled MIT `LICENSE`. This license covers the
   skill material; runtime libraries and external assets retain their own terms.
 
-## Open Design changes
+## Studio changes
 
 - Added localized catalogue metadata, search triggers, and functional mode.
 - Replaced the greeting-only entry with the host execution context.
 - Made companion-skill invocation conditional on actual availability.
 - Moved RECIPES.md into references/ and rewrote its manifest links so the
-  existing OD Next frozen package captures the complete recipe file.
+  existing frozen package captures the complete recipe file.
 - Kept the upstream craft guidance and recipe contents otherwise unchanged.

@@ -7,7 +7,7 @@ triggers:
   - "editorial product UI"
   - "linear style"
   - "warm monochrome"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

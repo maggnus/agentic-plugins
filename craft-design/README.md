@@ -1,9 +1,9 @@
 # craft-design
 
-A light approximation of OpenDesign and Claude Design for Codex and Claude Code: the agent
-designs standalone HTML artifacts (prototypes, landing and marketing pages, dashboards, mobile
-screens, documents, wireframes, brand kits, motion frames) with OpenDesign's method, and the
-user watches them in a live preview. No daemon, desktop app, MCP server or account is needed.
+A design studio for Codex and Claude Code: the agent designs any visual artifact, from brief to
+a finished, verified result (app and product screens, prototypes, landing and marketing pages,
+dashboards, documents and print, posters and cards, brand kits, motion frames), and the user
+watches it in a live preview. No daemon, desktop app, MCP server or account is needed.
 
 ## Installation
 
@@ -16,6 +16,12 @@ codex plugin marketplace add maggnus/agentic-plugins --ref v12.6.8
 codex plugin add craft-design@maggnus
 ```
 
+## How it works
+
+The agent follows a design charter: brief, spec, direction, plan, build, verification, refinement.
+Each result is a self-contained file that opens in a browser, so it can be previewed, screenshotted
+and checked like any web page.
+
 ## How it saves context
 
 Only one skill is registered: [SKILL.md](skills/craft-design/SKILL.md), a router of about 1,300
@@ -24,7 +30,7 @@ tokens. Everything else is read on demand:
 - `references/charter.md` and `charter-craft.md` — the design method (brief, direction, plan,
   build, verification, refinement) and the craft rules, read once per conversation before the
   first artifact; split in two so that no host truncates a single read;
-- `references/brief.md`, `protocol.md`, `platforms.md`, `print-and-diagrams.md` — read only when
+- `references/brief.md`, `conventions.md`, `platforms.md`, `print-and-diagrams.md` — read only when
   the situation needs them;
 - `library/catalog.tsv` — one row per skill, template, design system, craft rule, direction and
   device frame, queried with `grep`, never read whole;
@@ -54,20 +60,19 @@ for image search.
 
 ## Library
 
-The library is generated from OpenDesign (Apache-2.0); see [NOTICE](NOTICE) and
-`library/SOURCE.json`. It holds 113 skills and templates with real content, 11 craft rule files,
-152 design systems, 5 visual directions and 5 device frames. Excluded: placeholder stubs that
-only point to other repositories, entries that work only inside OpenDesign, PDF/PPTX export,
-paid media generation, video, Figma, and all presentation (deck, slides) entries.
+The bundled library holds 112 skills and templates with real content, 11 craft rule files, 152
+design systems, 5 visual directions and 5 device frames, all in one naming scheme. It is
+generated and never edited by hand.
 
-To update it from an OpenDesign checkout, edit `sync.config.json` if needed and run:
+Maintainers rebuild it from a source checkout: edit `sync.config.json` (the selection and the
+ordered rebrand rules) if needed and run
 
 ```sh
-node craft-design/scripts/sync-from-open-design.mjs <open-design checkout>
+node craft-design/scripts/sync-library.mjs <source checkout>
 ```
 
-Entry-specific adaptations live in `overlays/<id>.md` and are inserted on every sync. Never edit
-`library/` by hand.
+Entry-specific adaptations live in `overlays/<id>.md` and are inserted on every sync. The
+provenance of the current build is recorded in [library-source.json](library-source.json).
 
 ## Verification
 

@@ -19,12 +19,11 @@ example_tagline: "逐字揭示 + chromatic 拖光"
 example_desc: "光标打字 hot pink + cyan 像散, 视频开场用"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · vfx-text-cursor"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
   featured: 0.15
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

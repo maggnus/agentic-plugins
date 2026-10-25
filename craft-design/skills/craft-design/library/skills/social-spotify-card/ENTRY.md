@@ -18,12 +18,11 @@ example_tagline: "Spotify 经典 dark 卡"
 example_desc: "Lo-Fi Beats · Chillhop 进度条 1:24 / 3:42 + 控制行"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · spotify-card"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: personal
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

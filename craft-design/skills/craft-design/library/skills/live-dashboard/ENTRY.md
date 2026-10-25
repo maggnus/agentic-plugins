@@ -16,7 +16,7 @@ triggers:
   - "团队仪表盘"
   - "Notion 仪表盘"
   - "Live Artifact dashboard"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: operation
@@ -87,8 +87,8 @@ od:
   example_prompt: "Build me a Notion-style team dashboard for Acme Studio. KPIs: total tasks, done this week, active members, docs in review. Wire it to the Notion connector and let it refresh on demand."
 ---
 
-> **craft-design adaptation.** There is no OpenDesign daemon and no
-> `/api/od/connectors/poll` endpoint. Build the dashboard in mock mode with the
+> **craft-design adaptation.** There is no daemon and no
+> `/api/craft/connectors/poll` endpoint. Build the dashboard in mock mode with the
 > seeded data and keep the refresh, tween and stale-state behaviour working against
 > that data. When the user wants real numbers, fetch them with the tools the agent
 > already has (connected MCP servers, `gh`, files) and write them into the seed
@@ -167,10 +167,10 @@ Wire these in a single `<script>` block at the bottom of `index.html`:
 - `setInterval(refresh, refresh_seconds * 1000)` when Auto is on.
 - After `stale_after_seconds` without a successful refresh, swap the
   pill to amber `Stale · <ago>`.
-- Real connector mode: `POST /api/od/connectors/poll` with a JSON body
+- Real connector mode: `POST /api/craft/connectors/poll` with a JSON body
   `{ project, read }`, where `project` is the id from
-  `<meta name="od:project">` and `read` is one of the `bindings[*].reads[].id`
-  values declared in `connectors.json`. The OD daemon resolves the
+  `<meta name="craft:project">` and `read` is one of the `bindings[*].reads[].id`
+  values declared in `connectors.json`. The studio daemon resolves the
   primary binding, the auth source, and the live provider call
   server-side; the artifact never sees raw provider URLs or tokens. See
   `references/connectors.md` for the wire shape and the daemon
@@ -202,7 +202,7 @@ the fix. Do not emit if any dimension scores below 3.
 ## Output contract
 
 - `index.html` — single self-contained file, no external CSS / JS
-  imports beyond a system font stack and a single OD `<live-counter>`
+  imports beyond a system font stack and a single `<live-counter>`
   custom element.
 - `connectors.json` — when `inputs.connector !== mock`. See
   `references/connectors.md` for the schema.

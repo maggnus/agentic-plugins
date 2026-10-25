@@ -135,18 +135,18 @@ function selectorOf(el){const parts=[];while(el&&el.nodeType===1&&el.tagName!=='
   let i=1,s=el;while((s=s.previousElementSibling))if(s.tagName===el.tagName)i++;parts.unshift(el.tagName.toLowerCase()+':nth-of-type('+i+')');el=el.parentElement}return parts.join(' > ')}
 function attach(){let doc;try{doc=frame.contentDocument}catch{return}if(!doc)return;try{frame.contentWindow.scrollTo(0,scroll)}catch{}
   let hot=null;const mark=el=>{if(hot)hot.style.outline=hot.dataset.craftOutline||'';hot=el;if(el){el.dataset.craftOutline=el.style.outline;el.style.outline='2px solid #3b82f6'}};
-  doc.addEventListener('mousemove',e=>mark(e.altKey?(e.target.closest('[data-od-id]')||e.target):null),true);
+  doc.addEventListener('mousemove',e=>mark(e.altKey?(e.target.closest('[data-craft-id]')||e.target):null),true);
   doc.addEventListener('keyup',e=>{if(e.key==='Alt')mark(null)},true);
-  doc.addEventListener('click',e=>{if(!e.altKey)return;e.preventDefault();e.stopPropagation();const el=e.target.closest('[data-od-id]')||e.target;mark(null);
-    pending={file:FILE,odId:el.getAttribute('data-od-id')||null,selector:selectorOf(el),text:(el.innerText||el.getAttribute('alt')||'').trim().replace(/\\s+/g,' ').slice(0,160)};
-    document.getElementById('target').textContent=pending.odId?'[data-od-id="'+pending.odId+'"]':pending.selector;document.getElementById('note').value='';document.getElementById('dlg').showModal()},true)}
+  doc.addEventListener('click',e=>{if(!e.altKey)return;e.preventDefault();e.stopPropagation();const el=e.target.closest('[data-craft-id]')||e.target;mark(null);
+    pending={file:FILE,craftId:el.getAttribute('data-craft-id')||null,selector:selectorOf(el),text:(el.innerText||el.getAttribute('alt')||'').trim().replace(/\\s+/g,' ').slice(0,160)};
+    document.getElementById('target').textContent=pending.craftId?'[data-craft-id="'+pending.craftId+'"]':pending.selector;document.getElementById('note').value='';document.getElementById('dlg').showModal()},true)}
 frame.addEventListener('load',attach);
 document.getElementById('dlg').addEventListener('close',async e=>{if(e.target.returnValue!=='ok'||!pending)return;const note=document.getElementById('note').value.trim();if(!note)return;
   const r=await fetch('/api/comments',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...pending,note})});const c=await r.json();
-  const line='In '+c.file+', '+(c.odId?'[data-od-id="'+c.odId+'"]':c.selector)+(c.text?' ("'+c.text.slice(0,60)+'")':'')+': '+c.note;
+  const line='In '+c.file+', '+(c.craftId?'[data-craft-id="'+c.craftId+'"]':c.selector)+(c.text?' ("'+c.text.slice(0,60)+'")':'')+': '+c.note;
   try{await navigator.clipboard.writeText(line);toast('Saved and copied for the agent')}catch{toast('Saved for the agent')}load()});
 async function load(){const list=(await (await fetch('/api/comments')).json()).filter(c=>c.file===FILE);document.getElementById('count').textContent=list.length?'('+list.length+')':'';
-  document.getElementById('list').innerHTML=list.length?list.map(c=>'<li><code>'+esc(c.odId?'[data-od-id="'+c.odId+'"]':c.selector)+'</code><div>'+esc(c.note)+'</div></li>').join(''):'<li class="muted">None</li>'}
+  document.getElementById('list').innerHTML=list.length?list.map(c=>'<li><code>'+esc(c.craftId?'[data-craft-id="'+c.craftId+'"]':c.selector)+'</code><div>'+esc(c.note)+'</div></li>').join(''):'<li class="muted">None</li>'}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 document.getElementById('comments').onclick=e=>{const p=document.getElementById('panel');p.hidden=!p.hidden;e.currentTarget.setAttribute('aria-expanded',!p.hidden)};
 new EventSource('/events').onmessage=m=>{const d=JSON.parse(m.data);if(d.comments){load();return}try{scroll=frame.contentWindow.scrollY}catch{}frame.contentWindow.location.reload()};
@@ -215,7 +215,7 @@ const server = createServer((req, res) => {
         const input = JSON.parse(body);
         const comment = {
           id: randomUUID().slice(0, 8), time: new Date().toISOString(), status: 'open',
-          file: String(input.file || ''), odId: input.odId ? String(input.odId) : null,
+          file: String(input.file || ''), craftId: input.craftId ? String(input.craftId) : null,
           selector: String(input.selector || ''), text: String(input.text || '').slice(0, 200), note: String(input.note || '').slice(0, 4000),
         };
         writeComments(root, [...readComments(root), comment]);

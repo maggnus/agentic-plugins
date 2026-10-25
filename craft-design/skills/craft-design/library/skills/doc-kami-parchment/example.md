@@ -1,4 +1,4 @@
-# OpenDesign Studio — Issue №26
+# Atlas Studio — Issue №26
 
 > An open-source design studio for editorial documents and slide decks — typeset by your own coding agent.
 
@@ -23,4 +23,4 @@ Pure white is a screen affordance, not a publishing convention. Paper has temper
 
 ## Cadence
 
-We release one document per fortnight. Subscribe at [opendesign.studio](https://opendesign.studio).
+We release one document per fortnight. Subscribe at [atlas.example](https://atlas.example).

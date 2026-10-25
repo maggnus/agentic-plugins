@@ -36,7 +36,7 @@ Ban generic copy vibes like:
 
 Avoid fake brand slop:
 - Acme
-- Nexus
+- Acmes
 - Flowbit
 - Quantumly
 - NovaCore

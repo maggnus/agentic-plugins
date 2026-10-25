@@ -1,9 +1,9 @@
-# HTML Anything · 移动版界面预览
+# Pageforge · 移动版界面预览
 
 > iPhone 屏幕展示一个 mock 新建任务页, MacBook 屏幕展示桌面版编辑器
 
 ## iPhone 内容
-- App: HTML Anything Mobile
+- App: Pageforge Mobile
 - 顶部: 选择模板 → 杂志风网页 PPT
 - 中间: 输入框 + ⌘+Enter
 - 底部: Tab bar (任务 / 模板 / 设置)

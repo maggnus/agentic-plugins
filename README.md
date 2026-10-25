@@ -127,10 +127,10 @@ codex plugin add open-design@maggnus
 
 ## `craft-design`
 
-OpenDesign-grade design of standalone HTML artifacts without the OpenDesign app: a design
-charter, 113 skills and templates, 152 design systems, five visual directions and craft rules,
-loaded on demand from one router skill, plus a local live preview with element comments and
-headless screenshots. Supports Codex and Claude Code. See [craft-design/README.md](craft-design/README.md).
+A design studio for coding agents that designs any visual artifact, from brief to a verified
+result: a design charter, 112 skills and templates, 152 design systems, five visual directions
+and craft rules, loaded on demand from one router skill, plus a local live preview with element
+comments and headless screenshots. Supports Codex and Claude Code. See [craft-design/README.md](craft-design/README.md).
 
 ```sh
 claude plugin marketplace add "maggnus/agentic-plugins@v12.6.8"

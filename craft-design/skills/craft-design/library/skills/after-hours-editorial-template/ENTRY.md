@@ -12,7 +12,7 @@ triggers:
   - "magazine style cinematic slides"
   - "高级暗黑时尚风模板"
   - "高定杂志风动效"
-od:
+craft:
   mode: template
   surface: video
   type: hyperframes

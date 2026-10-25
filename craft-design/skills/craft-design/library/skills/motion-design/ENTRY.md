@@ -9,7 +9,7 @@ triggers:
   - MG动画
   - kinetic typography
   - animated explainer
-od:
+craft:
   mode: utility
   category: animation-motion
   featured: -100

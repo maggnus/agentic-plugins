@@ -16,7 +16,7 @@ triggers:
   - "make it feel like this"
   - "做同款但不照抄"
   - "把参考图转成设计规范"
-od:
+craft:
   mode: design-system
   platform: desktop
   scenario: planning
@@ -63,7 +63,7 @@ without guessing.
 
 Create three files:
 
-1. `DESIGN.md` — the reusable visual direction, following OpenDesign's
+1. `DESIGN.md` — the reusable visual direction, following the library's
    standard nine-section design-system shape.
 2. `design-contract.md` — the decision record: evidence used, keep/change
    boundaries, rationale, risks, and quality gate.

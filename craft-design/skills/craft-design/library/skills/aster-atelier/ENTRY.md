@@ -8,7 +8,7 @@ triggers:
   - "classical art portfolio"
   - "editorial creative agency"
   - "古典艺术工作室网站"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

@@ -9,7 +9,7 @@ triggers:
   - "interaction animation"
   - "tasteful animation"
   - "动效润色"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

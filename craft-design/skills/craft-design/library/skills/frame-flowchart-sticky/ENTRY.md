@@ -18,11 +18,10 @@ example_tagline: "SVG 曲线 + 4 色便利贴"
 example_desc: "6 节点 onboarding 流程, 手写体 + 白板纸底"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · flowchart"
-od:
+craft:
   mode: video
   surface: video
   scenario: operations
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

@@ -15,12 +15,11 @@ example_name: "推特卡 · 金句"
 example_format: text
 example_tagline: "16:9 暗色金句卡, 截图直接配推文"
 example_desc: "高对比金句模板, 含 grid 网格 + 渐变光晕背景"
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop
   scenario: marketing
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

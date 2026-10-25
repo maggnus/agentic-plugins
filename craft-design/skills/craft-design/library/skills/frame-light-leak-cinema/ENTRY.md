@@ -18,11 +18,10 @@ example_tagline: "暖橙漏光 + 35mm 颗粒"
 example_desc: "2.39:1 letterbox + 衬线斜体大字 + 胶片齿孔"
 example_source_url: "https://hyperframes.heygen.com/catalog"
 example_source_label: "hyperframes · light-leak"
-od:
+craft:
   mode: video
   surface: video
   scenario: video
-  upstream: "https://github.com/nexu-io/html-anything"
   preview:
     type: html
     entry: index.html

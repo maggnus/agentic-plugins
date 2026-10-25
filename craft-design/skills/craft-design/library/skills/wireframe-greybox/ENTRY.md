@@ -17,7 +17,7 @@ triggers:
   - "wireframe"
   - "线框图"
   - "灰盒"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: design
@@ -52,7 +52,7 @@ is the single redline accent reserved for monospace annotations.
    accent (a blue or coral redline) carries every monospace annotation.
    Keep contrast high enough to read as a small thumbnail — never
    near-white-on-white.
-3. **Lay out the dashboard**, in order, each on its own `data-od-id`:
+3. **Lay out the dashboard**, in order, each on its own `data-craft-id`:
    - **App bar** — a logo greybox, a row of nav lorem-bars, and an
      avatar circle on the right.
    - **Sidebar nav** — icon squares + lorem-bar labels; mark one item

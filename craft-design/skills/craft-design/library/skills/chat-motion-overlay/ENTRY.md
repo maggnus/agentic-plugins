@@ -10,7 +10,7 @@ triggers:
   - "微信聊天动效"
   - "聊天气泡动效"
   - "透明聊天视频"
-od:
+craft:
   mode: utility
   category: animation-motion
   design_system:

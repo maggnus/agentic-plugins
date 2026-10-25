@@ -5,8 +5,7 @@ description: |
   rotating type ring, animated globe, ticking timer, parallax labels.
   Renders as a hero video poster you can hand straight to HyperFrames or
   any keyframe-based exporter. Use when the brief asks for "motion design",
-  "animated hero", "loop", "video poster", "title card", or pairs Open
-  Claude Design with HyperFrames for a kinetic export.
+  "animated hero", "loop", "video poster", "title card", or pairs a hero frame with a video exporter for a kinetic result.
 triggers:
   - "motion design"
   - "motion graphic"
@@ -18,7 +17,7 @@ triggers:
   - "kinetic typography"
   - "动态设计"
   - "动效"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: marketing
@@ -68,7 +67,7 @@ Lottie, etc.) can capture into a video.
    - `<!doctype html>` through `</html>`, CSS inline.
    - All motion uses CSS — no scripts, so HyperFrames or any frame-grabber
      can capture it deterministically.
-   - `data-od-id` on stage, focal, ring, headline, chrome.
+   - `data-craft-id` on stage, focal, ring, headline, chrome.
 5. **Self-check**:
    - The composition still reads as a poster with motion paused at frame 0.
    - At least 3 layers move at different speeds (depth comes from delta

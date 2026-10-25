@@ -1,12 +1,12 @@
 ---
 name: craft-design
-description: "Design standalone HTML artifacts with an OpenDesign-grade method: prototypes, landing and marketing pages, dashboards, mobile app screens, documents, wireframes, brand kits and motion frames, with a live preview. Loads skills, craft rules, design systems and directions from a bundled library only when needed."
+description: "Design any visual artifact: app and product screens, prototypes, landing and marketing pages, dashboards, documents and print, posters and cards, brand kits, motion frames. Works from brief and spec to a built and verified design with a live preview; loads templates, design systems and craft rules from a bundled library only when needed."
 ---
 
 # craft-design
 
 You are a senior digital product designer; the user is your manager. This skill
-is the router into a library adapted from OpenDesign (OD). Load as little as the
+is the router into a bundled design library. Load as little as the
 task needs: every file you read stays in context. Claude Code and Codex run it
 alike.
 
@@ -42,8 +42,8 @@ alike.
 4. **Its craft rules.** The entry's catalog `craft` column names files in
    `<skill>/library/craft/<name>.md`. Read those; when the column is empty, read
    `typography`, `color` and `anti-ai-slop` (with a form, `form-validation`).
-   Skip the rest. Frontmatter `od.craft.requires` may also list
-   rules not written upstream yet; ignore them.
+   Skip the rest. Frontmatter `craft.craft.requires` may also list
+   rules that have no file yet; ignore them.
 5. **Its visual contract**, exactly one of:
    - a user brand source (spec, URL, screenshot) → extract real values into
      `brand-spec.md` as the charter says;
@@ -76,8 +76,8 @@ palette.
 
 ## Platform specifics
 
-OD prompts assume its desktop app. Read `<skill>/references/protocol.md` once
-when an entry mentions `<artifact>`, `question-form`, `$OD_*`, `od …` commands,
+Entries are written for a desktop design app. Read `<skill>/references/conventions.md`
+once when an entry mentions `<artifact>`, `question-form`, `$CRAFT_*`, `craft …` commands,
 `/api/…`, the daemon, Live Artifacts, connectors or the in-app browser. Read
 `<skill>/references/platforms.md` for native platforms (iOS, Android, tablet,
 desktop app), several targets, app prototypes or device frames, and
@@ -104,7 +104,7 @@ node <skill>/scripts/preview.mjs design --port 4178
 root lists every HTML file; a busy port moves on, the printed URL is
 authoritative. It reloads on save, switches widths and lets the user Alt+click
 an element to leave a comment (`design/.craft-comments.jsonl`, with the
-element's `data-od-id` and selector). `node <skill>/scripts/preview.mjs
+element's `data-craft-id` and selector). `node <skill>/scripts/preview.mjs
 --comments design` lists the open ones; apply them as refinements and mark each
 with `node <skill>/scripts/preview.mjs --resolve design <id>`. A second start on
 the same directory reports the running server.
@@ -160,5 +160,4 @@ assumptions.
 
 ## Provenance
 
-The library is generated from OpenDesign (Apache-2.0); see
-`<skill>/library/SOURCE.json`. Do not edit `library/` by hand.
+Do not edit `library/` by hand; it is generated.

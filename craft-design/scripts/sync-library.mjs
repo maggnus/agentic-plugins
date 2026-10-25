@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-// Rebuild the craft-design library from an OpenDesign checkout.
+// Rebuild the craft-design library from its upstream checkout.
 //
-//   node craft-design/scripts/sync-from-open-design.mjs <open-design checkout>
+//   node craft-design/scripts/sync-library.mjs <upstream checkout>
 //
-// The selection lives in craft-design/sync.config.json. Library files are
-// generated: change the selection, the overlays or this script, never the
-// generated copy. The skill's own references/ and scripts/ are hand-written
-// and are not touched here.
+// The selection and the rebrand rules live in craft-design/sync.config.json.
+// Library files are generated: change the selection, the rebrand rules, the
+// overlays or this script, never the generated copy. The skill's own
+// references/ and scripts/ are hand-written and are not touched here. The
+// provenance record is written to craft-design/library-source.json, outside
+// the skill directory.
 
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
@@ -20,9 +22,9 @@ const libraryRoot = join(skillRoot, 'library');
 const overlaysRoot = join(pluginRoot, 'overlays');
 const config = JSON.parse(readFileSync(join(pluginRoot, 'sync.config.json'), 'utf8'));
 
-const odRoot = resolve(process.argv[2] ?? '');
-if (!process.argv[2] || !existsSync(join(odRoot, 'design-systems')) || !existsSync(join(odRoot, 'craft'))) {
-  console.error('usage: sync-from-open-design.mjs <open-design checkout>');
+const upstreamRoot = resolve(process.argv[2] ?? '');
+if (!process.argv[2] || !existsSync(join(upstreamRoot, 'design-systems')) || !existsSync(join(upstreamRoot, 'craft'))) {
+  console.error('usage: sync-library.mjs <upstream checkout>');
   process.exit(2);
 }
 
@@ -133,6 +135,70 @@ function walk(dir) {
   return out;
 }
 
+// ---------------------------------------------------------------- rebrand
+
+// Upstream texts carry its product name, command line, environment variables,
+// attribute names and demo content. Every text file that enters the library,
+// every catalog field and every file name goes through the ordered rules of
+// config.rebrand, so the generated library speaks only in craft-design's own
+// terms. Specific phrases come first in the config, generic fallbacks last.
+const rebrand = config.rebrand;
+const rebrandRules = rebrand.rules.map(rule => ({
+  re: new RegExp(rule.match, rule.flags ?? 'g'),
+  to: rule.to,
+  only: rule.only ? new RegExp(rule.only) : null,
+}));
+const textFile = new RegExp(rebrand.textFiles);
+const dropFile = (rebrand.dropFiles ?? []).map(pattern => new RegExp(pattern));
+const forbidden = new RegExp(rebrand.forbidden, 'i');
+
+function rebrandText(text, relPath) {
+  // Embedded base64 payloads are opaque data: a rule must never touch them.
+  const payloads = [];
+  text = text.replace(/base64,[A-Za-z0-9+/=]{200,}/g, match => `\u0000${payloads.push(match) - 1}\u0000`);
+  for (const rule of rebrandRules) if (!rule.only || rule.only.test(relPath)) text = text.replace(rule.re, rule.to);
+  return text.replace(/\u0000(\d+)\u0000/g, (_, n) => payloads[Number(n)]);
+}
+// File names have their own, much smaller rule list.
+const pathRules = (rebrand.pathRules ?? []).map(rule => ({ re: new RegExp(rule.match, rule.flags ?? 'g'), to: rule.to }));
+const rebrandPath = relPath => pathRules.reduce((path, rule) => path.replace(rule.re, rule.to), relPath);
+
+function rebrandTree(root) {
+  for (const path of walk(root)) {
+    const rel = relative(root, path);
+    if (dropFile.some(pattern => pattern.test(rel))) { rmSync(path); continue; }
+    if (!textFile.test(rel)) continue;
+    const text = readFileSync(path, 'utf8');
+    const out = rebrandText(text, rel);
+    if (out !== text) writeFileSync(path, out);
+  }
+  for (const path of walk(root)) {
+    const rel = relative(root, path);
+    const renamed = rebrandPath(rel);
+    if (renamed === rel) continue;
+    mkdirSync(dirname(join(root, renamed)), { recursive: true });
+    renameSync(path, join(root, renamed));
+  }
+}
+
+// The guard: nothing of the upstream identity may survive in the generated
+// library. Binary files are skipped.
+function assertRebranded(root) {
+  const left = [];
+  for (const path of walk(root)) {
+    const rel = relative(root, path);
+    const data = readFileSync(path);
+    if (data.subarray(0, 8192).includes(0)) continue;
+    const lines = data.toString('utf8').replace(/base64,[A-Za-z0-9+/=]{200,}/g, 'base64,').split('\n');
+    lines.forEach((line, n) => { if (forbidden.test(line)) left.push(`${rel}:${n + 1}: ${line.trim().slice(0, 140)}`); });
+    if (forbidden.test(rel)) left.push(`${rel}: file name`);
+  }
+  if (left.length) {
+    console.error(`rebrand left ${left.length} upstream mention(s):\n${left.slice(0, 80).join('\n')}`);
+    process.exit(1);
+  }
+}
+
 const hasSips = (() => {
   try { execFileSync('sips', ['--help'], { stdio: 'ignore' }); return true; } catch { return false; }
 })();
@@ -195,7 +261,7 @@ const catalog = [];
 const seen = new Set();
 
 for (const entry of config.entries) {
-  const source = join(odRoot, entry);
+  const source = join(upstreamRoot, entry);
   const id = basename(entry);
   if (seen.has(id)) throw new Error(`duplicate entry id: ${id}`);
   seen.add(id);
@@ -213,39 +279,44 @@ for (const entry of config.entries) {
     const { front, body } = splitFrontmatter(text);
     text = front + '\n' + readFileSync(overlay, 'utf8').trimEnd() + '\n\n' + body.replace(/^\n+/, '');
   }
+  // Rebrand before splitting so section file names derive from the new headings.
+  text = rebrandText(text, `skills/${id}/ENTRY.md`);
   if (Buffer.byteLength(text) > config.splitThresholdBytes) text = splitEntry(target, text);
   writeFileSync(entryPath, text);
   downscaleImages(target);
-  const od = meta.od ?? {};
+  // Upstream frontmatter nests its metadata under the key `od`; the rebrand
+  // renames the key in the generated entry, the catalog reads the source.
+  const upstreamMeta = meta.od ?? {};
   const description = oneLine(meta.en_description || meta.description);
   catalog.push([
     'skill', id,
-    oneLine(od.mode) || (entry.startsWith('design-templates/') ? 'template' : 'utility'),
-    oneLine(od.platform || od.surface),
-    oneLine(od.scenario),
-    od.design_system?.requires === true ? 'ds' : '',
-    // OpenDesign silently skips craft names that have no file yet; so does the catalog.
-    list(od.craft?.requires).filter(name => existsSync(join(odRoot, 'craft', `${name}.md`))).join(','),
+    oneLine(upstreamMeta.mode) || (entry.startsWith('design-templates/') ? 'template' : 'utility'),
+    oneLine(upstreamMeta.platform || upstreamMeta.surface),
+    oneLine(upstreamMeta.scenario),
+    upstreamMeta.design_system?.requires === true ? 'ds' : '',
+    // The upstream silently skips craft names that have no file yet; so does the catalog.
+    list(upstreamMeta.craft?.requires).filter(name => existsSync(join(upstreamRoot, 'craft', `${name}.md`))).join(','),
     `library/skills/${id}/ENTRY.md`,
-    clip([description, list(meta.triggers).join('; ')].filter(Boolean).join(' Triggers: '), 400),
+    // Rebrand before clipping so a cut never lands inside a replaced phrase.
+    clip(rebrandText([description, list(meta.triggers).join('; ')].filter(Boolean).join(' Triggers: '), 'catalog.tsv'), 400),
   ]);
 }
 
 // Craft rulebooks.
 mkdirSync(join(stage, 'craft'), { recursive: true });
-for (const name of readdirSync(join(odRoot, 'craft'))) {
+for (const name of readdirSync(join(upstreamRoot, 'craft'))) {
   if (!name.endsWith('.md') || config.craftExclude.includes(name)) continue;
-  cpSync(join(odRoot, 'craft', name), join(stage, 'craft', name));
+  cpSync(join(upstreamRoot, 'craft', name), join(stage, 'craft', name));
   if (name === 'README.md') continue;
-  const text = readFileSync(join(odRoot, 'craft', name), 'utf8');
+  const text = readFileSync(join(upstreamRoot, 'craft', name), 'utf8');
   const title = (text.match(/^#\s+(.+)$/m)?.[1] ?? name).trim();
-  catalog.push(['craft', name.replace(/\.md$/, ''), 'craft', '', '', '', '', `library/craft/${name}`, clip(oneLine(title), 400)]);
+  catalog.push(['craft', name.replace(/\.md$/, ''), 'craft', '', '', '', '', `library/craft/${name}`, clip(rebrandText(oneLine(title), 'catalog.tsv'), 400)]);
 }
 
 // Design-system packages without previews, rendered kits, provenance dumps or
 // translations.
-for (const id of readdirSync(join(odRoot, 'design-systems')).sort()) {
-  const source = join(odRoot, 'design-systems', id);
+for (const id of readdirSync(join(upstreamRoot, 'design-systems')).sort()) {
+  const source = join(upstreamRoot, 'design-systems', id);
   if (id.startsWith('_') || !statSync(source).isDirectory() || !existsSync(join(source, 'DESIGN.md'))) continue;
   const target = join(stage, 'design-systems', id);
   mkdirSync(target, { recursive: true });
@@ -272,24 +343,24 @@ for (const id of readdirSync(join(odRoot, 'design-systems')).sort()) {
   // catalog query shows they carry a palette, not a studied brand.
   const templated = design.includes('Token from style foundations') ? 'Templated palette, generic prose. ' : '';
   catalog.push(['system', id, 'design-system', '', oneLine(category), parts, list(manifest.craft?.suggested).join(','),
-    `library/design-systems/${id}/`, clip(oneLine(`${templated}${name}. ${blurb}`), 400)]);
+    `library/design-systems/${id}/`, clip(rebrandText(oneLine(`${templated}${name}. ${blurb}`), 'catalog.tsv'), 400)]);
 }
-if (existsSync(join(odRoot, 'design-systems/_schema/defaults.css'))) {
+if (existsSync(join(upstreamRoot, 'design-systems/_schema/defaults.css'))) {
   mkdirSync(join(stage, 'design-systems/_schema'), { recursive: true });
-  cpSync(join(odRoot, 'design-systems/_schema/defaults.css'), join(stage, 'design-systems/_schema/defaults.css'));
+  cpSync(join(upstreamRoot, 'design-systems/_schema/defaults.css'), join(stage, 'design-systems/_schema/defaults.css'));
 }
 
 // Shared device frames (iPhone, Pixel, iPad, MacBook, browser window).
-if (existsSync(join(odRoot, 'assets/frames'))) {
-  cpSync(join(odRoot, 'assets/frames'), join(stage, 'frames'), { recursive: true });
+if (existsSync(join(upstreamRoot, 'assets/frames'))) {
+  cpSync(join(upstreamRoot, 'assets/frames'), join(stage, 'frames'), { recursive: true });
   for (const name of readdirSync(join(stage, 'frames')).filter(n => n.endsWith('.html')).sort()) {
     catalog.push(['frame', name.replace(/\.html$/, ''), 'frame', '', '', '', '', `library/frames/${name}`,
       'Shared device frame; embeds ?screen=<relative path> inside the device chrome.']);
   }
 }
 
-// Visual directions, rendered from OpenDesign's own library.
-const directions = await import(pathToFileURL(join(odRoot, 'apps/daemon/src/prompts/directions.ts')).href);
+// Visual directions, rendered by the upstream's own library.
+const directions = await import(pathToFileURL(join(upstreamRoot, 'apps/daemon/src/prompts/directions.ts')).href);
 writeFileSync(join(stage, 'directions.md'), `# Direction library
 
 Use when no design system or brand source is active. Infer the best match from
@@ -302,24 +373,30 @@ compare directions, offer these by label and bind the one they pick.
 ${directions.DESIGN_DIRECTIONS.map(d => directions.renderDirectionSpec(d).trim()).join('\n\n')}
 `);
 for (const d of directions.DESIGN_DIRECTIONS) {
-  catalog.push(['direction', d.id, 'direction', '', '', '', '', 'library/directions.md', clip(oneLine(`${d.label}. ${d.mood}`), 400)]);
+  catalog.push(['direction', d.id, 'direction', '', '', '', '', 'library/directions.md', clip(rebrandText(oneLine(`${d.label}. ${d.mood}`), 'catalog.tsv'), 400)]);
 }
 
 const header = ['kind', 'id', 'mode', 'platform', 'scenario', 'design_system', 'craft', 'path', 'summary'];
 writeFileSync(join(stage, 'catalog.tsv'), [header, ...catalog].map(row => row.join('\t')).join('\n') + '\n');
 
-const commit = execFileSync('git', ['-C', odRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-const version = JSON.parse(readFileSync(join(odRoot, 'package.json'), 'utf8')).version;
-writeFileSync(join(stage, 'SOURCE.json'), JSON.stringify({
-  repository: 'https://github.com/nexu-io/open-design',
-  version, commit, license: 'Apache-2.0',
-  counts: Object.fromEntries(['skill', 'craft', 'system', 'direction', 'frame'].map(k => [k, catalog.filter(r => r[0] === k).length])),
-}, null, 2) + '\n');
+const commit = execFileSync('git', ['-C', upstreamRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+const version = JSON.parse(readFileSync(join(upstreamRoot, 'package.json'), 'utf8')).version;
+const counts = Object.fromEntries(['skill', 'craft', 'system', 'direction', 'frame'].map(k => [k, catalog.filter(r => r[0] === k).length]));
+
+// Rebrand the staged library as a whole (contents, then file names), then
+// verify that nothing of the upstream identity survived.
+rebrandTree(stage);
+assertRebranded(stage);
 
 rmSync(libraryRoot, { recursive: true, force: true });
 cpSync(stage, libraryRoot, { recursive: true });
 rmSync(stage, { recursive: true, force: true });
 
-const counts = JSON.parse(readFileSync(join(libraryRoot, 'SOURCE.json'), 'utf8')).counts;
-console.log(`craft-design library rebuilt from open-design ${version} (${commit.slice(0, 12)}):`, counts);
+// The provenance record lives beside the plugin, not inside the skill directory.
+writeFileSync(join(pluginRoot, 'library-source.json'), JSON.stringify({
+  repository: 'https://github.com/nexu-io/open-design',
+  version, commit, license: 'Apache-2.0', counts,
+}, null, 2) + '\n');
+
+console.log(`craft-design library rebuilt from upstream ${version} (${commit.slice(0, 12)}):`, counts);
 for (const w of warnings) console.warn('warning:', w);

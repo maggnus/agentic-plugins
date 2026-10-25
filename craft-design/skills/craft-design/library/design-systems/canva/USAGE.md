@@ -1,6 +1,6 @@
 # Canva Usage
 
-Design System 2.0 package guide for OpenDesign agents and reviewers.
+Design System 2.0 package guide for agents and reviewers.
 
 ## Read Order
 

@@ -14,7 +14,7 @@ triggers:
   - "github growth"
   - "仓库看板"
   - "GitHub 看板"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: operation
@@ -34,7 +34,7 @@ od:
   capabilities_required:
     - shell
     - file_write
-  example_prompt: "Build a GitHub dashboard for nexu-io/open-design — stars, forks, contributors, issues, PRs, recent activity, and top contributors."
+  example_prompt: "Build a GitHub dashboard for acme/atlas — stars, forks, contributors, issues, PRs, recent activity, and top contributors."
 ---
 
 > **craft-design adaptation.** Always produce the static artifact: one
@@ -112,7 +112,7 @@ If the user asks for refreshability, source auditability, or scheduled updates, 
 6. **Write the artifact**
    - For a static artifact, write one self-contained `index.html` with inline CSS and no external JS libraries.
    - For a live artifact, write `template.html`, `data.json`, `artifact.json`, and `provenance.json`; `index.html` is derived by the daemon.
-   - Tag major regions with stable `data-od-id` values: `sidebar`, `topbar`, `repo-header`, `kpi-strip`, `growth-chart`, `contributors`, `activity`, `provenance`.
+   - Tag major regions with stable `data-craft-id` values: `sidebar`, `topbar`, `repo-header`, `kpi-strip`, `growth-chart`, `contributors`, `activity`, `provenance`.
 
 ## Visual rules
 

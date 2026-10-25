@@ -13,7 +13,7 @@ triggers:
   - "mrr review"
   - "财报"
   - "财务报告"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: finance

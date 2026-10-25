@@ -13,7 +13,7 @@ metadata:
   author: vercel
   version: "1.0.0"
   argument-hint: <file-or-pattern>
-od:
+craft:
   mode: prototype
   surface: web
   platform: desktop

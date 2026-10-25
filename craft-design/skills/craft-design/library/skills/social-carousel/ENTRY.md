@@ -17,7 +17,7 @@ triggers:
   - "social series"
   - "三连发"
   - "轮播图"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: marketing
@@ -70,7 +70,7 @@ own.
    - `<!doctype html>` through `</html>`, CSS inline.
    - Cards are sized via `width: clamp(280px, 30vw, 380px)` so 3 fit
      comfortably across most desktops and stack at < 1100px.
-   - `data-od-id` on stage, each card, each headline.
+   - `data-craft-id` on stage, each card, each headline.
 6. **Self-check**:
    - The three headlines together form one sentence and feel cinematic.
    - Mono is used only for the wordmark index, the loop stamp, and the

@@ -1,5 +1,5 @@
 {
-  "$comment": "Selection of OpenDesign content bundled by craft-design. Edit this file, then run scripts/sync-from-open-design.mjs <open-design checkout>.",
+  "$comment": "Selection of upstream content bundled by craft-design. Edit this file, then run scripts/sync-library.mjs <upstream checkout>.",
   "entries": [
     "skills/after-hours-editorial-template",
     "skills/agent-browser",
@@ -87,7 +87,6 @@
     "design-templates/mobile-app",
     "design-templates/mobile-onboarding",
     "design-templates/motion-frames",
-    "design-templates/open-design-landing",
     "design-templates/orbit-general",
     "design-templates/orbit-github",
     "design-templates/orbit-gmail",
@@ -165,6 +164,885 @@
       "skills/editorial-burgundy-principles-template",
       "skills/swiss-creative-mode-template",
       "design-templates/sprite-animation"
+    ],
+    "upstreamSelfPromotion": [
+      "design-templates/open-design-landing"
+    ]
+  },
+  "rebrand": {
+    "$comment": "Ordered literal/regex replacements applied to every text file copied into library/, to catalog fields and to file names. Specific phrases come first, generic fallbacks last. `forbidden` is a build guard: the sync fails if any of it survives.",
+    "textFiles": "\\.(md|txt|tsv|json|html?|css|m?js|cjs|ts|tsx|jsx|svg|ya?ml|csv|xml)$|(^|/)(LICENSE|NOTICE)[^/]*$",
+    "dropFiles": [
+      "^skills/aster-atelier/open-design\\.json$"
+    ],
+    "rules": [
+      {
+        "match": "\\ban (`od\\.craft)",
+        "flags": "g",
+        "to": "a $1"
+      },
+      {
+        "match": "^od:(?=[ \\t]*$)",
+        "flags": "gm",
+        "to": "craft:"
+      },
+      {
+        "match": "([\"'`])od:",
+        "flags": "g",
+        "to": "$1craft:"
+      },
+      {
+        "match": "(?<![\\w.-])od\\.(?=(?:mode|craft|scenario|platform|surface|preview|outputs|design_system|connector)\\b)",
+        "flags": "g",
+        "to": "craft."
+      },
+      {
+        "match": "\"?\\$\\{?OD_NODE_BIN\\}?\"?\\s+\"?\\$\\{?OD_BIN\\}?\"?",
+        "flags": "g",
+        "to": "craft"
+      },
+      {
+        "match": "(?<![A-Za-z0-9])OD_(?=[A-Z*])",
+        "flags": "g",
+        "to": "CRAFT_"
+      },
+      {
+        "match": "data-od-",
+        "flags": "g",
+        "to": "data-craft-"
+      },
+      {
+        "match": "\\/api\\/od\\/",
+        "flags": "g",
+        "to": "/api/craft/"
+      },
+      {
+        "match": "(?<![\\w/.-])od (?=(?:brand|media|browser|tools)\\b)",
+        "flags": "g",
+        "to": "craft "
+      },
+      {
+        "match": "`od`",
+        "flags": "g",
+        "to": "`craft`"
+      },
+      {
+        "match": "\\.od-skills\\/",
+        "flags": "g",
+        "to": ".craft-skills/"
+      },
+      {
+        "match": "\\.od\\/",
+        "flags": "g",
+        "to": ".craft/"
+      },
+      {
+        "match": "(?<![\\w.-])od-(?=[a-z])",
+        "flags": "g",
+        "to": "craft-"
+      },
+      {
+        "match": "^[ \\t]*upstream: \"https:\\/\\/github\\.com\\/nexu-io\\/html-anything\"\\r?\\n",
+        "flags": "gm",
+        "to": ""
+      },
+      {
+        "match": "^\\r?\\n?For OpenDesign, install the folder containing[^\\n]*\\n",
+        "flags": "gm",
+        "to": ""
+      },
+      {
+        "match": "^## OpenDesign discovery\\n\\n[^\\n]*\\n\\n",
+        "flags": "gm",
+        "to": ""
+      },
+      {
+        "match": "`example\\.html`, `open-design\\.json`, `SKILL\\.md`",
+        "flags": "g",
+        "to": "`example.html`, `SKILL.md`"
+      },
+      {
+        "match": "OpenDesign 可从包含 `open-design\\.json` 和 `SKILL\\.md` 的目录安装。",
+        "flags": "g",
+        "to": ""
+      },
+      {
+        "match": "package guide for OpenDesign agents and reviewers\\.",
+        "flags": "g",
+        "to": "package guide for agents and reviewers."
+      },
+      {
+        "match": "\"origin\": \"OpenDesign curated bundled fixture\"",
+        "flags": "g",
+        "to": "\"origin\": \"Curated bundled fixture\""
+      },
+      {
+        "match": "Bundled OpenDesign package for ",
+        "flags": "g",
+        "to": "Bundled design-system package for "
+      },
+      {
+        "match": "\"origin\": \"OpenDesign curated integration of ",
+        "flags": "g",
+        "to": "\"origin\": \"Curated integration of "
+      },
+      {
+        "match": "an \\*\\*OpenDesign curated integration\\*\\* of Cloudflare's Kumo UI, not an official Cloudflare-maintained OpenDesign package",
+        "flags": "g",
+        "to": "a **curated integration** of Cloudflare's Kumo UI, not an official Cloudflare-maintained package"
+      },
+      {
+        "match": "This is an OpenDesign curated integration, not an official Cloudflare package\\.",
+        "flags": "g",
+        "to": "This is a curated integration, not an official Cloudflare package."
+      },
+      {
+        "match": "Agent-facing guidance for the OpenDesign curated integration",
+        "flags": "g",
+        "to": "Agent-facing guidance for the curated integration"
+      },
+      {
+        "match": "Reference fixture for the OpenDesign Cloudflare Kumo UI integration",
+        "flags": "g",
+        "to": "Reference fixture for the Cloudflare Kumo UI integration"
+      },
+      {
+        "match": "Cloudflare Kumo UI — OpenDesign semantic bindings\\.",
+        "flags": "g",
+        "to": "Cloudflare Kumo UI — semantic bindings."
+      },
+      {
+        "match": "\\/\\* OpenDesign (compatibility|layout) bindings",
+        "flags": "g",
+        "to": "/* $1 bindings"
+      },
+      {
+        "match": "\\| OpenDesign token \\|",
+        "flags": "g",
+        "to": "| Library token |"
+      },
+      {
+        "match": "OpenDesign compatibility ceiling",
+        "flags": "g",
+        "to": "compatibility ceiling"
+      },
+      {
+        "match": "translates Kumo's semantic roles into OpenDesign's shared token contract",
+        "flags": "g",
+        "to": "translates Kumo's semantic roles into the shared token contract"
+      },
+      {
+        "match": "despite the OpenDesign slot name",
+        "flags": "g",
+        "to": "despite the slot name"
+      },
+      {
+        "match": "In generated OpenDesign artifacts,",
+        "flags": "g",
+        "to": "In generated artifacts,"
+      },
+      {
+        "match": "only for OpenDesign artifact compatibility",
+        "flags": "g",
+        "to": "only for artifact compatibility"
+      },
+      {
+        "match": "(explicitly|as) OpenDesign compatibility bindings",
+        "flags": "g",
+        "to": "$1 compatibility bindings"
+      },
+      {
+        "match": "Claiming that OpenDesign's compatibility section\\/layout bindings",
+        "flags": "g",
+        "to": "Claiming that the compatibility section/layout bindings"
+      },
+      {
+        "match": "One of the most loved tokensets on OpenDesign, according",
+        "flags": "g",
+        "to": "One of the most loved tokensets in the library, according"
+      },
+      {
+        "match": "(?:the )?\"od-design-system-project\\/v1\"",
+        "flags": "g",
+        "to": "\"craft-design-system-project/v1\""
+      },
+      {
+        "match": " \\(For OD Daemon\\)",
+        "flags": "g",
+        "to": " (For the Studio Daemon)"
+      },
+      {
+        "match": "schema shared with (every|all) OD design system(s?)",
+        "flags": "g",
+        "to": "schema shared with $1 design system$2"
+      },
+      {
+        "match": "agreed pattern for OD reference fixtures",
+        "flags": "g",
+        "to": "agreed pattern for reference fixtures"
+      },
+      {
+        "match": "plate numbers \\(\"FIG\\. 01 \\/ OD-26\"\\)",
+        "flags": "g",
+        "to": "plate numbers (\"FIG. 01 / AZ-26\")"
+      },
+      {
+        "match": "via the\\nopen-design-landing skill\\.",
+        "flags": "g",
+        "to": "via an\nimage-generation skill."
+      },
+      {
+        "match": "See `design-templates\\/open-design-landing\\/assets\\/imagegen-prompts\\.md` for the\\nworking prompt pack and per-section variants\\.",
+        "flags": "g",
+        "to": "Keep a working prompt pack with per-section variants next to the artifact."
+      },
+      {
+        "match": "a footer with a giant `OpenDesign\\.` \\(or brand\\)",
+        "flags": "g",
+        "to": "a footer with a giant `Atlas.` (or brand)"
+      },
+      {
+        "match": "tightened to match OpenDesign's lint surface",
+        "flags": "g",
+        "to": "tightened to match this library's lint surface"
+      },
+      {
+        "match": "All examples reference OpenDesign's standard tokens",
+        "flags": "g",
+        "to": "All examples reference the standard tokens"
+      },
+      {
+        "match": "re-tuned for OpenDesign's token system",
+        "flags": "g",
+        "to": "re-tuned for this library's token system"
+      },
+      {
+        "match": "edits to fit OpenDesign's house style",
+        "flags": "g",
+        "to": "edits to fit this library's house style"
+      },
+      {
+        "match": "the compliance floor an OD artifact must clear",
+        "flags": "g",
+        "to": "the compliance floor an artifact must clear"
+      },
+      {
+        "match": "structural conventions OD treats as craft commitments",
+        "flags": "g",
+        "to": "structural conventions this library treats as craft commitments"
+      },
+      {
+        "match": "OD craft convention layers on:",
+        "flags": "g",
+        "to": "The craft convention layers on:"
+      },
+      {
+        "match": "back to OD's design tokens",
+        "flags": "g",
+        "to": "back to the design tokens"
+      },
+      {
+        "match": "In an OD-managed project,",
+        "flags": "g",
+        "to": "In a managed project,"
+      },
+      {
+        "match": "^## Open Design changes$",
+        "flags": "gm",
+        "to": "## Studio changes"
+      },
+      {
+        "match": "^## Open Design execution context$",
+        "flags": "gm",
+        "to": "## Studio execution context"
+      },
+      {
+        "match": "\\[Open Design execution context\\]\\(sections\\/01-open-design-execution-context\\.md\\)",
+        "flags": "g",
+        "to": "[Studio execution context](sections/01-studio-execution-context.md)"
+      },
+      {
+        "match": "^## Open Design 宿主约定$",
+        "flags": "gm",
+        "to": "## 宿主约定"
+      },
+      {
+        "match": "^# 花叔艺术动画：Open Design 适配$",
+        "flags": "gm",
+        "to": "# 花叔艺术动画：适配"
+      },
+      {
+        "match": "^# 关键帧与视频提示词（Open Design 适配）$",
+        "flags": "gm",
+        "to": "# 关键帧与视频提示词（适配）"
+      },
+      {
+        "match": "不是 Open Design 的验收结果",
+        "flags": "g",
+        "to": "不是本库的验收结果"
+      },
+      {
+        "match": "^## OpenDesign Smoke Path$",
+        "flags": "gm",
+        "to": "## Local preview smoke path"
+      },
+      {
+        "match": "^## OpenDesign Integration$",
+        "flags": "gm",
+        "to": "## Studio integration"
+      },
+      {
+        "match": "\\*\\*OpenDesign integration\\.\\*\\*",
+        "flags": "g",
+        "to": "**Studio integration.**"
+      },
+      {
+        "match": "so any OpenDesign agent can run it",
+        "flags": "g",
+        "to": "so any agent can run it"
+      },
+      {
+        "match": "Any OpenDesign agent can run the skill",
+        "flags": "g",
+        "to": "Any agent can run the skill"
+      },
+      {
+        "match": "hand the result to OpenDesign's daemon or pet settings",
+        "flags": "g",
+        "to": "hand the result to a desktop app's daemon or pet settings"
+      },
+      {
+        "match": "checked into the OpenDesign repo \\(",
+        "flags": "g",
+        "to": "checked into the library ("
+      },
+      {
+        "match": "source-of-truth for OpenDesign and",
+        "flags": "g",
+        "to": "source-of-truth for the library and"
+      },
+      {
+        "match": "inside `SKILL\\.md`'s `> \\*\\*OpenDesign integration\\.\\*\\*` blockquote",
+        "flags": "g",
+        "to": "inside `SKILL.md`'s `> **Studio integration.**` blockquote"
+      },
+      {
+        "match": "how OpenDesign behaves when Codex is not installed",
+        "flags": "g",
+        "to": "how the studio behaves when Codex is not installed"
+      },
+      {
+        "match": "Anthropic's official `frontend-design` skill for OpenDesign\\.",
+        "flags": "g",
+        "to": "Anthropic's official `frontend-design` skill."
+      },
+      {
+        "match": "When OpenDesign provides an active design system",
+        "flags": "g",
+        "to": "When the studio provides an active design system"
+      },
+      {
+        "match": "When OpenDesign injects craft references",
+        "flags": "g",
+        "to": "When the studio injects craft references"
+      },
+      {
+        "match": "derived from OpenDesign's original 71-system catalog",
+        "flags": "g",
+        "to": "derived from an original 71-system catalog"
+      },
+      {
+        "match": "inherited from OpenDesign's original\\nupstream baseline",
+        "flags": "g",
+        "to": "inherited from an original\nupstream baseline"
+      },
+      {
+        "match": "following OpenDesign's\\n",
+        "flags": "g",
+        "to": "following the library's\n"
+      },
+      {
+        "match": "the nine standard OpenDesign headings",
+        "flags": "g",
+        "to": "the nine standard headings"
+      },
+      {
+        "match": "OpenDesign derives the preview",
+        "flags": "g",
+        "to": "The studio derives the preview"
+      },
+      {
+        "match": "reading selected OpenDesign\\s+browser-tab\\s+context",
+        "flags": "g",
+        "to": "reading selected browser-tab context"
+      },
+      {
+        "match": "dogfooding\\s+OpenDesign\\s+previews",
+        "flags": "g",
+        "to": "dogfooding local previews"
+      },
+      {
+        "match": "local\\s+OpenDesign\\s+preview\\s+URLs",
+        "flags": "g",
+        "to": "local preview URLs"
+      },
+      {
+        "match": "Use `agent-browser` for local OpenDesign preview validation",
+        "flags": "g",
+        "to": "Use `agent-browser` for local preview validation"
+      },
+      {
+        "match": "For selected OpenDesign browser tabs",
+        "flags": "g",
+        "to": "For selected browser tabs"
+      },
+      {
+        "match": "If the selected OpenDesign context only provided",
+        "flags": "g",
+        "to": "If the selected context only provided"
+      },
+      {
+        "match": "Do not run OpenDesign's own daemon CLI as a browser automation tool\\.",
+        "flags": "g",
+        "to": "Do not run the studio's own daemon CLI as a browser automation tool."
+      },
+      {
+        "match": "With the OpenDesign preview at",
+        "flags": "g",
+        "to": "With the local preview at"
+      },
+      {
+        "match": "title `OpenDesign`,",
+        "flags": "g",
+        "to": "title `Atlas`,"
+      },
+      {
+        "match": "visible OpenDesign UI text",
+        "flags": "g",
+        "to": "visible UI text"
+      },
+      {
+        "match": "To preview the canonical OpenDesign instance:",
+        "flags": "g",
+        "to": "To preview the canonical instance:"
+      },
+      {
+        "match": "canonical OpenDesign rendering",
+        "flags": "g",
+        "to": "canonical rendering"
+      },
+      {
+        "match": "This is the canonical OpenDesign marketing-page recipe",
+        "flags": "g",
+        "to": "This is the canonical marketing-page recipe"
+      },
+      {
+        "match": "The OpenDesign viewer toolbar has a",
+        "flags": "g",
+        "to": "The viewer toolbar has a"
+      },
+      {
+        "match": "OpenDesign\\s+(serves this in|detects|renders this in)",
+        "flags": "g",
+        "to": "The studio $1"
+      },
+      {
+        "match": "Open Design (scaffolds and embeds|does not parse)",
+        "flags": "g",
+        "to": "The studio $1"
+      },
+      {
+        "match": "use Open Design's existing local HyperFrames renderer",
+        "flags": "g",
+        "to": "use the studio's existing local HyperFrames renderer"
+      },
+      {
+        "match": "For a new Open Design film",
+        "flags": "g",
+        "to": "For a new film"
+      },
+      {
+        "match": "The Open Design video composition contract",
+        "flags": "g",
+        "to": "The video composition contract"
+      },
+      {
+        "match": "This is an original Open Design skill",
+        "flags": "g",
+        "to": "This is an original skill"
+      },
+      {
+        "match": "adapted to Open Design's existing timeline",
+        "flags": "g",
+        "to": "adapted to the studio's existing timeline"
+      },
+      {
+        "match": "Do not assume these are installed by Open Design\\.",
+        "flags": "g",
+        "to": "Do not assume these are installed by the studio."
+      },
+      {
+        "match": "This skill adapts the upstream Last30Days workflow for OpenDesign\\.",
+        "flags": "g",
+        "to": "This skill adapts the upstream Last30Days workflow."
+      },
+      {
+        "match": "OD Next frozen package",
+        "flags": "g",
+        "to": "frozen package"
+      },
+      {
+        "match": "The OD Next sealed",
+        "flags": "g",
+        "to": "The sealed"
+      },
+      {
+        "match": "In OD Next,",
+        "flags": "g",
+        "to": "In the studio,"
+      },
+      {
+        "match": "the final OD report",
+        "flags": "g",
+        "to": "the final report"
+      },
+      {
+        "match": "available OD research",
+        "flags": "g",
+        "to": "available research"
+      },
+      {
+        "match": "an OD-native skill contract",
+        "flags": "g",
+        "to": "a self-contained skill contract"
+      },
+      {
+        "match": "finance-specific OD\\b",
+        "flags": "g",
+        "to": "finance-specific"
+      },
+      {
+        "match": "(break|Breaks) the OD preview iframe",
+        "flags": "g",
+        "to": "$1 the preview iframe"
+      },
+      {
+        "match": "lights up OD's typed inputs",
+        "flags": "g",
+        "to": "lights up the studio's typed inputs"
+      },
+      {
+        "match": "The OD daemon",
+        "flags": "g",
+        "to": "The studio daemon"
+      },
+      {
+        "match": "the OD\\s+daemon",
+        "flags": "g",
+        "to": "the studio daemon"
+      },
+      {
+        "match": "a single OD `<live-counter>`",
+        "flags": "g",
+        "to": "a single `<live-counter>`"
+      },
+      {
+        "match": "one OD custom",
+        "flags": "g",
+        "to": "one custom"
+      },
+      {
+        "match": "linked back to the OD project",
+        "flags": "g",
+        "to": "linked back to the project"
+      },
+      {
+        "match": "reviewer \\(\"OD ·",
+        "flags": "g",
+        "to": "reviewer (\"Critique ·"
+      },
+      {
+        "match": "OD · Critique skill",
+        "flags": "g",
+        "to": "Critique skill"
+      },
+      {
+        "match": "built with the OD tweaks skill",
+        "flags": "g",
+        "to": "built with the tweaks skill"
+      },
+      {
+        "match": "^(\\s*)OD · live-dashboard · template seed",
+        "flags": "gm",
+        "to": "$1live-dashboard · template seed"
+      },
+      {
+        "match": "OD (mobile-app|web-prototype) seed\\.",
+        "flags": "g",
+        "to": "$1 seed."
+      },
+      {
+        "match": "in OD `",
+        "flags": "g",
+        "to": "in the studio `"
+      },
+      {
+        "match": "`🚀 在 OpenDesign 里继续处理 →`",
+        "flags": "g",
+        "to": "`🚀 在工作室里继续处理 →`"
+      },
+      {
+        "match": "在 OpenDesign 中，",
+        "flags": "g",
+        "to": "在工作室中，"
+      },
+      {
+        "match": "\\*\\*OpenDesign 环境准备",
+        "flags": "g",
+        "to": "**环境准备"
+      },
+      {
+        "match": "OpenDesign 项目内",
+        "flags": "g",
+        "to": "项目内"
+      },
+      {
+        "match": "保证 OpenDesign 文件预览",
+        "flags": "g",
+        "to": "保证文件预览"
+      },
+      {
+        "match": "当前 OpenDesign 项目目录",
+        "flags": "g",
+        "to": "当前项目目录"
+      },
+      {
+        "match": "\\*\\*OpenDesign 预览适配\\*\\*",
+        "flags": "g",
+        "to": "**预览适配**"
+      },
+      {
+        "match": "打到 OpenDesign 应用根",
+        "flags": "g",
+        "to": "打到应用根"
+      },
+      {
+        "match": "一页 OpenDesign Studio Issue",
+        "flags": "g",
+        "to": "一页 Atlas Studio Issue"
+      },
+      {
+        "match": "Local-first, open-source alternative to Anthropic(?:'|&#x27;)s Claude Design\\. 19 Skills · 71 brand-grade Design Systems · Generate web\\/desktop\\/mobile prototypes · slides · images · videos",
+        "flags": "g",
+        "to": "Local-first, open-source toolkit for maps and routing. 19 Packages · 71 Map styles · Web, desktop and mobile builds"
+      },
+      {
+        "match": "OpenDesign is the <strong>open-source alternative to Anthropic's Claude Design<\\/strong>\\.",
+        "flags": "g",
+        "to": "Atlas is an <strong>open-source mapping toolkit</strong>."
+      },
+      {
+        "match": "OpenDesign is the open-source alternative to Claude Design\\.",
+        "flags": "g",
+        "to": "Atlas is an open-source mapping toolkit."
+      },
+      {
+        "match": "OpenDesign will stay Apache-2\\.0 forever",
+        "flags": "g",
+        "to": "Atlas will stay open source forever"
+      },
+      {
+        "match": "Fix OpenDesign not reading the latest model list from Codex CLI",
+        "flags": "g",
+        "to": "Fix Atlas not reading the latest tile list from the CLI"
+      },
+      {
+        "match": "OpenDesign gives it ([0-9]+) composable skills and ([0-9]+) brand-grade design systems",
+        "flags": "g",
+        "to": "Atlas gives it $1 composable modules and $2 map styles"
+      },
+      {
+        "match": "pairs Open\\s+Claude Design with HyperFrames for a kinetic export",
+        "flags": "g",
+        "to": "pairs a hero frame with a video exporter for a kinetic result"
+      },
+      {
+        "match": "<span class=\"trending-name\">claude design<\\/span>",
+        "flags": "g",
+        "to": "<span class=\"trending-name\">map design</span>"
+      },
+      {
+        "match": "Design agent · by Nexu Labs",
+        "flags": "g",
+        "to": "Mapping toolkit · by Acme Labs"
+      },
+      {
+        "match": "Open Orbit",
+        "flags": "g",
+        "to": "Atlas Orbit"
+      },
+      {
+        "match": "Generated using OpenDesign — ",
+        "flags": "g",
+        "to": "Generated with Atlas — "
+      },
+      {
+        "match": "Open Design does not download a browser",
+        "flags": "g",
+        "to": "The studio does not download a browser"
+      },
+      {
+        "match": "OpenDesign's\\n?(\\s*)preview\\)",
+        "flags": "g",
+        "to": "the studio's preview)"
+      },
+      {
+        "match": ">OD<",
+        "flags": "g",
+        "to": ">AT<"
+      },
+      {
+        "match": "OpenDesign Studio",
+        "flags": "g",
+        "to": "Atlas Studio"
+      },
+      {
+        "match": "OPENDESIGN",
+        "flags": "g",
+        "to": "ATLAS"
+      },
+      {
+        "match": "@opendesignhq",
+        "flags": "g",
+        "to": "@atlashq"
+      },
+      {
+        "match": "opendesign\\.studio",
+        "flags": "g",
+        "to": "atlas.example"
+      },
+      {
+        "match": "opendesign\\.local",
+        "flags": "g",
+        "to": "atlas.local"
+      },
+      {
+        "match": "nexu-io\\/open-design",
+        "flags": "g",
+        "to": "acme/atlas"
+      },
+      {
+        "match": "github\\.com\\/nexu-io(?!\\/)",
+        "flags": "g",
+        "to": "github.com/acme"
+      },
+      {
+        "match": "@nexu-io",
+        "flags": "g",
+        "to": "@acme"
+      },
+      {
+        "match": "nexu-io",
+        "flags": "g",
+        "to": "acme"
+      },
+      {
+        "match": "Nexu",
+        "flags": "g",
+        "to": "Acme"
+      },
+      {
+        "match": "nexu",
+        "flags": "g",
+        "to": "acme"
+      },
+      {
+        "match": "Open-Design-specific",
+        "flags": "g",
+        "to": "app-specific"
+      },
+      {
+        "match": "OPEN-DESIGN",
+        "flags": "g",
+        "to": "ATLAS"
+      },
+      {
+        "match": "Open-Design",
+        "flags": "g",
+        "to": "Atlas"
+      },
+      {
+        "match": "HTML-ANYTHING",
+        "flags": "g",
+        "to": "PAGEFORGE"
+      },
+      {
+        "match": "HTML-Anything",
+        "flags": "g",
+        "to": "Pageforge"
+      },
+      {
+        "match": "html-anything",
+        "flags": "g",
+        "to": "pageforge"
+      },
+      {
+        "match": "HTML Anything",
+        "flags": "g",
+        "to": "Pageforge"
+      },
+      {
+        "match": "open-design(?![A-Za-z])",
+        "flags": "g",
+        "to": "atlas"
+      },
+      {
+        "match": "(^|[.!?:]\\s+|\\n\\s*(?:[-*>]|\\d+\\.)?\\s*)(?:OpenDesign|Open Design)(?='s)",
+        "flags": "g",
+        "to": "$1The studio",
+        "only": "\\.(md|txt|tsv)$"
+      },
+      {
+        "match": "(^|[.!?:]\\s+|\\n\\s*(?:[-*>]|\\d+\\.)?\\s*)(?:OpenDesign|Open Design)\\b",
+        "flags": "g",
+        "to": "$1The studio",
+        "only": "\\.(md|txt|tsv)$"
+      },
+      {
+        "match": "(?:OpenDesign|Open Design)'s",
+        "flags": "g",
+        "to": "the studio's",
+        "only": "\\.(md|txt|tsv)$"
+      },
+      {
+        "match": "(?:OpenDesign|Open Design)\\b",
+        "flags": "g",
+        "to": "the studio",
+        "only": "\\.(md|txt|tsv)$"
+      },
+      {
+        "match": "OpenDesign",
+        "flags": "g",
+        "to": "Atlas",
+        "only": "\\.(html?|css|json|m?js|ts|svg)$"
+      },
+      {
+        "match": "Open Design",
+        "flags": "g",
+        "to": "the studio",
+        "only": "\\.(html?|css|json|m?js|ts|svg)$"
+      }
+    ],
+    "forbidden": "(open ?design|opendesign|open-design|nexu|\\bOD\\b|(?<![\\w.-])od[-:]|\\$OD_|\\bOD_|data-od-|claude design|html-anything)",
+    "pathRules": [
+      {
+        "match": "(^|/)od-",
+        "to": "$1craft-"
+      },
+      {
+        "match": "-od-",
+        "to": "-craft-"
+      }
     ]
   }
 }

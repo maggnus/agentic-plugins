@@ -5,7 +5,7 @@
 - Author and license: see the bundled MIT `LICENSE`. This license covers the
   skill material; runtime libraries and external assets retain their own terms.
 
-## Open Design changes
+## Studio changes
 
 - Added localized catalogue metadata, search triggers, functional mode, and host
   execution constraints.

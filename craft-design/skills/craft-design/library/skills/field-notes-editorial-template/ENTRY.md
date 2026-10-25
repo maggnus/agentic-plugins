@@ -12,7 +12,7 @@ triggers:
   - "pastel insight dashboard"
   - "高级编辑风报告模板"
   - "奶油底粉彩卡片数据报告"
-od:
+craft:
   mode: template
   surface: video
   type: hyperframes

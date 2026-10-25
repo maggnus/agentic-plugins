@@ -511,7 +511,7 @@ class SystemBrowser {
 }
 
 async function connectOverDaemon({ daemonUrl, projectId }) {
-  if (!daemonUrl || !projectId) throw new Error("OD_DAEMON_URL and OD_PROJECT_ID are required");
+  if (!daemonUrl || !projectId) throw new Error("CRAFT_DAEMON_URL and CRAFT_PROJECT_ID are required");
   const endpoint = `${daemonUrl.replace(/\/$/, "")}/api/projects/${encodeURIComponent(projectId)}/browser-sessions`;
   const response = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" } });
   if (!response.ok) {
@@ -528,7 +528,7 @@ async function connectOverDaemon({ daemonUrl, projectId }) {
 
 async function launchSystemBrowser({ executablePath }) {
   if (!executablePath) throw new Error("A system browser executable path is required");
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "od-web-clone-browser-"));
+  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), "craft-web-clone-browser-"));
   const child = spawn(executablePath, [
     "--headless=new",
     "--remote-debugging-port=0",

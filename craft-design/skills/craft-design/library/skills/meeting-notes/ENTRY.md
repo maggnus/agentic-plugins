@@ -11,7 +11,7 @@ triggers:
   - "1:1 notes"
   - "all-hands recap"
   - "会议纪要"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: operations

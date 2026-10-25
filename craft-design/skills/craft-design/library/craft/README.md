@@ -20,12 +20,12 @@ e.g. ALL CAPS always needs ≥0.06em tracking, regardless of the brand.
 
 ## How a skill opts in
 
-Add an `od.craft.requires` array to the skill's front-matter. Only the
+Add a `craft.craft.requires` array to the skill's front-matter. Only the
 listed sections are injected, so a skill that needs only typography pays
 no token cost for color/motion content.
 
 ```yaml
-od:
+craft:
   craft:
     requires: [typography, color, anti-ai-slop]
 ```
@@ -34,7 +34,7 @@ Use the layered stack for editorial skills that require authored hierarchy
 and sustained reading behavior:
 
 ```yaml
-od:
+craft:
   craft:
     requires: [typography, typography-hierarchy, typography-hierarchy-editorial]
 ```
@@ -43,7 +43,7 @@ Allowed shipped values match the file names in this directory minus the `.md`
 extension. The runtime skips an absent file for compatibility, but repository
 authoring does not silently accept arbitrary values.
 
-Run `pnpm lint:craft` after adding or changing `od.craft.requires`. The
+Run `pnpm lint:craft` after adding or changing `craft.craft.requires`. The
 repository guard reports unresolved slugs with their manifest paths, so typos
 cannot silently drop a craft section from the runtime prompt. If a slug is an
 intentional forward reference, list it in `craft/FUTURE_SECTIONS.md` until the
@@ -101,6 +101,6 @@ list here.
 
 Craft content is adapted from the MIT-licensed
 [refero_skill](https://github.com/referodesign/refero_skill) project
-(© Refero Design), with edits to fit OpenDesign's house style and link
-back to OD's design tokens (`var(--accent)` etc.) instead of generic
+(© Refero Design), with edits to fit this library's house style and link
+back to the design tokens (`var(--accent)` etc.) instead of generic
 Tailwind hex values.

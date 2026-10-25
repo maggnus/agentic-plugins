@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  OD · live-dashboard · template seed
+  live-dashboard · template seed
   ----------------------------------------------------------------------
   This is the skeleton an agent starts from. The structure is locked.
   The agent is expected to:
@@ -13,7 +13,7 @@
       DESIGN.md tokens. Do not introduce new property names.
    4. Wire the Refresh button to a real connector by replacing the
       contents of `seedNextChange()` with a `poll()` call into
-      `/api/od/connectors/poll`. See references/connectors.md.
+      `/api/craft/connectors/poll`. See references/connectors.md.
    5. Honor `prefers-reduced-motion: reduce` everywhere.
 
   Hard nos: see references/checklist.md (P0 rows are non-negotiable).
@@ -22,7 +22,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="od:project" content="{{project_id}}" />
+<meta name="craft:project" content="{{project_id}}" />
 <title>{{workspace_name}} · {{page_title}}</title>
 <style>
   :root {

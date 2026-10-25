@@ -32,7 +32,7 @@ TypeScript / React / Next.js / Tailwind / Node.js · 设计系统 / 性能优化
 
 ## 公开项目
 
-- **html-anything** (1.2k ★) — 把任何文档用本地 AI agent 转成漂亮 HTML
+- **pageforge** (1.2k ★) — 把任何文档用本地 AI agent 转成漂亮 HTML
 - **lite-form** (450 ★) — 9KB 的 React 表单库, 性能比 react-hook-form 快 1.7x
 
 ## 语言 / 兴趣

@@ -92,7 +92,7 @@ for (const ref of new Set(router.match(/<skill>\/[\w./-]+\.(?:md|mjs|tsv)/g))) {
 assert.ok(existsSync(join(skill, 'agents/openai.yaml')));
 
 // Catalog rows resolve and match the recorded counts.
-const source = json(join(library, 'SOURCE.json'));
+const source = json(join(plugin, 'library-source.json'));
 const rows = read(join(library, 'catalog.tsv')).trimEnd().split('\n').map(line => line.split('\t'));
 assert.deepEqual(rows[0], ['kind', 'id', 'mode', 'platform', 'scenario', 'design_system', 'craft', 'path', 'summary']);
 const counts = {};
@@ -127,15 +127,36 @@ for (const system of readdirSync(join(library, 'design-systems')).filter(n => !n
 const size = walk(library).reduce((sum, p) => sum + statSync(p).size, 0);
 assert.ok(size < 40 * 1024 * 1024, `library stays under 40 MB (${(size / 1048576).toFixed(1)} MB)`);
 
+// Ratchet: the skill directory speaks only in craft-design's own terms. The
+// upstream name lives only in LICENSE-library and the maintainer-only sync
+// files, all outside skills/craft-design/. Case-insensitive names, plus the
+// short `od` forms matched narrowly so that code, mode, good or period (and the
+// Polish word "od") never trip it.
+const upstreamNames = [
+  /open ?design|opendesign|open-design|nexu|claude design|data-od-|\$OD_/i,
+  /\bOD\b|(?<![A-Za-z0-9])OD_/,
+  /(?<![\w.-])od(?=[-:])/i,
+  /(?<![\w.-])od(?= (?:brand|media|tools|plugin|project|daemon|research|browser)\b)/,
+];
+const leaks = [];
+for (const path of walk(skill)) {
+  const data = readFileSync(path);
+  if (data.subarray(0, 8192).includes(0)) continue;
+  data.toString('utf8').replace(/base64,[A-Za-z0-9+/=]{200,}/g, 'base64,').split('\n').forEach((line, n) => {
+    if (upstreamNames.some(pattern => pattern.test(line))) leaks.push(`${relative(plugin, path)}:${n + 1}: ${line.trim().slice(0, 120)}`);
+  });
+}
+assert.equal(leaks.length, 0, `upstream names inside the skill directory:\n${leaks.slice(0, 40).join('\n')}`);
+
 // Scripts parse; preview and brand kit run end to end.
 const scripts = join(skill, 'scripts');
 for (const name of readdirSync(scripts)) execFileSync(process.execPath, ['--check', join(scripts, name)]);
-execFileSync(process.execPath, ['--check', join(plugin, 'scripts/sync-from-open-design.mjs')]);
+execFileSync(process.execPath, ['--check', join(plugin, 'scripts/sync-library.mjs')]);
 
 const work = mkdtempSync(join(tmpdir(), 'craft-design-check-'));
 const root = join(work, 'design');
 mkdirSync(join(root, 'demo'), { recursive: true });
-writeFileSync(join(root, 'demo/index.html'), '<!doctype html><h1 data-od-id="title">Demo</h1>');
+writeFileSync(join(root, 'demo/index.html'), '<!doctype html><h1 data-craft-id="title">Demo</h1>');
 // Theme fixtures live with the screenshot demos and require no installed plugin.
 const tokenScript = join(scripts, 'tokens.mjs');
 const goodTokens = `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -217,7 +238,7 @@ operation = runTokens(['sync', sharedTokens, copyFile, join(root, 'demo/index.ht
 assert.equal(operation.status, 2, 'missing markers are reported without changing that file');
 assert.match(operation.stdout, /updated:/);
 assert.match(operation.stderr, /not changed:.*index.html/);
-assert.equal(read(join(root, 'demo/index.html')), '<!doctype html><h1 data-od-id="title">Demo</h1>');
+assert.equal(read(join(root, 'demo/index.html')), '<!doctype html><h1 data-craft-id="title">Demo</h1>');
 assert.equal(read(copyFile), goodTokens.slice(0, range.start) + updatedTheme + goodTokens.slice(range.end), 'sync preserves all content outside the theme');
 operation = runTokens(['extract', copyFile, '--out', sharedTokens]);
 assert.equal(operation.status, 0, operation.stderr);
@@ -332,7 +353,7 @@ assert.equal(read(copyFile).includes('--radius-ctl: 10px;'), true, 'sync placed 
 writeFileSync(join(root, 'brand.json'), JSON.stringify({ name: 'Demo', sourceUrl: 'https://www.example.com/', note: '</script> ' }));
 const kit = execFileSync(process.execPath, [join(scripts, 'brand-kit.mjs'), join(root, 'brand.json'), '--status', 'ready'], { encoding: 'utf8' }).trim();
 const kitHtml = read(kit);
-assert.ok(!kitHtml.includes('__OD_BRAND_'), 'brand kit tokens replaced');
+assert.ok(!kitHtml.includes('__CRAFT_BRAND_'), 'brand kit tokens replaced');
 assert.ok(!kitHtml.includes('</script> ') && kitHtml.includes('"host":"example.com"'), 'brand payload escaped');
 
 const port = 47000 + Math.floor(Math.random() * 2000);
@@ -349,7 +370,7 @@ try {
   });
   assert.match(await (await fetch(base)).text(), /demo\/index\.html/);
   assert.equal((await fetch(`${base}view/demo/index.html`)).status, 200);
-  assert.match(await (await fetch(`${base}raw/demo/index.html`)).text(), /data-od-id="title"/);
+  assert.match(await (await fetch(`${base}raw/demo/index.html`)).text(), /data-craft-id="title"/);
   assert.equal((await fetch(`${base}raw/%2e%2e/%2e%2e/etc/passwd`)).status, 404);
   const comment = await (await fetch(`${base}api/comments`, {
     method: 'POST', headers: { 'content-type': 'application/json' },
@@ -377,7 +398,7 @@ try {
       assert.equal(read(goodFile), goodTokens, 'browser mutations leave the good file unchanged');
       assert.equal(read(badFile), badTokens, 'browser mutations leave the bad file unchanged');
     }
-    writeFileSync(join(root, 'demo/wide.html'), '<!doctype html><meta name="viewport" content="width=device-width"><body style="margin:0"><div data-od-id="wide" style="width:700px;height:40px"></div>');
+    writeFileSync(join(root, 'demo/wide.html'), '<!doctype html><meta name="viewport" content="width=device-width"><body style="margin:0"><div data-craft-id="wide" style="width:700px;height:40px"></div>');
     const shot = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/wide.html'), '--width', '1440,390', '--wait', '0', '--out', join(work, 'shot.png')], { encoding: 'utf8' });
     if (shot.status !== 3) {
       assert.equal(shot.status, 0, `shot.mjs runs: ${shot.stderr}`);

@@ -39,7 +39,7 @@ any P0 is unchecked.
 - [ ] **P0 — Endpoints documented**. Every `fetch()` call inside
       `index.html` corresponds to one entry in `connectors.json`.
 - [ ] **P0 — No hardcoded secrets**. No API tokens, integration secrets,
-      OAuth client IDs, or workspace IDs in the markup. The OD daemon
+      OAuth client IDs, or workspace IDs in the markup. The studio daemon
       resolves these via `media-config.json`.
 - [ ] **P0 — Stale fallback**. On `fetch` error or > 90s without a
       successful poll, the pill swaps to amber and the previous values
@@ -48,7 +48,7 @@ any P0 is unchecked.
 ## Structural
 
 - [ ] **P0 — Single file**. `index.html` self-contained. No external
-      CSS/JS imports beyond the system font stack and one OD custom
+      CSS/JS imports beyond the system font stack and one custom
       element. No CDN URLs.
 - [ ] **P0 — Sidebar collapses on `< 980px`**. The dashboard is
       mobile-readable; sidebar hides, KPI grid stacks 2-up, table

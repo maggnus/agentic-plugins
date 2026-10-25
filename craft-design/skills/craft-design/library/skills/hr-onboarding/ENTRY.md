@@ -11,7 +11,7 @@ triggers:
   - "first week"
   - "入职"
   - "新员工"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: hr

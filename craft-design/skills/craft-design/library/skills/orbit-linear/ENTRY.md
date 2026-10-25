@@ -1,7 +1,7 @@
 ---
 name: orbit-linear
 description: |
-  Open Orbit briefing skill — selected by the Orbit pipeline when
+  Atlas Orbit briefing skill — selected by the Orbit pipeline when
   Linear is the user's only connected connector, or when the user
   explicitly scopes their daily digest to Linear. Pulls the past 24
   hours of issue movement, status changes, assignments, and cycle
@@ -15,7 +15,7 @@ triggers:
   - "issue digest"
   - "linear 简报"
   - "issue 汇总"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: orbit
@@ -24,10 +24,10 @@ od:
     entry: index.html
   design_system:
     requires: false
-  example_prompt: "Generate today's Open Orbit Linear briefing. Linear is my only connected connector — pull yesterday's issue movement, cycle progress, status changes, and assignments and render them in Linear's native Inbox layout."
+  example_prompt: "Generate today's Atlas Orbit Linear briefing. Linear is my only connected connector — pull yesterday's issue movement, cycle progress, status changes, and assignments and render them in Linear's native Inbox layout."
 ---
 
-> **craft-design adaptation.** There is no Orbit pipeline or OpenDesign connector
+> **craft-design adaptation.** There is no Orbit pipeline or connector service
 > here. Reproduce `example.html` with mock content by default. Use real items only
 > when the matching source is reachable through tools the agent already has (a
 > connected MCP server or CLI), and never put credentials into the artifact.
@@ -142,7 +142,7 @@ Type stack:
      Sections: `Inbox · My issues · Active · Backlog · All issues`,
      then a divider, then `📋 Triage · 🚫 Canceled · ✅ Completed`.
      Active row: `accent-bg` background, `accent` ink.
-     Bottom: a tiny `Open Orbit · auto-generated 06:42` muted line.
+     Bottom: a tiny `Atlas Orbit · auto-generated 06:42` muted line.
    - **Issue list** (flex 1): two grouped sections.
      - **Needs your attention** — header in `attention accent` 11px caps;
        group block has `attention bg` very subtle background.

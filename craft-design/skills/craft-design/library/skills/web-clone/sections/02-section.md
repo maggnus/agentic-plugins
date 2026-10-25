@@ -102,7 +102,7 @@ L4-L6 复杂站按 `references/complex-playbooks.md` 走，不要只用普通官
 ### Step 4 · 在当前项目里搭工程
 
 ```bash
-# 当前 OpenDesign 项目目录就是复刻工作区。
+# 当前项目目录就是复刻工作区。
 pwd
 # git 源码：clone 到 source/ 或直接放入当前目录；单文件：放进来。原始源码留一份只读基准 index-original.html
 # 检查 Node 版本（package.json engines），nvm use 对应版本，钉 .nvmrc
@@ -111,10 +111,10 @@ pwd
 ### Step 5 · 删追踪 + 写元信息 + 验证
 
 - **删追踪**：Google Analytics（`gtag` / `googletagmanager`）、像素、热图——逐行精确切除（GA 块常在 `<head>` 顶部）。
-- **OpenDesign 预览适配**：交付前必须把项目根资源引用改成相对路径，避免 `/reference-assets/...` 在文件预览里打到 OpenDesign 应用根导致裸 HTML：
+- **预览适配**：交付前必须把项目根资源引用改成相对路径，避免 `/reference-assets/...` 在文件预览里打到应用根导致裸 HTML：
 
 ```bash
-node scripts/od-preview-rewrite.mjs --project .
+node scripts/craft-preview-rewrite.mjs --project .
 ```
 
 - **写 NOTES.md**（必须）：包含复杂度、复刻模式、原站 vs 克隆站对比、保真度评分、已知缺口。模板见 `references/deliverables.md`。

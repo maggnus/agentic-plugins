@@ -1,4 +1,4 @@
-## Open Design execution context
+## Studio execution context
 
 Use this as a functional helper on the user's current interface or accepted
 brief. Keep the host's task route, current stage, tool availability, and output

@@ -15,7 +15,7 @@ triggers:
   - "patient presentation"
   - "case summary"
   - "medical case"
-od:
+craft:
   mode: prototype
   platform: desktop
   scenario: healthcare
@@ -191,16 +191,16 @@ Requirements for the HTML output:
 - Critical findings (ST elevation, raised troponin, low BP, etc.)
   highlighted in a visually distinct callout box with red left border
 - @media print CSS rules so the document prints cleanly on A4/Letter
-- Tag every major section with `data-od-id` for comment-mode targeting:
+- Tag every major section with `data-craft-id` for comment-mode targeting:
 
 ```html
-<section data-od-id="hpi">...</section>
-<section data-od-id="vitals">...</section>
-<section data-od-id="pmh">...</section>
-<section data-od-id="examination">...</section>
-<section data-od-id="investigations">...</section>
-<section data-od-id="assessment">...</section>
-<section data-od-id="plan">...</section>
+<section data-craft-id="hpi">...</section>
+<section data-craft-id="vitals">...</section>
+<section data-craft-id="pmh">...</section>
+<section data-craft-id="examination">...</section>
+<section data-craft-id="investigations">...</section>
+<section data-craft-id="assessment">...</section>
+<section data-craft-id="plan">...</section>
 ```
 
 ### Step 7 — Self-check against `references/checklist.md`
