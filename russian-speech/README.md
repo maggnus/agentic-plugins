@@ -15,13 +15,13 @@ invocation or explicitly as `$russian-speech:russian-speech`.
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.7.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.8.0"
 claude plugin install russian-speech@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.7.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.8.0
 codex plugin add russian-speech@maggnus
 ```

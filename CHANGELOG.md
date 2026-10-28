@@ -1,3 +1,9 @@
+## [12.8.0](https://github.com/maggnus/agentic-plugins/compare/v12.7.0...v12.8.0) (2026-10-28)
+
+### Features
+
+* **craft-design:** inspect rendered evidence and scope design decisions ([3ac8420](https://github.com/maggnus/agentic-plugins/commit/3ac8420d71eef5002a4d4a537109f1d8c35825e0))
+
 ## [12.7.0](https://github.com/maggnus/agentic-plugins/compare/v12.6.8...v12.7.0) (2026-10-25)
 
 ### Features
