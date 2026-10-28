@@ -28,6 +28,39 @@ a source diff alone does not prove propagation. `inspection.md` describes explic
 content/size checks for rendered frames; use the project's own tests for properties
 and states they do not cover. Report which dependencies or states remain unchecked.
 
+## Data-dependent meaning
+
+For a variable prototype or a system expected to survive data changes, connect
+the visible decision to the condition that makes it true: amount and sign,
+status label and glyph, warning treatment and available action. Correct arithmetic
+alone does not make a positive check mark correct. Keep a preference mismatch
+distinct from a rule that actually prohibits an action; do not invent eligibility
+restrictions to simplify the interface.
+
+Use the existing model and components. A small derived decision object can help
+when those meanings otherwise drift, but a new architecture, framework or file
+format is not required. Before refinement, identify a consequential boundary from
+the brief: before/after a deadline, below/at/above a limit, known/unknown data, or
+selected/confirmed/unavailable. State the expected meaning independently of the
+current rendering, then apply contrasting inputs to the same implementation and
+inspect the actual views. Verify labels, signs and actions as well as numbers.
+Keep current facts separate from hypothetical consequences. Unknown is not zero.
+
+`inspection.md` describes `--scenario` for calling an artifact-owned preview
+adapter, together with `--contract` for explicit displayed expectations. Existing
+component stories or project tests are equally valid. Preserve the baseline and
+input-to-frame evidence. A scenario explores capacity beyond a static brief only
+when that exploration is requested or useful to an authorized system task; do not
+silently expand a one-off static deliverable into an application.
+
+When the uncertainty is what a reader understands, an independent readback can
+provide different evidence from the author's self-check. If independent review is
+available and authorized, give the reader the rendered frames and a neutral user
+task, without the intended answers or author's explanation. Compare the response
+with the brief, then confirm any ambiguity in the image itself. A model reader is
+a proxy, not a user study or an objective taste judge. Do not add this step to
+every simple artifact or equate a clean scenario report with visual quality.
+
 ## Learn from confirmed changes
 
 Existing preview comments identify elements; resolving a comment fixes that

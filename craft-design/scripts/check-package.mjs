@@ -154,6 +154,7 @@ for (const name of readdirSync(scripts)) execFileSync(process.execPath, ['--chec
 execFileSync(process.execPath, ['--check', join(plugin, 'scripts/sync-library.mjs')]);
 execFileSync(process.execPath, [join(plugin, 'scripts/check-inspection.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-contract.mjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [join(plugin, 'scripts/check-scenario.mjs')], { stdio: 'inherit' });
 
 const work = mkdtempSync(join(tmpdir(), 'craft-design-check-'));
 const root = join(work, 'design');

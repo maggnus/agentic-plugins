@@ -60,3 +60,40 @@ their reproductions now form regression tests. The explicit desktop mode and con
 applied locally to saved native component artifacts with their original runtime.
 This verifies bounded rendering behavior, not the published editor DOM, external
 design-system updates, interaction-state preservation or a general aesthetic gain.
+
+## Architecture probes: inputs, decisions and independent observation
+
+`2026-10-29-architecture.json` preserves three new briefs, exact conditions and
+artifact hashes. Seven fresh GPT-6-Astra medium generations explored a shared
+executable facts model, a raster composition proposal translated to editable HTML,
+and a decision representation with rendered boundary checks. The latter also had
+an ordinary-process control with the same extra boundary checks.
+
+The facts-model condition did not beat the ordinary process on the requested
+frames or explicit revision. Changing only authoritative inputs exposed a gap:
+correct arithmetic coexisted with an incorrect positive arrival glyph and fare-
+difference label. An independent screenshot-only reader found both contradictions;
+geometric inspection correctly made no semantic claim. A selected-A capacity
+probe exposed a similar access-label gap, outside the original static-C scope.
+
+On the held-out quota task, ordinary generation, explicit decision representation
+plus boundary checks, and boundary checks alone all passed 11 input cases at two
+viewports. An independent anonymized audit examined all 66 recorded text/control
+results and 15 PNGs, with no substantial violations. The separate representation
+is therefore **not mandated**. A single blind poster comparison slightly preferred
+the raster-guided result for readability, while preferring ordinary generation for
+coherence and distinctiveness. Raster-first design is **not made a default**.
+
+The promoted tool is a bounded scenario-application capability, not a taste score:
+`--scenario` lets an artifact-owned preview adapter receive explicit input before
+the existing capture/contracts. This avoids writing a new browser driver for each
+variable-data prototype. `check-scenario.mjs` covers application, asynchronous
+completion, fresh inputs/viewports, ordering, failures, deadlines and file safety.
+Conditional guidance connects meaningful visible states to their conditions and
+supports an authorized independent readback when understanding is uncertain.
+
+This remains exploratory: one generation per condition, one visual judge, no hard
+equal compute budget, procedural isolation, Codex-only generation, no human user
+study. It neither establishes an architectural ceiling nor a general aesthetic
+gain. Rendered candidate search, preference-calibrated evaluation and memory remain
+unproven alternatives; the absence of tests for them is not evidence of exhaustion.

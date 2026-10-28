@@ -54,6 +54,9 @@ and size checks, including selected same-origin iframe content. Exceptions and
 console errors are recorded; `noRuntimeErrors` in the contract makes them fail
 strict inspection. `--mode desktop` preserves the exact CSS width of a narrow
 fixed artboard without mobile scaling; the default `auto` behavior is unchanged.
+`--scenario fixture.json` applies explicit data through an isolated artifact’s own
+preview adapter, awaits completion, and records the input hash. It supports checking
+the same implementation on contrasting conditions; it does not evaluate meaning or taste.
 See [render inspection](skills/craft-design/references/inspection.md) for the schema,
 limits and the difference between a technically valid render and a good design.
 `scripts/tokens.mjs` keeps the theme honest: `check` finds values outside the theme and tokens

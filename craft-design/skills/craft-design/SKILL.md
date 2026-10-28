@@ -72,7 +72,7 @@ depth. While a system is active, do not
 invent tokens, write raw hex outside its `:root`, or ask about brand, style or
 palette.
 
-For related screens, reusable components or retained design feedback, read
+For related screens, reusable components, data-dependent decisions or retained design feedback, read
 `<skill>/references/system-decisions.md`.
 
 ## Platform specifics
@@ -94,7 +94,7 @@ never write design scratch into product source directories.
 
 ## Preview
 
-Start once per workspace, in the background, and give the user the artifact's
+Start once per workspace in the background; give the user the artifact's
 link it prints:
 
 ```sh
@@ -119,7 +119,8 @@ node <skill>/scripts/inspect.mjs design/<slug>/index.html --width 1440,390
 Each viewport yields a PNG and JSON findings; view both. Below 600px it emulates
 a phone, 844px tall. Options: `--height`, `--out`, `--full` for long pages,
 `--at <y|selector>` to scroll, repeated `--click <selector>` or `#fragment` for
-states. `--fit` checks a no-scroll brief; `--strict` fails on errors, not review
+states. `--scenario fixture.json` applies data through the preview adapter.
+`--fit` checks a no-scroll brief; `--strict` fails on errors, not review
 findings. Read `<skill>/references/inspection.md` to interpret findings and limits.
 `shot.mjs` captures without inspection. Without a Chromium-family browser,
 deliver on static checks and state the limitation.

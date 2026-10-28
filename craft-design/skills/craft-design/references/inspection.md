@@ -76,6 +76,55 @@ Readiness, contract results and the contract file hash are recorded in the JSON.
 Unknown fields, invalid schema or output paths that overwrite the source/contract
 exit 2; failed checks exit 1 only with `--strict`.
 
+## Apply a design scenario
+
+For an isolated prototype with variable data, `--scenario fixture.json` calls its
+own preview function with explicit JSON input before capture. It does not rewrite
+HTML, invent data, choose a design, or judge whether the result makes sense.
+Use an existing project preview adapter when available; do not create a parallel
+state system. This is for a known, authorized design harness, not a production
+payment, publication or account action.
+
+```json
+{
+  "version": 1,
+  "apply": "renderScenario",
+  "input": { "limit": 500, "completed": 325, "reserved": 50, "requested": 126 },
+  "timeoutMs": 5000
+}
+```
+
+The example artifact exposes `window.renderScenario(input)`. A dotted path such as
+`preview.render` is also supported; every segment must be an own data property,
+the final property an artifact-defined JavaScript function. Accessors, native or
+bound functions (including eval/Function) and prototype traversal are rejected.
+This is not a sandbox for hostile page code: an authored adapter remains responsible
+for how it uses its input and which services it calls.
+The function receives a fresh JSON value and its owning object as `this`. It may
+return a promise for its update. Application happens once in each fresh viewport,
+after page load and `--wait`, before `--click`, contract readiness, scrolling and
+capture. A function registered later must be made ready by the harness; a missing
+adapter fails explicitly. The timeout is 1–15000 ms, default 5000, and includes
+evaluation/transport time. Missing, throwing, rejected or timed-out application
+fails the command even without `--strict`; no default-state screenshot is accepted.
+
+Use `--contract` separately for expected displayed results and readiness after an
+asynchronous update. A fulfilled adapter promise is not evidence of correct data,
+action availability, completion of all network work or good composition. Both `inspect.mjs` and plain `shot.mjs --scenario` save a JSON sidecar. The latter
+is marked `kind: "capture-evidence", inspected: false` and contains no inspection
+verdict. The report records the scenario file hash, adapter and application result, not its
+entire input. Output paths cannot overwrite the source, contract or scenario file.
+The source files are unchanged; the called function can affect the live page and
+any services it invokes, so the harness must keep side effects isolated.
+
+For example:
+
+```sh
+node <skill>/scripts/inspect.mjs design/export/index.html --width 390 --height 844 \
+  --scenario design/export/over-limit-input.json --contract design/export/over-limit-checks.json \
+  --fit --strict --out design/export/over-limit.png
+```
+
 ## Geometric findings
 
 - **text-clipped:** text-range bounds exceed an ancestor that clips. Inspect the

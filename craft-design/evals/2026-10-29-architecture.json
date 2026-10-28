@@ -1,0 +1,248 @@
+{
+  "date": "2026-10-29",
+  "base": "v12.9.0",
+  "baseCommit": "241cafa4bdbac5bb1321a419bd226552b4e8e8a2",
+  "workspace": "/Users/maggnus/Code/craft-design-trial/2026-10-29-architecture",
+  "generation": {
+    "provider": "codex/gpt-6-astra",
+    "effort": "medium",
+    "freshContexts": true,
+    "isolation": "separate directories and explicit no-peeking instructions, not OS read isolation",
+    "hardTokenBudget": false,
+    "hardTimeBudget": false
+  },
+  "briefs": {
+    "ticketChange": "Design a coherent four-frame ticket-change interface for Cairn, a small ferry operator. This is a visual and product-design prototype with fictional data. Use English. Make the consequences of the choice understandable, without explanatory prose about implementation. Use one self-contained HTML and four PNGs; interactions need not run.\n\nThe customer has one adult ticket for tomorrow, 30 October: original sailing 11:30–13:00, fare £48, confirmed. They want to arrive by 11:30 and need step-free access. They may consider all four alternatives:\nA: 08:45–10:15, fare £39, no step-free access, available.\nB: 09:40–11:10, fare £62, step-free access, available.\nC: 10:00–11:25, fare £39, step-free access, available.\nD: 10:30–12:05, fare £48, step-free access, available.\nAll sailings are East Quay → North Harbour. Travel times and prices are fixed demo facts.\n\nExchange policy: the original fare is applied to the new fare. A positive fare difference is paid now. A negative difference becomes travel credit, never a cash refund, usable for 30 days. In every exchange, a non-refundable £5 change fee is paid now; travel credit cannot pay this fee. No seat or price is secured until the final confirmation. Until successful confirmation the original ticket is unchanged.\n\nDeliver exactly these four static states, each directly addressable by ?frame=... with no scrolling or clipped content at its target size:\n1. options: desktop light, 1024 × 768. Compare all alternatives and show C selected, not yet changed. Keep the customer's needs and the current booking accessible in this frame.\n2. review: desktop dark, 1024 × 768. Review C before confirmation, showing the relevant financial consequences, journey and next action.\n3. phone-review: phone light, 390 × 844. The same C review, adapted to the phone rather than scaled down.\n4. phone-unavailable: phone dark, 390 × 844. C has become sold out immediately before confirmation. No payment has been taken and the original booking remains confirmed. Offer a clear recovery. Do not silently change the selected sailing.\n\nUse one coherent visual system across states, with light/dark semantic tokens. No fixed palette or typeface is prescribed. Product information should feel credible, carefully composed and readable. Avoid a collection of unrelated cards if a clearer organization exists; choose the composition yourself. Save a short decisions.md distinguishing what is rendered from what is functionally verified. Preserve all data above; do not invent availability counts, fees, promises or eligibility rules. Mark demo data unobtrusively.\n\nOutput: output/index.html; output/options.png; output/review.png; output/phone-review.png; output/phone-unavailable.png. Inspect the final images and correct real geometric defects. Do not install or update plugins, publish, commit or delegate. A local preview of output and downloads of fonts/icons needed by this task are authorized.\n",
+    "poster": "Design an English event poster, 900 × 1200 px, for COMMON GROUND — a one-day gathering about urban nature, listening and collective care. The audience is curious adults, not a corporate conference. Make a memorable finished composition with readable event information. Art direction, palette and typography are yours; no prescribed motif or arrangement. All event data are fictional and should be marked unobtrusively as demo. Avoid inventing speakers, sponsor logos, statistics or photographs of the venue.\n\nExact required information (capitalization may follow your composition):\nCOMMON GROUND\nA day for urban nature\nSaturday 21 November 2026\n10:00–18:00\nGlasshouse Hall · 18 Willow Street\n10:30 Listening walk\n12:00 Shared lunch\n14:00 Building habitats\n16:30 Open conversation\nPay what you can · Suggested £12\nChildren welcome · Step-free access\nBring a cup. Leave with a new question.\n\nDeliver one editable, self-contained HTML at output/index.html, a final PNG at output/poster.png, and a short output/decisions.md. Keep all required text as HTML or vector text rather than burning it into a full-poster image. Image assets are allowed when useful, but the entire composition may not be one raster background; the layout must remain editable. Check 900 × 1200 with no scrolling or clipped event information. Other screen sizes and physical printing are outside this task. Preview only output. Do not install plugins, publish, commit, or delegate.\n",
+    "quotaTransfer": "Design a decision screen for Fieldnote, a team research repository. A member is about to export selected records. Show what is being requested, whether it can proceed, how it affects today's shared allowance, and the next action. The screen should be calm, readable and distinctive enough to belong to one product. English, light theme, desktop 1024 × 768 and phone 390 × 844. No scrolling at these sizes. Static prototype: the Export action must not actually start a job or consume quota.\n\nInitial data: organization Northbank Studio; role editor; daily allowance 500 records; completed exports today 325 records; reserved by other queued jobs 50 records; requested export 100 records. CSV, collection ‘Harbour interviews’, 14 interviews, selected records 100. Current reservations and completed exports are different. An editor or admin can export when completed + reserved + requested is less than or equal to the daily allowance. A viewer cannot export. A null allowance or null reserved count means that value is unknown, not zero or unlimited; eligibility is then unknown and the action must not start an export. If the request is ineligible or eligibility unknown, give a clear explanation and appropriate next action without inventing a successful change, administrator contact, or recovery guarantee. Existing reservations remain unchanged by this preview. All supplied data are fictional.\n\nThe prototype must render arbitrary test data through this small entry contract: window.renderScenario(input), where input has organization, role, limit, completed, reserved, requested (with the data above as the default). Calling it must update the visible screen; it must not mutate input. The amount of selected records follows requested; collection name, interview count and format remain fixed. Use the same HTML and components for desktop and phone, chosen by viewport. Make the file self-contained and all text editable. No prescribed palette or layout. Put related facts near the decision they explain. Preserve the distinction between current usage, reservations, this unstarted request, and a hypothetical post-export total.\n\nDeliver output/index.html, output/desktop.png, output/phone.png and short output/decisions.md. Check and view both final default PNGs. The renderScenario entry is for a local design experiment, not UI copy; do not mention it on the product screen. Downloads of necessary font/icon assets and a local preview of output are authorized. No installation, publication, commits, delegation, or opening other experiment directories.\n"
+  },
+  "conditions": {
+    "runs/k": "Use craft-design at ./skill/SKILL.md for brief.txt. Complete this assigned independent design test now. Follow AGENTS.md. Work only here. ",
+    "runs/l": "Use craft-design at ./skill/SKILL.md for brief.txt. Complete this assigned independent design test now. Follow AGENTS.md. Work only here. Before composing screens, implement a small executable JavaScript task model: authoritative input facts, derived exchange amounts, named states, and invariants separating selected from confirmed and unavailable. Keep this model independent of DOM/styles, exercise its boundary cases, and render all four views from it rather than repeating derived facts in markup. Choose the simplest representation that supports this brief, not a general-purpose framework. The model must actually drive the delivered HTML. Save it and the checks alongside the HTML. Then design and verify the four requested frames with the same craft skill. ",
+    "runs/p": "Use craft-design at ./skill/SKILL.md for brief.txt. Complete this independent design test now, only in this workspace. ",
+    "runs/q": "Use craft-design at ./skill/SKILL.md for brief.txt. Complete this independent design test now, only in this workspace. A raster composition proposal is provided as concept.png. Inspect it first, then use its spatial organization, typographic hierarchy and visual idea as your starting point for an editable HTML design. Correct any text or factual errors against brief.txt. Do not embed the whole concept image as the poster or rasterize the text; preserve the important visual idea with editable layout. If the proposal has an intrinsic problem, repair it rather than copying the defect. ",
+    "transfer/d": "Use craft-design at ./skill/SKILL.md and complete brief.txt. Remain independent, only within this workspace. ",
+    "transfer/e": "Use craft-design at ./skill/SKILL.md and complete brief.txt. Remain independent, only within this workspace. Use an executable decision representation between raw facts and visual components. Derive eligibility (allowed/blocked/unknown), reasons, current quantities, hypothetical consequences and permitted next actions from input before formatting. Each meaning-bearing label, status glyph/color and primary-action state must consume that representation; do not put unconditional success signs or scenario-specific arithmetic in markup. Keep hard eligibility rules distinct from descriptive context. Before final delivery, render and inspect a small set of decision-boundary scenarios through the same entry: both sides of each important gate and its equality/unknown boundary. Check displayed meaning and action affordance against independently stated expectations, not only arithmetic-unit tests or geometry. Use the simplest plain JavaScript and existing components, not a generic framework or DSL. Save model and scenario evidence. The default two PNGs remain the main deliverables. ",
+    "transfer/f": "Use craft-design at ./skill/SKILL.md and complete brief.txt. Remain independent, only within this workspace. Before final delivery, render and inspect a small set of decision-boundary scenarios through the same entry: both sides of each important gate and its equality/unknown boundary. Check displayed meaning and action affordance against independently stated expectations, not only arithmetic-unit tests or geometry. Use the simplest plain JavaScript and existing components, not a generic framework or DSL. Save scenario evidence. The default two PNGs remain the main deliverables. "
+  },
+  "observations": [
+    {
+      "experiment": "facts-model",
+      "baseline": "k",
+      "candidate": "l",
+      "result": "Both initial four-frame artifacts correctly answer five independent reading questions. Both agents implement the explicit three-fact revision successfully. No demonstrated candidate advantage."
+    },
+    {
+      "experiment": "facts-only-intervention",
+      "artifact": "l-initial",
+      "inputChanges": {
+        "fee": [
+          5,
+          8
+        ],
+        "C.fare": [
+          39,
+          55
+        ],
+        "arrivalDeadline": [
+          "11:30",
+          "11:20"
+        ]
+      },
+      "result": "Correct £15 total, but success glyph with -5 min before deadline and desktop fare difference -£0 instead of +£7. Independent screenshot reader confirms both contradictions. Geometric strict inspection passes. A separate selected-A capacity probe after revision still claims step-free access; outside original static-C acceptance scope."
+    },
+    {
+      "experiment": "raster-proposal-to-editable",
+      "baseline": "p",
+      "candidate": "q",
+      "imagePrompt": "Use case: ads-marketing. Asset type: flat finished event-poster composition proposal, portrait 3:4, to be translated later into editable HTML. Fill the image with the artwork itself, no mockup, no border around it.\nDesign an English event poster for COMMON GROUND — a one-day gathering about urban nature, listening and collective care. The audience is curious adults, not a corporate conference. Make a memorable finished composition with readable event information. Art direction, palette and typography are yours; no prescribed motif or arrangement. All event data are fictional and should be marked unobtrusively as demo. Do not invent speakers, sponsor logos, statistics or photographs of the venue.\nExact required information (capitalization may follow your composition):\nCOMMON GROUND\nA day for urban nature\nSaturday 21 November 2026\n10:00–18:00\nGlasshouse Hall · 18 Willow Street\n10:30 Listening walk\n12:00 Shared lunch\n14:00 Building habitats\n16:30 Open conversation\nPay what you can · Suggested £12\nChildren welcome · Step-free access\nBring a cup. Leave with a new question.\nThe composition must retain every text item legibly. This is a visual concept, not a photographed paper poster.\n",
+      "imageTool": "built-in imagegen",
+      "result": "One blinded judge slightly prefers q for reading order/readability; p wins coherence/distinctiveness. No general aesthetic gain established. Raster proposal contains the visual scene; q reuses a clipped illustration region while text/layout remain editable. Additional model call and unequal cost."
+    },
+    {
+      "experiment": "decision-representation-transfer",
+      "conditions": {
+        "d": "ordinary skill + same renderScenario entry",
+        "e": "explicit decision representation + boundary render checks",
+        "f": "ordinary skill + boundary render checks"
+      },
+      "cases": {
+        "default": {
+          "organization": "Northbank Studio",
+          "role": "editor",
+          "limit": 500,
+          "completed": 325,
+          "reserved": 50,
+          "requested": 100
+        },
+        "cases": [
+          {
+            "id": "default",
+            "patch": {},
+            "allowed": true,
+            "currentCommitted": 375,
+            "after": 475,
+            "remaining": 25
+          },
+          {
+            "id": "equality",
+            "patch": {
+              "requested": 125
+            },
+            "allowed": true,
+            "after": 500,
+            "remaining": 0
+          },
+          {
+            "id": "over",
+            "patch": {
+              "requested": 126
+            },
+            "allowed": false,
+            "after": 501,
+            "over": 1
+          },
+          {
+            "id": "zero-reserved",
+            "patch": {
+              "reserved": 0,
+              "requested": 175
+            },
+            "allowed": true,
+            "after": 500,
+            "remaining": 0
+          },
+          {
+            "id": "zero-limit",
+            "patch": {
+              "limit": 0,
+              "completed": 0,
+              "reserved": 0,
+              "requested": 1
+            },
+            "allowed": false,
+            "after": 1,
+            "over": 1
+          },
+          {
+            "id": "unknown-limit",
+            "patch": {
+              "limit": null
+            },
+            "allowed": null,
+            "after": 475
+          },
+          {
+            "id": "unknown-reserved",
+            "patch": {
+              "reserved": null
+            },
+            "allowed": null,
+            "after": null
+          },
+          {
+            "id": "viewer",
+            "patch": {
+              "role": "viewer"
+            },
+            "allowed": false,
+            "after": 475,
+            "reason": "permission"
+          },
+          {
+            "id": "viewer-and-over",
+            "patch": {
+              "role": "viewer",
+              "requested": 126
+            },
+            "allowed": false,
+            "after": 501,
+            "reason": "permission and capacity"
+          },
+          {
+            "id": "admin-equality",
+            "patch": {
+              "role": "admin",
+              "requested": 125
+            },
+            "allowed": true,
+            "after": 500,
+            "remaining": 0
+          },
+          {
+            "id": "changed-org",
+            "patch": {
+              "organization": "Westbank Research",
+              "requested": 100
+            },
+            "allowed": true,
+            "after": 475,
+            "remaining": 25
+          }
+        ]
+      },
+      "result": "All three pass 11 cases at 2 viewports. Independent anonymized audit reads 66 JSON records, source, and 15 of 66 PNGs; no substantial violation. One nonblocking dual-reason clarity observation in d. No evidence to mandate separate representation."
+    }
+  ],
+  "promoted": {
+    "tool": "--scenario fixture.json: explicit artifact-owned data application before existing inspection, with input hash, bounded async completion, fresh viewport, failure and input-overwrite guards",
+    "guidance": "Conditional contrasting-input checks and authorized independent readback for system/variable-data work; no compulsory model format or raster-first workflow"
+  },
+  "notEstablished": [
+    "absolute architectural ceiling",
+    "general taste improvement",
+    "equal-budget advantage",
+    "human usability or preference calibration",
+    "generation equivalence in Claude Code",
+    "benefit of a proprietary editor format",
+    "rendered multi-candidate search or learned preference evaluator"
+  ],
+  "evidenceHashes": {
+    "PROTOCOL.md": "75bbba06a1a445e6b136e91aae7da2bd7f55e4f09cf23abd9c0685dbafc4710f",
+    "oracle.json": "71fe39634f751de37b88d30d566968fd86c4d26b323861ed3c05e36f32b9c0fb",
+    "transfer-oracle.json": "f59ae95f8b4957244448f7269deab8ad0a4a704eacc7daf329f8323cb59254fb",
+    "visual-review/review.md": "33542c8c5db458466eb2b7dd1e1b37400f0e48b8cf026396915349aed650d538",
+    "transfer-review/review.md": "a221a8a45ae48bc87134d9c746bef572b59eb884b9de7908f124e7a7e6c79234",
+    "observers/w/answers.json": "166f84814b3d44a4553304dea25989371491cf925ae7c9f51f58bca748f231d3",
+    "runs/k/task.txt": "3fa242398ca137d8a69c4601c0138428e7f7cac79667b2894550c50c47fa28ec",
+    "runs/k/brief.txt": "ed632737ce84f20b7038ed1e7eda207811cf0fe2fd3a37d1f421097f8719bee0",
+    "runs/k/output/index.html": "8cf63f0a0d9e8941cff3b63ff23d35a64c2b4d0cac1e409e257174699d8a4de2",
+    "runs/k/output/phone-review.png": "cef21e7fd6a09c78baa7e221845307b436e8ce2cee49c7cb2138dba96beb9832",
+    "runs/k/output/review.png": "0e4d38a1b10c5aa574993f0f01237bd334e24e8c444689d49390222531dec0f7",
+    "runs/k/output/options.png": "a471844c4071c0f38af2e76dc13f7972bb67f0e625cfe7570cc302c4b7e129d1",
+    "runs/k/output/phone-unavailable.png": "eda50f63f3c4b5d94be34b529afc34b573ee74077a032f2f1341eb3e5eaf0bb1",
+    "runs/l/task.txt": "9830442c1e9dd6bcf2d5dbd3be398de0f90835dfc8f4f4e5a122a7b5d931b74b",
+    "runs/l/brief.txt": "ed632737ce84f20b7038ed1e7eda207811cf0fe2fd3a37d1f421097f8719bee0",
+    "runs/l/output/index.html": "4c32a2fab18294b236d6f64bc7ff856688ff37a7cfd39a192dc838bdb77187cd",
+    "runs/l/output/phone-review.png": "f798b6da23054210fdf2b6824b23771a52a10c47435be49493c8a6303eb15906",
+    "runs/l/output/review.png": "eb5f6d59941317416ac01cb864b39dc1f0278a4d32de9f08f6a10ab745a76f1f",
+    "runs/l/output/options.png": "2e28cbba31b891fbaefe9232deaa3725b3a28c9cfde363e1724a5ea772fe40e4",
+    "runs/l/output/phone-unavailable.png": "95bc446262e6a32d30480e2bd5364d15bafc18d572b92639ecee4b8f70d920f4",
+    "runs/p/task.txt": "e99bd645b84791aa0e193253f98dd5b82746fad194f7727e9bc3b7ddbbe15b20",
+    "runs/p/brief.txt": "6ebd47a38e4ec1fd25af58b53a80cbe12fb27aa9560e1498efc4f76e0525fd15",
+    "runs/p/output/index.html": "e1daebb0c896bcdff2f699033c46dbe9b22f44b4b6fe55e381664fd8fed14870",
+    "runs/p/output/poster.png": "1979cc5e109582199947025d417461ad7a3418891e50d3ece378ba0acb9e0a49",
+    "runs/q/task.txt": "123413b4bb17470002bac7f80b3efdf3cccc6476d3272d0bfb38db52caf56104",
+    "runs/q/brief.txt": "6ebd47a38e4ec1fd25af58b53a80cbe12fb27aa9560e1498efc4f76e0525fd15",
+    "runs/q/output/index.html": "a975485859322bfe296fc0f9e9d6a0ff9204da27e88610f15f63c70cca078e83",
+    "runs/q/output/poster.png": "734e3f419e0c6eec0707964835f40cd937639838f91fd1ace47fac489bc47d18",
+    "transfer/d/task.txt": "95e6e22967191392cc01f9e043f9c1c482856d6edb37beb254965a3185d038b7",
+    "transfer/d/brief.txt": "770d2cce19b4746f26c7b39f4f804d92f17e46a1a8e0a0dfa81121a5f3dd715d",
+    "transfer/d/output/index.html": "9c45222cfcec58b1369c571f0a4fcc98c5e2843687e87c50e6adbd05496f2758",
+    "transfer/d/output/desktop.png": "1f3ca27bd4ff8388311f0a1d2deef339850d07f1c620d414a6a2cd79bfbb5adc",
+    "transfer/d/output/phone.png": "5f8606bea20f745ee243f735e14dba58d14aa5251403cea8acc83b806c236597",
+    "transfer/e/task.txt": "e89d73039f1a1588ea9bad96337a4753c380c62683ab296f0593ef45e7968756",
+    "transfer/e/brief.txt": "770d2cce19b4746f26c7b39f4f804d92f17e46a1a8e0a0dfa81121a5f3dd715d",
+    "transfer/e/output/index.html": "2e1338f0e15295827c7580dec5ab5b0b5d5c0ce9ccbab9f2bad473553b57d2d3",
+    "transfer/e/output/desktop.png": "24c0b35a57de1318a7d28f646852139262ec1aa236f9b9b3ade1795422420d51",
+    "transfer/e/output/phone.png": "a8a30599df8a7b7d43f33c076e1ee8fb599cbaadb2815fa04a47bf2884eb9686",
+    "transfer/f/task.txt": "e2e3e9f0cbbc6f410c0ed4542eb2f4cd739325935eeba1e571efba5c0de25dc3",
+    "transfer/f/brief.txt": "770d2cce19b4746f26c7b39f4f804d92f17e46a1a8e0a0dfa81121a5f3dd715d",
+    "transfer/f/output/index.html": "71ccac7bdc949c13927e72874c9d1add1ffbe0e86427fec073e93fae38f4d17d",
+    "transfer/f/output/desktop.png": "f0c13933dc7aff859b5d6dfa0870032725c7d736c35699bf08ed99b4b10e91f7",
+    "transfer/f/output/phone.png": "f2736ca4502da89bd8caf8f148402b475e437182fc4a127fd395b3bff018cba4",
+    "probes/l-facts-only/phone-review.png": "9d879b2f3a991ecf9738202d07e8263799c8e2be8861e213430fba7cb94b1088",
+    "probes/l-facts-only/review.png": "48a8bf21c36f12442da5e8ce61260a62f5c28c048f280a4034b33d0527fc09cb",
+    "probes/l-selected-a/phone-review.png": "5b718bdf86194a541b55db4bb89efe216735ddd40acab033336bdddfa14b229e"
+  }
+}

@@ -7,6 +7,7 @@
 //                               [--at <y|css-selector>] [--click <css-selector>]...
 //                               [--out shot.png] [--wait 1500]
 //                               [--mode auto|desktop|mobile] [--contract file.json]
+//                               [--scenario fixture.json]
 //
 // --width takes one or more comma-separated widths (one PNG each); widths below
 // 600 emulate a phone in auto mode (mobile viewport, touch, height 844 unless --height is
@@ -25,6 +26,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { inspectPage } from './inspect.mjs';
 import { validateContract, waitForExpectations, evaluateExpectations } from './contract.mjs';
+import { validateScenario, applyScenario } from './scenario.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -49,18 +51,23 @@ const fit = bool('--fit');
 const strict = bool('--strict');
 const mode = flag('--mode', 'auto');
 const contractPath = flag('--contract');
+const scenarioPath = flag('--scenario');
 const outFlag = flag('--out');
 const target = args[0];
 const unknown = args.filter(a => a.startsWith('--'));
 if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
 if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict || contractPath) && !inspect || !['auto', 'desktop', 'mobile'].includes(mode)) {
-  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--mode auto|desktop|mobile] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict] [--contract file.json]]');
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--mode auto|desktop|mobile] [--full] [--scenario fixture.json] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict] [--contract file.json]]');
   process.exit(2);
 }
 let contract = null, contractBytes;
 try {
   if (contractPath) { contractBytes = readFileSync(contractPath); contract = validateContract(JSON.parse(contractBytes.toString('utf8'))); }
 } catch (error) { console.error(`invalid contract: ${error.message}`); process.exit(2); }
+let scenario = null, scenarioBytes;
+try {
+  if (scenarioPath) { scenarioBytes = readFileSync(scenarioPath); scenario = validateScenario(JSON.parse(scenarioBytes.toString('utf8'))); }
+} catch (error) { console.error(`invalid scenario: ${error.message}`); process.exit(2); }
 
 const isUrl = /^[a-z][a-z\d+.-]*:\/\//i.test(target);
 const [file, fragment = ''] = isUrl ? [target] : target.split(/(?=#)/, 2);
@@ -94,7 +101,7 @@ function outPath(width, height) {
 // A report named like its contract would otherwise destroy the expectations.
 // Also refuse aliases/hardlinks to either input, before launching the browser.
 if (outFlag) {
-  const inputs = [...(sourceFile ? [sourceFile] : []), ...(contractPath ? [contractPath] : [])];
+  const inputs = [...(sourceFile ? [sourceFile] : []), ...(contractPath ? [contractPath] : []), ...(scenarioPath ? [scenarioPath] : [])];
   const sameFile = (a, b) => {
     if (resolve(a) === resolve(b)) return true;
     if (!existsSync(a) || !existsSync(b)) return false;
@@ -103,7 +110,7 @@ if (outFlag) {
   };
   for (const width of widths) {
     const out = outPath(width, 0);
-    for (const result of [out, ...(inspect ? [out.replace(/\.png$/i, '') + '.json'] : [])]) {
+    for (const result of [out, ...(inspect || scenario ? [out.replace(/\.png$/i, '') + '.json'] : [])]) {
       if (inputs.some(input => sameFile(result, input))) {
         console.error(`output would overwrite an input: ${result}`); process.exit(2);
       }
@@ -252,6 +259,11 @@ async function shoot(width) {
   }
   await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
   await new Promise(ok => setTimeout(ok, wait));
+  const appliedScenario = scenario ? await applyScenario(s, scenario) : null;
+  if (scenario) {
+    await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+    await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
+  }
   if (fragment) await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
   for (const selector of clicks) {
     const clicked = (await s('Runtime.evaluate', { expression: `(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return false; el.click(); return true; })()`, returnByValue: true })).result.value;
@@ -279,13 +291,18 @@ async function shoot(width) {
   const { data } = await s('Page.captureScreenshot', params);
   const out = outPath(width, height);
   writeFileSync(out, Buffer.from(data, 'base64'));
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  let evidence;
+  if (inspect || scenario) {
+    const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
+    evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, viewport: { width, height },
+      screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full, mode, mobile } };
+    if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
+  }
   if (inspect) {
     const report = await inspectPage(s, { fit, width, height });
-    const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
-    const hash = value => createHash('sha256').update(value).digest('hex');
-    Object.assign(report, { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out,
-      screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
-      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full, mode, mobile }, runtime });
+    Object.assign(report, evidence, { runtime });
     if (contract) {
       const ready = await evaluateExpectations(s, contract.ready ?? []);
       const checks = await evaluateExpectations(s, contract.checks ?? []);
@@ -308,6 +325,10 @@ async function shoot(width) {
     for (const f of report.findings.slice(0, 12)) console.log(`    ${f.severity} ${f.code}: ${f.selector ?? 'page'}${f.craftId ? ' [' + f.craftId + ']' : ''}`);
     inspectionFailed ||= report.summary.errors > 0 || report.truncated;
     listeners.splice(listeners.indexOf(collectRuntime), 1);
+  } else if (scenario) {
+    const reportPath = out.replace(/\.png$/i, '') + '.json';
+    writeFileSync(reportPath, JSON.stringify({ ...evidence, kind: 'capture-evidence', inspected: false }, null, 2) + '\n');
+    console.log(`  scenario evidence (not inspection): ${reportPath}`);
   }
   await send('Target.closeTarget', { targetId });
   const layout = metrics.innerWidth === width ? '' : `, laid out ${metrics.innerWidth}px wide`;
