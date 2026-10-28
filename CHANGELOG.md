@@ -1,3 +1,9 @@
+## [12.9.0](https://github.com/maggnus/agentic-plugins/compare/v12.8.0...v12.9.0) (2026-10-28)
+
+### Features
+
+* **craft-design:** verify render expectations and explicit frame modes ([8e92550](https://github.com/maggnus/agentic-plugins/commit/8e925501213090cf46721ad3e8484947816708f5))
+
 ## [12.8.0](https://github.com/maggnus/agentic-plugins/compare/v12.7.0...v12.8.0) (2026-10-28)
 
 ### Features
