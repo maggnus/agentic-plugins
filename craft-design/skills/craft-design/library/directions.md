@@ -1,11 +1,11 @@
 # Direction library
 
-Use when no design system or brand source is active. Infer the best match from
-the brief's domain, audience and tone, then bind the palette and font stacks
-**verbatim** into the artifact's `:root`. Never infer colors or fonts from a
-name alone. Posture cues describe how the direction behaves (border weight,
-radius, accent budget); honour them in layout choices. When the user wants to
-compare directions, offer these by label and bind the one they pick.
+Use when no design system or brand source is active. These are examples, not
+mandatory palettes, fonts or layouts. Compare the open choices against the brief;
+derive the artifact's theme from its own concept and record what you borrowed.
+Never infer colors or fonts from a name alone. Posture cues illustrate a choice,
+not a rule for every artifact. Bind exact values only when the user explicitly
+selects this direction unchanged; otherwise the authored visual contract wins.
 
 ### Editorial — Monocle / FT magazine  `(id: editorial-monocle)`
 
@@ -13,7 +13,7 @@ compare directions, offer these by label and bind the one they pick.
 
 **References:** Monocle, The Financial Times Weekend, NYT Magazine, It's Nice That.
 
-**Palette (drop into `:root`):**
+**Palette example:**
 
 ```css
 :root {
@@ -41,7 +41,7 @@ compare directions, offer these by label and bind the one they pick.
 
 **References:** Linear, Vercel, Notion 2024, Stripe docs.
 
-**Palette (drop into `:root`):**
+**Palette example:**
 
 ```css
 :root {
@@ -70,7 +70,7 @@ compare directions, offer these by label and bind the one they pick.
 
 **References:** Airbnb, Duolingo product surfaces, Miro, Mercury.
 
-**Palette (drop into `:root`):**
+**Palette example:**
 
 ```css
 :root {
@@ -99,7 +99,7 @@ compare directions, offer these by label and bind the one they pick.
 
 **References:** Datadog, GitHub, Cloudflare dashboard, Sentry.
 
-**Palette (drop into `:root`):**
+**Palette example:**
 
 ```css
 :root {
@@ -129,7 +129,7 @@ compare directions, offer these by label and bind the one they pick.
 
 **References:** Are.na, Yale Center for British Art, mschf, Read.cv.
 
-**Palette (drop into `:root`):**
+**Palette example:**
 
 ```css
 :root {

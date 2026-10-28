@@ -45,6 +45,10 @@ are stored next to the artifacts for the agent and copied to the clipboard. `scr
 renders one or more exact viewport widths (phone emulation below 600px) with an installed
 Chrome, Chromium, Edge or Brave, opens states first on request (`--click <selector>`, a `#fragment`)
 and reports horizontal overflow with the offending elements.
+`scripts/inspect.mjs` adds a structured report from that same render: clipping,
+possible occlusion, broken images, control names, contrast review and sampled
+actual fonts. `--fit` checks a no-scroll brief, `--strict` fails on measured errors;
+review findings and explicitly unexamined cases still need visual judgment.
 `scripts/tokens.mjs` keeps the theme honest: `check` finds values outside the theme and tokens
 no element follows (with a browser it changes each token in turn and watches whether any computed
 style moves), `extract` and `sync` share one brand theme between artifacts, and `import` turns

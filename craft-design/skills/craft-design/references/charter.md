@@ -139,6 +139,13 @@ HTML so later edits hold to it:
   first screen; it becomes the theme below;
 - one memorable move that belongs to this subject.
 
+Keep the constraints distinct from the concept: record the few requirements that
+could change the result, their source, scope and how to check them. User and
+product requirements are binding; library aesthetics are conditional examples.
+Resolve conflicts before building, following Instruction priority. A static-frame
+request does not acquire functional flows from a prototype template. Consistency
+within an existing product is a virtue; do not invent novelty for each screen.
+
 The concept starts from the subject: what only this place, product or
 person has (a material, a ritual, an object, a way of speaking) becomes the
 faces, the scale and the focal point. A safe, generic look is a failure as
@@ -153,6 +160,12 @@ Fonts and colors come from
 the concept, never inferred from a business name, and never carried over from
 the previous artifact of another brand. Once stated, the spec is the visual
 contract; do not ask about it again.
+
+Where plausible structures serve different needs, a compact sketch comparison can
+resolve that tradeoff before coding. Record the chosen benefit and cost. Do not
+manufacture alternatives when the brief or existing system settles the choice;
+familiar controls need no novelty. Comparing privately does not require an
+approval turn, several finished pages or additional agents.
 
 **Directions instead of a question about look.** A concrete subject, asset or
 brand is input, not a reason to ask: decide and build. A concrete subject
@@ -169,9 +182,10 @@ no `tokens.mjs check`, no demo marking. The reply gives each direction's reason
 and its main cost, recommends one and ends the turn. This is the one clarifying
 turn of the brief: any question of fact goes into the same reply, never into a
 turn of its own. The chosen direction becomes the concept and the artifact
-follows in the next turn. Skip directions for "just build", "you decide", "no
-questions", a fixed direction, a local revision or a headless run: choose, say
-so in one line, build. After the choice, variations of a detail (three headers,
+follows in the next turn. Skip the approval turn and the directions page for
+"just build", "you decide", "no questions", a fixed direction, a local revision
+or a headless run: choose, say so in one line, build. After the choice,
+variations of a detail (three headers,
 two card treatments) are cheap: offer them when the user hesitates instead of
 asking again.
 
@@ -310,18 +324,23 @@ recheck only the affected area.
    follows at some width, and unused tokens of your own spec (a library system's
    scale and an imported project theme stay whole).
 6. **Render once the build is complete.** For a responsive page run
-   `scripts/shot.mjs <file> --width 1440,390`; fixed-size artifacts use their own
+   `scripts/inspect.mjs <file> --width 1440,390`; fixed-size artifacts use their own
    size, adding `--full` for a page longer than a few screens. Read the overflow
-   line for each width and view the PNGs. Take further shots (`--at <selector>`)
+   line and the structured findings, then view the PNGs. Add `--fit` only when
+   the brief forbids scrolling. Findings marked review need judgment, not blind
+   shrinking or hiding content; a clean report is not a visual-quality verdict.
+   Claim only the checks actually performed. Take further shots (`--at <selector>`)
    only for a specific doubt or to recheck a fix. If the script fails, allow one diagnostic; then deliver on static checks
    and state which ones you ran.
-7. **Look at it as an art director,** on these shots: what draws the eye first, and would the first screen
-   hold as a poster seen across a room; what makes this place memorable; would
-   any line fit a competitor; do scale, density and background change from
-   section to section; does every action help the visitor. A weak answer allows
+7. **Judge the shots by the artifact's job.** For product screens and dashboards:
+   can the user find, compare and act; are related controls consistent? For
+   marketing and posters: is the focal idea specific and legible at the intended
+   viewing distance? For documents: does reading order and hierarchy hold?
+   Check whether type, density and emphasis serve that job; a change of background
+   or a display face is not a requirement. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
 8. **The last shot is of the delivered file.** Any edit after the shots, even
-   one line, is followed by `shot.mjs` at the same widths and a look at the
+   one line, is followed by `inspect.mjs` at the same widths and a look at the
    PNGs before delivery.
 
 ## Refinement phase

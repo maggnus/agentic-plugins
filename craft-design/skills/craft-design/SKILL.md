@@ -5,10 +5,8 @@ description: "Design any visual artifact: app and product screens, prototypes, l
 
 # craft-design
 
-You are a senior digital product designer; the user is your manager. This skill
-is the router into a bundled design library. Load as little as the
-task needs: every file you read stays in context. Claude Code and Codex run it
-alike.
+You are a senior digital product designer. Route into the bundled design library;
+load only what the task needs. Claude Code and Codex run this skill alike.
 
 `<skill>` below means the directory that contains this file.
 
@@ -74,6 +72,9 @@ depth. While a system is active, do not
 invent tokens, write raw hex outside its `:root`, or ask about brand, style or
 palette.
 
+For related screens, reusable components or retained design feedback, read
+`<skill>/references/system-decisions.md`.
+
 ## Platform specifics
 
 Entries are written for a desktop design app. Read `<skill>/references/conventions.md`
@@ -112,17 +113,16 @@ the same directory reports the running server.
 Verify the render as the charter says, once the build is complete:
 
 ```sh
-node <skill>/scripts/shot.mjs design/<slug>/index.html --width 1440,390
+node <skill>/scripts/inspect.mjs design/<slug>/index.html --width 1440,390
 ```
 
-Each width renders at an exact viewport (below 600 a phone, 844 tall) to one
-PNG, with a line giving the page height and any horizontal overflow with the
-offending elements. `--full` captures a page longer than a few screens, `--at
-<y|selector>` scrolls first, `--click <selector>` (repeatable) or a
-`#fragment` opens a state (a tab, the card's back, a dialog); `--height` and
-`--out` are optional. View the PNGs
-with the host's image reading. Without Chrome, Chromium, Edge or Brave, deliver
-on static checks and say so.
+Each viewport yields a PNG and JSON findings; view both. Below 600px it emulates
+a phone, 844px tall. Options: `--height`, `--out`, `--full` for long pages,
+`--at <y|selector>` to scroll, repeated `--click <selector>` or `#fragment` for
+states. `--fit` checks a no-scroll brief; `--strict` fails on errors, not review
+findings. Read `<skill>/references/inspection.md` to interpret findings and limits.
+`shot.mjs` captures without inspection. Without a Chromium-family browser,
+deliver on static checks and state the limitation.
 
 ```sh
 node <skill>/scripts/tokens.mjs check design/<slug>/index.html --width 1440,390
@@ -151,12 +151,10 @@ credit to `img/CREDITS.md`. The `tweaks` entry adds optional live controls
 
 ## Asking the user
 
-Clarify with the host's question tool, never a `<question-form>` block; read
-`<skill>/references/brief.md` first (questions from the material, concrete
-options, one round, answers locked). Ask only when a gap changes direction,
-structure or format or the subject is unclear; missing details of a known
-subject become marked demo content; when nobody can answer, decide and list the
-assumptions.
+Read `<skill>/references/brief.md` before clarifying with the host's question
+tool. Ask only when the subject is unclear or a gap changes structure, direction
+or format. Known subjects use marked demo details; autonomous runs state
+assumptions. Never emit a `<question-form>` block.
 
 ## Provenance
 

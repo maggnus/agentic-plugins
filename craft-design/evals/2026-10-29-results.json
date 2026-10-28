@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-29",
+  "baseline": "a19b4f896a3556391842855536b24823ae81194c / v12.7.0",
+  "provider": "codex",
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "repeatsPerCondition": 1,
+  "judgeCount": 1,
+  "hardTokenBudget": null,
+  "isolation": "Separate workspaces and explicit no-peeking instructions, not OS-enforced read isolation.",
+  "firstCandidate": "Scoped rules, mandatory comparison of 2–3 compositions, render inspection, shared-system guidance.",
+  "firstRound": [
+    {
+      "task": "settings",
+      "preference": "baseline",
+      "margin": "slight"
+    },
+    {
+      "task": "operations",
+      "preference": "baseline",
+      "margin": "slight"
+    },
+    {
+      "task": "poster",
+      "preference": "baseline",
+      "margin": "slight"
+    }
+  ],
+  "releaseCandidate": "Mandatory alternatives removed; comparison optional when it resolves a concrete tradeoff. Inspector defects corrected independently.",
+  "heldOut": {
+    "task": "document",
+    "preference": "release-candidate",
+    "margin": "slight"
+  },
+  "interpretation": "Exploratory evidence; no demonstrated general improvement in visual taste.",
+  "artifacts": [
+    {
+      "run": "p-settings",
+      "task": "settings",
+      "condition": "baseline",
+      "sha256": {
+        "decisions.md": "d24359a01eb9ba38c754d328d7f61894e39e2dd9a3deebde3eef01bf4393a68d",
+        "desktop-light.png": "c4426d5b393af3ed0b1dccb12239310f70885a96b5f419a4289d6f7dd5273a5b",
+        "index.html": "04c7f4a434aca9d934ae0d9c74e85ab3109ccd04044b0c152787539c0d58ccec",
+        "phone-dark.png": "f4959fa6646279ea2c62651de8158a861ca3cbb0901beb2778fc50346e9d5bd4"
+      }
+    },
+    {
+      "run": "p-operations",
+      "task": "operations",
+      "condition": "baseline",
+      "sha256": {
+        "decisions.md": "a0de6bb743d8b623c0067866584135f49e3f2afea0b93484cc88f85f3e813bd9",
+        "index.html": "06a150b98a3ac08ef434c0917dec95ffeae6516bdfddd0b0e4ddf5012728fdb2",
+        "tidal-dispatch.png": "789db53a95474ab630078c5d29db97949a610f503bf3485ae296f19a24d7db0f"
+      }
+    },
+    {
+      "run": "p-poster",
+      "task": "poster",
+      "condition": "baseline",
+      "sha256": {
+        "decisions.md": "901d91ff254e21b7f5d14ecf270030b57d97d11ebe20ed83aa1dee0c319744bb",
+        "index.html": "08e7c110b0e5234a76a97b45661cfc5c9f6ef6f6f3783e1b93f4bdbeeaa7dd0c",
+        "night-signals.png": "0f51ed65877aff58e01f550e25d851ee9308ff3825606441e506994051b27a85"
+      }
+    },
+    {
+      "run": "q-settings",
+      "task": "settings",
+      "condition": "candidate",
+      "sha256": {
+        "decisions.md": "5988d6ebcc1c25d61e531df1b0aed908dc6a6eb8f2ffda6929d35e61c896783d",
+        "desktop.png": "4cf8ac1a1c9e80d37c99460b22885c32b50be6029abd4592ef193e1edda0dc70",
+        "index.html": "44d762273627f7ee1e18de70b0c439b4c22b5af0faf2925b24cafdb936509e71",
+        "phone.png": "0b4d2759f37fc3e21d46161a59d7cdfbad21efdead7c305357350d2171b60f00"
+      }
+    },
+    {
+      "run": "q-operations",
+      "task": "operations",
+      "condition": "candidate",
+      "sha256": {
+        "decisions.md": "df0a122bf14ed32f93f1abaa4eab4d32f63906c76ec49eaa5a451fd76643fdc6",
+        "index.html": "e6f3d389f76130e12af6870fde7960ca4e6a21d5d4101da71b4d3a859816a525",
+        "tidal-dispatch.png": "cc19898a008ddc1f4d72b8c4fb3f1457c821a52d996ec48dbca9be7d9e10c92a"
+      }
+    },
+    {
+      "run": "q-poster",
+      "task": "poster",
+      "condition": "candidate",
+      "sha256": {
+        "decisions.md": "09890033262f5a737a5f620fe6b0f6a926b356227fc6dde3c6d17e49cd889e82",
+        "index.html": "f05cd55df3b4e2e1e69285f649231c6aada417bb112b32938d21a056e1442e0a",
+        "night-signals.png": "ff3f292f9ff6fc675d944ad62dce7401862fdacfecff61d154da1f66ee52e64f"
+      }
+    },
+    {
+      "run": "r-document",
+      "task": "document",
+      "condition": "baseline",
+      "sha256": {
+        "canal-library-2026.png": "8c486f99c4879d495dc04a65e515fe406df02357f165823067586114761808c6",
+        "decisions.md": "f9fe527f0d894f0e4e139f5ee0907231b30cdd8c7832e681fa3ada021070d196",
+        "index.html": "bf11b7edc825daf51e912922ef4fe678d5f158d4fb4867384b2ebf08c57cafbc"
+      }
+    },
+    {
+      "run": "s-document",
+      "task": "document",
+      "condition": "release-candidate",
+      "sha256": {
+        "canal-library-2026.png": "29451850b926326ef1d91384b35a9e4c058d947ce05438d788a1d4f8d38d2b21",
+        "decisions.md": "f0ed5135802cece9dc36c5706eac492d458055827f92ed5ed49204d45b36fcc3",
+        "index.html": "d531ceb939b95c97b25934c16e93f80fe968084296ac9ec5261daacd148fd8cd"
+      }
+    }
+  ]
+}

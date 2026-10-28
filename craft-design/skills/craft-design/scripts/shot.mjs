@@ -17,10 +17,12 @@
 // can be shot. Set CHROME_PATH to choose the browser.
 
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { inspectPage } from './inspect.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -40,12 +42,15 @@ const heightFlag = flag('--height');
 const wait = Number(flag('--wait', 1500));
 const at = flag('--at', '');
 const full = bool('--full');
+const inspect = bool('--inspect');
+const fit = bool('--fit');
+const strict = bool('--strict');
 const outFlag = flag('--out');
 const target = args[0];
 const unknown = args.filter(a => a.startsWith('--'));
 if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
-if (!target || args.length > 1 || widths.some(w => !(w > 0)) || heightFlag !== undefined && !(Number(heightFlag) > 0)) {
-  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png]');
+if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict) && !inspect) {
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict]]');
   process.exit(2);
 }
 
@@ -160,6 +165,7 @@ const SETTLE = `new Promise(ok => requestAnimationFrame(() => requestAnimationFr
 ])).then(() => new Promise(ok => setTimeout(ok, 100)))`;
 
 const MAX_CAPTURE_HEIGHT = 16000;
+let inspectionFailed = false;
 // Resizing the viewport to the page height changes vh layouts and triggers lazy
 // images after measurement. Visit the page at the requested viewport instead,
 // let those images settle, then measure and capture without resizing.
@@ -226,6 +232,19 @@ async function shoot(width) {
   const { data } = await s('Page.captureScreenshot', params);
   const out = outPath(width, height);
   writeFileSync(out, Buffer.from(data, 'base64'));
+  if (inspect) {
+    const report = await inspectPage(s, { fit, width, height });
+    const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
+    const hash = value => createHash('sha256').update(value).digest('hex');
+    Object.assign(report, { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out,
+      screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: isUrl ? null : hash(readFileSync(file)),
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full } });
+    const reportPath = out.replace(/\.png$/i, '') + '.json';
+    writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+    console.log(`  inspection: ${report.summary.errors} error(s), ${report.summary.review} review finding(s)${report.truncated ? '; truncated' : ''}: ${reportPath}`);
+    for (const f of report.findings.slice(0, 12)) console.log(`    ${f.severity} ${f.code}: ${f.selector ?? 'font'}${f.craftId ? ' [' + f.craftId + ']' : ''}`);
+    inspectionFailed ||= report.summary.errors > 0 || report.truncated;
+  }
   await send('Target.closeTarget', { targetId });
   const layout = metrics.innerWidth === width ? '' : `, laid out ${metrics.innerWidth}px wide`;
   const overflow = metrics.scrollWidth > width + 1 || metrics.overflow.length
@@ -243,3 +262,4 @@ try {
 clearTimeout(timer);
 socket.close();
 cleanup();
+if (strict && inspectionFailed) process.exitCode = 1;

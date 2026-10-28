@@ -152,6 +152,7 @@ assert.equal(leaks.length, 0, `upstream names inside the skill directory:\n${lea
 const scripts = join(skill, 'scripts');
 for (const name of readdirSync(scripts)) execFileSync(process.execPath, ['--check', join(scripts, name)]);
 execFileSync(process.execPath, ['--check', join(plugin, 'scripts/sync-library.mjs')]);
+execFileSync(process.execPath, [join(plugin, 'scripts/check-inspection.mjs')], { stdio: 'inherit' });
 
 const work = mkdtempSync(join(tmpdir(), 'craft-design-check-'));
 const root = join(work, 'design');
