@@ -37,3 +37,26 @@ Keep the task and model/effort equal within a pair. Review images blind, separat
 task violations from preference, and preserve unsuccessful outcomes. Test any rule
 derived from examples on a different task; do not show comparison outputs to
 generating agents. Do not turn a small exploratory win into a universal rule.
+
+## Follow-up: task-dependent design decisions
+
+`2026-10-29-decisions.json` records a separate v12.8.0 baseline trial with four
+fresh GPT-6-Astra medium generations. Its candidate replaced universal expressive
+thesis/memorable-move requirements with task-dependent reading/decision guidance.
+The same independent reviewer, blinded to conditions, preferred the baseline
+staffing screen and the candidate festival poster, both by moderate margins.
+The instruction candidate was **not promoted**: this mixed result does not establish
+a general benefit, and the operational result does not support the motivating
+hypothesis. Both conditions needed layout refinement. The exact briefs, frozen
+reference hashes, candidate patch and final artifact hashes are recorded; tools added in this
+release were excluded from the design comparison. The same small-sample and
+procedural-isolation limitations apply. There was no held-out model-generation
+test of these proposed rules after the mixed result.
+
+Separately, `check-contract.mjs` covers readiness deadlines, missing/hidden text,
+visibility overrides, frame content, dimensions, runtime errors and input-file
+protection. Independent review found five defects in display/deadline checks and file protection;
+their reproductions now form regression tests. The explicit desktop mode and content assertions were also
+applied locally to saved native component artifacts with their original runtime.
+This verifies bounded rendering behavior, not the published editor DOM, external
+design-system updates, interaction-state preservation or a general aesthetic gain.

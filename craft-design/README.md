@@ -49,6 +49,13 @@ and reports horizontal overflow with the offending elements.
 possible occlusion, broken images, control names, contrast review and sampled
 actual fonts. `--fit` checks a no-scroll brief, `--strict` fails on measured errors;
 review findings and explicitly unexamined cases still need visual judgment.
+`--contract expectations.json` adds brief-derived readiness, element-count, text
+and size checks, including selected same-origin iframe content. Exceptions and
+console errors are recorded; `noRuntimeErrors` in the contract makes them fail
+strict inspection. `--mode desktop` preserves the exact CSS width of a narrow
+fixed artboard without mobile scaling; the default `auto` behavior is unchanged.
+See [render inspection](skills/craft-design/references/inspection.md) for the schema,
+limits and the difference between a technically valid render and a good design.
 `scripts/tokens.mjs` keeps the theme honest: `check` finds values outside the theme and tokens
 no element follows (with a browser it changes each token in turn and watches whether any computed
 style moves), `extract` and `sync` share one brand theme between artifacts, and `import` turns

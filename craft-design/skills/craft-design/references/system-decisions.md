@@ -19,6 +19,15 @@ real sizes. After changing a shared component, check its affected frames and
 themes. A shared palette alone does not prove component consistency. Do not
 add machinery or a separate file for a single simple screen.
 
+For a shared-component change, connect its source to the affected frame ids in
+that existing list. Record the starting revision and the properties that must
+change or remain invariant, including instance overrides. Change the shared source
+once, then check every affected instance in the requested themes/states against
+those expectations. Similar screenshots alone do not prove shared implementation;
+a source diff alone does not prove propagation. `inspection.md` describes explicit
+content/size checks for rendered frames; use the project's own tests for properties
+and states they do not cover. Report which dependencies or states remain unchecked.
+
 ## Learn from confirmed changes
 
 Existing preview comments identify elements; resolving a comment fixes that

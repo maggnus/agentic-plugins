@@ -6,9 +6,10 @@
 //   node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full]
 //                               [--at <y|css-selector>] [--click <css-selector>]...
 //                               [--out shot.png] [--wait 1500]
+//                               [--mode auto|desktop|mobile] [--contract file.json]
 //
 // --width takes one or more comma-separated widths (one PNG each); widths below
-// 600 emulate a phone (mobile viewport, touch, height 844 unless --height is
+// 600 emulate a phone in auto mode (mobile viewport, touch, height 844 unless --height is
 // given). --full loads lazy images and captures up to 16000px without changing
 // the viewport; --at scrolls to a CSS offset or to the
 // first element matching a selector. --click (repeatable) clicks the first
@@ -17,12 +18,13 @@
 // can be shot. Set CHROME_PATH to choose the browser.
 
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { inspectPage } from './inspect.mjs';
+import { validateContract, waitForExpectations, evaluateExpectations } from './contract.mjs';
 
 const args = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -45,18 +47,27 @@ const full = bool('--full');
 const inspect = bool('--inspect');
 const fit = bool('--fit');
 const strict = bool('--strict');
+const mode = flag('--mode', 'auto');
+const contractPath = flag('--contract');
 const outFlag = flag('--out');
 const target = args[0];
 const unknown = args.filter(a => a.startsWith('--'));
 if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
-if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict) && !inspect) {
-  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict]]');
+if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict || contractPath) && !inspect || !['auto', 'desktop', 'mobile'].includes(mode)) {
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--mode auto|desktop|mobile] [--full] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict] [--contract file.json]]');
   process.exit(2);
 }
+let contract = null, contractBytes;
+try {
+  if (contractPath) { contractBytes = readFileSync(contractPath); contract = validateContract(JSON.parse(contractBytes.toString('utf8'))); }
+} catch (error) { console.error(`invalid contract: ${error.message}`); process.exit(2); }
 
 const isUrl = /^[a-z][a-z\d+.-]*:\/\//i.test(target);
 const [file, fragment = ''] = isUrl ? [target] : target.split(/(?=#)/, 2);
-if (!isUrl && !existsSync(file)) { console.error(`not found: ${file}`); process.exit(2); }
+let sourceFile;
+try { sourceFile = !isUrl ? resolve(file) : new URL(target).protocol === 'file:' ? fileURLToPath(target) : null; }
+catch (error) { console.error(`invalid source: ${error.message}`); process.exit(2); }
+if (sourceFile && !existsSync(sourceFile)) { console.error(`not found: ${sourceFile}`); process.exit(2); }
 // The preview's /view/ page is a shell around an iframe; shoot the artifact itself.
 const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(file)).href + fragment;
 
@@ -71,10 +82,6 @@ function findBrowser() {
   return null;
 }
 
-const browser = findBrowser();
-if (!browser) { console.error('no Chrome, Chromium, Edge or Brave found; set CHROME_PATH or review statically'); process.exit(3); }
-if (typeof WebSocket !== 'function') { console.error('Node 22 or newer is required (global WebSocket)'); process.exit(3); }
-
 const shotDir = join(tmpdir(), 'craft-design-shots');
 const stem = isUrl ? new URL(target).pathname.split('/').filter(Boolean).slice(-2).join('-').replace(/\.[^.]+$/, '') || 'page'
   : resolve(file).split(/[\\/]/).slice(-2).join('-').replace(/\.[^.]+$/, '');
@@ -84,6 +91,29 @@ function outPath(width, height) {
   const where = (clicks.length || fragment ? '-state' : '') + (full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '');
   return join(shotDir, `${stem}-${width}x${height}${where}-${Date.now()}.png`);
 }
+// A report named like its contract would otherwise destroy the expectations.
+// Also refuse aliases/hardlinks to either input, before launching the browser.
+if (outFlag) {
+  const inputs = [...(sourceFile ? [sourceFile] : []), ...(contractPath ? [contractPath] : [])];
+  const sameFile = (a, b) => {
+    if (resolve(a) === resolve(b)) return true;
+    if (!existsSync(a) || !existsSync(b)) return false;
+    const x = statSync(a), y = statSync(b);
+    return x.dev === y.dev && x.ino === y.ino;
+  };
+  for (const width of widths) {
+    const out = outPath(width, 0);
+    for (const result of [out, ...(inspect ? [out.replace(/\.png$/i, '') + '.json'] : [])]) {
+      if (inputs.some(input => sameFile(result, input))) {
+        console.error(`output would overwrite an input: ${result}`); process.exit(2);
+      }
+    }
+  }
+}
+
+const browser = findBrowser();
+if (!browser) { console.error('no Chrome, Chromium, Edge or Brave found; set CHROME_PATH or review statically'); process.exit(3); }
+if (typeof WebSocket !== 'function') { console.error('Node 22 or newer is required (global WebSocket)'); process.exit(3); }
 
 // Measured inside the page against the requested width: a phone viewport grows
 // to fit wide content, so the layout width alone hides overflow.
@@ -186,12 +216,28 @@ const PREPARE_FULL = `(async () => {
 })()`;
 
 async function shoot(width) {
-  const mobile = width < 600;
+  const mobile = mode === 'mobile' || mode === 'auto' && width < 600;
   const height = Number(heightFlag ?? (mobile ? 844 : 900));
   const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
   const s = (method, params) => send(method, params, sessionId);
   const metricsFor = h => ({ width, height: h, deviceScaleFactor: 1, mobile, screenWidth: width, screenHeight: height });
+  const runtime = { errors: [], truncated: false };
+  const collectRuntime = msg => {
+    if (msg.sessionId !== sessionId) return;
+    let entry;
+    if (msg.method === 'Runtime.exceptionThrown') {
+      const e = msg.params.exceptionDetails;
+      entry = { kind: 'exception', message: e.exception?.description ?? e.text, url: e.url ?? null, line: e.lineNumber ?? null };
+    } else if (msg.method === 'Runtime.consoleAPICalled' && ['error', 'assert'].includes(msg.params.type)) {
+      entry = { kind: 'console', message: msg.params.args.map(a => a.value ?? a.description ?? '').join(' ') };
+    }
+    if (entry) {
+      entry.message = String(entry.message).slice(0, 2000);
+      if (runtime.errors.length < 100) runtime.errors.push(entry); else runtime.truncated = true;
+    }
+  };
+  if (inspect) { listeners.push(collectRuntime); await s('Runtime.enable'); }
   await s('Page.enable');
   await s('Emulation.setDeviceMetricsOverride', metricsFor(height));
   if (mobile) await s('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
@@ -212,6 +258,7 @@ async function shoot(width) {
     if (!clicked) throw new Error(`no element matches ${selector}`);
     await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
   }
+  const readiness = contract ? await waitForExpectations(s, contract) : null;
   if (full) {
     const prepared = await s('Runtime.evaluate', { expression: PREPARE_FULL, awaitPromise: true, returnByValue: true });
     if (prepared.exceptionDetails) throw new Error('could not prepare the full page');
@@ -237,13 +284,30 @@ async function shoot(width) {
     const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
     const hash = value => createHash('sha256').update(value).digest('hex');
     Object.assign(report, { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out,
-      screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: isUrl ? null : hash(readFileSync(file)),
-      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full } });
+      screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full, mode, mobile }, runtime });
+    if (contract) {
+      const ready = await evaluateExpectations(s, contract.ready ?? []);
+      const checks = await evaluateExpectations(s, contract.checks ?? []);
+      report.contract = { path: resolve(contractPath), sha256: hash(contractBytes), readiness, ready, checks };
+      if (readiness.timedOut) report.findings.push({ code: 'readiness-timeout', severity: 'error', selector: null,
+        message: 'Required ready state did not appear before the contract timeout.', evidence: readiness });
+      for (const result of [...ready, ...checks].filter(r => !r.pass)) report.findings.push({ code: 'content-contract', severity: 'error',
+        selector: result.check.selector, message: 'Rendered content does not meet an explicit expectation.', evidence: result });
+    }
+    for (const error of runtime.errors) report.findings.push({ code: 'runtime-error', severity: contract?.noRuntimeErrors ? 'error' : 'review',
+      selector: null, message: 'The browser reported an exception or console error.', evidence: error });
+    if (runtime.truncated) report.findings.push({ code: 'runtime-truncated', severity: contract?.noRuntimeErrors ? 'error' : 'review',
+      selector: null, message: 'Runtime errors exceeded the 100-entry capture limit.' });
+    report.summary = { errors: report.findings.filter(f => f.severity === 'error').length,
+      review: report.findings.filter(f => f.severity === 'review').length };
+    report.limitations.push('Runtime coverage: current page and same-process frames; caught errors, worker/OOPIF failures and private framework error channels are not exhaustively captured.');
     const reportPath = out.replace(/\.png$/i, '') + '.json';
     writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
     console.log(`  inspection: ${report.summary.errors} error(s), ${report.summary.review} review finding(s)${report.truncated ? '; truncated' : ''}: ${reportPath}`);
-    for (const f of report.findings.slice(0, 12)) console.log(`    ${f.severity} ${f.code}: ${f.selector ?? 'font'}${f.craftId ? ' [' + f.craftId + ']' : ''}`);
+    for (const f of report.findings.slice(0, 12)) console.log(`    ${f.severity} ${f.code}: ${f.selector ?? 'page'}${f.craftId ? ' [' + f.craftId + ']' : ''}`);
     inspectionFailed ||= report.summary.errors > 0 || report.truncated;
+    listeners.splice(listeners.indexOf(collectRuntime), 1);
   }
   await send('Target.closeTarget', { targetId });
   const layout = metrics.innerWidth === width ? '' : `, laid out ${metrics.innerWidth}px wide`;

@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-29",
+  "baseline": "66f808c4115420c206c22b0836ae180bb86e598d / v12.8.0",
+  "model": "codex/gpt-6-astra",
+  "effort": "medium",
+  "repeatsPerCondition": 1,
+  "judgeCount": 1,
+  "isolation": "Separate workspaces, no-peeking instructions; not OS-enforced.",
+  "hardTokenOrTimeBudget": null,
+  "candidate": "Governing task/reading decisions and conditional expressive novelty in place of universal distinctive-thesis/memorable-move requirements. No mandatory composition alternatives.",
+  "candidateShipped": false,
+  "reason": "Mixed preferences: baseline preferred for the operational screen, candidate preferred for the poster. No demonstrated general or task-specific causal benefit.",
+  "pairs": [
+    {
+      "task": "planning",
+      "baseline": "m1",
+      "candidate": "n1",
+      "preferred": "baseline",
+      "margin": "moderate",
+      "reviewSha256": "13677ef2e48c1ab6957d48844a3f15364208903700d80c0bac1c950e03a8a312"
+    },
+    {
+      "task": "festival",
+      "baseline": "r1",
+      "candidate": "s1",
+      "preferred": "candidate",
+      "margin": "moderate",
+      "reviewSha256": "c1b2d07737f53ab1e1316580f22ace985d64b45c419725e7bcfea9d8e8ef048b"
+    }
+  ],
+  "scope": "Frozen instruction-only comparison; new inspector changes were excluded from generation conditions.",
+  "briefs": {
+    "planning": "Create one finished static English screen for Beacon, a municipal library staffing planner. At 09:10 a coordinator must decide how to cover the afternoon desks. Deliver a self-contained index.html and a PNG at exactly 1440 × 900 CSS pixels, no scrolling. Do not implement interactions or extra screens.\nShow all six branches and these exact facts for 13:00–17:00: North needs 3 staff, assigned 2, certified lead present; Canal needs 2, assigned 2, lead present; Market needs 3, assigned 3, lead absent; Hill needs 2, assigned 1, lead absent; Park needs 2, assigned 2, lead present; East needs 2, assigned 2, lead present. A staffed branch still requires a certified lead. A lead can fill a staff place. Staff can cover only one branch during this interval.\nShow these available people: Ana — certified lead, available 13:00–17:00, can reach Hill in 15 min or Market in 25 min; Ben — not a lead, available 13:00–17:00, can reach North in 20 min; Chi — certified lead, only available 15:00–17:00, can reach Market in 10 min. The selected branch is Hill. Give the selected branch its relevant details and a clear proposed next action, while preserving the coordinator's view of all shortages and unresolved lead coverage. Show last update 09:08 and the date 29 October 2026. Demonstration data must be identified discreetly.\nChoose the visual direction and layout. Prioritize a clear, credible work surface that helps the coordinator make a sound assignment. Do not add fake forecasts, charts, invented readiness scores or data beyond what is needed to present the supplied facts. Include a short decisions.md with decisions and checks actually performed.\n",
+    "festival": "Create one finished typographic poster for a fictional festival called SHIFT / CHANGE, celebrating repair, reuse and the visible history of objects. Deliver a self-contained index.html and one PNG at exactly 900 × 1200 pixels. Static, no scrolling, no application controls. UI/copy in English.\nExact details: Saturday 28 November 2026; 11:00–19:00; Foundry Rooms, 8 Mill Lane. Programme: 11:30 Repair as a Practice — talk by Mara Lin; 14:00 Second Life Objects — exhibition walkthrough; 16:30 The Visible Seam — live textile repair; 18:00 Objects After Dark — sound performance. Entry €12; under 16 free. Bring one small broken object for the repair table, open 12:00–16:00; repairs are not guaranteed. Include all practical details and identify this as a fictional event discreetly.\nThe audience is curious adults who enjoy design and making. The poster should feel distinctive and well composed, without mimicking a dashboard. Choose a visual idea based on repair, joining or change. Use type, CSS or simple SVG geometry; no photographs or generated images. Avoid invented sponsors, attendance figures or extra events. Include a short decisions.md with decisions and checks actually performed.\n"
+  },
+  "artifacts": [
+    {
+      "run": "m1",
+      "condition": "baseline",
+      "sha256": {
+        "index.html": "748127d0cff97c6c2e07b7b4f96fc28718a1ed45d9217c024be67d760f588a56",
+        "beacon.png": "8e4999e45dfca4e85e645ea59d1934b91ae8a1b9b2022ab74460b41e4c1a80d4",
+        "decisions.md": "3b93e388829f1361dc617b34d0e2b546efd7157d9480b7804ad800fdb904e178"
+      }
+    },
+    {
+      "run": "n1",
+      "condition": "candidate",
+      "sha256": {
+        "index.html": "bab4611bd3c3481efcef66591a776372694f78362608407046d4ed5878408fb4",
+        "beacon.png": "0f20bad7af173afdabeae651a97952a7ab91f7ff5648f2b7d515698ed47ac6a2",
+        "decisions.md": "d26937de534f1f3a922bc487b821b4246769f248ee945bba7b7bdb41dac89170"
+      }
+    },
+    {
+      "run": "r1",
+      "condition": "baseline",
+      "sha256": {
+        "index.html": "19a67fbbd4e853b360c7acb44f8f9838237246765e3ff2125d7b97f85942801c",
+        "poster.png": "4d3b20ad2bb0bcf71a9b3a7699a10e80a43b7ed6e61095d71248412d56741e1f",
+        "decisions.md": "13391899863469900041db993e280bda0808316557653ab27a56a55da898393c"
+      }
+    },
+    {
+      "run": "s1",
+      "condition": "candidate",
+      "sha256": {
+        "index.html": "4592d66feeac942878e7baab3c8db0c021817b61eddf6b5b0175c070116c9661",
+        "poster.png": "46e582a981f687c4b400d4d18ecbd303ff65c521fcaec702df8fba813c20f345",
+        "decisions.md": "c64ea76db30afb2eef2003e93f388648a1daefc227ea747bc4a9323bccfd43e7"
+      }
+    }
+  ],
+  "skillHashes": {
+    "baseline": {
+      "charter.md": "2053f88ccfb721da0dbf1d77dfd5470f14add363e5ac28651f65a940b442dcb5",
+      "charter-craft.md": "31c0132daa2c8115a5f8d7ce6444eaca901b7258d83903aeaa1434a1f0f8d6b0"
+    },
+    "candidate": {
+      "charter.md": "c243bc7d4da343cc83e9c6fb454b0fa4231f9d013feb4acfe0b15daccb5bad4e",
+      "charter-craft.md": "10eacaad583fd3d4fc7c3bb2b9c35af7784cb09859e2db30a3c5bfa439200e31"
+    }
+  },
+  "candidateDiff": "--- a/references/charter.md\n+++ b/references/charter.md\n@@ -130,14 +130,19 @@\n   laptop seats: count, sockets, Wi-Fi, a way to reserve; a dashboard's\n   question: the figure and the control that answers it); a promise left as a\n   label is a gap in the spec, not a style;\n-- the thesis: one specific line the artifact stands on, which no competitor\n-  could sign; a slogan that fits any café is rewritten before building;\n+- the governing decision: what the reader must notice, compare, understand or\n+  choose, and which supplied facts make that possible. In a persuasive or\n+  expressive artifact, this can be a distinctive thesis grounded in the subject;\n+  in a working interface or explanatory document, it can be the task or\n+  relationship the layout must make clear. It need not become a slogan on screen;\n - (directions, when the look is open: see below; the chosen one feeds the\n   concept)\n - the concept: display and body faces, palette with one accent, type and\n   spacing scale, density, the rhythm of sections and the focal point of the\n   first screen; it becomes the theme below;\n-- one memorable move that belongs to this subject.\n+- where recognition or expression serves the brief, one memorable move that\n+  belongs to the subject; otherwise let hierarchy, legibility and precision carry\n+  the identity. An ordinary control does not need an invented signature.\n \n Keep the constraints distinct from the concept: record the few requirements that\n could change the result, their source, scope and how to check them. User and\n@@ -146,10 +151,14 @@\n request does not acquire functional flows from a prototype template. Consistency\n within an existing product is a virtue; do not invent novelty for each screen.\n \n-The concept starts from the subject: what only this place, product or\n-person has (a material, a ritual, an object, a way of speaking) becomes the\n-faces, the scale and the focal point. A safe, generic look is a failure as\n-real as clutter; restraint belongs to the details, not to the idea. Library\n+The concept starts from the subject and the reader's task. Choose grouping and\n+visual emphasis from meaningful relationships in the content: comparison needs\n+alignment, sequence needs order, a decision needs its evidence nearby. A brief's\n+list of fields is not necessarily a list of equal cards. Do not give a familiar\n+template's largest block to information that matters least in this task.\n+For expressive work, a material, ritual, object or way of speaking can determine\n+the faces, scale and focal point. For routine work, familiar patterns and quiet\n+precision can be the right concept. Library\n systems (`grep '^system' library/catalog.tsv`) and directions are references,\n not a ceiling: adopt a system whole only when the user names it or the\n subject belongs to that brand's family. A generated system (its catalog\n@@ -316,6 +325,13 @@\n    specificity, restraint, the Quality bar (part 2); overlaps, clipping, outline-only charts, duplicate\n    primary CTAs; hover, focus and active states one by one with paired colors and\n    no loss of contrast.\n+   Trace the main reading or decision path using the rendered content: can the\n+   reader find the relevant evidence and distinguish what needs attention?\n+   If a choice feels weak, identify a visible cause (competing emphasis, detached\n+   evidence, indistinguishable states, inappropriate density) before changing\n+   styling. Fix that cause at its actual scope; do not translate a diagnosis into\n+   a universal ban on a colour, font, shadow or component. A technical pass is\n+   evidence about rendering, not evidence that this path works.\n 4. **Imagery and provenance:** correct real images for named referents; every\n    photo a local file in `img/`, no hotlinks; intrinsic ratios preserved; credits\n    visible where the license requires them.\n--- a/references/charter-craft.md\n+++ b/references/charter-craft.md\n@@ -45,9 +45,10 @@\n   state, unavailable options look and behave disabled, derived details update\n   (open now, totals, the chosen slot summarized). Plain JS state in one script;\n   no dead buttons, no `href=\"#\"` primary actions.\n-- **Typographic voice.** A display face with character for this subject, set at\n-  a scale that decides the page, with a body face that stays quiet; size\n-  contrast carries the hierarchy, not boxes and shadows. On a landing or\n+- **Typographic voice.** Choose expression and contrast for the reading task.\n+  In expressive work, a display face can carry the subject's character while\n+  the body stays quiet. In routine or dense work, a familiar family, clear\n+  levels and aligned data can carry the identity. On a landing or\n   marketing page the first screen is a poster: its focal element is the name\n   or one short line (a few words, not a sentence of facts) at poster scale,\n   about 8× the body size or more at 1440, or the subject's object drawn as\n@@ -66,7 +67,9 @@\n   when it has few columns), side-by-side actions go full width (a pair of\n   compact actions such as Cancel / Save may share one row); the mobile header\n   stays one compact row.\n-- **One memorable move** that belongs to this subject, not a repeated trick.\n+- **Purposeful expression.** When the brief needs recognition or expression,\n+  make a memorable move that belongs to the subject. A familiar working screen\n+  can instead succeed through precise hierarchy and consistent controls.\n \n ### Color and typography\n \n@@ -84,7 +87,8 @@\n   an authorized source such as Google Fonts, with the weights used, the script's\n   glyphs (Cyrillic for Russian) and a fallback stack. In the shots, confirm the\n   display face rendered.\n-- One decisive flourish per design; three is noise.\n+- A flourish must earn its space through the brief; do not add one just to meet\n+  a novelty quota. Keep competing expressive moves from weakening the focal point.\n \n ### Text and language\n \n"
+}
