@@ -1,3 +1,9 @@
+## [12.10.0](https://github.com/maggnus/agentic-plugins/compare/v12.9.0...v12.10.0) (2026-10-28)
+
+### Features
+
+* **craft-design:** apply explicit scenarios before rendered checks ([ec41729](https://github.com/maggnus/agentic-plugins/commit/ec417299af1a084c0a6a713db1878777fdf6bd29))
+
 ## [12.9.0](https://github.com/maggnus/agentic-plugins/compare/v12.8.0...v12.9.0) (2026-10-28)
 
 ### Features

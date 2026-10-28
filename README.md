@@ -17,14 +17,14 @@ from it. See [brief/README.md](brief/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install brief@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add brief@maggnus
 ```
 
@@ -38,14 +38,14 @@ settings. See [paseo-cto/README.md](paseo-cto/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install paseo-cto@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add paseo-cto@maggnus
 ```
 
@@ -59,14 +59,14 @@ returns. See [team/README.md](team/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install team@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add team@maggnus
 ```
 
@@ -79,14 +79,14 @@ translating them literally, preserving technical terms and facts. See
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install russian-speech@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add russian-speech@maggnus
 ```
 
@@ -100,14 +100,14 @@ references and skill metadata. See [rad-ai/README.md](rad-ai/README.md).
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install rad-ai@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add rad-ai@maggnus
 ```
 
@@ -119,9 +119,9 @@ repository's own commands; the plugin bundles no local bridge or process manager
 Optional per project; supports Codex and Claude Code. See [open-design/README.md](open-design/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install open-design@maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add open-design@maggnus
 ```
 
@@ -133,9 +133,9 @@ and craft rules, loaded on demand from one router skill, plus a local live previ
 comments and headless screenshots. Supports Codex and Claude Code. See [craft-design/README.md](craft-design/README.md).
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v12.9.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v12.10.0"
 claude plugin install craft-design@maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref v12.9.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v12.10.0
 codex plugin add craft-design@maggnus
 ```
 
