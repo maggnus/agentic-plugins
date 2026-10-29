@@ -1,3 +1,9 @@
+## [13.0.2](https://github.com/maggnus/agentic-plugins/compare/v13.0.1...v13.0.2) (2026-10-29)
+
+### Bug Fixes
+
+* **craft-design:** bind guide evidence across shell workdirs ([df510c8](https://github.com/maggnus/agentic-plugins/commit/df510c8e34f00fbc4d8960b0829d9c1cd586d41c))
+
 ## [13.0.1](https://github.com/maggnus/agentic-plugins/compare/v13.0.0...v13.0.1) (2026-10-29)
 
 ### Bug Fixes
