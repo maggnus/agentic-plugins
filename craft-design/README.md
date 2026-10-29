@@ -10,9 +10,9 @@ watches it in a live preview. No daemon, desktop app, MCP server or account is n
 Install only the published immutable release, never this local directory.
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v13.0.2"
+claude plugin marketplace add "maggnus/agentic-plugins@v13.0.3"
 claude plugin install craft-design@maggnus
-codex plugin marketplace add maggnus/agentic-plugins --ref v13.0.2
+codex plugin marketplace add maggnus/agentic-plugins --ref v13.0.3
 codex plugin add craft-design@maggnus
 ```
 

@@ -1,3 +1,9 @@
+## [13.0.3](https://github.com/maggnus/agentic-plugins/compare/v13.0.2...v13.0.3) (2026-10-29)
+
+### Bug Fixes
+
+* **craft-design:** detect clipped control boxes ([3ef9495](https://github.com/maggnus/agentic-plugins/commit/3ef9495cb5c8e13b70cf89cfbe6d927fad6cd712))
+
 ## [13.0.2](https://github.com/maggnus/agentic-plugins/compare/v13.0.1...v13.0.2) (2026-10-29)
 
 ### Bug Fixes
