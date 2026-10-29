@@ -12,10 +12,10 @@
 // values are errors (exit 2, nothing written), never silent.
 
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const START = /^\/\*\s*tokens:start\s*\*\/$/;
@@ -185,6 +185,45 @@ function tokenExpression(value) {
   return !rest.replace(/\b(?:inherit|initial|unset|revert|revert-layer|none|normal|transparent|currentColor)\b|\b0(?:\.0+)?(?:px|rem|em|%)?\b|[\s,/]/gi, '').trim();
 }
 
+let libraryScales;
+function preservedScale(decls, theme) {
+  if (!theme) return null;
+  // Only a complete, unchanged bundled :root scale earns this exception.
+  // A marker or a claimed system name is not evidence of provenance.
+  const normalize = value => uncomment(value).trim();
+  const root = ds => new Map(ds.filter(d => d.selector === ':root' && d.prop.startsWith('--')).map(d => [d.prop, normalize(d.value)]));
+  if (!libraryScales) {
+    const directory = join(dirname(fileURLToPath(import.meta.url)), '../library/design-systems');
+    libraryScales = readdirSync(directory, { withFileTypes: true }).filter(d => d.isDirectory()).flatMap(d => {
+      const file = join(directory, d.name, 'tokens.css');
+      if (!existsSync(file)) return [];
+      const css = readFileSync(file, 'utf8'), values = root(declarations(css, 0));
+      return values.size ? [{system:d.name, sourceSha256:createHash('sha256').update(css).digest('hex'), values}] : [];
+    });
+  }
+  const inside = root(decls.filter(d => d.start >= theme.start && d.start < theme.end));
+  const matches = libraryScales.filter(scale => [...scale.values].every(([name,value]) => inside.get(name) === value));
+  if (!matches.length) return null;
+  // Report matching definitions, not a guessed origin: several library systems
+  // intentionally share a scale despite differing comments and reference files.
+  const values = matches.sort((a,b)=>b.values.size-a.values.size)[0].values;
+  return { values, matchingSystems:matches.filter(scale=>JSON.stringify([...scale.values].sort())===JSON.stringify([...values].sort())).map(scale=>scale.system),
+    tokenMapSha256:createHash('sha256').update(JSON.stringify([...values].sort())).digest('hex') };
+}
+
+function pureReferences(value) {
+  // A var() anywhere does not make the other shorthand slots or arithmetic
+  // constants token-bound. Be conservative when examining coincident values.
+  let rest=value, from;
+  while((from=rest.indexOf('var('))>=0){
+    let end=from+4,depth=1;
+    for(;end<rest.length&&depth;end++){if(rest[end]==='(')depth++;else if(rest[end]===')')depth--;}
+    if(depth)return false;
+    rest=rest.slice(0,from)+rest.slice(end);
+  }
+  return !rest.replace(/\b(?:inherit|initial|unset|revert|revert-layer|none|normal|transparent|currentColor)\b|\b0(?:\.0+)?(?:px|rem|em|%)?\b|[\s,/]/gi,'').trim();
+}
+
 export function inspectHtml(html) {
   const parts = htmlParts(html), warnings = [];
   const warn = (code, message, start = 0, selector = '') => warnings.push({ code, message, line: lineAt(html, start), selector });
@@ -243,8 +282,11 @@ export function inspectHtml(html) {
     state.set(name, 'done');
   };
   for (const name of definitions.keys()) visit(name, []);
-  // A full system scale legitimately keeps steps a page does not use: one line.
-  const unused = [...definitions].filter(([name]) => !used.has(name));
+  const scale = preservedScale(decls, theme), exceptions = [];
+  const preserved = [...definitions].filter(([name,d]) => !used.has(name) && scale?.values.has(name) && d.start >= theme.start && d.start < theme.end);
+  if (preserved.length) exceptions.push({code:'preserved-system-scale', matchingSystems:scale.matchingSystems, tokenMapSha256:scale.tokenMapSha256, tokens:preserved.map(([name])=>name)});
+  const preservedNames = new Set(preserved.map(([name])=>name));
+  const unused = [...definitions].filter(([name]) => !used.has(name) && !preservedNames.has(name));
   if (unused.length) warn('unused-token', `${unused.length} token(s) declared but never referenced by var(): ${unused.slice(0, 40).map(([name]) => name).join(', ')}${unused.length > 40 ? `, … ${unused.length - 40} more` : ''}`, unused[0][1].start, unused[0][1].selector);
   if (svgCount) warn('svg-colors', `${svgCount} literal color occurrence(s) in SVG illustrations; review as one group`, parts.svgColors[0]?.start ?? 0, 'svg');
   for (const link of parts.links) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
@@ -252,11 +294,27 @@ export function inspectHtml(html) {
   if (theme && !registry.length) warn('theme-registry', 'no :root token registry between the theme markers', theme.start);
   const tokens = [...new Set(registry.map(d => d.prop))]
     .filter(name => used.has(name) && /^(?:--accent|--fg|--bg|--font-display|--text-[\w-]+|--space-[\w-]+|--radius-[\w-]+)$/.test(name));
-  return { warnings, tokens };
+  // A component variable with a copied literal is not a second semantic token.
+  // Only theme definitions and aliases whose every definition derives from them
+  // earn the same-value exemption. Literal shadowing outside the theme revokes it.
+  const registryNames = new Set(registry.map(d=>d.prop)), semantic = new Set();
+  for (let previous=-1; previous!==semantic.size;) {
+    previous=semantic.size;
+    for (const name of definitions.keys()) {
+      const ds=decls.filter(d=>d.prop===name);
+      if (ds.every(d=> {
+        const dependencies=refs(d.value);
+        return dependencies.length ? (registryNames.has(name) && d.start>=theme.start && d.start<theme.end || pureReferences(d.value)) && dependencies.every(ref=>semantic.has(ref))
+          : registryNames.has(name) && d.start>=theme.start && d.start<theme.end;
+      })) semantic.add(name);
+    }
+  }
+  return { warnings, tokens, exceptions, semanticTokens:[...semantic] };
 }
 
 // Serialized into the page, so keep this function self-contained.
-async function mutateTheme(tokens) {
+async function mutateTheme(tokens, semanticTokens, pureReferences) {
+  const semantic = new Set(semanticTokens);
   const root = document.documentElement, original = root.getAttribute('style');
   const freeze = document.createElement('style');
   freeze.textContent = '*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}';
@@ -269,11 +327,15 @@ async function mutateTheme(tokens) {
   // remains a consumer even when overridden: that is precisely a broken binding
   // mutation must detect. Unknown rules/selectors keep the warning, never waive it.
   const uses = value => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]);
-  const aliases = new Map(), consumers = [];
+  const aliases = new Map(), consumers = [], authored = new WeakMap();
   let applicabilityKnown = true;
   const applicabilityLimits = new Set();
   const visibleConsumer = el => el.getClientRects().length > 0 || [...el.querySelectorAll('*')].some(child => child.getClientRects().length > 0);
   const collect = (style, matches) => {
+    for (const el of matches) {
+      const entries = authored.get(el) ?? [];
+      entries.push(style); authored.set(el, entries);
+    }
     let hasProperty = false;
     for (const prop of style) {
       const dependencies = uses(style.getPropertyValue(prop));
@@ -291,10 +353,8 @@ async function mutateTheme(tokens) {
       if (rule instanceof CSSSupportsRule && !CSS.supports(rule.conditionText)) continue;
       if (rule instanceof CSSStyleRule) {
         try {
-          if (uses(rule.style.cssText).length) {
-            const selector = rule.selectorText.replace(/(^|,)\s*(?=::(?:before|after|marker)\b)/g, '$1*').replace(/::(?:before|after|marker)\b/g, '');
-            collect(rule.style, [...document.querySelectorAll(selector)]);
-          }
+          const selector = rule.selectorText.replace(/(^|,)\s*(?=::(?:before|after|marker)\b)/g, '$1*').replace(/::(?:before|after|marker)\b/g, '');
+          collect(rule.style, [...document.querySelectorAll(selector)]);
         }
         catch (error) { applicabilityKnown = false; applicabilityLimits.add(error.message); }
       } else if (rule instanceof CSSImportRule) { applicabilityKnown = false; }
@@ -316,6 +376,41 @@ async function mutateTheme(tokens) {
     seen.add(name); return depends(aliases.get(name) ?? [], target, seen);
   });
   const label = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.getAttribute('data-craft-id') ? `[data-craft-id="${el.getAttribute('data-craft-id')}"]` : el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '');
+  const logicalProperties = (el, property) => {
+    const css=getComputedStyle(el), vertical=/^(vertical|sideways)-/.test(css.writingMode), rtl=css.direction==='rtl';
+    const inlineStart=vertical ? ((css.writingMode==='sideways-lr')!==rtl?'bottom':'top') : rtl?'right':'left';
+    const opposite={left:'right',right:'left',top:'bottom',bottom:'top'};
+    const blockStart=vertical?(css.writingMode.endsWith('-lr')?'left':'right'):'top';
+    const sides={'inline-start':inlineStart,'inline-end':opposite[inlineStart],'block-start':blockStart,'block-end':opposite[blockStart]};
+    const side=property.match(/^(margin|padding|border)-(top|right|bottom|left)(-color)?$/);
+    if(side){
+      const logical=Object.keys(sides).find(key=>sides[key]===side[2]), axis=logical.split('-')[0], prefix=side[1];
+      return side[3]?[`${prefix}-${logical}-color`,`${prefix}-${logical}`,`${prefix}-${axis}-color`,`${prefix}-${axis}`]:[`${prefix}-${logical}`,`${prefix}-${axis}`];
+    }
+    const corner=property.match(/^border-(top|bottom)-(left|right)-radius$/);
+    if(corner){
+      const edges=new Set(corner.slice(1)), block=edges.has(blockStart)?'start':'end', inline=edges.has(inlineStart)?'start':'end';
+      return [`border-${block}-${inline}-radius`];
+    }
+    return [];
+  };
+  const suspectBinding = (el, property, token) => (authored.get(el) ?? []).some(style => {
+    const shorthands = property.startsWith('font-') || property === 'line-height' ? ['font']
+      : /^(row|column)-gap$/.test(property) ? ['gap']
+      : /^(margin|padding)-/.test(property) ? [property.split('-')[0]]
+      : /^border-.*-color$/.test(property) ? ['border', 'border-color', property.replace(/-color$/, '')]
+      : property.startsWith('border-') && property.endsWith('-radius') ? ['border-radius']
+      : property === 'text-decoration-color' ? ['text-decoration']
+      : property === 'background-color' ? ['background'] : property.startsWith('outline-') ? ['outline'] : [];
+    return [property,...shorthands,...logicalProperties(el,property)].some(p => {
+      const value = style.getPropertyValue(p).trim();
+      if (!value || /^(inherit|initial|unset|revert|revert-layer)$/i.test(value)) return false;
+      const names = uses(value);
+      // A different semantic token may intentionally have the same value.
+      // UA defaults have no author declaration and never enter this branch.
+      return !pureReferences(value) || !names.length || !names.every(name=>semantic.has(name)) || depends(names, token);
+    });
+  });
   const results = [];
   const restore = () => original === null ? root.removeAttribute('style') : root.setAttribute('style', original);
   try {
@@ -349,7 +444,7 @@ async function mutateTheme(tokens) {
         // Natural box dimensions can coincide with a spacing step by accident;
         // they remain observable effects, but are not duplicate-value evidence.
         const same = properties.filter((p, j) => (kind !== 'space' || /^(padding|margin|row-gap|column-gap)/.test(p))
-          && (kind !== 'text' || p === 'font-size') && before[i][j] === sample && after[i][j] === sample);
+          && (kind !== 'text' || p === 'font-size') && before[i][j] === sample && after[i][j] === sample && suspectBinding(elements[i], p, token));
         // A zero radius/space matches almost every default box; it is not useful
         // evidence of copying a literal. Other matches remain only candidates.
         if (same.length && raw && !/^(?:0|0px)$/.test(sample)) duplicates.push({ element: label(elements[i]), properties: same });
@@ -372,7 +467,7 @@ function findBrowser() {
   return null;
 }
 
-async function browserCheck(file, widths, tokens, report) {
+async function browserCheck(file, widths, tokens, semanticTokens, report) {
   const browser = findBrowser();
   if (!browser || typeof WebSocket !== 'function') return false;
   const profile = mkdtempSync(join(tmpdir(), 'craft-design-tokens-'));
@@ -417,7 +512,7 @@ async function browserCheck(file, widths, tokens, report) {
           await timed(loaded, 20000, 'page load timed out');
         } finally { listeners.delete(listener); }
         await s('Runtime.evaluate', { expression: 'Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,5000))]).then(()=>true)', awaitPromise: true });
-        const result = await s('Runtime.evaluate', { expression: `(${mutateTheme.toString()})(${JSON.stringify(tokens)})`, awaitPromise: true, returnByValue: true });
+        const result = await s('Runtime.evaluate', { expression: `(${mutateTheme.toString()})(${JSON.stringify(tokens)},${JSON.stringify(semanticTokens)},${pureReferences.toString()})`, awaitPromise: true, returnByValue: true });
         if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text);
         report(width, result.result.value);
       } finally { await send('Target.closeTarget', { targetId }); }
@@ -785,11 +880,12 @@ export async function main(argv) {
   if (strict) args.splice(strictIndex, 1);
   if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--strict] [--json]');
   const file = resolve(args[0]), html = readFileSync(file, 'utf8');
-  const { warnings, tokens } = inspectHtml(html);
+  const { warnings, tokens, exceptions, semanticTokens } = inspectHtml(html);
   const findings = [], frames = [], log = (...values) => { if (!json) console.log(...values); };
   const warning = (code, message, line, selector) => { findings.push({code, message, line:line ?? null, selector:selector ?? null}); log(`warning ${code}: ${file}${line ? ':' + line : ''}${selector ? ' [' + selector + ']' : ''}: ${message}`); };
   warnings.forEach(w => warning(w.code, w.message, w.line, w.selector));
-  const available = await browserCheck(file, widths, tokens, (width, result) => {
+  for (const item of exceptions) log(`accepted ${item.code}: ${item.matchingSystems.join(", ")}, ${item.tokens.length} unchanged library token(s) retained`);
+  const available = await browserCheck(file, widths, tokens, semanticTokens, (width, result) => {
     frames.push({width, ...result});
   });
   for (const result of frames) {
@@ -808,7 +904,7 @@ export async function main(argv) {
   }
   if (!available) log('browser unavailable: static checks only (set CHROME_PATH; Node 22+ required)');
   log(`tokens: ${findings.length} warning(s); HTML unchanged`);
-  if (json) console.log(JSON.stringify({schemaVersion:1, source:file, sourceSha256:createHash('sha256').update(html).digest('hex'), browserAvailable:available, widths, findings, summary:{warnings:findings.length}, frames}));
+  if (json) console.log(JSON.stringify({schemaVersion:1, source:file, sourceSha256:createHash('sha256').update(html).digest('hex'), browserAvailable:available, widths, findings, exceptions, summary:{warnings:findings.length}, frames}));
   return strict && findings.length ? 1 : available ? 0 : 3;
 }
 

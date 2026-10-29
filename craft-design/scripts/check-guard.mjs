@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync,writeFileSync,readFileSync,existsSync} from 'node:fs';
+import {mkdtempSync,rmSync,writeFileSync,readFileSync,existsSync,mkdirSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
 import {guard,words,attemptsGuide} from '../hooks/guard.mjs';
 import {skillRoot,curriculum,capabilities,main} from '../skills/craft-design/scripts/craft-guide.mjs';
-const dir=mkdtempSync(join(tmpdir(),'craft-guard-test-')),data=join(dir,'registry'),statePath=join(dir,'state.json');
+// The registry doubles as the CLI's guard directory when a child runs with TMPDIR=dir.
+const dir=mkdtempSync(join(tmpdir(),'craft-guard-test-')),data=join(dir,'craft-guide-guards-'+(process.getuid?.()??'user')),statePath=join(dir,'state.json');
 const script=join(skillRoot,'scripts/craft-guide.mjs');
 const event=command=>({session_id:'unit',cwd:dir,tool_name:'Bash',tool_input:{command}});
 const options={root:skillRoot,data};
@@ -54,13 +56,33 @@ try {
  assert.ok(blocked(guard(event(`node ${script} next --state ${statePath} --receipt receipt | head -1`),options)));
  assert.ok(blocked(guard(event(`python3 -c "print('craft-guide.mjs')"`),options)));
  assert.ok(!blocked(guard(event(`node ${script} status --state ${statePath}`),options)));
+ // The printed Next works from another cwd in the Codex form (session cwd, command only).
+ const status=spawnSync(process.execPath,[script,'status','--state',statePath],{cwd:dir,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ assert.equal(status.status,0,status.stderr);
+ const next=status.stdout.match(/^Next: (.+)$/m)[1],elsewhere=join(dir,'elsewhere');mkdirSync(elsewhere);
+ assert.ok(!blocked(guard({session_id:'unit',hook_event_name:'PreToolUse',cwd:dir,tool_name:'Bash',tool_input:{command:next}},options)),'printed Next is a recognized guide command');
+ const advanced=spawnSync(process.execPath,words(next).slice(1),{cwd:elsewhere,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ assert.equal(advanced.status,0,advanced.stderr);assert.equal(JSON.parse(readFileSync(statePath,'utf8')).acknowledged,1,'printed Next advances delivery');
  state.phase='choose';state.acknowledged=base.pages.length;writeFileSync(statePath,JSON.stringify(state));
  assert.ok(!blocked(guard({...event(''),tool_name:'ToolSearch'},options)));
+ // Real client forms while choosing: Claude Code reports the execution cwd; Codex
+ // reported the session directory and only the command (host-probe/events.jsonl).
+ const work=join(dir,'work');mkdirSync(work);
+ const forms={claude:command=>({...event(command),cwd:work,tool_input:{command,description:'Read library file'}}),codex:command=>({session_id:'unit',hook_event_name:'PreToolUse',cwd:dir,tool_name:'Bash',tool_input:{command}})};
+ const resource='skills/dashboard/ENTRY.md',child=()=>spawnSync(process.execPath,[script,'read','--path',resource],{cwd:work,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ for(const [client,form] of Object.entries(forms)) {
+  assert.ok(blocked(guard(form(`cat ${join(skillRoot,'library',resource)}`),options)),client+': shell reading stays blocked while choosing');
+  assert.ok(blocked(guard(form(`node ${script} read --path ${resource} | head -5`),options)),client+': shortened guide read is blocked');
+  assert.ok(!blocked(guard(form(`node ${script} read --path ${resource}`),options)),client+': guide read is allowed while choosing');
+  const out=child();assert.equal(out.status,0,client+': '+out.stderr);assert.ok(out.stdout.startsWith(`LIBRARY ${resource} 1/`),client+': observed read returns the page');
+  assert.equal(child().status,2,client+': the observed proof is single-use');
+ }
+ assert.ok(!blocked(guard({...event(''),tool_name:'Read',tool_input:{file_path:join(skillRoot,'library',resource)}},options)),'a client read tool also works while choosing');
  assert.ok(blocked(guard(event('echo premature > index.html'),options)),'choosing is not authoring');
  const plan={visualPath:'direct',reason:'test',tools:{generation:{status:'unknown',evidence:'not checked'},viewing:{status:'unknown',evidence:'not checked'}},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'fixture'}]))};
  state.plan=plan;state.phase='ready';writeFileSync(statePath,JSON.stringify(state));
  assert.ok(!blocked(guard(event('cat x | tail -1; echo y > index.html'),options)),'ready authoring unaffected');
  assert.ok(!blocked(guard({...event(''),tool_name:'Write',tool_input:{file_path:'index.html'}},options)));
  const b=guard({...event(`node ${script} begin --state ${statePath}`),session_id:'other'},options);assert.ok(!blocked(b),'session isolation');
- console.log('guard: pipelines, redirection, wrappers, premature writes, receipt reads, route selection, unrelated work and session isolation passed');
+ console.log('guard: pipelines, redirection, wrappers, premature writes, receipt reads, route selection, printed Next and library reading in client event forms, unrelated work and session isolation passed');
 }finally{rmSync(dir,{recursive:true,force:true});}

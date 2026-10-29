@@ -100,7 +100,7 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
   const isGuide=argv && basename(argv[0]??'')==='node' && resolve(cwd,argv[1]??'')===join(root,'scripts/craft-guide.mjs');
   if(isGuide) {
     const verb=argv[2],i=argv.indexOf('--state'),state=i>=0&&argv[i+1]?resolve(cwd,argv[i+1]):null;
-    if(!['begin','next','status','decide','catalog','entry','cancel','--help'].includes(verb))return deny('Unsupported guide command.');
+    if(!['begin','next','status','decide','catalog','entry','read','cancel','--help'].includes(verb))return deny('Unsupported guide command.');
     if(verb==='cancel') {
       const rest=argv.slice(3),values={};
       for(let n=0;n<rest.length;n+=2) {
@@ -118,7 +118,7 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
       issueInvocation(root,cwd,argv.slice(2),data);return {};
     }
     if(active?.pendingStart && verb!=='--help')return deny('Start preparation with a standalone node '+join(root,'scripts/craft-guide.mjs')+' begin --state FILE.');
-    if(active && !['catalog','entry','cancel','--help'].includes(verb) && state!==active.state)return deny('Use the active state: '+active.state);
+    if(active && !['catalog','entry','read','cancel','--help'].includes(verb) && state!==active.state)return deny('Use the active state: '+active.state);
     issueInvocation(root,cwd,argv.slice(2),data);return {};
   }
   if(!active)return {};
@@ -130,7 +130,7 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
   // During route selection the author may inspect entries and discover tools.
   // Shell writes and arbitrary execution stay blocked; use decide --json.
   if(state.phase==='choose' && /^(Read|Glob|Grep|ToolSearch|tool_search|list_tools|search_tools)$/.test(event.tool_name??''))return {};
-  return deny(`Instructions are incomplete (${state.phase}). Run node ${join(root,'scripts/craft-guide.mjs')} status --state ${active.state} alone, then its next command. At BASE COMPLETE use catalog/entry and decide --json. Do not shorten output or start authoring.`);
+  return deny(`Instructions are incomplete (${state.phase}). Run node ${join(root,'scripts/craft-guide.mjs')} status --state ${active.state} alone, then its next command. At BASE COMPLETE use catalog, entry and read for library files, then decide --json. Do not shorten output or start authoring.`);
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try{console.log(JSON.stringify(guard(JSON.parse(readFileSync(0,'utf8')))));}

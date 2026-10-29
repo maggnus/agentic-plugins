@@ -33,38 +33,42 @@ packet's next command in its own tool call, allowing at least 1800 output tokens
 Read through its ending receipt. Do not loop, batch, pipe, truncate or automate
 acknowledgements. `status --state FILE` repeats an interrupted packet.
 
-At BASE COMPLETE, inspect actual tools and select the library entry with
-`craft-guide.mjs catalog --query WORDS` and `entry --id ID --page N`. Record the route plan
-with entryId when using the library.
+At BASE COMPLETE, inspect actual tools and select the library entry with guide
+commands, using the absolute forms they print: `catalog --query WORDS` ranks
+catalog rows (English catalog words or an id; common Russian artifact words are
+mapped), `entry --id ID --page N` previews an ENTRY.md, `read --path skills/ID/`
+or `design-systems/ID/` lists a directory and `read --path FILE --page N` pages a
+listed text file. Record the route plan with entryId when using the library.
 `decide --state FILE --json 'JSON'` requires a reason for using, skipping or
 lacking every capability and separate generation/viewing evidence. Unknown tool
 availability is not absence. Read the applicable detail packets, selected ENTRY and its craft rules until READY.
 The state records delivery and declared decisions. The guard rejects piped reading
 and other local tool calls during packet delivery, and authoring during selection.
-Use literal, standalone guide commands; catalog/entry and tool discovery remain
-available when choosing. No separate plan-file write is needed with --json. After context loss, use status and revisit relevant sections;
+Use literal, standalone guide commands; catalog, entry, read and tool discovery
+remain available when choosing. No separate plan-file write is needed with --json. After context loss, use status and revisit relevant sections;
 a changed edition requires a fresh state. Library-specific reading still follows.
 
 ## Find and reuse
 
 Every new artifact selects an entry, craft rules and a visual contract:
 
-1. Search `<skill>/library/catalog.tsv` (columns: kind, id, mode, platform,
-   scenario, design_system, craft, path, summary); never read it whole. Example:
-   `grep -i -E 'dashboard|operations' <skill>/library/catalog.tsv | cut -f1,2,4,9 | cut -c1-220`.
-   Read at most two candidate ENTRY.md files and choose the fitting mode/platform.
+1. Search with `catalog --query`; never read `library/catalog.tsv` whole. Preview
+   at most two candidates with `entry` and choose the fitting mode/platform.
    An imperfect entry still supplies structure and working assets. Skip entries
    only when no row matches the artifact type; record the searches.
-2. Read the chosen ENTRY.md and its required sections/checklist/assets. Reuse
+2. READY delivers only the chosen ENTRY.md and its catalog craft files. Read its
+   required sections/checklist/assets yourself: `read --path` lists and pages
+   them, and after READY a file-read tool also works. Reuse
    working template code; the brief determines sections and behavior. Check sizes:
    text above 30 KB is read by headings/ranges, not one huge result. Copy a large
    template before editing it by search. In entries, SKILL.md means ENTRY.md.
-3. Read its catalog `craft` files in `<skill>/library/craft/`. An empty list means
-   typography, color and anti-ai-slop; add form-validation for forms. Ignore
-   frontmatter requirements with no file.
+3. Its catalog `craft` files from `<skill>/library/craft/` arrive with READY; an
+   empty list means typography, color and anti-ai-slop. Read form-validation
+   yourself for forms. Ignore frontmatter requirements with no file.
 4. Bind exactly one visual contract: supplied brand source, active project/design
    system, or a subject-specific design spec. It overrides template aesthetics.
-   For a library system read USAGE.md → DESIGN.md → tokens.css; preserve actual
+   For a library system read USAGE.md → DESIGN.md → tokens.css (not delivered by
+   the guide); preserve actual
    theme values. Directions may inform an original spec; they are not a ceiling.
    Read one block from `<skill>/library/directions.md`, not every direction.
 

@@ -15,6 +15,7 @@ const repairs = {
   'mutation-no-effect': 'Check overrides, scope and responsive visibility. Verify all required widths together; never add a fake visible use merely to satisfy the test.',
   'possible-duplicate': 'Inspect the named properties. Bind accidental copied values to the intended token; do not merge distinct semantic values merely because they coincide.',
   'text-clipped': 'Inspect the named clipping ancestor and reflow the content; do not hide text.',
+  'capture-truncated': 'Capture and review the remaining page sections explicitly; the full-page image reached its height limit.',
   'control-clipped': 'Fit the entire control inside its clipping ancestors; a readable label does not mean the full target is visible.',
   'outside-frame': 'Rework the available space and grouping while preserving required content and readable type.',
   'vertical-overflow': 'Rework density and repeated copy; preserve all required facts and do not hide overflow.',
@@ -32,6 +33,9 @@ export function verify(argv, run = spawnSync) {
   const widthList=widths.split(',').map(Number);
   if(widthList.some(w=>w<1||w>10000)||new Set(widthList).size!==widthList.length)throw new Error('Widths must be distinct integers from 1 to 10000.');
   if(widthIndex<0)args.push('--width',widths);
+  // Fixed frames and explicit scroll targets retain their requested capture.
+  // Ordinary pages need the whole document in the visual evidence.
+  if(!args.includes('--fit')&&!args.includes('--at')&&!args.includes('--full'))args.push('--full');
   for(let n=args.indexOf('--strict');n>=0;n=args.indexOf('--strict'))args.splice(n,1);
   const directory=mkdtempSync(join(dirname(statePath),'craft-verification-'));
   const before=hash(readFileSync(source)),scriptRoot=dirname(fileURLToPath(import.meta.url));
@@ -55,19 +59,22 @@ export function verify(argv, run = spawnSync) {
         for(const width of widthList) {
           const png=join(directory,widthList.length>1?'frame-'+width+'.png':'frame.png');
           const reportPath=png.replace(/\.png$/,'.json'),report=JSON.parse(readFileSync(reportPath,'utf8'));
-          if(report.schemaVersion!==1 || report.sourceSha256!==before || report.viewport?.width!==width || report.screenshot!==png || hash(readFileSync(png))!==report.screenshotSha256 || !Array.isArray(report.findings) || report.truncated)throw new Error('Missing, truncated or mismatched render evidence for '+width+'px.');
-          frames.push({width,height:report.viewport.height,screenshot:png,report:reportPath,sourceSha256:report.sourceSha256,screenshotSha256:report.screenshotSha256,errors:report.findings.filter(f=>f.severity==='error').length,review:report.findings.filter(f=>f.severity==='review').length});
+          if(report.schemaVersion!==1 || report.sourceSha256!==before || report.viewport?.width!==width || report.screenshot!==png || hash(readFileSync(png))!==report.screenshotSha256 || !Array.isArray(report.findings) || report.truncated || report.capture?.width!==width || !(report.capture?.height>0) || !Number.isFinite(report.capture?.height) || !(report.capture?.documentHeight>0) || !Number.isFinite(report.capture?.documentHeight) || typeof report.capture?.limited!=='boolean' || typeof report.capture?.fullDocument!=='boolean')throw new Error('Missing, truncated or mismatched render evidence for '+width+'px.');
+          frames.push({width,height:report.viewport.height,capture:report.capture,screenshot:png,report:reportPath,sourceSha256:report.sourceSha256,screenshotSha256:report.screenshotSha256,errors:report.findings.filter(f=>f.severity==='error').length,review:report.findings.filter(f=>f.severity==='review').length});
           for(const f of report.findings)diagnostics.push({...f,check:name,width,repair:repairs[f.code]??'Inspect this finding in the final PNG and correct confirmed defects.'});
         }
       }
     } catch(error) { check.evidenceError=error.message; }
   }
   const unchanged=hash(readFileSync(source))===before;
-  const counts={tokenWarnings:tokenReport?.findings?.length??null,renderErrors:frames.reduce((n,f)=>n+f.errors,0),renderReviews:frames.reduce((n,f)=>n+f.review,0),checkFailures:results.filter(r=>r.exitCode!==0||r.error||r.evidenceError).length};
+  const validationExit = r => r.exitCode===1 && (r.name==='tokens' ? tokenReport?.findings?.length>0 : frames.some(f=>f.errors>0));
+  const counts={tokenWarnings:tokenReport?.findings?.length??null,renderErrors:frames.reduce((n,f)=>n+f.errors,0),renderReviews:frames.reduce((n,f)=>n+f.review,0),checkFailures:results.filter(r=>r.error||r.evidenceError||(r.exitCode!==0&&!validationExit(r))).length};
   const passed=unchanged&&counts.checkFailures===0&&counts.tokenWarnings===0&&counts.renderErrors===0&&frames.length===widthList.length;
   const repeat=['node',join(scriptRoot,'verify.mjs'),source,'--state',statePath,...args].map(quote).join(' ');
-  const report={schemaVersion:2,source,sourceSha256:before,guideEdition:state.edition,route:state.plan.visualPath,checks:results,sourceUnchanged:unchanged,counts,passed,clean:passed&&counts.renderReviews===0,frames,diagnostics,repeatCommand:repeat,
-    next:passed?'View every final PNG, check required facts and any review findings; deliver these exact files.':'Work remains. Read diagnostics and logs, fix confirmed causes without removing required content or weakening checks, then repeat this full command. An environment failure must be reported as incomplete, not passed.',
+  const status=counts.checkFailures?'incomplete':!passed?'failed':counts.renderReviews?'needs-review':'passed';
+  const report={schemaVersion:2,source,sourceSha256:before,guideEdition:state.edition,route:state.plan.visualPath,checks:results,sourceUnchanged:unchanged,counts,passed,clean:passed&&counts.renderReviews===0,status,acceptedExceptions:tokenReport?.exceptions??[],
+    coverage:{content:args.includes('--contract')?'explicit expectations only':'not checked: compare required facts across every frame',screenshots:frames.some(f=>f.capture.internalScrollRegions>0)?'document canvas only; internal scroll regions require separate captures':frames.length===widthList.length&&frames.every(f=>f.capture.fullDocument)?'full documents':'requested frames or regions; not all page content'},frames,diagnostics,repeatCommand:repeat,
+    next:status==='needs-review'?'Review findings remain. Inspect each in the final PNGs and resolve or document it before delivery; passed covers blocking technical checks only.':passed?'View every final PNG and reconcile required facts for each width/state with the brief; deliver these exact files.':'Work remains. Read diagnostics and logs, fix confirmed causes without removing required content or weakening checks, then repeat this full command. An environment failure must be reported as incomplete, not passed.',
     visualReview:'Not verified by this command. A technical pass is not evidence of visual quality, correct facts or complete accessibility.'};
   const reportPath=join(directory,'summary.json');
   writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');

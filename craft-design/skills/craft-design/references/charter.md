@@ -54,7 +54,16 @@ When instructions conflict, the earlier item wins:
 5. This charter.
 
 A library file never overrides what the user or the project wrote down; it
-fills what they left open.
+fills what they left open. Entry examples, testimonials, metrics and proof blocks
+are optional patterns, never authorization to invent facts or social proof.
+Factual integrity, required content and verification requirements below remain
+mandatory even if a library example omits them. Visual defaults may still vary
+with the chosen entry and the user's visual contract.
+
+An entry's requirement for an active DESIGN.md means the bound visual contract:
+a supplied brand, an existing project/design system, or your task-specific design
+spec. A missing file with that exact name alone is not a reason to stop or ask
+for one. Request input only when an essential decision is genuinely missing.
 
 Host adaptations in `conventions.md` and capability selection in
 `visual-concepts.md` govern whether an entry's image-generation workflow can run.
@@ -163,7 +172,7 @@ The concept starts from the subject: what only this place, product or
 person has (a material, a ritual, an object, a way of speaking) becomes the
 faces, the scale and the focal point. A safe, generic look is a failure as
 real as clutter; restraint belongs to the details, not to the idea. Library
-systems (`grep '^system' library/catalog.tsv`) and directions are references,
+systems (`craft-guide.mjs catalog --query WORDS`) and directions are references,
 not a ceiling: adopt a system whole only when the user names it or the
 subject belongs to that brand's family. A generated system (its catalog
 summary starts "Templated palette") has no voice of its own: borrow at most a
@@ -335,11 +344,13 @@ recheck only the affected area.
 5. **Theme:** run `scripts/tokens.mjs check <file> --width 1440,390` and fix
    each warning: literals outside the theme, undefined tokens, broken bindings
    where a token has a visible consumer, and unused tokens of your own spec (a library system's
-   scale and an imported project theme stay whole).
+   scale and an imported project theme stay whole). The checker records unused
+   members of a complete, unchanged bundled scale as an exception with a token-map hash and all matching systems;
+   this does not waive custom unused tokens or broken bindings.
 6. **Render once the build is complete.** For a responsive page run
    `scripts/inspect.mjs <file> --width 1440,390`; fixed-size artifacts use their own
    size (`--mode desktop` avoids phone scaling for a narrow fixed artboard), adding
-   `--full` for a page longer than a few screens. Read `inspection.md` when readiness,
+   `--full` for any scrolling page (`verify.mjs` does this by default). Read `inspection.md` when readiness,
    expected content, runtime failures or an editor harness need explicit checks.
    Read the overflow
    line and the structured findings, then view the PNGs. Add `--fit` only when
@@ -369,7 +380,12 @@ recheck only the affected area.
    Do not finish while a
    known required problem is still fixable within the authorized work. Keep all
    required facts, readable type and meaningful theme bindings. A genuine supplied
-   theme exception stays visible in the report; it is not a full technical pass.
+   theme exception stays visible in the report. A recognized unchanged bundled
+   scale is an accepted exception; unresolved warnings still prevent a technical
+   pass. `status:needs-review` requires assessment of each manual finding before
+   delivery. Full-page screenshots do not establish completeness: compare every
+   frame's required facts with the brief, using explicit content checks for facts
+   that must survive responsive changes.
 
 ## Refinement phase
 

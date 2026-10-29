@@ -140,7 +140,12 @@ const MEASURE = width => `(() => {
     out.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList[0] ? '.' + el.classList[0] : '') + (id ? ' [' + id + ']' : '') + ' ' + Math.round(r.left) + '..' + Math.round(r.right));
     if (out.length >= 6) break;
   }
-  return JSON.stringify({ innerWidth, viewport: w, page: document.documentElement.scrollHeight, scrollWidth: document.documentElement.scrollWidth, overflow: out });
+  const internalScrollRegions = [...document.querySelectorAll('body,body *')].filter(el => {
+    const r=el.getBoundingClientRect(),s=getComputedStyle(el);
+    return r.width>0 && r.height>0 && s.visibility!=='hidden' &&
+      (/^(auto|scroll)$/.test(s.overflowY) && el.scrollHeight>el.clientHeight+1 || /^(auto|scroll)$/.test(s.overflowX) && el.scrollWidth>el.clientWidth+1);
+  }).length;
+  return JSON.stringify({ internalScrollRegions, innerWidth, viewport: w, page: document.documentElement.scrollHeight, scrollWidth: document.documentElement.scrollWidth, overflow: out });
 })()`;
 
 const profile = mkdtempSync(join(tmpdir(), 'craft-design-chrome-'));
@@ -296,6 +301,8 @@ async function shoot(width) {
   if (inspect || scenario) {
     const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
     evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, viewport: { width, height },
+      capture: { width, height: full ? Math.min(metrics.page, MAX_CAPTURE_HEIGHT) : height, documentHeight: metrics.page, documentWidth: metrics.scrollWidth, internalScrollRegions: metrics.internalScrollRegions,
+        fullDocument: metrics.internalScrollRegions === 0 && metrics.scrollWidth <= width && (full ? metrics.page <= MAX_CAPTURE_HEIGHT : !at && metrics.page <= height), limited: full && metrics.page > MAX_CAPTURE_HEIGHT },
       screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
       renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full, mode, mobile } };
     if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
@@ -303,6 +310,8 @@ async function shoot(width) {
   if (inspect) {
     const report = await inspectPage(s, { fit, width, height });
     Object.assign(report, evidence, { runtime });
+    if (evidence.capture.limited) report.findings.push({ code: 'capture-truncated', severity: 'error', selector: null,
+      message: 'The full-page capture exceeded the image height limit. Capture and review the remaining sections explicitly.', evidence: evidence.capture });
     if (contract) {
       const ready = await evaluateExpectations(s, contract.ready ?? []);
       const checks = await evaluateExpectations(s, contract.checks ?? []);

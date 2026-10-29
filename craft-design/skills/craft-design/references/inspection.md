@@ -4,14 +4,27 @@
 
 Use `verify.mjs FILE --state STATE --width 1440,390 --fit` for a responsive
 single-screen artifact (default heights 900 and 844). Omit --fit when scrolling
-is intended. It runs strict theme checks and render inspection, then validates
+is intended: ordinary pages are captured in full by default. Explicit --at keeps
+a targeted capture; --fit keeps the viewport. It runs strict theme checks and render inspection, then validates
 the source and PNG hashes before reporting a pass. It returns current counts,
 per-frame reports, a bounded diagnostic list and the exact repeatCommand.
 Read the saved summary.json for any omitted diagnostics. Repair confirmed causes
 and repeat the full command after edits; inspect both new PNGs. A previously
 passing width may regress after a shared style change. Never copy an old PNG or
 count into the final delivery. `passed` covers mandatory technical checks;
-`clean` also requires zero review findings. Neither proves taste or content.
+`clean` also requires zero review findings. `status` separates `passed`,
+`needs-review` (technical checks passed, manual findings remain), `failed`
+(confirmed technical findings) and `incomplete` (missing evidence or tool failure).
+A warning exit is a quality result, not a tool failure. Neither boolean proves
+visual quality or content. `coverage` states the scope explicitly; each frame's
+`capture` records image dimensions, document height and whether the whole document
+was captured. A full capture exceeding the image height limit is an error and
+requires explicit captures/review of the remaining sections. Never remove content
+or merely switch to --at to claim full coverage. Preserve the incomplete full
+report, take additional --at captures, and state that the complete page was
+reviewed through multiple images rather than a single full verification. Internal
+scroll regions are reported separately: a full document canvas does not capture
+their offscreen contents. Capture their relevant states explicitly.
 
 `tokens.mjs check FILE --width 1440,390 --strict --json` returns structured theme
 evidence. Check responsive widths together. A token with no visible matched
@@ -19,7 +32,14 @@ consumer at one width, and an observed binding at another requested width, is
 recorded as inactive there rather than broken. An overridden visible consumer,
 unknown stylesheet applicability, or no observed effect anywhere still warns.
 This is a conservative heuristic; it does not prove every consumer follows a
-token. Preserve real project scales and explain legitimate exceptions explicitly.
+token. Matching values alone do not make distinct semantic tokens duplicates;
+browser defaults are not copied author values. A complete, unchanged bundled
+:root scale is recognized by its declarations: unused values in that scale are
+recorded in `exceptions` with a normalized token-map hash and all matching systems, not as warnings.
+Matching definitions do not prove which file was the source.
+Additional or changed author tokens still undergo the ordinary checks. This is
+not automatic recognition of arbitrary project/imported scales; preserve those
+sources and report unresolved source-contract exceptions explicitly.
 
 `node <skill>/scripts/inspect.mjs <file-or-url> --width 1440,390`
 
@@ -50,7 +70,13 @@ Geometry cannot distinguish a complete design from an empty or loading page.
 When readiness or required content is uncertain, pass `--contract expectations.json`.
 Derive a few observable checks from the brief before inspecting; do not weaken them
 to match an incomplete result. This is optional for simple static work, not another
-required planning document. Example for a three-card view:
+required planning document. For responsive frames with shared required facts,
+identify those facts per frame from the brief and check stable selectors/text with
+`--contract` at every required width. An intentionally shorter mobile overview
+need not repeat every desktop detail; an obligatory price or constraint must not
+silently disappear. This tool checks explicit expectations, not semantic equality
+between arbitrary page text. Reconcile the final images with the brief as well.
+Example for a three-card view:
 
 ```json
 {

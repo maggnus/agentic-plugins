@@ -156,6 +156,7 @@ execFileSync(process.execPath, [join(plugin, 'scripts/check-guard.mjs')], { stdi
 execFileSync(process.execPath, [join(plugin, 'scripts/check-guide.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-inspection.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-contract.mjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [join(plugin, 'scripts/check-review-fixes.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-scenario.mjs')], { stdio: 'inherit' });
 
 const work = mkdtempSync(join(tmpdir(), 'craft-design-check-'));
