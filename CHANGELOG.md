@@ -1,3 +1,9 @@
+## [12.11.0](https://github.com/maggnus/agentic-plugins/compare/v12.10.0...v12.11.0) (2026-10-29)
+
+### Features
+
+* **craft-design:** add capability-aware visual concept workflow ([b848180](https://github.com/maggnus/agentic-plugins/commit/b8481804e9f3463c4acf92ebe8e7f9f75c013996))
+
 ## [12.10.0](https://github.com/maggnus/agentic-plugins/compare/v12.9.0...v12.10.0) (2026-10-28)
 
 ### Features
