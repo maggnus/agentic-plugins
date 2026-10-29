@@ -1,3 +1,9 @@
+## [13.0.1](https://github.com/maggnus/agentic-plugins/compare/v13.0.0...v13.0.1) (2026-10-29)
+
+### Bug Fixes
+
+* **craft-design:** complete evidence-driven repair cycles ([ecbe08d](https://github.com/maggnus/agentic-plugins/commit/ecbe08d27effe0f46e134e16c5c620bab7e0d2ee))
+
 ## [13.0.0](https://github.com/maggnus/agentic-plugins/compare/v12.11.0...v13.0.0) (2026-10-29)
 
 ### ⚠ BREAKING CHANGES
