@@ -18,7 +18,7 @@ codex plugin add craft-design@maggnus
 
 ## How it works
 
-The agent follows a design charter: brief, spec, direction, plan, build, verification, refinement.
+Before authoring, the agent receives a complete capability overview and follows a design charter: brief, spec, direction, plan, build, verification, refinement.
 Each result is a self-contained file that opens in a browser, so it can be previewed, screenshotted
 and checked like any web page.
 
@@ -32,21 +32,69 @@ See [visual concepts](skills/craft-design/references/visual-concepts.md).
 
 ## How it saves context
 
-Only one skill is registered: [SKILL.md](skills/craft-design/SKILL.md), a router of about 1,300
-tokens. Everything else is read on demand:
+Only one skill is registered: [SKILL.md](skills/craft-design/SKILL.md), a compact entry point. Before authoring, `craft-guide.mjs` delivers a mandatory overview of
+every capability, the charter and the visual-method guidance in bounded packets.
+Each next call acknowledges the receipt at the end of the previous packet.
+The author records a route and a reason for using, skipping or lacking each capability;
+applicable reference details follow before READY. This tracks delivery and declared
+decisions, not comprehension or an unbypassable filesystem restriction.
+
+Supporting resources:
 
 - `references/charter.md` and `charter-craft.md` — the design method (brief, direction, plan,
-  build, verification, refinement) and the craft rules, read once per conversation before the
-  first artifact; split in two so that no host truncates a single read;
+  build, verification, refinement) and the craft rules, delivered in packets before each artifact;
+  a pending packet can be repeated after interrupted output;
 - `references/brief.md`, `conventions.md`, `platforms.md`, `print-and-diagrams.md`,
-  `visual-concepts.md` — read only when
-  the situation needs them;
+  `visual-concepts.md` — visual-method guidance is always known before choosing;
+  the remaining references load when the recorded task needs them;
 - `library/catalog.tsv` — one row per skill, template, design system, craft rule, direction and
   device frame, queried with `grep`, never read whole;
 - `library/skills/<id>/ENTRY.md` — the chosen entry only; large entries are split into
   `sections/` so only the needed parts are read.
 
 ## Preview and verification
+
+`craft-guide.mjs begin --state design/<slug>/.craft-guide.json` starts instruction delivery.
+Use one packet per model-visible tool call, never a shell loop. `status` repeats the
+pending packet; `next --receipt TOKEN` acknowledges it. `decide --json 'JSON'`
+requires an assessment of every capability and separate generation/viewing evidence.
+Changed instruction editions invalidate saved receipts. The state is local workflow
+evidence, not a credential or a security boundary. The selected catalog entry and
+its craft rules are delivered through the same bounded reader.
+
+### Host guard and its limits
+
+The bundled PreToolUse hook must run before guide commands. It rejects shortened,
+piped or compound invocations, blocks other supported local tools while a packet
+is pending, and permits only read/discovery or guide operations while choosing the
+route. `decide --json 'JSON'` avoids a separate plan-file write. Once READY, ordinary
+artifact work proceeds. Without an observed hook invocation, the guide fails before
+recording delivery. Normal work in sessions without an active guide is unaffected.
+
+In Codex, installing a plugin does **not** trust its hooks: review this plugin's
+hook in `/hooks`. Hook changes may require review again. Claude Code also requires
+a configuration where plugin hooks run. These are host requirements, not a new
+permission to bypass another policy. No trust configuration is changed by the plugin.
+
+The guard is a workflow check for cooperative authors, not a sandbox: it starts
+at an attempted `craft-guide.mjs begin`, cannot prove comprehension, and does not control hosted or
+specialized paths that the client does not expose to hooks. Arbitrary shell access
+can tamper with local evidence. A caller needs an external controlled environment
+for adversarial enforcement. If hooks are disabled, unsupported, skipped or fail,
+do not represent preparation as complete. Do not publish a claim that all model
+behavior is mechanically constrained.
+
+A failed or compound start remains visibly incomplete. Retry the printed standalone
+command; `status` repeats a pending packet. If the task is explicitly cancelled,
+`cancel --state FILE --reason TEXT` releases the session even when the state file
+was never created or is unreadable, without overwriting an unrelated file.
+
+
+`verify.mjs FILE --state STATE [inspection options]` refuses an incomplete guide,
+runs both strict token and render checks, and saves separate logs plus `summary.json`
+in a fresh directory next to the state. Warnings and missing browser checks are not
+silently accepted. The author still inspects the PNGs, facts and review findings.
+
 
 `scripts/preview.mjs` is a dependency-free Node server bound to `127.0.0.1`: a list of
 artifacts, live reload on save, desktop/laptop/tablet/phone widths, and Alt+click comments that

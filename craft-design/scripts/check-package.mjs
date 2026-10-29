@@ -84,7 +84,7 @@ assert.ok(description.length > 40 && description.length <= 500, 'router descript
 assert.ok(Buffer.byteLength(router, 'utf8') < 8000, 'router body stays small (bytes)');
 for (const name of readdirSync(join(skill, 'references'))) {
   const bytes = statSync(join(skill, 'references', name)).size;
-  assert.ok(bytes < 26000, `references/${name} fits one read without host truncation (${bytes} bytes)`);
+  assert.ok(bytes < 26000, `references/${name} stays within its source-file budget (${bytes} bytes); guide delivery is bounded separately`);
 }
 for (const ref of new Set(router.match(/<skill>\/[\w./-]+\.(?:md|mjs|tsv)/g))) {
   assert.ok(existsSync(join(skill, ref.slice('<skill>/'.length))), `router reference exists: ${ref}`);
@@ -152,6 +152,8 @@ assert.equal(leaks.length, 0, `upstream names inside the skill directory:\n${lea
 const scripts = join(skill, 'scripts');
 for (const name of readdirSync(scripts)) execFileSync(process.execPath, ['--check', join(scripts, name)]);
 execFileSync(process.execPath, ['--check', join(plugin, 'scripts/sync-library.mjs')]);
+execFileSync(process.execPath, [join(plugin, 'scripts/check-guard.mjs')], { stdio: 'inherit' });
+execFileSync(process.execPath, [join(plugin, 'scripts/check-guide.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-inspection.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-contract.mjs')], { stdio: 'inherit' });
 execFileSync(process.execPath, [join(plugin, 'scripts/check-scenario.mjs')], { stdio: 'inherit' });

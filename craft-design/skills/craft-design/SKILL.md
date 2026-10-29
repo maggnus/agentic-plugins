@@ -5,159 +5,102 @@ description: "Design any visual artifact: app and product screens, prototypes, l
 
 # craft-design
 
-You are a senior digital product designer. Route into the bundled design library;
-load only what the task needs. Claude Code and Codex run this skill alike.
+Design and verify an editable visual artifact. Follow the user's scope and real
+brand/component sources. `<skill>` is the directory containing this file.
 
-`<skill>` below means the directory that contains this file.
+## Before authoring
 
-## Load in levels
-
-1. **Always:** this file, then the charter before the first artifact of a
-   conversation: `<skill>/references/charter.md` (brief, spec, directions, plan,
-   build, verification, refinement) and `charter-craft.md` (craft rules), each
-   whole in its own unbatched command: hosts cut long tool results (Codex at
-   about 10k tokens). Each ends with "End of charter part N."; if missing,
-   reread that part alone.
-2. **Find, never browse.** `<skill>/library/catalog.tsv` has one row per entry
-   (`kind id mode platform scenario design_system craft path summary`), about
-   280 rows. Never read it whole. Query it:
-
-   ```sh
-   grep -i -E 'pricing|saas' <skill>/library/catalog.tsv | cut -f1,2,4,9 | cut -c1-220
-   grep -i '^system' <skill>/library/catalog.tsv | grep -i fintech | cut -f2,9 | cut -c1-220
-   ```
-
-   `kind` is `skill`, `craft`, `system`, `direction` or `frame`. Read at most two
-   candidate entries before choosing; prefer the one whose `mode` and `platform`
-   match.
-3. **Only the chosen entry.** Read its `ENTRY.md` in full. Large entries list
-   their `sections/` in a table: read only the sections the task needs. Read the
-   entry's `assets/`, `references/` or `templates/` files when the entry tells you
-   to; reuse its template instead of rewriting it. Check sizes first (`wc -c`):
-   a file over about 30 KB is never read whole (it would be cut); copy such a
-   seed into the artifact directory and edit it by search, and read long text
-   by heading in ranges.
-4. **Its craft rules.** The entry's catalog `craft` column names files in
-   `<skill>/library/craft/<name>.md`. Read those; when the column is empty, read
-   `typography`, `color` and `anti-ai-slop` (with a form, `form-validation`).
-   Skip the rest. Frontmatter `craft.craft.requires` may also list
-   rules that have no file yet; ignore them.
-5. **Its visual contract**, exactly one of:
-   - a user brand source (spec, URL, screenshot) → extract real values into
-     `brand-spec.md` as the charter says;
-   - a design system the user names or the project already uses → see below;
-   - otherwise your design spec for this subject (charter, Lock brand and
-     direction); a library system or direction may inform it, never cap it.
-     Read one direction block with
-     `sed -n '/(id: <id>)/,/^### /p' <skill>/library/directions.md`.
-
-   The contract governs tokens, fonts, radii, shadows and ornament and is
-   written as the theme (charter, Materialize the contract as a theme); reuse the
-   template's working code, but the spec decides the sections, and the entry's
-   aesthetic rules yield to the contract.
-
-Every new artifact takes steps 2–5. An imperfect entry still gives its
-template, checklist and craft; the contract overrides its look. Skip the entry
-only when no row of the artifact's type matches, and name the queries. In entry
-text, "SKILL.md" is that entry's `ENTRY.md` and "the active / injected
-DESIGN.md" is the contract of step 5.
-
-## Design systems
-
-`<skill>/library/design-systems/<id>/` holds a normalized package. Read in this
-order and stop when you have enough: `USAGE.md` (what to load for which task) →
-`DESIGN.md` (visual principles) → `tokens.css`, pasted verbatim as the theme
-between `/* tokens:start */` and `/* tokens:end */`; other files are optional
-depth. While a system is active, do not
-invent tokens, write raw hex outside its `:root`, or ask about brand, style or
-palette.
-
-For related screens, reusable components, data-dependent decisions or retained design feedback, read
-`<skill>/references/system-decisions.md`.
-
-## Platform specifics
-
-Entries are written for a desktop design app. Read `<skill>/references/conventions.md`
-once when an entry mentions `<artifact>`, `question-form`, `$CRAFT_*`, `craft …` commands,
-`/api/…`, the daemon, Live Artifacts, connectors or the in-app browser. Read
-`<skill>/references/platforms.md` for native platforms (iOS, Android, tablet,
-desktop app), several targets, app prototypes or device frames, and
-`<skill>/references/print-and-diagrams.md` for pages meant for paper or PDF and
-for diagrams.
-
-## Where artifacts go
-
-Write into the directory the user names. Otherwise use `design/<slug>/` at the
-workspace root, one directory per artifact, with `index.html` as the entry. Do
-not stage or commit those files unless the user or the project rules say so, and
-never write design scratch into product source directories.
-
-## Preview
-
-Start once per workspace in the background; give the user the artifact's
-link it prints:
+Complete the guide before choosing a method or writing the artifact. It delivers
+the full capability map, both charter parts and visual-method guidance in small
+packets. Knowing every capability is mandatory; using every method is not.
 
 ```sh
-node <skill>/scripts/preview.mjs design --port 4178
+node <skill>/scripts/craft-guide.mjs begin --state design/<slug>/.craft-guide.json
 ```
 
-`/view/<path>` opens an artifact in the shell, `/raw/<path>` the file alone; the
-root lists every HTML file; a busy port moves on, the printed URL is
-authoritative. It reloads on save, switches widths and lets the user Alt+click
-an element to leave a comment (`design/.craft-comments.jsonl`, with the
-element's `data-craft-id` and selector). `node <skill>/scripts/preview.mjs
---comments design` lists the open ones; apply them as refinements and mark each
-with `node <skill>/scripts/preview.mjs --resolve design <id>`. A second start on
-the same directory reports the running server.
+The bundled host guard must be enabled/trusted. If the command reports that the
+host did not observe it, stop preparation and report the missing hook activation;
+do not forge receipts or silently proceed. This guard controls supported local
+calls after begin; it is not a sandbox or proof of comprehension.
 
-Verify the render as the charter says, once the build is complete:
+Use a fresh state next to each artifact; never another agent's state. Follow each
+packet's next command in its own tool call, allowing at least 1800 output tokens.
+Read through its ending receipt. Do not loop, batch, pipe, truncate or automate
+acknowledgements. `status --state FILE` repeats an interrupted packet.
+
+At BASE COMPLETE, inspect actual tools and select the library entry with
+`craft-guide.mjs catalog --query WORDS` and `entry --id ID --page N`. Record the route plan
+with entryId when using the library.
+`decide --state FILE --json 'JSON'` requires a reason for using, skipping or
+lacking every capability and separate generation/viewing evidence. Unknown tool
+availability is not absence. Read the applicable detail packets, selected ENTRY and its craft rules until READY.
+The state records delivery and declared decisions. The guard rejects piped reading
+and other local tool calls during packet delivery, and authoring during selection.
+Use literal, standalone guide commands; catalog/entry and tool discovery remain
+available when choosing. No separate plan-file write is needed with --json. After context loss, use status and revisit relevant sections;
+a changed edition requires a fresh state. Library-specific reading still follows.
+
+## Find and reuse
+
+Every new artifact selects an entry, craft rules and a visual contract:
+
+1. Search `<skill>/library/catalog.tsv` (columns: kind, id, mode, platform,
+   scenario, design_system, craft, path, summary); never read it whole. Example:
+   `grep -i -E 'dashboard|operations' <skill>/library/catalog.tsv | cut -f1,2,4,9 | cut -c1-220`.
+   Read at most two candidate ENTRY.md files and choose the fitting mode/platform.
+   An imperfect entry still supplies structure and working assets. Skip entries
+   only when no row matches the artifact type; record the searches.
+2. Read the chosen ENTRY.md and its required sections/checklist/assets. Reuse
+   working template code; the brief determines sections and behavior. Check sizes:
+   text above 30 KB is read by headings/ranges, not one huge result. Copy a large
+   template before editing it by search. In entries, SKILL.md means ENTRY.md.
+3. Read its catalog `craft` files in `<skill>/library/craft/`. An empty list means
+   typography, color and anti-ai-slop; add form-validation for forms. Ignore
+   frontmatter requirements with no file.
+4. Bind exactly one visual contract: supplied brand source, active project/design
+   system, or a subject-specific design spec. It overrides template aesthetics.
+   For a library system read USAGE.md → DESIGN.md → tokens.css; preserve actual
+   theme values. Directions may inform an original spec; they are not a ceiling.
+   Read one block from `<skill>/library/directions.md`, not every direction.
+
+The guide routes applicable references: brief, platform/print, host conventions,
+shared components and scenarios, visual proposals, and inspection. An entry using
+`<artifact>`, `question-form`, `$CRAFT_*`, daemon/API or editor-specific commands
+also requires `<skill>/references/conventions.md`. A named design system uses
+`<skill>/library/design-systems/<id>/USAGE.md` to select further resources.
+
+## Build, preview and verify
+
+Use the directory the user names, otherwise `design/<slug>/index.html`. Keep
+scratch files out of product source. No staging, commits or publishing without
+user/project authorization. Do not edit generated `library/` files.
+
+Serve only the intended artifact directory:
 
 ```sh
-node <skill>/scripts/inspect.mjs design/<slug>/index.html --width 1440,390
+node <skill>/scripts/preview.mjs design/<slug> --port 4178
 ```
 
-Each viewport yields a PNG and JSON findings; view both. Below 600px it emulates
-a phone, 844px tall. Options: `--height`, `--out`, `--full` for long pages,
-`--at <y|selector>` to scroll, repeated `--click <selector>` or `#fragment` for
-states. `--scenario fixture.json` applies data through the preview adapter.
-`--fit` checks a no-scroll brief; `--strict` fails on errors, not review
-findings. Read `<skill>/references/inspection.md` to interpret findings and limits.
-`shot.mjs` captures without inspection. Without a Chromium-family browser,
-deliver on static checks and state the limitation.
+Use the printed URL; a busy port changes it. `/view/` adds a preview shell,
+`/raw/` shows the artifact. The server reloads edits and records Alt+click comments
+against data-craft-id values; `--comments DIR` lists them, `--resolve DIR ID`
+resolves an applied comment. Do not expose neighbouring experiment results.
+
+After implementation, run the combined checks at the requested sizes:
 
 ```sh
-node <skill>/scripts/tokens.mjs check design/<slug>/index.html --width 1440,390
+node <skill>/scripts/verify.mjs design/<slug>/index.html --state design/<slug>/.craft-guide.json --width 1440,390
 ```
 
-`check` warns about values outside the theme and tokens no element follows.
-`extract` and `sync` share one brand theme between artifacts, and `import` turns
-a project's token JSON into that theme; the commands and the import contract
-are in the charter (One brand or product, one theme).
+Add --height and --fit for a fixed no-scroll frame; --mode desktop for a narrow
+fixed artboard. The command owns output paths, runs strict token and render checks,
+and saves logs, PNGs and JSON in a fresh verification directory. Read them and view
+every final PNG. Fix confirmed problems; explain justified exceptions. A nonzero
+result is not a full pass. No browser means incomplete checks, explicitly reported.
+A technical pass does not prove taste, facts, accessibility or visual review.
 
-## Visual concepts and images
-
-For open compositions, consider **visual concept → editable artifact**. Read
-`<skill>/references/visual-concepts.md` before this mode or an image-first entry:
-choose generation, a reference or direct code by actual tools, including visual
-inspection. Model/client names imply no capabilities.
-
-Photos follow charter-craft, Visual finish:
-
-```sh
-node <skill>/scripts/images.mjs search "espresso bar interior" [--source openverse]
-node <skill>/scripts/images.mjs get '<ref from search>' design/<slug> --name hero
-```
-
-Query in English. `get` saves to `img/`, downsizes to 1600px and records
-`img/CREDITS.md`. The `tweaks` entry adds optional live design controls.
-
-## Asking the user
-
-Read `<skill>/references/brief.md` before clarifying with the host's question
-tool. Ask only when the subject is unclear or a gap changes structure, direction
-or format. Known subjects use marked demo details; autonomous runs state
-assumptions. Never emit a `<question-form>` block.
-
-## Provenance
-
-Do not edit `library/` by hand; it is generated.
+Use inspect.mjs/tokens.mjs for focused diagnosis. For --contract readiness/content,
+--scenario fixtures, scroll/click states, or report limitations use inspection.md
+(delivered when selected). shot.mjs only captures. The guide also introduces image
+search/get with attribution, brand-kit generation and token extract/sync/import.
+Changes after the final PNG require new verification of the delivered file.

@@ -1,0 +1,131 @@
+[
+  {
+    "id": "brief",
+    "when": "An unclear subject or a gap changes structure or format",
+    "recommendation": "Ask only for the missing consequential information; preserve supplied facts and mark demo data. A complete brief proceeds without another approval.",
+    "details": [
+      "references/brief.md"
+    ],
+    "commands": []
+  },
+  {
+    "id": "library",
+    "when": "Every new artifact",
+    "recommendation": "Search the catalog, inspect at most two entries, choose a suitable structure and reuse working assets. A template's appearance yields to the visual contract.",
+    "details": [],
+    "commands": []
+  },
+  {
+    "id": "visual-concept",
+    "when": "Before choosing a method for an open composition",
+    "recommendation": "Consider a generated visual proposal, an existing reference, and direct implementation. Discover actual generation and image-viewing tools separately. Unknown availability is not unavailability. Never force generation or change providers.",
+    "details": [
+      "references/visual-concepts.md"
+    ],
+    "commands": []
+  },
+  {
+    "id": "brand",
+    "when": "A brand source, named design system or existing product applies",
+    "recommendation": "Extract actual values, preserve project components and bind the real theme. Otherwise author a subject-specific design spec. brand-kit.mjs renders a supplied brand.json; it does not discover a brand.",
+    "details": [
+      "references/system-decisions.md"
+    ],
+    "commands": [
+      "brand-kit.mjs"
+    ]
+  },
+  {
+    "id": "assets",
+    "when": "Images, real referents or photography carry meaning",
+    "recommendation": "Reuse correct supplied assets; source real named referents, never invent replacements. images.mjs search/get localizes licensed images and credits. Generated imagery is a separate authorized capability.",
+    "details": [],
+    "commands": [
+      "images.mjs"
+    ]
+  },
+  {
+    "id": "platform",
+    "when": "Native apps, multiple targets, device frames or prototypes",
+    "recommendation": "Use platform conventions and real component contracts. Device frames are removable presentation; preserve safe areas, keyboard and navigation behavior within scope.",
+    "details": [
+      "references/platforms.md"
+    ],
+    "commands": []
+  },
+  {
+    "id": "print",
+    "when": "Documents for paper, PDF or diagrams",
+    "recommendation": "Use actual page dimensions, readable print typography and an appropriate diagram representation; distinguish browser verification from physical print proofing.",
+    "details": [
+      "references/print-and-diagrams.md"
+    ],
+    "commands": []
+  },
+  {
+    "id": "components",
+    "when": "Related screens, reusable components, editor artifacts or retained feedback",
+    "recommendation": "Reuse a real shared model/component and verify a change in every affected instance. Use the actual editor renderer. Keep confirmed preferences separate from hypotheses.",
+    "details": [
+      "references/system-decisions.md",
+      "references/conventions.md"
+    ],
+    "commands": []
+  },
+  {
+    "id": "scenarios",
+    "when": "Data changes decisions, totals, availability or states",
+    "recommendation": "Use one implementation with explicit contrasting input fixtures and its preview adapter (--scenario). Check boundaries and meaning; a clean screenshot alone proves neither.",
+    "details": [
+      "references/system-decisions.md",
+      "references/inspection.md"
+    ],
+    "commands": [
+      "scenario.mjs"
+    ]
+  },
+  {
+    "id": "preview",
+    "when": "An artifact can be shown or revised",
+    "recommendation": "preview.mjs serves only the intended artifact directory, reloads files and records comments against stable data-craft-id values. Resolve comments after applying changes; a preview does not publish the work.",
+    "details": [
+      "references/conventions.md"
+    ],
+    "commands": [
+      "preview.mjs"
+    ]
+  },
+  {
+    "id": "inspection",
+    "when": "Before delivery and after changing the final artifact",
+    "recommendation": "Run inspect.mjs at requested sizes and view the resulting PNGs. --fit enforces no scroll; --contract checks readiness/content/runtime; --mode desktop preserves narrow fixed artboards. shot.mjs only captures. Review findings require judgment.",
+    "details": [
+      "references/inspection.md"
+    ],
+    "commands": [
+      "inspect.mjs",
+      "shot.mjs",
+      "contract.mjs"
+    ]
+  },
+  {
+    "id": "tokens",
+    "when": "Building or changing an HTML theme",
+    "recommendation": "tokens.mjs check tests literals and actual token effects; extract/sync share a theme; import converts supported token JSON and rejects unsupported input. Run the check, resolve findings and preserve the source theme.",
+    "details": [],
+    "commands": [
+      "tokens.mjs"
+    ]
+  },
+  {
+    "id": "delivery",
+    "when": "Completing a task or refining existing work",
+    "recommendation": "Keep scope, editability, content, attribution and required autonomy/offline behavior. Run verify.mjs to combine theme and render checks; inspect its outputs. State unverified criteria. A technical pass is not a taste score.",
+    "details": [],
+    "commands": [
+      "craft-guide.mjs",
+      "verify.mjs",
+      "guide-runtime.mjs"
+    ]
+  }
+]

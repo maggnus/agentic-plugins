@@ -1,6 +1,6 @@
 # Design charter, part 2: craft
 
-The second part of the charter; `charter.md` is the first. Read both whole.
+The second part of the charter; `charter.md` is the first. The guide delivers both whole, in bounded packets.
 
 ## Design craft
 
