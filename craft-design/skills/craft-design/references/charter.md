@@ -333,8 +333,8 @@ recheck only the affected area.
    photo a local file in `img/`, no hotlinks; intrinsic ratios preserved; credits
    visible where the license requires them.
 5. **Theme:** run `scripts/tokens.mjs check <file> --width 1440,390` and fix
-   each warning: literals outside the theme, undefined tokens, a token no element
-   follows at some width, and unused tokens of your own spec (a library system's
+   each warning: literals outside the theme, undefined tokens, broken bindings
+   where a token has a visible consumer, and unused tokens of your own spec (a library system's
    scale and an imported project theme stay whole).
 6. **Render once the build is complete.** For a responsive page run
    `scripts/inspect.mjs <file> --width 1440,390`; fixed-size artifacts use their own
@@ -346,8 +346,11 @@ recheck only the affected area.
    the brief forbids scrolling. Findings marked review need judgment, not blind
    shrinking or hiding content; a clean report is not a visual-quality verdict.
    Claim only the checks actually performed. Take further shots (`--at <selector>`)
-   only for a specific doubt or to recheck a fix. If the script fails, allow one diagnostic; then deliver on static checks
-   and state which ones you ran.
+   only for a specific doubt or to recheck a fix. Distinguish a failed check from
+   a failed environment: ordinary quality findings require repair and another
+   complete verification. Only an unavailable browser/runtime permits delivery
+   with incomplete checks after diagnosing that environment failure; report the
+   limitation explicitly. Never treat a warning exit as an unavailable browser.
 7. **Judge the shots by the artifact's job.** For product screens and dashboards:
    can the user find, compare and act; are related controls consistent? For
    marketing and posters: is the focal idea specific and legible at the intended
@@ -355,9 +358,16 @@ recheck only the affected area.
    Check whether type, density and emphasis serve that job; a change of background
    or a display face is not a requirement. A weak answer allows
    one revision of composition and copy, not only spacing; then shoot again.
+   This aesthetic revision limit does not limit correction of known defects.
 8. **The last shot is of the delivered file.** Any edit after the shots, even
-   one line, is followed by `inspect.mjs` at the same widths and a look at the
-   PNGs before delivery.
+   one line, is followed by `verify.mjs` at all affected widths and a look at the
+   PNGs before delivery. Run responsive widths together (1440,390 defaults to
+   heights 900,844); add --fit only for a no-scroll brief. Use the returned current
+   counts and repeatCommand. If passed:false, fix the diagnostic causes and repeat;
+   if the console omits diagnostics, read summary.json. Do not finish while a
+   known required problem is still fixable within the authorized work. Keep all
+   required facts, readable type and meaningful theme bindings. A genuine supplied
+   theme exception stays visible in the report; it is not a full technical pass.
 
 ## Refinement phase
 

@@ -16,6 +16,7 @@ import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const START = /^\/\*\s*tokens:start\s*\*\/$/;
 const END = /^\/\*\s*tokens:end\s*\*\/$/;
@@ -264,6 +265,56 @@ async function mutateTheme(tokens) {
   probe.style.cssText = 'position:fixed;left:-10000px;visibility:hidden;pointer-events:none';
   root.append(probe);
   const elements = [...document.querySelectorAll('body,body *')].filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden');
+  // Conservative applicability evidence, not a cascade engine. A matched rule
+  // remains a consumer even when overridden: that is precisely a broken binding
+  // mutation must detect. Unknown rules/selectors keep the warning, never waive it.
+  const uses = value => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]);
+  const aliases = new Map(), consumers = [];
+  let applicabilityKnown = true;
+  const applicabilityLimits = new Set();
+  const visibleConsumer = el => el.getClientRects().length > 0 || [...el.querySelectorAll('*')].some(child => child.getClientRects().length > 0);
+  const collect = (style, matches) => {
+    let hasProperty = false;
+    for (const prop of style) {
+      const dependencies = uses(style.getPropertyValue(prop));
+      if (prop.startsWith('--')) aliases.set(prop, [...(aliases.get(prop) ?? []), ...dependencies]);
+      else { hasProperty = true; if (dependencies.length && matches.some(visibleConsumer)) consumers.push(dependencies); }
+    }
+    // CSSOM can enumerate empty longhands for a var()-bearing shorthand.
+    // Retain the serialized dependencies conservatively instead of mistaking
+    // an overridden font/padding shorthand for an absent consumer.
+    if (hasProperty && matches.some(visibleConsumer)) consumers.push(uses(style.cssText));
+  };
+  const rules = list => {
+    for (const rule of list) {
+      if (rule instanceof CSSMediaRule && !matchMedia(rule.conditionText).matches) continue;
+      if (rule instanceof CSSSupportsRule && !CSS.supports(rule.conditionText)) continue;
+      if (rule instanceof CSSStyleRule) {
+        try {
+          if (uses(rule.style.cssText).length) {
+            const selector = rule.selectorText.replace(/(^|,)\s*(?=::(?:before|after|marker)\b)/g, '$1*').replace(/::(?:before|after|marker)\b/g, '');
+            collect(rule.style, [...document.querySelectorAll(selector)]);
+          }
+        }
+        catch (error) { applicabilityKnown = false; applicabilityLimits.add(error.message); }
+      } else if (rule instanceof CSSImportRule) { applicabilityKnown = false; }
+      else if (rule.cssRules && !(rule instanceof CSSMediaRule || rule instanceof CSSSupportsRule || rule instanceof CSSLayerBlockRule || rule instanceof CSSKeyframesRule)) applicabilityKnown = false;
+      if (rule.cssRules && !(rule instanceof CSSKeyframesRule)) rules(rule.cssRules);
+    }
+  };
+  for (const sheet of document.styleSheets) {
+    if (sheet.disabled || sheet.media.mediaText && !matchMedia(sheet.media.mediaText).matches) continue;
+    try { rules(sheet.cssRules); } catch (error) { applicabilityKnown = false; applicabilityLimits.add(error.message); }
+  }
+  for (const el of document.querySelectorAll('[style]')) collect(el.style, [el]);
+  for (const el of document.querySelectorAll('svg *')) for (const attr of el.attributes) {
+    if (uses(attr.value).length && visibleConsumer(el)) consumers.push(uses(attr.value));
+  }
+  const depends = (names, target, seen = new Set()) => names.some(name => {
+    if (name === target) return true;
+    if (seen.has(name)) return false;
+    seen.add(name); return depends(aliases.get(name) ?? [], target, seen);
+  });
   const label = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.getAttribute('data-craft-id') ? `[data-craft-id="${el.getAttribute('data-craft-id')}"]` : el.classList.length ? '.' + [...el.classList].slice(0, 2).join('.') : '');
   const results = [];
   const restore = () => original === null ? root.removeAttribute('style') : root.setAttribute('style', original);
@@ -303,9 +354,9 @@ async function mutateTheme(tokens) {
         // evidence of copying a literal. Other matches remain only candidates.
         if (same.length && raw && !/^(?:0|0px)$/.test(sample)) duplicates.push({ element: label(elements[i]), properties: same });
       }
-      results.push({ token, changed: changed.length, examples: changed.slice(0, 5), duplicates: duplicates.slice(0, 8), duplicateCount: duplicates.length, restored, ...(!restored && { restoration }) });
+      results.push({ token, changed: changed.length, examples: changed.slice(0, 5), activeConsumers: applicabilityKnown ? consumers.filter(names => depends(names, token)).length : null, duplicates: duplicates.slice(0, 8), duplicateCount: duplicates.length, restored, ...(!restored && { restoration }) });
     }
-    return { results, elements: elements.length, viewport: innerWidth };
+    return { results, elements: elements.length, viewport: innerWidth, applicabilityLimits:[...applicabilityLimits] };
   } finally { restore(); probe.remove(); freeze.remove(); }
 }
 
@@ -727,28 +778,38 @@ export async function main(argv) {
     return failed ? 2 : 0;
   }
   if (command !== 'check') throw new Error('usage: tokens.mjs check|sync|extract|import …');
+  const jsonIndex = args.indexOf('--json'), json = jsonIndex >= 0;
+  if (json) args.splice(jsonIndex, 1);
   const widths = String(take('--width', '1440,390')).split(',').map(Number);
   const strictIndex = args.indexOf('--strict'), strict = strictIndex >= 0;
   if (strict) args.splice(strictIndex, 1);
-  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--strict]');
+  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--strict] [--json]');
   const file = resolve(args[0]), html = readFileSync(file, 'utf8');
   const { warnings, tokens } = inspectHtml(html);
-  let count = 0;
-  const warning = (code, message, line, selector) => { count++; console.log(`warning ${code}: ${file}${line ? ':' + line : ''}${selector ? ' [' + selector + ']' : ''}: ${message}`); };
+  const findings = [], frames = [], log = (...values) => { if (!json) console.log(...values); };
+  const warning = (code, message, line, selector) => { findings.push({code, message, line:line ?? null, selector:selector ?? null}); log(`warning ${code}: ${file}${line ? ':' + line : ''}${selector ? ' [' + selector + ']' : ''}: ${message}`); };
   warnings.forEach(w => warning(w.code, w.message, w.line, w.selector));
   const available = await browserCheck(file, widths, tokens, (width, result) => {
-    console.log(`${width}px: inspected ${result.elements} rendered element(s)`);
+    frames.push({width, ...result});
+  });
+  for (const result of frames) {
+    const { width } = result;
+    log(`${width}px: inspected ${result.elements} rendered element(s)`);
     if (result.viewport !== width) warning('viewport-mismatch', `${width}px requested, page laid out at ${result.viewport}px; check the viewport meta tag`);
     for (const row of result.results) {
-      console.log(`  ${width}px ${row.token}: ${row.changed} element(s) changed; ${row.restored ? 'restored' : 'RESTORATION FAILED'}`);
+      log(`  ${width}px ${row.token}: ${row.changed} element(s) changed; ${row.restored ? 'restored' : 'RESTORATION FAILED'}`);
       if (!row.restored) throw new Error(`could not restore ${row.token}: ${JSON.stringify(row.restoration)}`);
-      if (!row.changed) warning('mutation-no-effect', `${width}px ${row.token}: no visible effect; review overrides, hidden components or local themes`);
+      const inactive = !row.changed && row.activeConsumers === 0 && frames.some(frame => frame.results.some(other => other.token === row.token && other.changed > 0));
+      row.inactiveInThisViewport = inactive;
+      if (inactive) log(`  ${width}px ${row.token}: inactive here; binding observed at another requested width`);
+      else if (!row.changed) warning('mutation-no-effect', `${width}px ${row.token}: no visible effect; review overrides, hidden components or local themes`);
       if (row.duplicateCount) warning('possible-duplicate', `${width}px ${row.token}: ${row.duplicateCount} element(s) matched the old value but did not follow it: ${row.duplicates.map(d => d.element + ' (' + d.properties.join(', ') + ')').join('; ')}`);
     }
-  });
-  if (!available) console.log('browser unavailable: static checks only (set CHROME_PATH; Node 22+ required)');
-  console.log(`tokens: ${count} warning(s); HTML unchanged`);
-  return strict && count ? 1 : available ? 0 : 3;
+  }
+  if (!available) log('browser unavailable: static checks only (set CHROME_PATH; Node 22+ required)');
+  log(`tokens: ${findings.length} warning(s); HTML unchanged`);
+  if (json) console.log(JSON.stringify({schemaVersion:1, source:file, sourceSha256:createHash('sha256').update(html).digest('hex'), browserAvailable:available, widths, findings, summary:{warnings:findings.length}, frames}));
+  return strict && findings.length ? 1 : available ? 0 : 3;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {

@@ -1,5 +1,26 @@
 # Render inspection
 
+## Complete verification and repair
+
+Use `verify.mjs FILE --state STATE --width 1440,390 --fit` for a responsive
+single-screen artifact (default heights 900 and 844). Omit --fit when scrolling
+is intended. It runs strict theme checks and render inspection, then validates
+the source and PNG hashes before reporting a pass. It returns current counts,
+per-frame reports, a bounded diagnostic list and the exact repeatCommand.
+Read the saved summary.json for any omitted diagnostics. Repair confirmed causes
+and repeat the full command after edits; inspect both new PNGs. A previously
+passing width may regress after a shared style change. Never copy an old PNG or
+count into the final delivery. `passed` covers mandatory technical checks;
+`clean` also requires zero review findings. Neither proves taste or content.
+
+`tokens.mjs check FILE --width 1440,390 --strict --json` returns structured theme
+evidence. Check responsive widths together. A token with no visible matched
+consumer at one width, and an observed binding at another requested width, is
+recorded as inactive there rather than broken. An overridden visible consumer,
+unknown stylesheet applicability, or no observed effect anywhere still warns.
+This is a conservative heuristic; it does not prove every consumer follows a
+token. Preserve real project scales and explain legitimate exceptions explicitly.
+
 `node <skill>/scripts/inspect.mjs <file-or-url> --width 1440,390`
 
 This uses shot.mjs's browser, viewport, clicks and capture. Each PNG has a JSON

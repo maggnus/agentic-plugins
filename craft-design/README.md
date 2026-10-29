@@ -84,16 +84,24 @@ for adversarial enforcement. If hooks are disabled, unsupported, skipped or fail
 do not represent preparation as complete. Do not publish a claim that all model
 behavior is mechanically constrained.
 
-A failed or compound start remains visibly incomplete. Retry the printed standalone
-command; `status` repeats a pending packet. If the task is explicitly cancelled,
+A failed or compound start remains visibly incomplete. An unobserved invocation
+does not prove hooks are disabled: retry the printed literal command once in the
+same working directory. If that also fails, report activation as unverified; `status` repeats a pending packet. If the task is explicitly cancelled,
 `cancel --state FILE --reason TEXT` releases the session even when the state file
 was never created or is unreadable, without overwriting an unrelated file.
 
 
 `verify.mjs FILE --state STATE [inspection options]` refuses an incomplete guide,
 runs both strict token and render checks, and saves separate logs plus `summary.json`
-in a fresh directory next to the state. Warnings and missing browser checks are not
-silently accepted. The author still inspects the PNGs, facts and review findings.
+in a fresh directory next to the state. It validates source/PNG hashes and expected
+render reports, reports current counts and repair diagnostics, and returns the exact
+command to repeat after edits. Check responsive widths together; the default
+1440,390 widths use 900,844 heights. `tokens check --json` exposes structured
+evidence and distinguishes inactive responsive consumers from broken visible bindings.
+Warnings, missing reports and unavailable browser checks are not silently accepted.
+Ordinary quality findings require repair and another complete check; only environment
+failures justify incomplete verification. The author still inspects PNGs and facts.
+`passed` covers mandatory technical checks; `clean` also requires zero review findings.
 
 
 `scripts/preview.mjs` is a dependency-free Node server bound to `127.0.0.1`: a list of

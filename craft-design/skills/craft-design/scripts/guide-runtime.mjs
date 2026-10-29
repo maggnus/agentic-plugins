@@ -14,6 +14,10 @@ export function issueInvocation(root,cwd,args,data=guardDirectory()) {
 export function consumeInvocation(root,cwd,args,data=guardDirectory()) {
   const path=proofPath(root,cwd,args,data);
   let proof;
-  try{proof=JSON.parse(readFileSync(path,'utf8'));unlinkSync(path);}catch{throw new Error('The craft-design host guard did not observe this invocation. Enable/review the bundled hook in this client before authoring; a plain skill cannot enforce full delivery. Do not bypass this check or claim READY.');}
+  try{proof=JSON.parse(readFileSync(path,'utf8'));unlinkSync(path);}catch{
+    const quote=value=>"'"+String(value).replaceAll("'", "'\"'\"'")+"'";
+    const retry=['node',join(root,'scripts/craft-guide.mjs'),...args].map(quote).join(' ');
+    throw new Error('The craft-design host guard did not observe this invocation. This can mean an unsupported command form OR an inactive hook. Retry once in the SAME working directory as a standalone literal command (no variable, cd, chain, wrapper, pipe or redirection):\n'+retry+'\nIf that literal retry also fails, stop preparation and report hook activation as unverified. Do not bypass the guard, forge receipts or claim READY.');
+  }
   if(typeof proof.at!=='number'||Date.now()-proof.at>30000||proof.at>Date.now()+1000)throw new Error('Expired host invocation. Run the plain guide command again.');
 }

@@ -120,7 +120,7 @@
   {
     "id": "delivery",
     "when": "Completing a task or refining existing work",
-    "recommendation": "Keep scope, editability, content, attribution and required autonomy/offline behavior. Run verify.mjs to combine theme and render checks; inspect its outputs. State unverified criteria. A technical pass is not a taste score.",
+    "recommendation": "Keep scope, editability and content. Run verify.mjs at all affected widths together. When passed:false, repair current diagnostics and repeat; report counts from the latest source-bound results. View final PNGs. Runtime unavailability is incomplete verification, not a quality pass.",
     "details": [],
     "commands": [
       "craft-guide.mjs",

@@ -18,8 +18,11 @@ packets. Knowing every capability is mandatory; using every method is not.
 node <skill>/scripts/craft-guide.mjs begin --state design/<slug>/.craft-guide.json
 ```
 
-The bundled host guard must be enabled/trusted. If the command reports that the
-host did not observe it, stop preparation and report the missing hook activation;
+Run this as one literal command with the actual absolute skill path. Do not use
+a path variable, `cd &&`, a wrapper, pipe or redirection. The bundled host guard
+must be enabled/trusted. An unobserved invocation does not by itself prove that
+the hook is inactive: retry the printed literal command once in the same working
+directory. If that also fails, stop preparation and report activation as unverified;
 do not forge receipts or silently proceed. This guard controls supported local
 calls after begin; it is not a sandbox or proof of comprehension.
 
@@ -92,11 +95,18 @@ After implementation, run the combined checks at the requested sizes:
 node <skill>/scripts/verify.mjs design/<slug>/index.html --state design/<slug>/.craft-guide.json --width 1440,390
 ```
 
-Add --height and --fit for a fixed no-scroll frame; --mode desktop for a narrow
-fixed artboard. The command owns output paths, runs strict token and render checks,
-and saves logs, PNGs and JSON in a fresh verification directory. Read them and view
-every final PNG. Fix confirmed problems; explain justified exceptions. A nonzero
-result is not a full pass. No browser means incomplete checks, explicitly reported.
+Check responsive widths together: default heights are 900 for desktop and 844 for
+phone. Add --height for another common height, --fit for a no-scroll frame, and
+--mode desktop for a narrow fixed artboard. The command owns output paths and
+returns current counts, source-bound PNGs, diagnostics and a repeatCommand.
+When passed:false, repair the listed causes and run that complete command again;
+ordinary quality findings are not a reason to stop after one diagnostic. Read
+summary.json if remainingDiagnostics is nonzero. Never change checks or hide
+required content to obtain a pass. Use the latest counts, not earlier logs or
+memory; an edit invalidates the previous verification at every affected size.
+Then view every final PNG and check its facts against the brief. Explain genuine
+source-contract exceptions without claiming a full pass. No browser means
+incomplete checks, explicitly reported after diagnosing the environment failure.
 A technical pass does not prove taste, facts, accessibility or visual review.
 
 Use inspect.mjs/tokens.mjs for focused diagnosis. For --contract readiness/content,
