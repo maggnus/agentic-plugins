@@ -68,6 +68,26 @@ try {
     assert.equal(fixed.status, 0, fixed.stdout + fixed.stderr);
     assert.ok(!fixed.report.findings.some(f => ['text-clipped', 'possible-occlusion', 'broken-image', 'control-name'].includes(f.code)), 'repairs remove the corresponding findings');
 
+    const cutControl = html('<div style="height:80px;width:220px;overflow:hidden"><button data-craft-id="cut-control" style="height:100px">Save</button></div>');
+    const clippedControl = run('clipped-control', cutControl, ['--strict']);
+    assert.equal(clippedControl.status,1,clippedControl.stdout);
+    assert.ok(clippedControl.report.findings.some(f=>f.code==='control-clipped'&&f.craftId==='cut-control'));
+    assert.ok(!clippedControl.report.findings.some(f=>f.code==='text-clipped'),'the label fits; the missing target area is the defect');
+    const cutHorizontal = run('clipped-control-x',html('<div style="height:80px;width:130px;overflow:clip"><button style="width:250px;text-align:left">Save</button></div>'),['--strict']);
+    assert.equal(cutHorizontal.status,1,cutHorizontal.stdout);
+    assert.ok(cutHorizontal.report.findings.some(f=>f.code==='control-clipped'));
+    const controlRepaired=run('control-repaired',cutControl.replace('height:80px','height:120px'),['--strict']);
+    assert.equal(controlRepaired.status,0,controlRepaired.stdout);
+    const scrollControl=run('control-scroll',html('<div style="height:80px;width:220px;overflow:auto"><button style="height:100px">Save</button></div>'),['--strict']);
+    assert.equal(scrollControl.status,0,scrollControl.stdout);
+    const ownBorder=run('control-border',html('<button style="border:12px solid black;overflow:hidden">Save</button>'),['--strict']);
+    assert.equal(ownBorder.status,0,ownBorder.stdout);
+    const fixedControl=html('<div style="height:40px;width:60px;overflow:hidden"><button style="position:fixed;left:200px;top:120px">Save</button></div>');
+    assert.equal(run('control-fixed-escape',fixedControl,['--strict']).status,0,'a fixed control can escape a static clipping parent');
+    const controlTransformed=run('control-fixed-clipped',html('<div style="height:40px;width:60px;overflow:hidden;translate:0px"><button style="position:fixed;left:200px;top:120px">Save</button></div>'),['--strict']);
+    assert.equal(controlTransformed.status,1,controlTransformed.stdout);
+    assert.ok(controlTransformed.report.findings.some(f=>f.code==='control-clipped'));
+
     const clicked = run('clicked', good, ['--click', '#open']);
     assert.equal(clicked.status, 0, clicked.stderr);
     assert.equal(clicked.report.coverage.textNodes, valid.report.coverage.textNodes + 1, 'inspection sees the revealed interaction state');

@@ -15,6 +15,7 @@ const repairs = {
   'mutation-no-effect': 'Check overrides, scope and responsive visibility. Verify all required widths together; never add a fake visible use merely to satisfy the test.',
   'possible-duplicate': 'Inspect the named properties. Bind accidental copied values to the intended token; do not merge distinct semantic values merely because they coincide.',
   'text-clipped': 'Inspect the named clipping ancestor and reflow the content; do not hide text.',
+  'control-clipped': 'Fit the entire control inside its clipping ancestors; a readable label does not mean the full target is visible.',
   'outside-frame': 'Rework the available space and grouping while preserving required content and readable type.',
   'vertical-overflow': 'Rework density and repeated copy; preserve all required facts and do not hide overflow.',
   'horizontal-overflow': 'Inspect the offending width and responsive layout; preserve content.',

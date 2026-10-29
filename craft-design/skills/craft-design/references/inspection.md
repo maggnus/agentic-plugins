@@ -158,6 +158,9 @@ node <skill>/scripts/inspect.mjs design/export/index.html --width 390 --height 8
 - **broken-image:** a displayed image failed to decode.
 - **control-name:** no common accessible-name source was found; inspect real
   semantics. This is not a complete accessibility-tree audit.
+- **control-clipped:** a clipping ancestor cuts off part of a control's box,
+  even when its label is readable. Fit the whole target; do not merely move its
+  text upward. Ordinary scroll regions remain governed by the brief and --fit.
 - **text-contrast / small-target:** review findings. Contrast uses computed solid
   backgrounds; images, gradients, effects, interaction states and intended target
   spacing need visual/platform review.

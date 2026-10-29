@@ -68,8 +68,10 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     }
     clipChains.set(el, chain); return chain;
   };
-  const clipping = (el, r, fontSize) => {
+  const clipping = (el, r, fontSize, control = false) => {
     for (const p of clipChain(el)) {
+      // A control's own border is part of its box, not lost interactive area.
+      if (control && p === el) continue;
       const s = style(p);
       if (s.display === 'inline') continue; // Overflow does not clip an inline box.
       const px = /^(hidden|clip)$/.test(s.overflowX), py = /^(hidden|clip)$/.test(s.overflowY);
@@ -81,10 +83,11 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       const right = left + p.clientWidth * sx, bottom = top + p.clientHeight * sy;
       // Range rectangles include font leading. Small vertical excess is not
       // evidence that ink is clipped; require a substantial loss or a hidden line.
-      const tolerance = Math.max(3, fontSize * .25);
-      if (px && (r.left < left - 2 || r.right > right + 2) || py &&
+      const tolerance = control ? 1 : Math.max(3, fontSize * .25);
+      const horizontalTolerance = control ? 1 : 2;
+      if (px && (r.left < left - horizontalTolerance || r.right > right + horizontalTolerance) || py &&
           (r.bottom <= top || r.top >= bottom || r.top < top - tolerance || r.bottom > bottom + tolerance)) {
-        add('text-clipped', 'error', el, 'Text extends beyond a clipping ancestor.',
+        add(control ? 'control-clipped' : 'text-clipped', 'error', el, control ? 'The control box extends beyond a clipping ancestor, even if its label fits.' : 'Text extends beyond a clipping ancestor.',
           { ancestor: selector(p), clip: { left, top, right, bottom }, text: el.textContent.trim().slice(0, 120) }, r);
         return true;
       }
@@ -164,6 +167,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         || (el.matches('input[type="submit"],input[type="reset"],input[type="button"]') ? el.value || el.type : '')
         || (el.matches('input[type="image"]') ? el.getAttribute('alt') : '');
       if (!label) add('control-name', 'error', el, 'Control has no detectable accessible name.');
+      clipping(el, r, 0, true);
       if (innerWidth < 600 && (r.width < 44 || r.height < 44)) add('small-target', 'review', el,
         'Target is smaller than the skill’s 44 px touch guideline; check spacing and the intended platform.');
       if (fit && outside(r)) add('outside-frame', 'error', el, 'Control is outside the required single-screen frame.');
