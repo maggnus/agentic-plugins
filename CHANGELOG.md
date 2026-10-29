@@ -1,3 +1,9 @@
+## [13.0.4](https://github.com/maggnus/agentic-plugins/compare/v13.0.3...v13.0.4) (2026-10-29)
+
+### Bug Fixes
+
+* **craft-design:** verify page coverage and preserve library contracts ([3341143](https://github.com/maggnus/agentic-plugins/commit/334114314ea3e842ba74eff41e9c8dceefa72675))
+
 ## [13.0.3](https://github.com/maggnus/agentic-plugins/compare/v13.0.2...v13.0.3) (2026-10-29)
 
 ### Bug Fixes
