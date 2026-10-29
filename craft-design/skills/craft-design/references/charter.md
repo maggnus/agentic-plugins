@@ -364,7 +364,9 @@ recheck only the affected area.
    PNGs before delivery. Run responsive widths together (1440,390 defaults to
    heights 900,844); add --fit only for a no-scroll brief. Use the returned current
    counts and repeatCommand. If passed:false, fix the diagnostic causes and repeat;
-   if the console omits diagnostics, read summary.json. Do not finish while a
+   if the console omits diagnostics, read summary.json. Retain that latest verification
+   directory and its reports alongside the deliverable, not only a written claim.
+   Do not finish while a
    known required problem is still fixable within the authorized work. Keep all
    required facts, readable type and meaningful theme bindings. A genuine supplied
    theme exception stays visible in the report; it is not a full technical pass.

@@ -15,11 +15,13 @@ the full capability map, both charter parts and visual-method guidance in small
 packets. Knowing every capability is mandatory; using every method is not.
 
 ```sh
-node <skill>/scripts/craft-guide.mjs begin --state design/<slug>/.craft-guide.json
+node <skill>/scripts/craft-guide.mjs begin --state <absolute-artifact-directory>/.craft-guide.json
 ```
 
 Run this as one literal command with the actual absolute skill path. Do not use
-a path variable, `cd &&`, a wrapper, pipe or redirection. The bundled host guard
+a path variable, `cd &&`, a wrapper, pipe or redirection. Use absolute --state
+and --plan paths: some clients report the session directory to hooks even when
+a shell command uses another working directory. The bundled host guard
 must be enabled/trusted. An unobserved invocation does not by itself prove that
 the hook is inactive: retry the printed literal command once in the same working
 directory. If that also fails, stop preparation and report activation as unverified;
@@ -104,7 +106,9 @@ ordinary quality findings are not a reason to stop after one diagnostic. Read
 summary.json if remainingDiagnostics is nonzero. Never change checks or hide
 required content to obtain a pass. Use the latest counts, not earlier logs or
 memory; an edit invalidates the previous verification at every affected size.
-Then view every final PNG and check its facts against the brief. Explain genuine
+Keep the latest verification directory with the deliverable; its reports are
+evidence, not scratch files. Then view every final PNG and check its facts against
+the brief. Explain genuine
 source-contract exceptions without claiming a full pass. No browser means
 incomplete checks, explicitly reported after diagnosing the environment failure.
 A technical pass does not prove taste, facts, accessibility or visual review.

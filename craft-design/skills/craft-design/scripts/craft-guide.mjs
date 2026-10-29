@@ -134,7 +134,7 @@ export function main(argv) {
   }
   if(state.phase==='reading') {
     const p=guide.pages[state.acknowledged];
-    console.log(`CRAFT GUIDE ${state.acknowledged+1}/${guide.pages.length} | ${p.source} ${p.part}/${p.total}\n${p.body}\nEND PACKET. Receipt: ${state.pending}\nNext: node <skill>/scripts/craft-guide.mjs next --state ${JSON.stringify(stateArg)} --receipt ${state.pending}\nOne packet per tool call; retain the whole output (at least 1800 output tokens).`);
+    console.log(`CRAFT GUIDE ${state.acknowledged+1}/${guide.pages.length} | ${p.source} ${p.part}/${p.total}\n${p.body}\nEND PACKET. Receipt: ${state.pending}\nNext: node <skill>/scripts/craft-guide.mjs next --state ${JSON.stringify(path)} --receipt ${state.pending}\nOne packet per tool call; retain the whole output (at least 1800 output tokens).`);
   } else if(state.phase==='choose') {
     console.log('BASE COMPLETE. Before authoring: inspect actual tools and select the route. Save plan JSON: {"visualPath":"direct|reference|generated","reason":"why for this task","tools":{"generation":{"status":"available|unavailable|unknown","evidence":"observed tool or discovery result"},"viewing":{"status":"available|unavailable|unknown","evidence":"observed viewer"}},"entryId":"catalog id when using library","capabilities":{"<each id>":{"choice":"use|skip|unavailable","evidence":"task-specific reason"}}}.\nIds: '+capabilities.map(c=>c.id).join(', ')+'\nUse craft-guide.mjs catalog --query WORDS and entry --id ID --page N for selection. Then craft-guide.mjs decide --state FILE --plan PLAN.json (or --json JSON). Read its applicable detail packets before authoring.');
   } else if(state.phase==='cancelled')console.log('CANCELLED. No readiness claim; checks requiring READY remain unavailable.');

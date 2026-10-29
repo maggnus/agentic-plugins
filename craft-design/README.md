@@ -54,13 +54,16 @@ Supporting resources:
 
 ## Preview and verification
 
-`craft-guide.mjs begin --state design/<slug>/.craft-guide.json` starts instruction delivery.
+`craft-guide.mjs begin --state /absolute/artifact/.craft-guide.json` starts instruction delivery.
 Use one packet per model-visible tool call, never a shell loop. `status` repeats the
 pending packet; `next --receipt TOKEN` acknowledges it. `decide --json 'JSON'`
 requires an assessment of every capability and separate generation/viewing evidence.
 Changed instruction editions invalidate saved receipts. The state is local workflow
 evidence, not a credential or a security boundary. The selected catalog entry and
-its craft rules are delivered through the same bounded reader.
+its craft rules are delivered through the same bounded reader. Use absolute --state
+and --plan paths: Codex may report only the session directory to a hook even when
+exec_command selects another workdir. Invocation evidence binds exact arguments
+and resolved data paths, so an absolute invocation can work from either directory.
 
 ### Host guard and its limits
 

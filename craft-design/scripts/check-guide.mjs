@@ -1,19 +1,35 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import {mkdtempSync,readFileSync,writeFileSync,rmSync,existsSync,readdirSync} from 'node:fs';
+import {mkdtempSync,readFileSync,writeFileSync,rmSync,existsSync,readdirSync,mkdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {curriculum,splitText,capabilities,requireReady,validatePlan,skillRoot,PAGE_BYTES} from '../skills/craft-design/scripts/craft-guide.mjs';
 import {verify} from '../skills/craft-design/scripts/verify.mjs';
-import {issueInvocation} from '../skills/craft-design/scripts/guide-runtime.mjs';
+import {issueInvocation,consumeInvocation} from '../skills/craft-design/scripts/guide-runtime.mjs';
 
 assert.deepEqual([...new Set(capabilities.flatMap(c=>c.commands))].sort(),readdirSync(join(skillRoot,'scripts')).filter(p=>p.endsWith('.mjs')).sort(),'every script has a capability-map home');
 assert.deepEqual([...new Set(['charter.md','charter-craft.md','visual-concepts.md',...capabilities.flatMap(c=>c.details).map(p=>p.slice('references/'.length))])].sort(),readdirSync(join(skillRoot,'references')).filter(p=>p.endsWith('.md')).sort(),'every reference is introduced before route selection');
 
 const dir=mkdtempSync(join(tmpdir(),'craft-guide-test-'));
 const script=join(skillRoot,'scripts/craft-guide.mjs');
+const otherCwd=join(dir,'nested');mkdirSync(otherCwd);
+const proofData=join(dir,'proofs');
+const absoluteArgs=['begin','--state',join(otherCwd,'state.json')];
+issueInvocation(skillRoot,dir,absoluteArgs,proofData);
+assert.doesNotThrow(()=>consumeInvocation(skillRoot,otherCwd,absoluteArgs,proofData),'absolute state works when the host reports session cwd and execution uses a different workdir');
+assert.throws(()=>consumeInvocation(skillRoot,otherCwd,absoluteArgs,proofData),/did not observe/,'proof is still single-use');
+issueInvocation(skillRoot,dir,['begin','--state','state.json'],proofData);
+assert.throws(()=>consumeInvocation(skillRoot,otherCwd,['begin','--state','state.json'],proofData),error=>error.message.includes(join(otherCwd,'state.json')),'relative state in another cwd cannot consume the wrong proof; retry prints the actual absolute path');
+issueInvocation(skillRoot,dir,absoluteArgs,proofData);
+assert.throws(()=>consumeInvocation(skillRoot,otherCwd,['status',...absoluteArgs.slice(1)],proofData),/did not observe/,'command arguments remain bound');
+const planArgs=['decide','--state',absoluteArgs[2],'--plan',join(otherCwd,'plan.json')];
+issueInvocation(skillRoot,dir,planArgs,proofData);
+assert.doesNotThrow(()=>consumeInvocation(skillRoot,otherCwd,planArgs,proofData),'absolute plan path is independent of session cwd');
+issueInvocation(skillRoot,dir,['decide','--state',absoluteArgs[2],'--plan','plan.json'],proofData);
+assert.throws(()=>consumeInvocation(skillRoot,otherCwd,['decide','--state',absoluteArgs[2],'--plan','plan.json'],proofData),/did not observe/,'relative plan remains cwd-sensitive');
+
 const run=(...args)=>{issueInvocation(skillRoot,process.cwd(),args);return spawnSync(process.execPath,[script,...args],{encoding:'utf8'});};
 const state=join(dir,'state.json');
 const text='Пример 🧭\n\n'.repeat(1500)+'x'.repeat(4000);
