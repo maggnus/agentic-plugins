@@ -1,3 +1,13 @@
+## [13.0.0](https://github.com/maggnus/agentic-plugins/compare/v12.11.0...v13.0.0) (2026-10-29)
+
+### ⚠ BREAKING CHANGES
+
+* **craft-design:** craft-design preparation now requires an enabled, reviewed PreToolUse hook in a supported client. Disabled or untrusted hooks fail preparation explicitly; existing Codex installations must review the new hook in /hooks.
+
+### Features
+
+* **craft-design:** require guarded capability preparation ([34e713d](https://github.com/maggnus/agentic-plugins/commit/34e713dc08740e6f50e5b2fafee1a4cdda101206))
+
 ## [12.11.0](https://github.com/maggnus/agentic-plugins/compare/v12.10.0...v12.11.0) (2026-10-29)
 
 ### Features

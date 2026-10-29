@@ -1,7 +1,7 @@
 {
   "name": "craft-design",
   "description": "Design any visual artifact, from brief to a finished, verified result: app and product screens, prototypes, landing pages, dashboards, documents and print, posters and cards, brand kits, motion frames. Live preview and screenshots; templates, design systems and craft rules load only when the task needs them.",
-  "version": "12.11.0",
+  "version": "13.0.0",
   "author": {
     "name": "Maksim Korenev",
     "email": "unzoom@gmail.com"
