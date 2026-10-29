@@ -1,0 +1,253 @@
+{
+  "date": "2026-10-29",
+  "base": "v12.10.0",
+  "baseCommit": "e5871c63ee9af77d96a7b59c19884cfda34d45f4",
+  "workspace": "/Users/maggnus/Code/craft-design-trial/2026-10-29-image-transfer",
+  "generation": {
+    "author": "codex/gpt-6-astra",
+    "effort": "medium",
+    "generator": "host built-in imagegen; underlying model not reported",
+    "freshContexts": true,
+    "isolation": "procedural no-peeking instructions and separate workspaces, not OS read isolation",
+    "pipelineTimeCeilingSeconds": 1080,
+    "equalActualTimeTokensOrCost": false,
+    "attemptsPerCondition": 1
+  },
+  "briefs": {
+    "poster": "Design an English event poster, 900 × 1200 px, for AFTER HOURS, an evening of experimental music and listening. It should feel like a distinctive cultural event, with clear information people can use to attend. Art direction, palette, typography and arrangement are yours. Do not imitate an existing artist or venue identity. Do not invent performers, sponsors, extra events or claims. All event data are fictional; mark this discreetly as Demo.\n\nRequired information, preserving wording and numbers (capitalization may follow the design):\nAFTER HOURS\nAn evening for open ears\nFriday 27 November 2026\n19:00–23:00\nRelay Hall · 42 Mercer Street\n19:00 Doors & listening room\n20:00 Tape loops / live set\n21:30 The room becomes an instrument\nTickets £18 · Students £10\nLimited seating · Step-free access\nCome early. Stay curious.\n\nDeliver one finished editable self-contained HTML at output/index.html, a final PNG at output/final.png and a short output/decisions.md. All required wording must remain native HTML or SVG text. Decorative raster imagery is permitted, but the whole composition may not be one raster background. Preserve editable layout. The entire poster must fit 900 × 1200 at 100% with no scrolling or clipped information. Other sizes, interaction and physical printing are outside scope.\n",
+    "landing": "Design the first desktop screen of STILL / MOVING, an independent film journal and screening club. One static English page at 1440 × 900, no scrolling. The page should establish a distinctive editorial identity, introduce the current issue and make the next screening easy to understand. Art direction, palette, typography and arrangement are yours. All films, people and places below are fictional. Do not imply an actual film still or venue photograph; invented illustration is allowed. Mark demo content discreetly. No extra titles, reviews, statistics, logos or promotional claims.\n\nRequired content:\nBrand: STILL / MOVING\nNavigation: Journal · Screenings · About\nIssue 08 · Winter 2026\nThe city after the last train\nA collection of films and essays about the hours when familiar places become unfamiliar.\nPrimary action: Read the issue\nSecondary action: View screenings\n\nFeatured essays:\nWindows with nobody behind them — Mara Ellis · 8 min read\nThe sound of an empty station — Jun Vale · 6 min read\n\nNext screening:\nNight Bus / 2026 / 82 min\nThursday 3 December · 19:30\nStudio 4 · 18 Alder Lane\nFilm + conversation · Tickets £12\nAction: Reserve a seat\n\nFooter: Independent cinema, considered slowly.\n\nDeliver one finished editable self-contained HTML at output/index.html, a final PNG at output/final.png and a short output/decisions.md. All required wording must remain native HTML or SVG text. Decorative raster imagery is permitted, but the whole page may not be a raster background. Preserve editable layout. All requested content must fit 1440 × 900 at 100% with no scrolling or clipped information. Interaction and mobile layouts are outside scope.\n",
+    "operations": "Design a static English operations screen for ROUTE ROOM, used by a small coach terminal's departure coordinator. Desktop 1440 × 900, one screen without scrolling. A coordinator must scan all six departures, see what needs attention, and understand the selected departure's current situation. Aim for a strong, purposeful visual identity and readable operational information. Art direction, palette, typography and arrangement are yours. All data are fictional; mark this discreetly as Demo. Do not invent metrics, routes, passengers, statuses or events. This is a visual prototype; no actions run.\n\nHeader: ROUTE ROOM · Departure control\nTerminal: West Quay\nDate: Friday 20 November 2026\nCurrent time: 09:12\n\nAll departures (show every field):\n09:15 · R12 · Northbridge · Bay 2 · 38/42 passengers · Boarding\n09:25 · R07 · Alder Park · Bay 4 · 27/36 passengers · On time\n09:30 · R19 · Hill Market · Bay 1 · 41/48 passengers · Delayed 10 min\n09:40 · R03 · Seaford · Bay 6 · 32/42 passengers · Bay changed\n09:50 · R22 · Eastmere · Bay 3 · 19/36 passengers · On time\n10:05 · R11 · Old Mill · Bay 5 · 24/42 passengers · On time\n\nSelected departure: R03 to Seaford\nScheduled departure 09:40 · Now using Bay 6 (previously Bay 2)\nVehicle C-214 · Driver Mina Cole\n32 booked / 42 seats · Boarding has not started\nBoarding opens 09:25\nLatest update: 09:08 · Bay changed to 6 after vehicle reassignment.\nNext action: Notify waiting passengers of the bay change.\nActions: Open manifest · Send bay update\n\nActivity:\n09:10 · R12 boarding opened at Bay 2\n09:08 · R03 moved from Bay 2 to Bay 6\n09:04 · R19 reported a 10-minute delay\n\nDeliver one finished editable self-contained HTML at output/index.html, a final PNG at output/final.png and a short output/decisions.md. All required wording and data must remain native HTML or SVG text. The whole interface may not be a raster background. Preserve editable layout. All requested content must fit 1440 × 900 at 100% with no scrolling or clipped information. Interaction and mobile layouts are outside scope.\n"
+  },
+  "conceptPrompts": {
+    "poster": "Use case: ads-marketing\nAsset type: one flat finished visual composition proposal for later translation into editable HTML.\nDesign an English event poster, 900 × 1200 px, for AFTER HOURS, an evening of experimental music and listening. It should feel like a distinctive cultural event, with clear information people can use to attend. Art direction, palette, typography and arrangement are yours. Do not imitate an existing artist or venue identity. Do not invent performers, sponsors, extra events or claims. All event data are fictional; mark this discreetly as Demo.\n\nRequired information, preserving wording and numbers (capitalization may follow the design):\nAFTER HOURS\nAn evening for open ears\nFriday 27 November 2026\n19:00–23:00\nRelay Hall · 42 Mercer Street\n19:00 Doors & listening room\n20:00 Tape loops / live set\n21:30 The room becomes an instrument\nTickets £18 · Students £10\nLimited seating · Step-free access\nCome early. Stay curious.\n\nRender the artwork or interface itself, edge to edge, without a device frame or perspective mockup. Preserve the requested aspect ratio. Include every required text item clearly. Choose the visual design yourself; this is a composition proposal, not HTML code. Do not add factual content.\n",
+    "landing": "Use case: ui-mockup\nAsset type: one flat finished visual composition proposal for later translation into editable HTML.\nDesign the first desktop screen of STILL / MOVING, an independent film journal and screening club. One static English page at 1440 × 900, no scrolling. The page should establish a distinctive editorial identity, introduce the current issue and make the next screening easy to understand. Art direction, palette, typography and arrangement are yours. All films, people and places below are fictional. Do not imply an actual film still or venue photograph; invented illustration is allowed. Mark demo content discreetly. No extra titles, reviews, statistics, logos or promotional claims.\n\nRequired content:\nBrand: STILL / MOVING\nNavigation: Journal · Screenings · About\nIssue 08 · Winter 2026\nThe city after the last train\nA collection of films and essays about the hours when familiar places become unfamiliar.\nPrimary action: Read the issue\nSecondary action: View screenings\n\nFeatured essays:\nWindows with nobody behind them — Mara Ellis · 8 min read\nThe sound of an empty station — Jun Vale · 6 min read\n\nNext screening:\nNight Bus / 2026 / 82 min\nThursday 3 December · 19:30\nStudio 4 · 18 Alder Lane\nFilm + conversation · Tickets £12\nAction: Reserve a seat\n\nFooter: Independent cinema, considered slowly.\n\nRender the artwork or interface itself, edge to edge, without a device frame or perspective mockup. Preserve the requested aspect ratio. Include every required text item clearly. Choose the visual design yourself; this is a composition proposal, not HTML code. Do not add factual content.\n",
+    "operations": "Use case: ui-mockup\nAsset type: one flat finished visual composition proposal for later translation into editable HTML.\nDesign a static English operations screen for ROUTE ROOM, used by a small coach terminal's departure coordinator. Desktop 1440 × 900, one screen without scrolling. A coordinator must scan all six departures, see what needs attention, and understand the selected departure's current situation. Aim for a strong, purposeful visual identity and readable operational information. Art direction, palette, typography and arrangement are yours. All data are fictional; mark this discreetly as Demo. Do not invent metrics, routes, passengers, statuses or events. This is a visual prototype; no actions run.\n\nHeader: ROUTE ROOM · Departure control\nTerminal: West Quay\nDate: Friday 20 November 2026\nCurrent time: 09:12\n\nAll departures (show every field):\n09:15 · R12 · Northbridge · Bay 2 · 38/42 passengers · Boarding\n09:25 · R07 · Alder Park · Bay 4 · 27/36 passengers · On time\n09:30 · R19 · Hill Market · Bay 1 · 41/48 passengers · Delayed 10 min\n09:40 · R03 · Seaford · Bay 6 · 32/42 passengers · Bay changed\n09:50 · R22 · Eastmere · Bay 3 · 19/36 passengers · On time\n10:05 · R11 · Old Mill · Bay 5 · 24/42 passengers · On time\n\nSelected departure: R03 to Seaford\nScheduled departure 09:40 · Now using Bay 6 (previously Bay 2)\nVehicle C-214 · Driver Mina Cole\n32 booked / 42 seats · Boarding has not started\nBoarding opens 09:25\nLatest update: 09:08 · Bay changed to 6 after vehicle reassignment.\nNext action: Notify waiting passengers of the bay change.\nActions: Open manifest · Send bay update\n\nActivity:\n09:10 · R12 boarding opened at Bay 2\n09:08 · R03 moved from Bay 2 to Bay 6\n09:04 · R19 reported a 10-minute delay\n\nRender the artwork or interface itself, edge to edge, without a device frame or perspective mockup. Preserve the requested aspect ratio. Include every required text item clearly. Choose the visual design yourself; this is a composition proposal, not HTML code. Do not add factual content.\n"
+  },
+  "conceptEvidence": {
+    "poster": {
+      "elapsedMs": 36063,
+      "run": "b",
+      "tool": "built-in imagegen",
+      "sha256": "aed9da27cb109af4c799c49cb48484e9bc16b547d6923be520d57d62a6f3672e"
+    },
+    "landing": {
+      "elapsedMs": 44422,
+      "run": "d",
+      "tool": "built-in imagegen",
+      "sha256": "cf62ec14513835eb16ddd156a675d19ee8a5879c05764ad314fa7c5842b3e834"
+    },
+    "operations": {
+      "elapsedMs": 43030,
+      "run": "f",
+      "tool": "built-in imagegen",
+      "sha256": "0ee2ce04e8bdcf27a0ba7a452e726e2db79f31af5f9e142430215ac6f50ded3b"
+    }
+  },
+  "blindMap": {
+    "poster": {
+      "A": "b",
+      "B": "a"
+    },
+    "landing": {
+      "A": "d",
+      "B": "c"
+    },
+    "operations": {
+      "A": "e",
+      "B": "f"
+    }
+  },
+  "owner": {
+    "choices": {
+      "poster": "A",
+      "landing": "A",
+      "operations": "B"
+    },
+    "clarifiedByAppearance": {
+      "poster": "dark",
+      "landing": "dark",
+      "operations": "blue"
+    },
+    "imageMethodPreferred": 3,
+    "pairs": 3,
+    "reasonsProvided": false
+  },
+  "independentReviewer": {
+    "choices": {
+      "poster": "A",
+      "landing": "B",
+      "operations": "A"
+    },
+    "ownerAgreement": 1,
+    "pairs": 3
+  },
+  "runs": {
+    "a": {
+      "task": "poster",
+      "method": "direct",
+      "dimensions": [
+        900,
+        1200
+      ],
+      "htmlBytes": 675773,
+      "sourceSha256": "733acc1984935b497d33bc2ec264639290f6c7b4bd077ddbc0c4a2692051f877",
+      "pngSha256": "127499db0f7b6c8a964cdbf26963640fca6e887a117903997660be94629ef61a",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 232.148,
+      "observedCompletionPipelineSecondsUpperBound": 273.586,
+      "imageGenerationSeconds": 0.0,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    },
+    "b": {
+      "task": "poster",
+      "method": "image",
+      "dimensions": [
+        900,
+        1200
+      ],
+      "htmlBytes": 3495943,
+      "sourceSha256": "8a7129562ce9348147281c6420dcff69c4459812ef5bcb7585fab22d0f0a3f04",
+      "pngSha256": "09826edbcf68612e31f188372122924898fee2da41ce427c5a3b462f8bb06328",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 581.642,
+      "observedCompletionPipelineSecondsUpperBound": 602.836,
+      "imageGenerationSeconds": 36.063,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    },
+    "c": {
+      "task": "landing",
+      "method": "direct",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "htmlBytes": 310904,
+      "sourceSha256": "23517d2fb2e3a491123efdaae121a7b7f342d5ba21c85e3ee9e102c191fb8334",
+      "pngSha256": "ead10d50d767b0f71aa481fe032810d4b8ee8ec8fdea540a2fdd752d69493736",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 289.869,
+      "observedCompletionPipelineSecondsUpperBound": 314.347,
+      "imageGenerationSeconds": 0.0,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    },
+    "d": {
+      "task": "landing",
+      "method": "image",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "htmlBytes": 4711360,
+      "sourceSha256": "866b9ceacbe92bfbbace0f79077c82766adf20911d7342031cb3c7c17100d7f8",
+      "pngSha256": "89312917dfaca6fc4c3fcfe8c0aca9f5b8837cf7d09fc83278dbe0601acf1a75",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 494.896,
+      "observedCompletionPipelineSecondsUpperBound": 510.73,
+      "imageGenerationSeconds": 44.422,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    },
+    "e": {
+      "task": "operations",
+      "method": "direct",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "htmlBytes": 1062013,
+      "sourceSha256": "c7575f0c00eed4100941bac398f3e66be63af65f6158befe20920928619caa3b",
+      "pngSha256": "2f2e5d7e7c9ccd252da2e954044215841b00f1a161763174ed3db8e375db6c9d",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [
+        {
+          "code": "possible-occlusion",
+          "severity": "review",
+          "selector": "body > div > main > div > section:nth-of-type(1) > table > caption",
+          "craftId": "departures",
+          "message": "Another element covers most sampled points; inspect the screenshot.",
+          "rect": {
+            "x": 40,
+            "y": 215.5,
+            "width": 68,
+            "height": 19
+          },
+          "evidence": {
+            "blocker": "body > div > main > div > section:nth-of-type(1) > table > tbody > tr:nth-of-type(1) > td:nth-of-type(1)",
+            "blockedSamples": 3,
+            "samples": 3
+          }
+        }
+      ],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 380.725,
+      "observedCompletionPipelineSecondsUpperBound": 408.754,
+      "imageGenerationSeconds": 0.0,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    },
+    "f": {
+      "task": "operations",
+      "method": "image",
+      "dimensions": [
+        1440,
+        900
+      ],
+      "htmlBytes": 357036,
+      "sourceSha256": "63007217274b212c3a879b03e0c3113a171e695b279199078d523623c5cfae75",
+      "pngSha256": "d12c0f5666f0bb21d663c61b77fb277ebc665c50fcc98b5e09b190c71a1b5aeb",
+      "nativeTextMissing": [],
+      "nativeTextPresenceIsNotFullVisualAcceptance": true,
+      "externalReferences": [],
+      "runtimeErrors": [],
+      "geometryFindings": [],
+      "withinTimeLimit": true,
+      "pipelineSecondsToLastOutput": 354.966,
+      "observedCompletionPipelineSecondsUpperBound": 373.808,
+      "imageGenerationSeconds": 43.03,
+      "manualReview": "Original final PNG and editable source inspected; no missing/clipped mandatory content observed. Table associations checked against brief where applicable."
+    }
+  },
+  "limitations": [
+    "one generation per condition",
+    "equal time ceiling, not equal tokens or monetary cost",
+    "procedural isolation only",
+    "one model/effort and browser",
+    "owner may have seen image concepts in tool log",
+    "poster and landing reuse illustration regions; composition benefit not isolated",
+    "operations image-guided final uses no raster assets",
+    "other generators, authoring models, clients and unsupported-capability behavior were not live-tested",
+    "owner could see image concepts before final voting; blindness not guaranteed"
+  ],
+  "promoted": "Optional visual-concept mode with capability and quality checks, editable reconstruction and direct fallback; no bundled provider and no universal image-first requirement.",
+  "evidenceHashes": {
+    "PROTOCOL.md": "d508dc59734221a1f7c53b49d73fe337e04196a341757300fc36a7e7a77939a2",
+    "conditions.json": "d55899f1e2284c2c987d7e2aa405ccf090d3468bf265eba1e9c7864d76356a4a",
+    "blind-map.json": "af4f45ebed63fa14914973a5e9ea1118718ce561b702d262b25b6108e8c7406a",
+    "owner-votes.json": "87ceaef7a827426a95b993d18d9b4feeaa8bc6dc8334d9e71510cc1d9a1c31f0",
+    "blind-review/review.md": "c44a9c2d8100374e5ee34dc83972fe7bd881fd133f30704072836ca87bc64a28",
+    "blind-review/votes.json": "9adb53b1c30304aa802cb4eb956965e3d2df78debecbd6a0dc1ebcb81f087016",
+    "technical-results.json": "d812a95755e753f005bf4b5d56c774f1cca2e7a349d68c20dfdd68748dc22768",
+    "REPORT.md": "1fc380ce997ed9747c2d75c46a4645aec6b6cbd913933dd786a4f4a6c96df0a8"
+  }
+}

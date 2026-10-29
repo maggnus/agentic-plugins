@@ -22,6 +22,14 @@ The agent follows a design charter: brief, spec, direction, plan, build, verific
 Each result is a self-contained file that opens in a browser, so it can be previewed, screenshotted
 and checked like any web page.
 
+An optional **visual concept → editable artifact** path can use an image proposal
+before implementation. The author checks actual image-generation and image-viewing
+capabilities separately: it can use an available host generator, work from an
+existing reference without generating again, or build directly when these tools
+are missing or the proposal is unsuitable. No image model, service or credentials
+are bundled. Small changes and established product components keep the direct path.
+See [visual concepts](skills/craft-design/references/visual-concepts.md).
+
 ## How it saves context
 
 Only one skill is registered: [SKILL.md](skills/craft-design/SKILL.md), a router of about 1,300
@@ -30,7 +38,8 @@ tokens. Everything else is read on demand:
 - `references/charter.md` and `charter-craft.md` — the design method (brief, direction, plan,
   build, verification, refinement) and the craft rules, read once per conversation before the
   first artifact; split in two so that no host truncates a single read;
-- `references/brief.md`, `conventions.md`, `platforms.md`, `print-and-diagrams.md` — read only when
+- `references/brief.md`, `conventions.md`, `platforms.md`, `print-and-diagrams.md`,
+  `visual-concepts.md` — read only when
   the situation needs them;
 - `library/catalog.tsv` — one row per skill, template, design system, craft rule, direction and
   device frame, queried with `grep`, never read whole;

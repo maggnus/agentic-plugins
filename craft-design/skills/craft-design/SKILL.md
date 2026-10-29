@@ -134,21 +134,22 @@ node <skill>/scripts/tokens.mjs check design/<slug>/index.html --width 1440,390
 a project's token JSON into that theme; the commands and the import contract
 are in the charter (One brand or product, one theme).
 
-## Images
+## Visual concepts and images
 
-The client's own venue, people and products without supplied photos get
-art-directed placeholders (charter-craft, Visual finish), not stock. For named real
-places or objects, or when the user asks for photos:
+For open compositions, consider **visual concept → editable artifact**. Read
+`<skill>/references/visual-concepts.md` before this mode or an image-first entry:
+choose generation, a reference or direct code by actual tools, including visual
+inspection. Model/client names imply no capabilities.
+
+Photos follow charter-craft, Visual finish:
 
 ```sh
 node <skill>/scripts/images.mjs search "espresso bar interior" [--source openverse]
 node <skill>/scripts/images.mjs get '<ref from search>' design/<slug> --name hero
 ```
 
-`search` lists freely licensed photos (query in English); `get` saves
-one to `design/<slug>/img/`, downsized to 1600px, prints its size and appends the
-credit to `img/CREDITS.md`. The `tweaks` entry adds optional live controls
-(accent, type scale, density, motion, theme) around an artifact.
+Query in English. `get` saves to `img/`, downsizes to 1600px and records
+`img/CREDITS.md`. The `tweaks` entry adds optional live design controls.
 
 ## Asking the user
 

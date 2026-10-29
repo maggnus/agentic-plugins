@@ -56,6 +56,11 @@ When instructions conflict, the earlier item wins:
 A library file never overrides what the user or the project wrote down; it
 fills what they left open.
 
+Host adaptations in `conventions.md` and capability selection in
+`visual-concepts.md` govern whether an entry's image-generation workflow can run.
+An entry's mandatory-image wording does not imply available tools or permission
+to change providers, nor override the requested editable format.
+
 Factual integrity holds across every scope: an entry may restrict image sources
 for licensing, privacy or channel fit, but may not downgrade a factual referent to
 a substitute. Placeholders are temporary scaffolding, not permission to skip a
@@ -139,6 +144,9 @@ HTML so later edits hold to it:
   could sign; a slogan that fits any café is rewritten before building;
 - (directions, when the look is open: see below; the chosen one feeds the
   concept)
+- (optional visual concept: `visual-concepts.md` can develop the open composition
+  from the brief and constraints before unfixed faces, colors and layout are chosen;
+  view the proposal, then carry its useful decisions into the concept)
 - the concept: display and body faces, palette with one accent, type and
   spacing scale, density, the rhythm of sections and the focal point of the
   first screen; it becomes the theme below;

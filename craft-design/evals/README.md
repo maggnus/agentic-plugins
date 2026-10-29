@@ -97,3 +97,33 @@ equal compute budget, procedural isolation, Codex-only generation, no human user
 study. It neither establishes an architectural ceiling nor a general aesthetic
 gain. Rendered candidate search, preference-calibrated evaluation and memory remain
 unproven alternatives; the absence of tests for them is not evidence of exhaustion.
+
+## Visual-concept transfer
+
+`2026-10-29-image-transfer.json` records six later GPT-6-Astra medium designs on
+v12.10.0: a poster, an editorial landing page and an operations screen, each built
+directly or from one generated composition. The common pipeline ceiling was 18
+minutes, with image-generation time deducted from the image-guided author's time.
+All finished within it. Actual duration, tokens and money were not equalized.
+
+All six final frames were visually reviewed, rerendered and checked against their
+briefs. They retained editable text and layout with no observed missing/clipped
+mandatory content. The image-guided poster and landing reused illustration regions;
+the operations screen was rebuilt entirely in HTML/CSS/SVG without raster assets.
+This tests the whole process, not the isolated effect of composition.
+
+The owner preferred the image-guided result in all three pairs (dark poster, dark
+landing, blue operations screen). The independent model reviewer agreed in only one
+pair. This motivates an optional mode, not a universal superiority claim or an
+automatic taste score. Exact prompts, source/output hashes and limitations are
+preserved. The generated concepts were visible in the tool history, so the owner's
+blindness is not guaranteed. The sample remains one run per condition and one
+authoring model/effort; cost and other generators were not tested.
+
+The integration adds capability-aware instructions rather than an image provider.
+The generator, author and visual reader may have different capabilities. Existing
+references, unavailable tools, weak proposals and established product components
+have explicit paths; an entry's mandatory-image wording cannot bypass them. These
+fallback paths received instruction review in this release, not fresh end-to-end
+model runs without vision/generation. Package checks verify distribution and tools,
+not adherence by every model or client.

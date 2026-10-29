@@ -11,7 +11,7 @@ the top of an entry overrides this table.
 | `<question-form>` JSON, `[form answers — …]` | Ask with the host's question tool as `brief.md` describes; the answers are locked the same way. |
 | `"$CRAFT_NODE_BIN" "$CRAFT_BIN" tools directions --id <id>`, `craft tools directions` | Read that direction in `library/directions.md`. |
 | `craft … export --format image`, "render the artifact" | `node <skill>/scripts/shot.mjs <file> --width <px>[,<px>]`, as the charter's verification step says. |
-| `craft media generate --surface image` | The host's own image generation, if any; otherwise real images or a labeled placeholder. |
+| `craft media generate --surface image`, mandatory image-first generation | Use actual host capabilities and `visual-concepts.md`: an available generator plus visual inspection, a supplied reference, or direct implementation. For final image assets, retain the charter's sourcing rules. |
 | `craft media generate --surface video`, `media scaffold`, `media wait`, `.mp4` delivery | Not available. Deliver the HTML composition itself (motion frames loop in the browser) and say video rendering is out of scope. |
 | `craft brand preview` / `craft brand finalize` | See the adaptation note in `brand-extract`. |
 | `$CRAFT_PROJECT_ID`, `$CRAFT_PROJECT_DIR`, "the project" | The artifact directory, by default `design/<slug>/`. `{{project_id}}` placeholders become the slug. |
@@ -26,6 +26,10 @@ the top of an entry overrides this table.
 Product endpoints that belong to the designed product itself (for example a
 contact form posting to `/api/contact`) are content, not app protocol: keep them
 as mock handlers.
+
+For image-first entries this adaptation applies to their linked sections too,
+including requirements to stop until generation succeeds. It does not change an
+explicit user request for a generated image into a code-only substitute.
 
 ## Entry metadata
 
