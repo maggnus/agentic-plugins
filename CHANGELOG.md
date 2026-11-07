@@ -1,3 +1,9 @@
+## [13.1.0](https://github.com/maggnus/agentic-plugins/compare/v13.0.4...v13.1.0) (2026-11-07)
+
+### Features
+
+* **rad-ai:** acceptance completes only at 10 from a separate review ([afd0efc](https://github.com/maggnus/agentic-plugins/commit/afd0efcbadad9824ffe61e0fd1a77826273daa92))
+
 ## [13.0.4](https://github.com/maggnus/agentic-plugins/compare/v13.0.3...v13.0.4) (2026-10-29)
 
 ### Bug Fixes
