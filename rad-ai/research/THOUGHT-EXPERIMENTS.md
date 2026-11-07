@@ -12,7 +12,7 @@ Run: 2026-10-03. These are manual applications of the method to defined scenario
 | Requirement changes after prototype | Record the new requirement, invalidate affected work and preserve independent outcomes | Continuing dependent work on the old assumption fails current acceptance |
 | Author and reviewer share an assumption | Derive expected behavior from the contract and exercise a discriminating input | Agreement alone cannot accept a result; observed behavior determines the finding |
 | Context loss or interrupted process | Reconcile revision, records, actual process outcome and unfinished work | A missing result remains unchecked; time elapsed cannot establish completion |
-| Existing tests pass; user outcome fails | Walk the actual scenario and relevant failure paths | The contracted defect returns the change even when the old suite is green |
+| Existing tests pass; user outcome fails | Walk the actual scenario and relevant failure paths | The in-scope defect returns the change even when the old suite is green |
 | Large dependency surface with an unknown consumer | Expand investigation and record uncertainty before integration | A successful bounded check does not close an unresolved external contract |
 | Time budget exhausted | Reduce scope or stop dependent work, keeping acceptance criteria | Budget consumption does not change the invariant or permit a false completion report |
 | Independent review unavailable for critical consequences | Prepare the implementation and identify missing evidence | Critical delivery remains unverified until the required independent assessment exists |

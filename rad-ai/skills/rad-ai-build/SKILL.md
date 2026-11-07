@@ -9,7 +9,7 @@ Read the contract and project rules; verify workspace, base revision and write s
 
 Trace affected modules and consumers. Resolve shared contracts before dependent edits. Implement minimal complete changes preserving boundaries and compatibility; justify dependencies against alternatives.
 
-Check behavior, failures and consumers. For significant changes, observe a failing form on the original defect or violated invariant. Read the complete diff and exclude unrelated work.
+Check behavior, failures and consumers; correct defects found before submission. For significant changes, observe a failing form on the original defect or violated invariant. Never skip, weaken or refit checks to pass; justify changed tests. Read the complete diff and exclude unrelated work. Submit; never accept your own work.
 
 Report base/result revisions or exact uncommitted state, changed paths, observed commands and exit statuses, limitations and unchecked conditions. Integration and delivery require contract authorization.
 

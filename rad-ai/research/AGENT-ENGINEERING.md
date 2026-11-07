@@ -28,6 +28,6 @@ The shared skill does not prescribe product-specific orchestration calls, model 
 
 ## Minimum execution contract
 
-Record required behavior, invariants, consumers, exact base, permitted writes, checks, limits and authorization. A delegate receives only relevant source artifacts and returns observations bound to a revision. If delegation is unavailable, the main role performs implementation and ordinary assessment; critical acceptance remains unverified without the required independent evidence.
+Record required behavior, invariants, consumers, exact base, permitted writes, checks, limits and authorization. A delegate receives only relevant source artifacts and returns observations bound to a revision. If delegation is unavailable, the main role performs implementation; acceptance requires a separate review context and otherwise remains unverified.
 
 Data, schema and infrastructure transitions additionally require compatibility and recovery observations. Restart information identifies current requirements, revisions, incomplete processes, evidence and next action. No report infers completion merely from elapsed time or the end of an agent turn.

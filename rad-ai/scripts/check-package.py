@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check the shared package, instruction budget and contained references; install nothing."""
+"""Check the shared package, instruction line limit and contained references; install nothing."""
 
 import argparse
 import json
@@ -34,25 +34,22 @@ def check(root: Path) -> list[str]:
         for manifest in manifests:
             require(not manifest.get("dependencies") and not manifest.get("mcpServers"),
                     "the package must not require an external runtime")
+            require("hooks" not in manifest, "hooks are platform-specific; shared rules cannot depend on them")
+    require(not (root / "hooks").exists(), "hooks are platform-specific; shared rules cannot depend on them")
 
     skills = root / "skills"
     require((skills / "rad-ai/SKILL.md").is_file(), "main skill missing")
     operational = sorted([*skills.rglob("*.md"), *skills.rglob("*.yaml")])
-    total = 0
     for path in operational:
         body = path.read_text()
-        words = len(body.split())
-        total += words
         prose = body.translate(str.maketrans("", "", "📋⚙️🙋"))
         require(prose.isascii(), f"{path}: operational prose must be English; only reporting icons are allowed")
+        require(len(body.splitlines()) <= 500, f"{path}: exceeds 500 lines; agents weigh the first 500 most")
         if path.name == "SKILL.md":
-            main = path.parent.name == "rad-ai"
-            word_limit, line_limit = (500, 70) if main else (200, 30)
-            require(words <= word_limit, f"{path}: {words} words exceed {word_limit}")
-            require(len(body.splitlines()) <= line_limit, f"{path}: line limit {line_limit} exceeded")
             require(body.startswith("---\n") and "\n---\n" in body[4:], f"{path}: frontmatter missing")
             frontmatter = body.split("---", 2)[1] if body.startswith("---") else ""
             require(f"name: {path.parent.name}\n" in frontmatter, f"{path}: name differs from directory")
+            require("\nhooks:" not in "\n" + frontmatter, f"{path}: hooks are platform-specific")
             description = re.search(r"^description: (.+)$", frontmatter, re.M)
             try:
                 value = json.loads(description.group(1)) if description else None
@@ -64,10 +61,9 @@ def check(root: Path) -> list[str]:
             resolved = (path.parent / target.split("#", 1)[0]).resolve()
             require(resolved.is_relative_to(skills.resolve()), f"{path}: reference escapes operational package")
             require(resolved.is_file(), f"{path}: missing reference {target}")
-    require(total <= 1200, f"operational total {total} words exceeds 1200")
     require(bool(operational), "no operational material")
     if not errors:
-        print(f"rad-ai package: {total}/1200 operational words; two shared platform manifests")
+        print(f"rad-ai package: {len(operational)} operational files within 500 lines; two shared platform manifests")
     return errors
 
 

@@ -31,17 +31,41 @@ class PackageTests(unittest.TestCase):
         result = self.result()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    def test_main_instruction_limit(self):
+    def test_instruction_line_limit(self):
+        for name in ("skills/rad-ai/SKILL.md", "skills/rad-ai-review/SKILL.md", "skills/rad-ai/references/contracts.md"):
+            path = self.root / name
+            original = path.read_text()
+            base = original.rstrip("\n")
+            padding = 500 - len(base.splitlines())
+            with self.subTest(name, lines=500):
+                path.write_text(base + "\nextra" * padding)
+                self.assertEqual(self.result().returncode, 0)
+            with self.subTest(name, lines=501):
+                path.write_text(base + "\nextra" * (padding + 1))
+                self.assert_rejected()
+            path.write_text(original)
+
+    def test_platform_hooks_are_rejected(self):
+        for platform in (".claude-plugin", ".codex-plugin"):
+            path = self.root / platform / "plugin.json"
+            original = path.read_text()
+            with self.subTest(platform):
+                path.write_text(json.dumps({**json.loads(original), "hooks": "./hooks/hooks.json"}))
+                self.assert_rejected()
+            path.write_text(original)
         path = self.root / "skills/rad-ai/SKILL.md"
-        path.write_text(path.read_text() + "\n" + "extra " * 501)
+        original = path.read_text()
+        path.write_text(original.replace("---\n", "---\nhooks:\n  Stop: []\n", 1))
+        self.assert_rejected()
+        path.write_text(original)
+        (self.root / "hooks").mkdir()
         self.assert_rejected()
 
-    def test_total_includes_references_and_interface_metadata(self):
-        paths = [*self.root.glob("skills/**/*.md"), *self.root.glob("skills/**/*.yaml")]
-        total = sum(len(path.read_text().split()) for path in paths)
-        path = self.root / "skills/rad-ai/agents/openai.yaml"
-        path.write_text(path.read_text() + "\n# " + "extra " * (1201 - total))
-        self.assert_rejected()
+    def test_length_is_not_limited_by_words(self):
+        path = self.root / "skills/rad-ai/SKILL.md"
+        path.write_text(path.read_text() + "\n" + "extra " * 2000)
+        result = self.result()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_reference_must_remain_inside_operational_package(self):
         outside = self.root / "unbudgeted.md"

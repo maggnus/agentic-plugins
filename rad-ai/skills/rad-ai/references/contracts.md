@@ -2,11 +2,13 @@
 
 Record outcome, acceptance/failures, exclusions, invariants, risk, base/workspace/write scope, consumers, dependencies, checks, limits and authorization. Preserve configured defaults.
 
-Existing records hold outcome ID, requirements/revision, state, review history, evidence, decisions and next step. Completion means current contracted acceptance, including required delivery; reopening reduces completion. Architectural decisions record alternatives, consequences and reconsideration conditions.
+Existing records hold outcome ID, requirements/revision, state, review history, evidence, decisions and next step. Completion means acceptance of the current revision under the review scope rule, including required delivery; reopening reduces completion. Architectural decisions record alternatives, consequences and reconsideration conditions.
 
 ## Review rubric
 
-Score observed code, evidence and user path when applicable; report the minimum axis. Anchors: 1-2 broken load-bearing requirements; 3-5 material defects or nondiscriminating evidence; 6-8 bounded issues; 9-10 minor or no findings with required evidence. Explain the basis. Scores never override requirements. Unavailable assessment has no invented score.
+Score observed code, evidence and user path when applicable; report the minimum axis and its basis. Anchors: 1-2 broken load-bearing requirements; 3-5 material defects or nondiscriminating evidence; 6-8 bounded defects; 9 only owner-excepted defects remain; 10 verified requirements, sufficient contract and current required checks, no unresolved defects. Empty findings alone are not 10. Unavailable assessment has no invented score.
+
+Scope covers the owner request, project rules, affected scenarios and invariants beyond the written contract. A defect is a reproducible violation of them, missing or nondiscriminating required evidence, a contract gap that leaves one unverified, or a pre-existing defect the change activates or that blocks the outcome. A suggestion violates none of them; suggestions and unrelated pre-existing issues become separate work and never block. When correcting an in-scope defect exceeds the budget, record a blocking owner decision. Owners may except defects; an exception cites the decision, subject and applicability and never replaces evidence that a critical consequence is safe. Proposed deferral is not authorization.
 
 Round history belongs to the outcome. A corrected candidate or material evidence resubmitted after return advances the round once; repeated assessment preserves it.
 

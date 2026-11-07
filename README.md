@@ -94,8 +94,8 @@ codex plugin add russian-speech@maggnus
 
 A self-contained experimental RAD cycle for AI agents: bounded outcomes, discriminating
 experiments, implementation, integration and acceptance under explicit quality and architecture
-constraints. The English operational package is limited to 1200 words, including its roles,
-references and skill metadata. See [rad-ai/README.md](rad-ai/README.md).
+constraints. Operational rules are concise English; each file stays within
+500 lines with decisive rules first. See [rad-ai/README.md](rad-ai/README.md).
 
 ### Claude Code
 
