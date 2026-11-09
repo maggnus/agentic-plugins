@@ -1,3 +1,9 @@
+## [13.2.0](https://github.com/maggnus/agentic-plugins/compare/v13.1.0...v13.2.0) (2026-11-09)
+
+### Features
+
+* **rad-ai:** close defect classes once with coverage tables and a redesign after the second instance ([b30e618](https://github.com/maggnus/agentic-plugins/commit/b30e618e85f6564ace8a9e6640e148d1e5d5ef74))
+
 ## [13.1.0](https://github.com/maggnus/agentic-plugins/compare/v13.0.4...v13.1.0) (2026-11-07)
 
 ### Features
