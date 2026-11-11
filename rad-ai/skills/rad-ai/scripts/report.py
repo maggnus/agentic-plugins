@@ -48,7 +48,9 @@ def status_line(snapshot):
     active = sum(task["state"] in {"active", "review"} for task in eligible)
     human = sum(decision["state"] == "open" and decision["requires_human"] for decision in decisions)
     percent = (200 * done + total) // (2 * total) if total else 0
-    return f"{stage} ({percent}%) ✅ {done} 📋 {total} ⚙️ {active} 🙋 {human}"
+    blocked = sum(task["state"] == "blocked" for task in eligible)
+    line = f"{stage} ({percent}%) ✅ {done} 📋 {total} ⚙️ {active} 🙋 {human}"
+    return f"{line} ⛔ {blocked}" if blocked else line
 
 
 def findings_of(record):

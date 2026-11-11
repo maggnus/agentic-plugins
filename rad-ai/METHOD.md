@@ -57,7 +57,7 @@ defects. A 9 accepts only defects excepted by a cited owner decision; 8 or lower
 returns. A visible passing score without these completion conditions became a
 target that agents satisfied while known defects remained.
 
-Stage status is a derived view: `<index> (p%) ✅ D 📋 N ⚙️ A 🙋 B`, the stage's index alone. Source records
+Stage status is a derived view: `<index> (p%) ✅ D 📋 N ⚙️ A 🙋 B`, the stage's index alone, with ` ⛔ K` appended only when K tasks are blocked. Source records
 are reconciled before each report. N counts distinct noncancelled tasks, D counts
 current acceptance at the target, A counts implementation/review, and
 B counts distinct unresolved human-authority decisions. Compute p as 100D/N,

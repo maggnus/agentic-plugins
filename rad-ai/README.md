@@ -42,7 +42,7 @@ W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1
 ```
 
 `W5` is an example stage index; the line carries the index alone, never a word
-naming the stage. `✅` counts completed tasks and `📋` distinct noncancelled stage tasks;
+naming the stage. A trailing `⛔ K` appears only when K tasks are blocked. `✅` counts completed tasks and `📋` distinct noncancelled stage tasks;
 the percentage is completed tasks divided by that total, rounded to the nearest
 integer with halves rounded up. `⚙️` counts implementation and review tasks.
 `🙋` counts distinct unresolved decisions requiring human authority; one decision

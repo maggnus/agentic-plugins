@@ -48,6 +48,13 @@ class ReportTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             report.status_line(value)
 
+    def test_blocked_tasks_show_only_when_present(self):
+        tasks = [{"id": "a", "state": "done"}, {"id": "b", "state": "blocked"}, {"id": "c", "state": "blocked"},
+                 {"id": "d", "state": "ready"}]
+        self.assertEqual(report.status_line({"stage": "W5", "tasks": tasks, "decisions": []}),
+                         "W5 (25%) \u2705 1 \U0001F4CB 4 \u2699\ufe0f 0 \U0001F64B 0 \u26d4 2")
+        self.assertNotIn("\u26d4", report.status_line({"stage": "W5", "tasks": tasks[:1], "decisions": []}))
+
     def test_empty_stage_and_half_up_rounding(self):
         self.assertEqual(report.status_line({"stage": "W0", "tasks": [], "decisions": []}),
                          "W0 (0%) ✅ 0 📋 0 ⚙️ 0 🙋 0")
