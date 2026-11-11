@@ -42,7 +42,7 @@ def check(root: Path) -> list[str]:
     operational = sorted([*skills.rglob("*.md"), *skills.rglob("*.yaml")])
     for path in operational:
         body = path.read_text()
-        prose = body.translate(str.maketrans("", "", "📋⚙️🙋"))
+        prose = body.translate(str.maketrans("", "", "✅📋⚙️🙋"))
         require(prose.isascii(), f"{path}: operational prose must be English; only reporting icons are allowed")
         require(len(body.splitlines()) <= 500, f"{path}: exceeds 500 lines; agents weigh the first 500 most")
         if path.name == "SKILL.md":

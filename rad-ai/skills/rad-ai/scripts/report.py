@@ -31,6 +31,8 @@ def status_line(snapshot):
     if not isinstance(snapshot, dict):
         raise ValueError("stage snapshot must be an object")
     stage = text(snapshot.get("stage"), "stage")
+    if any(c.isspace() for c in stage):
+        raise ValueError("stage must be an index without words or spaces")
     tasks = list(unique_records(snapshot.get("tasks"), "tasks"))
     decisions = list(unique_records(snapshot.get("decisions"), "decisions"))
     states = {"ready", "active", "review", "blocked", "done", "cancelled"}
@@ -46,7 +48,7 @@ def status_line(snapshot):
     active = sum(task["state"] in {"active", "review"} for task in eligible)
     human = sum(decision["state"] == "open" and decision["requires_human"] for decision in decisions)
     percent = (200 * done + total) // (2 * total) if total else 0
-    return f"{stage}({percent}%) 📋 {total} ⚙️ {active} 🙋 {human}"
+    return f"{stage} ({percent}%) ✅ {done} 📋 {total} ⚙️ {active} 🙋 {human}"
 
 
 def findings_of(record):
