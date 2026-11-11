@@ -1,3 +1,9 @@
+## [13.4.0](https://github.com/maggnus/agentic-plugins/compare/v13.3.0...v13.4.0) (2026-11-11)
+
+### Features
+
+* **rad-ai:** the status line shows completed tasks and carries the stage index alone ([dc67814](https://github.com/maggnus/agentic-plugins/commit/dc678140cec180d51204979b94f0fec2a2482569))
+
 ## [13.3.0](https://github.com/maggnus/agentic-plugins/compare/v13.2.0...v13.3.0) (2026-11-11)
 
 ### Features
