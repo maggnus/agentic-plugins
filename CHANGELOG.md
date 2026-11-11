@@ -1,3 +1,9 @@
+## [13.7.0](https://github.com/maggnus/agentic-plugins/compare/v13.6.0...v13.7.0) (2026-11-11)
+
+### Features
+
+* **rad-ai:** the status line's task counts add up to the stage ([b48d335](https://github.com/maggnus/agentic-plugins/commit/b48d33576968f822acf3309514bb92f4789b8bee))
+
 ## [13.6.0](https://github.com/maggnus/agentic-plugins/compare/v13.5.0...v13.6.0) (2026-11-11)
 
 ### Features
