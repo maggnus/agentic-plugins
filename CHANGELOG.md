@@ -1,3 +1,9 @@
+## [13.6.0](https://github.com/maggnus/agentic-plugins/compare/v13.5.0...v13.6.0) (2026-11-11)
+
+### Features
+
+* **rad-ai:** blocked tasks stand before the owner's decisions, which are always last ([96c377d](https://github.com/maggnus/agentic-plugins/commit/96c377d77872ae59c752ed4b534c3a33ff107176))
+
 ## [13.5.0](https://github.com/maggnus/agentic-plugins/compare/v13.4.0...v13.5.0) (2026-11-11)
 
 ### Features

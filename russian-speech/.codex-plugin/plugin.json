@@ -1,6 +1,6 @@
 {
   "name": "russian-speech",
-  "version": "13.5.0+codex.20261111055337",
+  "version": "13.6.0+codex.20261111055813",
   "description": "Coherent Russian technical prose after long work or context compaction: reconstruct meaning from working notes instead of translating them literally. Preserve technical terms and facts without inventing causes or completed actions.",
   "author": {
     "name": "Maksim Korenev",

@@ -64,14 +64,14 @@ The plugin names no model and supplies no default; the owner fills `roleAssignme
 ### Claude Code
 
 ```sh
-claude plugin marketplace add "maggnus/agentic-plugins@v13.5.0"
+claude plugin marketplace add "maggnus/agentic-plugins@v13.6.0"
 claude plugin install paseo-cto@maggnus
 ```
 
 ### Codex
 
 ```sh
-codex plugin marketplace add maggnus/agentic-plugins --ref v13.5.0
+codex plugin marketplace add maggnus/agentic-plugins --ref v13.6.0
 codex plugin add paseo-cto@maggnus
 ```
 
