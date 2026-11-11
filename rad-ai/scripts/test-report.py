@@ -30,20 +30,20 @@ def snapshot():
 class ReportTests(unittest.TestCase):
     def test_status_is_derived_not_cached(self):
         value = snapshot()
-        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
+        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 ⛔ 1 🙋 1")
         value["tasks"][20]["state"] = "done"
         value["decisions"][0]["state"] = "resolved"
-        self.assertEqual(report.status_line(value), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 0 ⛔ 1")
+        self.assertEqual(report.status_line(value), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 ⛔ 1 🙋 0")
         value["tasks"][0]["state"] = "active"
         value["tasks"].append({"id": "T36", "state": "ready"})
-        self.assertEqual(report.status_line(value), "W5 (56%) ✅ 20 📋 36 ⚙️ 3 🙋 0 ⛔ 1")
+        self.assertEqual(report.status_line(value), "W5 (56%) ✅ 20 📋 36 ⚙️ 3 ⛔ 1 🙋 0")
 
     def test_unique_ids_and_cancelled_tasks(self):
         value = snapshot()
         value["tasks"].append(deepcopy(value["tasks"][0]))
         value["tasks"].append({"id": "cancelled", "state": "cancelled"})
         value["decisions"].append(deepcopy(value["decisions"][0]))
-        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
+        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 ⛔ 1 🙋 1")
         value["tasks"][-2]["state"] = "active"
         with self.assertRaises(ValueError):
             report.status_line(value)
@@ -52,7 +52,7 @@ class ReportTests(unittest.TestCase):
         tasks = [{"id": "a", "state": "done"}, {"id": "b", "state": "blocked"}, {"id": "c", "state": "blocked"},
                  {"id": "d", "state": "ready"}]
         self.assertEqual(report.status_line({"stage": "W5", "tasks": tasks, "decisions": []}),
-                         "W5 (25%) \u2705 1 \U0001F4CB 4 \u2699\ufe0f 0 \U0001F64B 0 \u26d4 2")
+                         "W5 (25%) \u2705 1 \U0001F4CB 4 \u2699\ufe0f 0 \u26d4 2 \U0001F64B 0")
         self.assertNotIn("\u26d4", report.status_line({"stage": "W5", "tasks": tasks[:1], "decisions": []}))
 
     def test_empty_stage_and_half_up_rounding(self):
@@ -163,11 +163,11 @@ class ReportTests(unittest.TestCase):
             path.write_text(json.dumps(value))
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0)
-            self.assertEqual(result.stdout.strip(), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
+            self.assertEqual(result.stdout.strip(), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 ⛔ 1 🙋 1")
             value["tasks"][20]["state"] = "done"
             path.write_text(json.dumps(value))
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
-            self.assertEqual(result.stdout.strip(), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 1 ⛔ 1")
+            self.assertEqual(result.stdout.strip(), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 ⛔ 1 🙋 1")
             path.write_text("{}")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 2)
