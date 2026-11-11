@@ -1,3 +1,9 @@
+## [13.5.0](https://github.com/maggnus/agentic-plugins/compare/v13.4.0...v13.5.0) (2026-11-11)
+
+### Features
+
+* **rad-ai:** the status line shows blocked tasks when there are any ([276ce50](https://github.com/maggnus/agentic-plugins/commit/276ce50a59a037d900c3207e65b9495556ac5271))
+
 ## [13.4.0](https://github.com/maggnus/agentic-plugins/compare/v13.3.0...v13.4.0) (2026-11-11)
 
 ### Features
