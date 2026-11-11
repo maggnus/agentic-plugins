@@ -33,10 +33,10 @@ class ReportTests(unittest.TestCase):
         self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
         value["tasks"][20]["state"] = "done"
         value["decisions"][0]["state"] = "resolved"
-        self.assertEqual(report.status_line(value), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 0")
+        self.assertEqual(report.status_line(value), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 0 ⛔ 1")
         value["tasks"][0]["state"] = "active"
         value["tasks"].append({"id": "T36", "state": "ready"})
-        self.assertEqual(report.status_line(value), "W5 (56%) ✅ 20 📋 36 ⚙️ 3 🙋 0")
+        self.assertEqual(report.status_line(value), "W5 (56%) ✅ 20 📋 36 ⚙️ 3 🙋 0 ⛔ 1")
 
     def test_unique_ids_and_cancelled_tasks(self):
         value = snapshot()
@@ -167,7 +167,7 @@ class ReportTests(unittest.TestCase):
             value["tasks"][20]["state"] = "done"
             path.write_text(json.dumps(value))
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
-            self.assertEqual(result.stdout.strip(), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 1")
+            self.assertEqual(result.stdout.strip(), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 1 ⛔ 1")
             path.write_text("{}")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 2)
