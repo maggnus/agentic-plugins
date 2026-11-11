@@ -1,3 +1,9 @@
+## [13.3.0](https://github.com/maggnus/agentic-plugins/compare/v13.2.0...v13.3.0) (2026-11-11)
+
+### Features
+
+* **rad-ai:** named required evidence, postponed observations and a convergence rule ([b223ce1](https://github.com/maggnus/agentic-plugins/commit/b223ce1c1e07016282be05cb3cd59baf0c6bb609))
+
 ## [13.2.0](https://github.com/maggnus/agentic-plugins/compare/v13.1.0...v13.2.0) (2026-11-09)
 
 ### Features
