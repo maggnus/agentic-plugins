@@ -30,7 +30,7 @@ def snapshot():
 class ReportTests(unittest.TestCase):
     def test_status_is_derived_not_cached(self):
         value = snapshot()
-        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1")
+        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
         value["tasks"][20]["state"] = "done"
         value["decisions"][0]["state"] = "resolved"
         self.assertEqual(report.status_line(value), "W5 (60%) ✅ 21 📋 35 ⚙️ 2 🙋 0")
@@ -43,7 +43,7 @@ class ReportTests(unittest.TestCase):
         value["tasks"].append(deepcopy(value["tasks"][0]))
         value["tasks"].append({"id": "cancelled", "state": "cancelled"})
         value["decisions"].append(deepcopy(value["decisions"][0]))
-        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1")
+        self.assertEqual(report.status_line(value), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
         value["tasks"][-2]["state"] = "active"
         with self.assertRaises(ValueError):
             report.status_line(value)
@@ -163,7 +163,7 @@ class ReportTests(unittest.TestCase):
             path.write_text(json.dumps(value))
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0)
-            self.assertEqual(result.stdout.strip(), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1")
+            self.assertEqual(result.stdout.strip(), "W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1")
             value["tasks"][20]["state"] = "done"
             path.write_text(json.dumps(value))
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)

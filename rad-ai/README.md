@@ -38,7 +38,7 @@ and nullable `score` alongside the evidence fields.
 Every progress report recalculates the current stage from reconciled source records:
 
 ```text
-W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1
+W5 (57%) ✅ 20 📋 35 ⚙️ 3 🙋 1 ⛔ 1
 ```
 
 `W5` is an example stage index; the line carries the index alone, never a word
