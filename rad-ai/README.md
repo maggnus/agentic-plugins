@@ -38,11 +38,12 @@ and nullable `score` alongside the evidence fields.
 Every progress report recalculates the current stage from reconciled source records:
 
 ```text
-W5 (57%) ✅ 20 📋 35 ⚙️ 3 ⛔ 1 🙋 1
+W5 (57%) ✅ 20 📋 11 ⚙️ 3 ⛔ 1 🙋 1
 ```
 
 `W5` is an example stage index; the line carries the index alone, never a word
-naming the stage. `⛔ K` appears before `🙋` only when K tasks are blocked; `🙋` is always last. `✅` counts completed tasks and `📋` distinct noncancelled stage tasks;
+naming the stage. `⛔ K` appears before `🙋` only when K tasks are blocked; `🙋` is always last. `✅` counts completed tasks and `📋` tasks waiting to start; the four task counts
+(`✅`, `📋`, `⚙️`, `⛔`) add up to the distinct noncancelled stage tasks, and
 the percentage is completed tasks divided by that total, rounded to the nearest
 integer with halves rounded up. `⚙️` counts implementation and review tasks.
 `🙋` counts distinct unresolved decisions requiring human authority; one decision
