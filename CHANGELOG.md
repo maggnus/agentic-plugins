@@ -1,3 +1,16 @@
+## [14.0.0](https://github.com/maggnus/agentic-plugins/compare/v13.7.0...v14.0.0) (2026-11-12)
+
+### ⚠ BREAKING CHANGES
+
+* **rad-ai:** review markers and review records carry no score; finding
+kinds are blocking, correction and note; owner exceptions are removed.
+
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+
+### Features
+
+* **rad-ai:** only a blocking defect returns an outcome; no score ([2d926f3](https://github.com/maggnus/agentic-plugins/commit/2d926f372ee6f2323304412315d62727ec33f438))
+
 ## [13.7.0](https://github.com/maggnus/agentic-plugins/compare/v13.6.0...v13.7.0) (2026-11-11)
 
 ### Features
