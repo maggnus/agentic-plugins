@@ -1,3 +1,9 @@
+## [14.1.0](https://github.com/maggnus/agentic-plugins/compare/v14.0.0...v14.1.0) (2026-11-12)
+
+### Features
+
+* **rad-ai:** acceptance list, Git candidates and session start for long-running work ([8874e40](https://github.com/maggnus/agentic-plugins/commit/8874e402bb750d014ab90dd767a06235e37d66e1))
+
 ## [14.0.0](https://github.com/maggnus/agentic-plugins/compare/v13.7.0...v14.0.0) (2026-11-12)
 
 ### ⚠ BREAKING CHANGES
