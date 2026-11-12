@@ -57,16 +57,20 @@ def status_line(snapshot):
 def findings_of(record):
     findings = list(unique_records(record.get("findings"), "findings"))
     for finding in findings:
-        if finding.get("kind") not in {"defect", "suggestion"}:
-            raise ValueError("finding kind must be defect or suggestion")
-        if finding.get("state") not in {"open", "resolved", "excepted"}:
-            raise ValueError("finding state must be open, resolved or excepted")
-        if finding["state"] == "excepted":
-            exception = finding.get("exception")
-            if finding["kind"] != "defect" or not isinstance(exception, dict):
-                raise ValueError("only a defect can be excepted, and it needs an exception record")
-            for field in ("decision", "subject", "applies_to"):
-                text(exception.get(field), f"exception {field}")
+        kind, state = finding.get("kind"), finding.get("state")
+        if not isinstance(kind, str) or kind not in {"blocking", "correction", "note"}:
+            raise ValueError("finding kind must be blocking, correction or note")
+        if not isinstance(state, str) or state not in {"open", "resolved"}:
+            raise ValueError("finding state must be open or resolved")
+        if kind == "blocking":
+            text(finding.get("requirement"), "violated requirement")
+            text(finding.get("reproduction"), "reproduction")
+        if kind == "correction":
+            text(finding.get("check"), "correction check")
+            if state == "resolved":
+                text(finding.get("revision"), "revision on which the correction check passed")
+                if finding.get("result") != "pass":
+                    raise ValueError("a resolved correction records its check result as pass")
     return findings
 
 
@@ -111,45 +115,62 @@ def verdict_line(record):
     """Format a review after checking that its record is consistent; this cannot judge code quality."""
     if not isinstance(record, dict):
         raise ValueError("review must be an object")
-    verdict, round_number, score = record.get("verdict"), record.get("round"), record.get("score")
+    if "score" in record:
+        raise ValueError("reviews carry no score; classify findings as blocking, correction or note")
+    verdict, round_number = record.get("verdict"), record.get("round")
     if type(round_number) is not int or round_number < 1:
         raise ValueError("round must be a positive integer")
     if verdict == "UNVERIFIED":
-        if score is not None:
-            raise ValueError("unavailable assessment must not invent a score")
-        return f"UNVERIFIED R{round_number} (n/a)"
-    if verdict not in {"ACCEPT", "RETURN"} or type(score) is not int or not 1 <= score <= 10:
-        raise ValueError("review requires ACCEPT/RETURN and an integer score from 1 to 10")
-    defects = [finding for finding in findings_of(record) if finding["kind"] == "defect"]
-    open_defects = [finding for finding in defects if finding["state"] == "open"]
-    excepted = [finding for finding in defects if finding["state"] == "excepted"]
+        return f"UNVERIFIED R{round_number}"
+    if verdict not in {"ACCEPT", "RETURN"}:
+        raise ValueError("review requires ACCEPT, RETURN or UNVERIFIED")
+    open_findings = [finding for finding in findings_of(record) if finding["state"] == "open"]
+    blocking = sum(finding["kind"] == "blocking" for finding in open_findings)
+    corrections = sum(finding["kind"] == "correction" for finding in open_findings)
     if verdict == "RETURN":
-        if not open_defects or score > 8:
-            raise ValueError("RETURN names an open defect and scores 8 or lower")
+        if not blocking:
+            raise ValueError("RETURN names an open blocking defect; corrections and notes never return an outcome")
     else:
         commit = text(record.get("commit"), "commit")
         checks = checks_of(record)
-        if open_defects:
-            raise ValueError("ACCEPT cannot leave an open defect; only the owner defers one")
+        if blocking:
+            raise ValueError("ACCEPT cannot leave a blocking defect open")
         required = [check for check in checks if check.get("required", True)]
         if not required or any(check["result"] != "pass" or not same_revision(check["revision"], commit)
                                for check in required):
             raise ValueError("ACCEPT requires passing required checks on the accepted commit")
         if required_unchecked(record):
             raise ValueError("ACCEPT cannot leave a required condition unchecked")
-        if score < 9 or (score == 9) != bool(excepted):
-            raise ValueError("ACCEPT scores 10, or 9 only with owner-authorized exceptions")
-    return f"{verdict} R{round_number} ({score}/10)"
+    return f"{verdict} R{round_number} (blocking {blocking}, corrections {corrections})"
+
+
+def closure_line(record):
+    """State whether an accepted outcome is complete: every correction closed by its check on the final revision."""
+    line = verdict_line(record)
+    if record.get("verdict") != "ACCEPT":
+        raise ValueError(f"only an accepted outcome can be complete: {line}")
+    commit = record["commit"]
+    final = text(record.get("final", commit), "final revision")
+    corrections = [finding for finding in findings_of(record) if finding["kind"] == "correction"]
+    for finding in corrections:
+        if finding["state"] == "open":
+            raise ValueError(f"correction {finding['id']} is open; run its check: {finding['check']}")
+        if not same_revision(finding["revision"], final):
+            raise ValueError(f"correction {finding['id']} was not closed on the final revision; "
+                             "set `final` to the revision the correction fixes produced")
+    if not same_revision(final, commit) and not corrections:
+        raise ValueError("`final` differs from the accepted commit without a correction fix; that change needs review")
+    return f"COMPLETE R{record['round']}"
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("status", "verdict"))
+    parser.add_argument("kind", choices=("status", "verdict", "complete"))
     parser.add_argument("source", nargs="?", default="-", help="current JSON record; '-' reads stdin")
     args = parser.parse_args()
     try:
         value = json.load(sys.stdin) if args.source == "-" else json.loads(Path(args.source).read_text())
-        print(status_line(value) if args.kind == "status" else verdict_line(value))
+        print({"status": status_line, "verdict": verdict_line, "complete": closure_line}[args.kind](value))
     except (OSError, ValueError, TypeError) as error:
         print(f"report unavailable: {error}", file=sys.stderr)
         return 2

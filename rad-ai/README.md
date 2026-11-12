@@ -24,16 +24,25 @@ references supply the contract fields and broad-dependency investigation.
 
 ## Review and stage reports
 
-Text reviews begin with `ACCEPT R2 (10/10)` or `RETURN R2 (8/10)`.
-`R2` identifies the outcome's second review round; rounds advance on corrected
-resubmission and survive repeated reads, restarts and reviewer changes. Scores are
-ordinal assessments from 1 to 10, using the lowest applicable code, evidence or
-observed user-path axis. Acceptance requires 10: verified requirements, a sufficient
-contract, current required checks and no unresolved defects. A 9 accepts only defects
-excepted by a cited owner decision; 8 or lower returns. Only a separate review
-context accepts; a reviewer's proposal to defer a defect is not authorization.
-Unavailable assessment uses `UNVERIFIED R2 (n/a)`; JSON exposes `verdict`, `round`
-and nullable `score` alongside the evidence fields.
+Text reviews begin with `ACCEPT R2 (blocking 0, corrections 3)` or
+`RETURN R1 (blocking 2, corrections 1)`. `R2` identifies the outcome's second review
+round; rounds advance on corrected resubmission and survive repeated reads, restarts and
+reviewer changes. The counts are of open findings; there is no score.
+
+- A **blocking defect** violates, in what the outcome delivers, an owner requirement, a
+  project rule, a named invariant or criterion, or a critical consequence. Only it returns
+  an outcome for another round.
+- A **correction** is any other flaw in scope that a check can confirm fixed. The review
+  names that check; the flaw is fixed, the check passes, and it is closed without another
+  review.
+- A **note** becomes a task where it belongs or is declined with a reason; it never blocks.
+
+An outcome is complete when a separate review has accepted it and every correction is
+closed; acceptance carries to a final revision that differs only by those fixes.
+Experiments are accepted on their answer. The contract sets a time budget and a round
+limit, two by default; the roles decide what happens at the limit without asking the
+owner, who decides only changes to the owner's requirements, critical consequences without
+evidence and irreversible actions. Unavailable assessment uses `UNVERIFIED R2`.
 
 Every progress report recalculates the current stage from reconciled source records:
 
@@ -62,16 +71,24 @@ python3 rad-ai/skills/rad-ai/scripts/report.py verdict current-review.json
 Stage input has `stage`, `tasks` with `id` and `state`, and `decisions` with `id`,
 `state` and boolean `requires_human`. Task states are `ready`, `active`, `review`,
 `blocked`, `done`, `cancelled`; decision states are `open`, `resolved`.
-Review input has `verdict`, positive integer `round`, and integer `score` from 1
-to 10, or null for `UNVERIFIED`. `ACCEPT` and `RETURN` also require `findings` with
-`id`, `kind` (`defect` or `suggestion`) and `state` (`open`, `resolved` or
-`excepted`); an excepted defect carries `exception` with `decision`, `subject` and
-`applies_to`. `ACCEPT` requires `commit` and `checks` with `command` (or the observed manual procedure),
-`result` (`pass` or `fail`), `revision` (full or at least 7-character prefix), optional `exit`
-and optional boolean `required` (default true): every required check passes on that commit,
-every `unchecked` entry is an object with `required: false` (plain text counts as required), no defect is open, and 9 appears only
-with exceptions. `RETURN` names an open defect and scores 8 or lower. This checks
-record consistency only; it cannot establish code quality or block a manual closure. The formatter stores no task state or displayed
+Review input has `verdict` and positive integer `round`; a `score` field is rejected.
+`ACCEPT` and `RETURN` also require `findings` with `id`, `kind` (`blocking`, `correction`
+or `note`) and `state` (`open` or `resolved`). A blocking defect carries `requirement` and
+`reproduction`. A correction carries `check`, the command or procedure that confirms its
+fix, and once resolved `result: pass` and the `revision` on which that check passed. `ACCEPT` requires `commit` and `checks` with `command` (or the observed manual
+procedure), `result` (`pass` or `fail`), `revision` (full or at least 7-character prefix),
+optional `exit` and optional boolean `required` (default true): every required check
+passes on that commit, every `unchecked` entry is an object with `required: false` (plain
+text counts as required) and no blocking defect is open. `RETURN` names an open blocking
+defect; corrections and notes alone never return an outcome.
+
+```sh
+python3 rad-ai/skills/rad-ai/scripts/report.py complete current-review.json
+```
+
+`complete` prints `COMPLETE Rn` only for an accepted review whose corrections are all
+resolved on one final revision: the accepted `commit`, or `final` when fixes followed it. These commands check record consistency only; they cannot
+establish code quality or block a manual closure. The formatter stores no task state or displayed
 values. Its use is optional; the complete reporting rules are in the skill.
 
 ## Invoke

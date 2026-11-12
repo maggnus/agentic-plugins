@@ -74,47 +74,60 @@ class ReportTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 report.status_line(value)
 
-    def test_acceptance_requires_completion_conditions(self):
+    def test_only_blocking_defects_return_an_outcome(self):
         sha = "3f9c2e1a7b"
         check = {"command": "make test", "exit": 0, "result": "pass", "revision": sha}
         observed = {"command": "open /claims and submit the form", "result": "pass", "revision": sha[:7]}
-        exception = {"decision": "owner D4 2026-11-07", "subject": "label wording", "applies_to": "T7 3f9c2e1"}
-        excepted = {"id": "F1", "kind": "defect", "state": "excepted", "exception": exception}
-        open_defect = {"id": "F1", "kind": "defect", "state": "open"}
+        blocking = {"id": "F1", "kind": "blocking", "state": "open",
+                    "requirement": "owner: status visible in the portal", "reproduction": "GET /status returns 500"}
+        correction = {"id": "F2", "kind": "correction", "state": "open", "check": "grep -c fork docs/record.md"}
+        closed = {**correction, "state": "resolved", "revision": sha, "result": "pass"}
+        note = {"id": "F3", "kind": "note", "state": "open"}
         def review(**fields):
-            return {"verdict": "ACCEPT", "round": 1, "score": 10, "commit": sha,
-                    "findings": [], "checks": [check], **fields}
+            return {"verdict": "ACCEPT", "round": 1, "commit": sha, "findings": [], "checks": [check], **fields}
+        def returned(*findings, round=1):
+            return {"verdict": "RETURN", "round": round, "findings": list(findings)}
         accepted = {
-            "ACCEPT R1 (10/10)": [review(), review(checks=[check, observed]),
-                                  review(findings=[{"id": "F1", "kind": "suggestion", "state": "open"}]),
-                                  review(checks=[check, {**check, "exit": 1, "result": "fail", "required": False}]),
-                                  review(unchecked=[{"condition": "Safari", "required": False}]),
-                                  review(commit="r42", checks=[{**check, "revision": "r42"}])],
-            "ACCEPT R2 (9/10)": [review(round=2, score=9, findings=[excepted])],
-            "RETURN R2 (8/10)": [{"verdict": "RETURN", "round": 2, "score": 8, "findings": [open_defect]}],
-            "UNVERIFIED R1 (n/a)": [{"verdict": "UNVERIFIED", "round": 1, "score": None}],
+            "ACCEPT R1 (blocking 0, corrections 0)": [
+                review(), review(checks=[check, observed]), review(findings=[note]), review(findings=[closed]),
+                review(findings=[{**blocking, "state": "resolved"}]),
+                review(checks=[check, {**check, "exit": 1, "result": "fail", "required": False}]),
+                review(unchecked=[{"condition": "Safari", "required": False}]),
+                review(commit="r42", checks=[{**check, "revision": "r42"}])],
+            "ACCEPT R1 (blocking 0, corrections 2)": [
+                review(findings=[correction, {**correction, "id": "F4"}, note, closed | {"id": "F5"}])],
+            "RETURN R2 (blocking 1, corrections 1)": [returned(blocking, correction, note, round=2)],
+            "RETURN R1 (blocking 2, corrections 0)": [returned(blocking, {**blocking, "id": "F9"})],
+            "UNVERIFIED R1": [{"verdict": "UNVERIFIED", "round": 1}],
         }
         for line, records in accepted.items():
             for record in records:
                 with self.subTest(line=line, record=record):
                     self.assertEqual(report.verdict_line(record), line)
-        def exception_without(field, value=None):
-            return review(score=9, findings=[{**excepted, "exception": {**exception, field: value}}])
         rejected = {
-            "passing score with a known defect": review(score=8, findings=[open_defect]),
-            "open defect at 10": review(findings=[open_defect]),
-            "7 without defects": review(score=7),
-            "9 without an exception": review(score=9),
-            "10 hiding an exception": review(findings=[excepted]),
-            "bare authorized_by": review(score=9, findings=[
-                {"id": "F1", "kind": "defect", "state": "excepted", "authorized_by": "owner"}]),
-            "exception without decision": exception_without("decision"),
-            "exception with empty decision": exception_without("decision", ""),
-            "exception without subject": exception_without("subject"),
-            "exception without applicability": exception_without("applies_to"),
-            "excepted suggestion": review(score=9, findings=[{**excepted, "kind": "suggestion"}]),
-            "unknown finding kind": review(findings=[{"id": "F1", "kind": "nit", "state": "resolved"}]),
-            "unknown finding state": review(findings=[{"id": "F1", "kind": "defect", "state": "deferred"}]),
+            "accept with a blocking defect": review(findings=[blocking]),
+            "return for corrections only": returned(correction),
+            "return for a note": returned(note),
+            "return without findings": returned(),
+            "return for a resolved blocking defect": returned({**blocking, "state": "resolved"}),
+            "score on accept": review(score=10),
+            "score on return": {**returned(blocking), "score": 8},
+            "score on unverified": {"verdict": "UNVERIFIED", "round": 1, "score": None},
+            "correction without a check": review(findings=[{"id": "F2", "kind": "correction", "state": "open"}]),
+            "correction with an empty check": review(findings=[{**correction, "check": ""}]),
+            "resolved correction without a revision": review(findings=[
+                {**correction, "state": "resolved", "result": "pass"}]),
+            "resolved correction without a passing result": review(findings=[
+                {**correction, "state": "resolved", "revision": sha}]),
+            "resolved correction with a failed result": review(findings=[{**closed, "result": "fail"}]),
+            "blocking defect without a requirement": returned({k: v for k, v in blocking.items() if k != "requirement"}),
+            "blocking defect without a reproduction": returned({**blocking, "reproduction": ""}),
+            "conflicting finding IDs": returned(blocking, {**blocking, "reproduction": "another"}),
+            "unhashable finding kind": review(findings=[{"id": "F1", "kind": ["note"], "state": "open"}]),
+            "unhashable finding state": review(findings=[{"id": "F1", "kind": "note", "state": {}}]),
+            "old defect kind": review(findings=[{"id": "F1", "kind": "defect", "state": "resolved"}]),
+            "old excepted state": review(findings=[{**blocking, "state": "excepted"}]),
+            "unknown verdict": review(verdict="PASS"),
             "no checks": review(checks=[]),
             "only optional checks": review(checks=[{**check, "required": False}]),
             "failed check": review(checks=[{**check, "exit": 1, "result": "fail"}]),
@@ -135,26 +148,72 @@ class ReportTests(unittest.TestCase):
             "missing findings": {k: v for k, v in review().items() if k != "findings"},
             "missing commit": {k: v for k, v in review().items() if k != "commit"},
             "empty commit": review(commit=""),
-            "return without a defect": {"verdict": "RETURN", "round": 1, "score": 6, "findings": []},
-            "return at 9": {"verdict": "RETURN", "round": 1, "score": 9, "findings": [open_defect]},
-            "unverified with a score": {"verdict": "UNVERIFIED", "round": 1, "score": 5},
         }
         for name, record in rejected.items():
             with self.subTest(name), self.assertRaises(ValueError):
                 report.verdict_line(record)
-        for field, value in (("round", 0), ("round", True), ("score", 11), ("score", 0), ("score", True)):
-            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
-                report.verdict_line(review(**{field: value}))
+        for value in (0, True, "1"):
+            with self.subTest(round=value), self.assertRaises(ValueError):
+                report.verdict_line(review(round=value))
 
-    def test_cli_rejects_inconsistent_verdict(self):
+    def test_completion_closes_every_correction_on_the_final_revision(self):
+        sha, fixed = "3f9c2e1a7b", "9d04c7e5b1"
+        check = {"command": "make test", "exit": 0, "result": "pass", "revision": sha}
+        correction = {"id": "F2", "kind": "correction", "state": "open", "check": "grep -c fork docs/record.md"}
+        def closed(revision, **fields):
+            return {**correction, "state": "resolved", "revision": revision, "result": "pass", **fields}
+        def review(*findings, **fields):
+            return {"verdict": "ACCEPT", "round": 2, "commit": sha, "findings": list(findings),
+                    "checks": [check], **fields}
+        complete = [
+            review(),
+            review({"id": "F3", "kind": "note", "state": "open"}, closed(sha[:7])),
+            review(closed(fixed), closed(fixed[:7], id="F4"), final=fixed),
+        ]
+        for record in complete:
+            with self.subTest(record=record):
+                self.assertEqual(report.closure_line(record), "COMPLETE R2")
+        rejected = {
+            "open correction": review(correction),
+            "open correction of an earlier round beside a closed one": review(closed(fixed), {**correction, "id": "F4"},
+                                                                         final=fixed),
+            "fix revision not declared final": review(closed(fixed)),
+            "corrections closed on different revisions": review(closed(fixed), closed(sha, id="F4"), final=fixed),
+            "empty final revision": review(final=""),
+            "final revision without a correction fix": review(final=fixed),
+            "final revision with only a note": review({"id": "F3", "kind": "note", "state": "open"}, final=fixed),
+            "returned outcome": {"verdict": "RETURN", "round": 1, "findings": [
+                {"id": "F1", "kind": "blocking", "state": "open", "requirement": "r", "reproduction": "x"}]},
+            "unverified outcome": {"verdict": "UNVERIFIED", "round": 1},
+            "accepted record that is inconsistent": review(checks=[]),
+        }
+        for name, record in rejected.items():
+            with self.subTest(name), self.assertRaises(ValueError):
+                report.closure_line(record)
+
+    def test_cli_verdict_and_complete(self):
+        blocking = {"id": "F1", "kind": "blocking", "state": "open", "requirement": "r", "reproduction": "x"}
+        accepted = {"verdict": "ACCEPT", "round": 1, "commit": "3f9c2e1a7b", "findings": [],
+                    "checks": [{"command": "make test", "result": "pass", "revision": "3f9c2e1a7b"}]}
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "review.json"
-            path.write_text(json.dumps({"verdict": "ACCEPT", "round": 1, "score": 8, "commit": "3f9c2e1a7b",
-                                        "findings": [{"id": "F1", "kind": "defect", "state": "open"}],
-                                        "checks": []}))
-            result = subprocess.run([sys.executable, str(SCRIPT), "verdict", str(path)], capture_output=True, text=True)
-            self.assertEqual(result.returncode, 2)
-            self.assertEqual(result.stdout, "")
+            def run(kind, record):
+                path.write_text(json.dumps(record))
+                return subprocess.run([sys.executable, str(SCRIPT), kind, str(path)], capture_output=True, text=True)
+            for kind, line in (("verdict", "ACCEPT R1 (blocking 0, corrections 0)"), ("complete", "COMPLETE R1")):
+                result = run(kind, accepted)
+                self.assertEqual((result.returncode, result.stdout.strip()), (0, line))
+                result = run(kind, {**accepted, "findings": [blocking], "checks": []})
+                self.assertEqual((result.returncode, result.stdout), (2, ""))
+            result = run("complete", {**accepted, "findings": [
+                {"id": "F2", "kind": "correction", "state": "open", "check": "make lint"}]})
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+            self.assertIn("make lint", result.stderr)
+            result = run("complete", {**accepted, "findings": [
+                {"id": "F2", "kind": "correction", "state": "resolved", "check": "make lint",
+                 "result": "pass", "revision": "9d04c7e5b1"}]})
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+            self.assertIn("`final`", result.stderr)
 
     def test_cli_reloads_current_file_each_invocation(self):
         with tempfile.TemporaryDirectory() as directory:

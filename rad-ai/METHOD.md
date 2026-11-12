@@ -36,7 +36,11 @@ These are design hypotheses, not consequences proven by the cited studies. The f
 
 Local reversible consequences require targeted checks and a complete diff assessment. Cross-module or user-visible consequences additionally require failure-path and consumer assessment. Every acceptance comes from a separate review context. Critical consequences additionally require evidence that rejects a violated invariant. If that evidence is unavailable, implementation can be prepared, but critical delivery cannot be accepted.
 
-Acceptance identifies exact requirements and revision. Integration is a separate obligation: independent branch acceptance does not prove combined compatibility. A return identifies a defect and the observation needed to close it. Scope follows the owner request, project rules, affected scenarios and invariants rather than only the written contract; pre-existing defects the change activates or that block the outcome are in scope. Suggestions and unrelated pre-existing issues become separate work. Only a separate review context accepts; implementers and coordinators submit, and a returned outcome closes only after review of its current revision. Repetition without new information changes the approach or identifies a blocking condition; it never lowers acceptance criteria.
+Acceptance identifies exact requirements and revision. Integration is a separate obligation: independent branch acceptance does not prove combined compatibility. Scope follows the owner request, project rules, affected scenarios and invariants rather than only the written contract; pre-existing defects the change activates or that block the outcome are in scope. Only a separate review context accepts; implementers and coordinators submit.
+
+A review sorts findings into three kinds. A blocking defect violates, in what the outcome delivers, an owner requirement, a project rule, a named invariant or criterion, or a critical consequence; only it returns an outcome. A correction is any other flaw in scope that a check can confirm fixed: the review names the check, the flaw is fixed, the check passes, and the coordinator closes it without another round; acceptance carries to the final revision. A note becomes a task where it belongs or is declined with a reason, and never blocks. The reviewer's own observations are evidence. An experiment is accepted on its answer, not on the quality of its prototype or record.
+
+The method regulates itself: the contract carries a time budget and a round limit, and when either is spent with a blocking defect open the approach changes or the outcome is split, each as a new outcome; it is recorded blocked only when neither exists. The owner decides only changes to the owner's requirements, critical consequences without evidence and irreversible actions. Repetition without new information never lowers acceptance criteria.
 
 ## Scale and continuity
 
@@ -46,16 +50,17 @@ After interruption, reconcile current requirements, revisions, outstanding work 
 
 ## Reporting protocol
 
-Text acceptance records use `ACCEPT Rn (s/10)` and `RETURN Rn (s/10)`;
-unavailable assessment uses `UNVERIFIED Rn (n/a)`. The round belongs to one
-outcome, starts at 1 and advances after corrected resubmission. Repeated reads,
-restart and reviewer changes preserve the round. The score is the minimum of
-applicable observed code, evidence and user-path axes under the included rubric.
-It is an ordinal judgment, not a probability. Acceptance requires 10: verified
-requirements, a sufficient contract, current required checks and no unresolved
-defects. A 9 accepts only defects excepted by a cited owner decision; 8 or lower
-returns. A visible passing score without these completion conditions became a
-target that agents satisfied while known defects remained.
+Text acceptance records use `ACCEPT Rn (blocking 0, corrections c)` and
+`RETURN Rn (blocking b, corrections c)`, counting open findings; unavailable assessment
+uses `UNVERIFIED Rn`. The round belongs to one outcome, starts at 1 and advances after
+corrected resubmission. Repeated reads, restart and reviewer changes preserve the round.
+
+There is no numeric score. Two forms of it failed in use. A score that did not decide
+the verdict became a target: agents stopped at 8 of 10 with known defects open. A score
+that had to reach 10 on its lowest axis made every inaccuracy a new round: an experiment
+whose answer was reproduced in the first review was returned three times at 8 of 10 for
+the wording of its record and closed after almost five hours. Counts of findings by kind
+state what remains and cannot be approached gradually.
 
 Stage status is a derived view: `<index> (p%) ✅ D 📋 W ⚙️ A 🙋 B`, the stage's index alone, with ` ⛔ K` before `🙋` only when K tasks are blocked; `🙋 B` is always last; D + W + A + K = N, with W the tasks waiting to start. Source records
 are reconciled before each report. N counts distinct noncancelled tasks, D counts

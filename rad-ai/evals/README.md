@@ -23,3 +23,8 @@ To repeat the agent trial, use the installed main role and `django/CONTRACT.md` 
 an unmodified checkout, without giving it the recorded patch. Record host and model versions,
 settings, budgets, full elapsed time, all attempts and independent acceptance. Repetition of
 these cases alone does not establish comparative acceleration or giant-system capability.
+
+`reporting/` is a historical fixture: its review record carries the axis scores of the scored
+marker that was later removed. It is kept unchanged because recorded evidence cites its hash;
+the current review record format is exercised by `scripts/test-report.py`, and the behavioral
+cases for acceptance are in `acceptance/CASES.md`.
