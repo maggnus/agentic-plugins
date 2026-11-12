@@ -215,6 +215,108 @@ class ReportTests(unittest.TestCase):
             self.assertEqual((result.returncode, result.stdout), (2, ""))
             self.assertIn("`final`", result.stderr)
 
+    def test_acceptance_list_changes_only_by_passes(self):
+        def item(key="A1", **fields):
+            return {"id": key, "behavior": "A visitor resets a forgotten password",
+                    "steps": ["Open /login and choose Forgot password", "Submit the address: a reset message arrives"],
+                    "passes": False, **fields}
+        def listed(*items):
+            return {"stage": "W5", "items": list(items)}
+        passed = item(passes=True, revision="3f9c2e1a7b")
+        base = listed(item(), item("A2"))
+        self.assertEqual(report.acceptance_line(base), "W5 acceptance 0/2")
+        allowed = {
+            "W5 acceptance 1/2": [listed(passed, item("A2")), listed(item("A2"), passed)],
+            "W5 acceptance 0/2": [deepcopy(base)],
+            "W5 acceptance 1/3": [listed(passed, item("A2"), item("A3", behavior="Added by the contract amendment"))],
+        }
+        amended = {"steps": ["Open /sign-in and choose Forgot password", "Submit the address: a reset message arrives"],
+                   "amended": "R1 F4: the form moved to /sign-in"}
+        allowed["W5 acceptance 0/2"] += [listed(item(**amended), item("A2")),
+                                         listed(item(behavior="Owner decision D7", amended="D7"), item("A2"))]
+        for line, values in allowed.items():
+            for value in values:
+                with self.subTest(line=line, value=value):
+                    self.assertEqual(report.acceptance_line(value, base), line)
+        self.assertEqual(report.acceptance_line(base, listed(passed, item("A2"))), "W5 acceptance 0/2")
+        edited = {
+            "removed item": listed(item("A2")),
+            "reworded behavior": listed(item(behavior="A visitor sees the login page"), item("A2")),
+            "dropped step": listed(item(steps=["Open /login and choose Forgot password"]), item("A2")),
+            "weakened step": listed(item(steps=["Open /login and choose Forgot password", "Submit the address"]),
+                                    item("A2")),
+            "renamed item": listed(item("A9"), item("A2")),
+            "another stage": {**deepcopy(base), "stage": "W6"},
+        }
+        for name, value in edited.items():
+            with self.subTest(name):
+                self.assertEqual(report.acceptance_line(value),
+                                 f"{value['stage']} acceptance 0/{len(value['items'])}")
+                with self.assertRaises(ValueError):
+                    report.acceptance_line(value, base)
+        malformed = {
+            "not an object": [], "no items": {"stage": "W5"}, "empty list": listed(),
+            "items not a list": {"stage": "W5", "items": {}}, "item not an object": listed("A1"),
+            "missing stage": {"items": [item()]}, "stage with words": {**listed(item()), "stage": "W5 login"},
+            "empty amendment record": listed(item(amended="")), "amendment record not text": listed(item(amended=True)),
+            "duplicate ID": listed(item(), item()),
+            "missing ID": listed({k: v for k, v in item().items() if k != "id"}),
+            "missing behavior": listed({k: v for k, v in item().items() if k != "behavior"}),
+            "no steps": listed(item(steps=[])), "steps as text": listed(item(steps="abc")),
+            "empty step": listed(item(steps=["Open /login", ""])),
+            "passes as text": listed(item(passes="true")), "passes as a number": listed(item(passes=0)),
+            "missing passes": listed({k: v for k, v in item().items() if k != "passes"}),
+            "passing without the accepted revision": listed(item(passes=True)),
+            "passing with an empty revision": listed(item(passes=True, revision="")),
+        }
+        for name, value in malformed.items():
+            with self.subTest(name), self.assertRaises(ValueError):
+                report.acceptance_line(value)
+        with self.assertRaises(ValueError):
+            report.acceptance_line(base, listed())
+        with self.assertRaises(ValueError):
+            report.acceptance_line(base, {"items": deepcopy(base["items"])})
+        once = listed(item(**amended), item("A2"))
+        again = ["Open /account and choose Forgot password", "Submit the address: a reset message arrives"]
+        self.assertEqual(report.acceptance_line(deepcopy(once), once), "W5 acceptance 0/2")
+        self.assertEqual(report.acceptance_line(
+            listed(item(steps=again, amended="R2 F1: the form moved to /account"), item("A2")), once),
+            "W5 acceptance 0/2")
+        for name, entry in (("the earlier record reused", item(steps=again, amended=amended["amended"])),
+                            ("the record dropped", item(steps=again)),
+                            ("restored without a record", item())):
+            with self.subTest(name), self.assertRaises(ValueError):
+                report.acceptance_line(listed(entry, item("A2")), once)
+
+    def test_cli_acceptance_compares_with_the_previous_list(self):
+        def listed(steps, passes=False):
+            entry = {"id": "A1", "behavior": "A visitor signs in", "steps": steps, "passes": passes}
+            return {"stage": "W5", "items": [{**entry, "revision": "3f9c2e1a7b"} if passes else entry]}
+        with tempfile.TemporaryDirectory() as directory:
+            current, previous = Path(directory) / "acceptance.json", Path(directory) / "base.json"
+            previous.write_text(json.dumps(listed(["Open /login", "Submit valid credentials: the dashboard opens"])))
+            def run(value, *arguments):
+                current.write_text(json.dumps(value))
+                return subprocess.run([sys.executable, str(SCRIPT), "acceptance", str(current), *arguments],
+                                      capture_output=True, text=True)
+            toggled = listed(["Open /login", "Submit valid credentials: the dashboard opens"], passes=True)
+            result = run(toggled, "--previous", str(previous))
+            self.assertEqual((result.returncode, result.stdout.strip()), (0, "W5 acceptance 1/1"))
+            weakened = listed(["Open /login"], passes=True)
+            self.assertEqual(run(weakened).stdout.strip(), "W5 acceptance 1/1")
+            result = run(weakened, "--previous", str(previous))
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+            self.assertIn("`amended`", result.stderr)
+            result = run(toggled, "--previous", str(Path(directory) / "absent.json"))
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+            current.write_text(json.dumps(snapshot()))
+            result = subprocess.run([sys.executable, str(SCRIPT), "status", str(current)], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0)
+            result = subprocess.run([sys.executable, str(SCRIPT), "status", str(current), "--previous", str(previous)],
+                                    capture_output=True, text=True)
+            self.assertEqual((result.returncode, result.stdout), (2, ""))
+            self.assertIn("--previous applies to acceptance only", result.stderr)
+
     def test_cli_reloads_current_file_each_invocation(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "record.json"

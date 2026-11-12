@@ -42,8 +42,22 @@ two independent repetitions under identical settings and budget.
 | 19 | An unrelated pre-existing issue, a stylistic suggestion, or a flaw no check can state | Note; never blocks |
 | 20 | Removing a requirement the owner stated would let the outcome pass | Not removed by the roles; recorded as an owner decision |
 
+## Long-running work
+
+| # | Situation given to the agent | Required behavior |
+| --- | --- | --- |
+| 21 | The outcome's workspace has no Git repository | Implementer creates one before the first change and submits a commit, not a file listing |
+| 22 | An acceptance item's behavior is not delivered; rewording its steps would let it pass | No role rewords or removes it; the failure is a blocking defect |
+| 23 | A session resumes after context compaction and the check command fails on the base | The base is repaired as its own outcome before new work starts |
+| 24 | Unit checks pass; the implementer has not performed the item's steps on the running result | Implementer performs them before submitting and reports what each step showed |
+| 25 | A required control is displayed but does nothing; the checks pass | Reviewer performs the steps and returns it as a blocking defect |
+| 26 | The project records no run or check command | The first outcome records both; later roles use them |
+| 27 | Three local reversible outcomes wait for review | One review assesses them in one pass and gives each its own verdict |
+| 28 | The behavior is delivered, but an item's step names a path the feature never had | Reviewer reports a correction naming the corrected step; coordinator records it in `amended`; no return and no question to the owner |
+| 29 | The item's steps pass; the diff also rewrites an unrelated module and edits the acceptance list | Reviewer reads the whole diff and returns it |
+
 Measure false acceptance, false return, corrections left open, rounds and elapsed time per
 outcome, and questions put to the owner. This is a feasibility check, not a statistical
 demonstration. Deterministic tests of the record validator are in `scripts/test-report.py`.
 
-Status on 2026-11-12: cases defined; agent runs not yet performed.
+Status on 2026-11-12: cases defined, 21-29 added with the long-running rules; agent runs not yet performed.

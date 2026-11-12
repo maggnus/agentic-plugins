@@ -14,13 +14,33 @@ in this package.
 
 ## Instruction limits
 
-- Rules are concise; length is not capped by word count.
+- Rules are concise, so that a loaded skill leaves the context to the work; length is not
+  capped by word count.
 - Each operational Markdown file stays within 500 lines, because agents weigh the first
   500 lines most; decisive rules come first.
 - Operational references stay inside `skills/`; research documents are not automatically loaded.
 
 Package checks reject violations. The main instruction retains the complete decision process;
-references supply the contract fields and broad-dependency investigation.
+references supply the record formats, finding definitions, reporting rules and
+broad-dependency investigation.
+
+## Records for long-running work
+
+Work that spans many sessions keeps its state in the repository, not in an agent's context:
+
+- **Acceptance list.** `acceptance.json` lists the stage's observable behaviors, each with
+  the steps a user performs and `passes`, false until a review has seen the steps pass. It is
+  written before implementation; afterwards items are only added and `passes` set, and none is
+  removed or reworded to pass. A blocking defect is then first of all an item whose steps fail.
+- **Project commands.** One run command starts the result and one check command runs every
+  required check.
+- **Git.** Every candidate is a commit; a workspace without a repository gets one first.
+- **Session start.** At every start, resume or context compaction the coordinator reads the
+  records, `git log` and `git status`, runs the check command and walks one passing item
+  before any new work; a broken base is repaired first. The implementer runs the check
+  command on its base before editing.
+- **User's-eye check.** The implementer performs each item's steps on the running result
+  before submitting; the reviewer performs them again.
 
 ## Review and stage reports
 
@@ -84,12 +104,20 @@ defect; corrections and notes alone never return an outcome.
 
 ```sh
 python3 rad-ai/skills/rad-ai/scripts/report.py complete current-review.json
+python3 rad-ai/skills/rad-ai/scripts/report.py acceptance acceptance.json --previous base-acceptance.json
 ```
 
 `complete` prints `COMPLETE Rn` only for an accepted review whose corrections are all
-resolved on one final revision: the accepted `commit`, or `final` when fixes followed it. These commands check record consistency only; they cannot
+resolved on one final revision: the accepted `commit`, or `final` when fixes followed it.
+`acceptance` prints `W5 acceptance 12/40`, the count of passing items; the list has `stage`
+and `items`, each item `id`, `behavior`, nonempty `steps` and boolean `passes`, and a passing
+item names the accepted `revision`. With `--previous` (the same stage's list at its base, for
+example from `git show`) it rejects a removed item and a `behavior` or `steps` changed without
+a new `amended` entry naming the reviewer's finding or the owner's decision; added items are
+allowed. It checks that such a change is recorded, not that it was justified. These commands check record consistency only; they cannot
 establish code quality or block a manual closure. The formatter stores no task state or displayed
-values. Its use is optional; the complete reporting rules are in the skill.
+values. `status`, `verdict` and `complete` are optional, since the complete reporting rules are in
+the skill; the coordinator runs `acceptance --previous` whenever it sets `passes`.
 
 ## Invoke
 

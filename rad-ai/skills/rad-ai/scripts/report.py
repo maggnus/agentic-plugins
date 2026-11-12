@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Format a review or recalculate stage status from current records; write no state."""
+"""Format a review, stage status or acceptance count from current records; write no state."""
 
 import argparse
 import json
@@ -163,14 +163,72 @@ def closure_line(record):
     return f"COMPLETE R{record['round']}"
 
 
+def acceptance_items(value, label):
+    if not isinstance(value, dict) or not isinstance(value.get("items"), list) or not value["items"]:
+        raise ValueError(f"{label} must be an object with a nonempty `items` list")
+    items = {}
+    for item in value["items"]:
+        if not isinstance(item, dict):
+            raise ValueError(f"{label} items must be objects")
+        key = text(item.get("id"), "acceptance item ID")
+        if key in items:
+            raise ValueError(f"duplicate acceptance item ID: {key}")
+        text(item.get("behavior"), f"behavior of {key}")
+        steps = item.get("steps")
+        if not isinstance(steps, list) or not steps:
+            raise ValueError(f"acceptance item {key} needs the steps a user performs")
+        for step in steps:
+            text(step, f"step of {key}")
+        if type(item.get("passes")) is not bool:
+            raise ValueError(f"acceptance item {key} needs boolean `passes`")
+        if item["passes"]:
+            text(item.get("revision"), f"revision on which {key} was accepted")
+        if "amended" in item:
+            text(item["amended"], f"finding or owner decision that amended {key}")
+        items[key] = item
+    return items
+
+
+def acceptance_line(current, previous=None):
+    """Count passing acceptance items; against a previous list no item is removed or reworded without a record."""
+    items = acceptance_items(current, "acceptance list")
+    stage = text(current.get("stage"), "stage")
+    if any(c.isspace() for c in stage):
+        raise ValueError("stage must be an index without words or spaces")
+    if previous is not None:
+        earlier = acceptance_items(previous, "previous acceptance list")
+        if previous.get("stage") != stage:
+            raise ValueError("the previous acceptance list belongs to another stage")
+        for key, old in earlier.items():
+            if key not in items:
+                raise ValueError(f"acceptance item {key} was removed; items are never removed to pass")
+            new = items[key]
+            reworded = (new["behavior"], new["steps"]) != (old["behavior"], old["steps"])
+            if reworded and new.get("amended") in (None, old.get("amended")):
+                raise ValueError(f"acceptance item {key} was reworded; record the reviewer's finding or the "
+                                 "owner's decision for this change in `amended`")
+    passing = sum(item["passes"] for item in items.values())
+    return f"{stage} acceptance {passing}/{len(items)}"
+
+
+def load(source):
+    return json.load(sys.stdin) if source == "-" else json.loads(Path(source).read_text())
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("status", "verdict", "complete"))
+    parser.add_argument("kind", choices=("status", "verdict", "complete", "acceptance"))
     parser.add_argument("source", nargs="?", default="-", help="current JSON record; '-' reads stdin")
+    parser.add_argument("--previous", help="acceptance only: the list at the stage's base, to reject edits")
     args = parser.parse_args()
     try:
-        value = json.load(sys.stdin) if args.source == "-" else json.loads(Path(args.source).read_text())
-        print({"status": status_line, "verdict": verdict_line, "complete": closure_line}[args.kind](value))
+        if args.previous is not None and args.kind != "acceptance":
+            raise ValueError("--previous applies to acceptance only")
+        value = load(args.source)
+        if args.kind == "acceptance":
+            print(acceptance_line(value, None if args.previous is None else load(args.previous)))
+        else:
+            print({"status": status_line, "verdict": verdict_line, "complete": closure_line}[args.kind](value))
     except (OSError, ValueError, TypeError) as error:
         print(f"report unavailable: {error}", file=sys.stderr)
         return 2
