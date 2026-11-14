@@ -1,3 +1,9 @@
+## [14.2.0](https://github.com/maggnus/agentic-plugins/compare/v14.1.0...v14.2.0) (2026-11-14)
+
+### Features
+
+* **rad-ai:** harden report validation, structure skills and add project frame ([66c1015](https://github.com/maggnus/agentic-plugins/commit/66c1015cc9dbf6c081cbe484e8761598a26f4096))
+
 ## [14.1.0](https://github.com/maggnus/agentic-plugins/compare/v14.0.0...v14.1.0) (2026-11-12)
 
 ### Features
