@@ -5,20 +5,36 @@ description: "Independently accept, return or identify unverified RAD changes ag
 
 # RAD acceptance
 
-Obtain the owner's words or source records, the contract with its acceptance items, base and candidate commits and prior findings. Verify that the candidate is the stated commit and contains the current base. The implementer's statements are claims: test those your verdict depends on.
+## Context and independence
 
-Start the result with the run command and perform each acceptance item's steps yourself, as a user would; probe failures, edge cases and consumers; run the check command. Reading code does not replace observing behavior. Then read the whole diff: assess boundaries, compatibility, dependencies and changed tests, and that it carries no unrelated work and no edit of the acceptance list. Critical consequences require discriminating evidence.
+1. Obtain the owner's original words or authoritative project records, the outcome contract with its `acceptance.json` items, base and candidate commits, and all findings from earlier rounds.
+2. Confirm that the checked-out candidate matches the stated commit hash and contains the current base.
+3. Treat the implementer's submission as claims: independently verify every statement your verdict relies on. Never edit project files, modify `acceptance.json` or perform delivery.
 
-Sort every finding ([definitions](../rad-ai/references/contracts.md#findings)):
+## Inspection procedure
 
-- **Blocking defect**: an item whose behavior is not delivered, a stubbed required behavior or another violated requirement. State the reproduction and the requirement. Only this returns the outcome; never reason a reproduced violation away.
-- **Correction**: any other flaw a check can confirm fixed. Name the check; it closes the correction without you.
-- **Note**: one line, not investigated.
+1. **Behavioral walk.** Start the result with the project's `run` command and perform every contracted acceptance item's steps yourself as a user or consumer. Probe edge and failure cases (empty, malformed, duplicate, unauthorized, missing dependency) and affected consumers. Run the project's `check` command on the candidate whenever it was skipped or run on another revision. Reading code never replaces observing behavior.
+2. **Diff and architecture read.** Read the entire `git diff` from base to candidate: verify module boundaries, consumer compatibility, dependency justification, test integrity, accuracy of changed documents, absence of unrelated edits and absence of edits to `acceptance.json`. Critical consequences require discriminating evidence (a check seen failing when the invariant breaks).
 
-What you observe is evidence: report the procedure and its result. Obtain missing required evidence yourself when you can; never return work for evidence or an explanation you already have. Report every instance of everything visible now, so a later round finds only what the delta introduced. A contract gap that leaves an owner requirement unverified is reported once, as a blocking defect with the items or invariants to add. When a behavior is delivered but a step misdescribes how to reach it, report a correction naming the corrected step, which keeps what must be seen; never propose changing a behavior.
+## Classifying findings
 
-Assessing several outcomes in one pass, give each its own report. Start with `ACCEPT Rn (blocking 0, corrections c)` when no blocking defect is open, otherwise `RETURN Rn (blocking b, corrections c)`; c counts open corrections of every round. Use `UNVERIFIED Rn` only when you cannot observe what is required. Give no score. State the commit, each item's result, findings, procedures with results and unchecked conditions; an unchecked required condition is a blocking defect unless the contract marks it `required: false`, a mark you may propose but never apply. JSON: `verdict`, `round`, `commit`, `findings`, `checks`, `unchecked`; a finding has `id`, `kind`, `state`, a blocking defect also `requirement` and `reproduction`, a correction also `check`.
+Sort every issue using [finding definitions](../rad-ai/references/contracts.md#findings):
 
-Experiments: reproduce the listed observations once and assess the answer, not prototype code or record wording. A false statement blocks only when it changes the answer or a constraint later outcomes rely on.
+- **Blocking defect** (`blocking`): an acceptance item whose behavior is not delivered, a stubbed or display-only control, or any reproducible violation of an owner requirement, project rule, named invariant/criterion or critical consequence; a consumer regression; a pre-existing defect activated by the change or blocking the outcome; missing required evidence you also cannot obtain; or a contract gap leaving an owner requirement unverified (report once, naming the items or invariants to add). Always include exact `requirement` and `reproduction`. Only a blocking defect returns an outcome; never explain away a reproduced violation.
+- **Correction** (`correction`): any other in-scope flaw confirmable by a deterministic check or observable procedure. Always state `check`. When a behavior works as required but an acceptance step misdescribes how to reach it, report a correction naming the accurate step while preserving what must be seen; never propose weakening the behavior itself.
+- **Note** (`note`): a single-line observation, suggestion or unrelated pre-existing issue; never investigated further and never blocking.
 
-Later rounds: assess the delta, prior blocking defects, open corrections and what the delta affects; rerun only evidence the delta can change. In unchanged code only a new blocking defect returns the outcome. Rounds start at R1 and advance only on corrected resubmission. Do not edit, change the acceptance list or deliver.
+## Round discipline
+
+- **Reviewer observations count as evidence**: record the exact command or step and its result. Obtain missing checkable evidence yourself when feasible; never return an outcome for evidence or explanations you already possess.
+- **Complete pass**: report every visible instance of every flaw now so a subsequent round checks only the rework delta.
+- **Experiments**: reproduce the listed observations once and judge whether the answer and downstream constraints hold; do not grade prototype code quality or record prose. A false statement blocks only if it alters the answer or a constraint later outcomes depend on.
+- **Later rounds (`R2+`)**: inspect the delta since the previous round, prior blocking defects, open corrections from all rounds and paths affected by the delta; rerun only checks the delta can affect. In unchanged code only a newly discovered blocking defect can return the outcome. Rounds start at `R1` and increment only on resubmission after `RETURN`.
+
+## Verdict and record format
+
+When assessing multiple local reversible outcomes in one pass, emit a separate report for each.
+
+- Begin text output with `ACCEPT Rn (blocking 0, corrections c)` when open blocking count is 0, `RETURN Rn (blocking b, corrections c)` when `b > 0`, or `UNVERIFIED Rn` only when required observation cannot be performed in this environment. `c` counts open corrections across all rounds. Give no numeric score.
+- Follow with: candidate commit, per-item step results, findings, executed checks with exit statuses and `unchecked` conditions. Any required unchecked condition is a blocking defect unless the contract marks it `required: false` (you may propose that mark, never apply it).
+- Structured JSON record ([schema](../rad-ai/references/contracts.md#reports)): `verdict`, `round`, `commit`, `findings`, `checks`, `unchecked`. Each finding carries `id`, `kind`, `state` and optional `round`; `blocking` adds `requirement` and `reproduction`; `correction` adds `check` (plus `result: "pass"` and `revision` once resolved).

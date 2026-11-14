@@ -85,15 +85,16 @@ class ReportTests(unittest.TestCase):
         note = {"id": "F3", "kind": "note", "state": "open"}
         def review(**fields):
             return {"verdict": "ACCEPT", "round": 1, "commit": sha, "findings": [], "checks": [check], **fields}
-        def returned(*findings, round=1):
-            return {"verdict": "RETURN", "round": round, "findings": list(findings)}
+        def returned(*findings, round=1, **fields):
+            return {"verdict": "RETURN", "round": round, "findings": list(findings), **fields}
         accepted = {
             "ACCEPT R1 (blocking 0, corrections 0)": [
                 review(), review(checks=[check, observed]), review(findings=[note]), review(findings=[closed]),
                 review(findings=[{**blocking, "state": "resolved"}]),
                 review(checks=[check, {**check, "exit": 1, "result": "fail", "required": False}]),
                 review(unchecked=[{"condition": "Safari", "required": False}]),
-                review(commit="r42", checks=[{**check, "revision": "r42"}])],
+                review(commit="r42", checks=[{**check, "revision": "r42"}]),
+                review(commit=sha.upper(), checks=[{**check, "revision": sha[:7]}])],
             "ACCEPT R1 (blocking 0, corrections 2)": [
                 review(findings=[correction, {**correction, "id": "F4"}, note, closed | {"id": "F5"}])],
             "RETURN R2 (blocking 1, corrections 1)": [returned(blocking, correction, note, round=2)],
@@ -113,6 +114,13 @@ class ReportTests(unittest.TestCase):
             "score on accept": review(score=10),
             "score on return": {**returned(blocking), "score": 8},
             "score on unverified": {"verdict": "UNVERIFIED", "round": 1, "score": None},
+            "malformed checks on unverified": {"verdict": "UNVERIFIED", "round": 1, "checks": "broken"},
+            "malformed findings on unverified": {"verdict": "UNVERIFIED", "round": 1, "findings": "broken"},
+            "contradictory check on return": returned(blocking, checks=[{**check, "exit": 1}]),
+            "empty commit on return": returned(blocking, commit=""),
+            "finding round exceeds review round": review(findings=[{**note, "round": 2}]),
+            "nonpositive finding round": review(findings=[{**note, "round": 0}]),
+            "boolean finding round": review(findings=[{**note, "round": True}]),
             "correction without a check": review(findings=[{"id": "F2", "kind": "correction", "state": "open"}]),
             "correction with an empty check": review(findings=[{**correction, "check": ""}]),
             "resolved correction without a revision": review(findings=[
@@ -137,6 +145,8 @@ class ReportTests(unittest.TestCase):
             "check without command": review(checks=[{**check, "command": ""}]),
             "stale check": review(checks=[{**check, "revision": "0a1b2c3d4e"}]),
             "ambiguous short revision": review(checks=[{**check, "revision": sha[:4]}]),
+            "non-hex symbolic prefix collision": review(commit="release-10",
+                                                        checks=[{**check, "revision": "release-1"}]),
             "required condition unchecked": review(unchecked=[{"condition": "e2e", "required": True}]),
             "malformed unchecked": review(unchecked=[{"condition": "e2e"}]),
             "plain unchecked text is required": review(unchecked=["e2e not run"]),
@@ -157,7 +167,7 @@ class ReportTests(unittest.TestCase):
                 report.verdict_line(review(round=value))
 
     def test_completion_closes_every_correction_on_the_final_revision(self):
-        sha, fixed = "3f9c2e1a7b", "9d04c7e5b1"
+        earlier_sha, sha, fixed = "1a2b3c4d5e", "3f9c2e1a7b", "9d04c7e5b1"
         check = {"command": "make test", "exit": 0, "result": "pass", "revision": sha}
         correction = {"id": "F2", "kind": "correction", "state": "open", "check": "grep -c fork docs/record.md"}
         def closed(revision, **fields):
@@ -169,16 +179,21 @@ class ReportTests(unittest.TestCase):
             review(),
             review({"id": "F3", "kind": "note", "state": "open"}, closed(sha[:7])),
             review(closed(fixed), closed(fixed[:7], id="F4"), final=fixed),
+            review(closed(earlier_sha, id="F1", round=1)),
+            review(closed(earlier_sha, id="F1", round=1), closed(fixed, id="F2", round=2), final=fixed),
         ]
         for record in complete:
             with self.subTest(record=record):
                 self.assertEqual(report.closure_line(record), "COMPLETE R2")
         rejected = {
             "open correction": review(correction),
-            "open correction of an earlier round beside a closed one": review(closed(fixed), {**correction, "id": "F4"},
-                                                                         final=fixed),
+            "open correction of an earlier round beside a closed one": review(
+                closed(fixed), {**correction, "id": "F4", "round": 1}, final=fixed),
             "fix revision not declared final": review(closed(fixed)),
-            "corrections closed on different revisions": review(closed(fixed), closed(sha, id="F4"), final=fixed),
+            "corrections closed on different revisions in the final round": review(
+                closed(fixed), closed(sha, id="F4"), final=fixed),
+            "final differs from commit with only an earlier-round closed correction": review(
+                closed(earlier_sha, id="F1", round=1), final=fixed),
             "empty final revision": review(final=""),
             "final revision without a correction fix": review(final=fixed),
             "final revision with only a note": review({"id": "F3", "kind": "note", "state": "open"}, final=fixed),
@@ -198,7 +213,7 @@ class ReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "review.json"
             def run(kind, record):
-                path.write_text(json.dumps(record))
+                path.write_text(json.dumps(record), encoding="utf-8")
                 return subprocess.run([sys.executable, str(SCRIPT), kind, str(path)], capture_output=True, text=True)
             for kind, line in (("verdict", "ACCEPT R1 (blocking 0, corrections 0)"), ("complete", "COMPLETE R1")):
                 result = run(kind, accepted)
@@ -215,7 +230,7 @@ class ReportTests(unittest.TestCase):
             self.assertEqual((result.returncode, result.stdout), (2, ""))
             self.assertIn("`final`", result.stderr)
 
-    def test_acceptance_list_changes_only_by_passes(self):
+    def test_acceptance_list_changes_only_by_passes_or_appended_amendments(self):
         def item(key="A1", **fields):
             return {"id": key, "behavior": "A visitor resets a forgotten password",
                     "steps": ["Open /login and choose Forgot password", "Submit the address: a reset message arrives"],
@@ -225,40 +240,47 @@ class ReportTests(unittest.TestCase):
         passed = item(passes=True, revision="3f9c2e1a7b")
         base = listed(item(), item("A2"))
         self.assertEqual(report.acceptance_line(base), "W5 acceptance 0/2")
+        amended = {"steps": ["Open /sign-in and choose Forgot password", "Submit the address: a reset message arrives"],
+                   "amended": ["R1 F4: the form moved to /sign-in"]}
         allowed = {
             "W5 acceptance 1/2": [listed(passed, item("A2")), listed(item("A2"), passed)],
-            "W5 acceptance 0/2": [deepcopy(base)],
+            "W5 acceptance 0/2": [deepcopy(base),
+                                  listed(item(**amended), item("A2")),
+                                  listed(item(behavior="Owner decision D7", amended=["D7"]), item("A2"))],
             "W5 acceptance 1/3": [listed(passed, item("A2"), item("A3", behavior="Added by the contract amendment"))],
+            "W5 acceptance 1/1": [listed(passed, item("A2", removed="Owner decision D9: deferred to W6"))],
         }
-        amended = {"steps": ["Open /sign-in and choose Forgot password", "Submit the address: a reset message arrives"],
-                   "amended": "R1 F4: the form moved to /sign-in"}
-        allowed["W5 acceptance 0/2"] += [listed(item(**amended), item("A2")),
-                                         listed(item(behavior="Owner decision D7", amended="D7"), item("A2"))]
         for line, values in allowed.items():
             for value in values:
                 with self.subTest(line=line, value=value):
                     self.assertEqual(report.acceptance_line(value, base), line)
         self.assertEqual(report.acceptance_line(base, listed(passed, item("A2"))), "W5 acceptance 0/2")
         edited = {
-            "removed item": listed(item("A2")),
+            "deleted item": listed(item("A2")),
             "reworded behavior": listed(item(behavior="A visitor sees the login page"), item("A2")),
             "dropped step": listed(item(steps=["Open /login and choose Forgot password"]), item("A2")),
             "weakened step": listed(item(steps=["Open /login and choose Forgot password", "Submit the address"]),
                                     item("A2")),
+            "amended without changing text": listed(item(amended=["R1 F4"]), item("A2")),
             "renamed item": listed(item("A9"), item("A2")),
             "another stage": {**deepcopy(base), "stage": "W6"},
         }
         for name, value in edited.items():
             with self.subTest(name):
-                self.assertEqual(report.acceptance_line(value),
-                                 f"{value['stage']} acceptance 0/{len(value['items'])}")
                 with self.assertRaises(ValueError):
                     report.acceptance_line(value, base)
         malformed = {
             "not an object": [], "no items": {"stage": "W5"}, "empty list": listed(),
             "items not a list": {"stage": "W5", "items": {}}, "item not an object": listed("A1"),
             "missing stage": {"items": [item()]}, "stage with words": {**listed(item()), "stage": "W5 login"},
-            "empty amendment record": listed(item(amended="")), "amendment record not text": listed(item(amended=True)),
+            "empty amendment list": listed(item(amended=[])),
+            "amendment as string": listed(item(amended="R1 F4")),
+            "amendment entry empty": listed(item(amended=[""])),
+            "duplicate amendment entry": listed(item(amended=["R1 F4", "R1 F4"])),
+            "amendment record not text": listed(item(amended=[True])),
+            "empty removed decision": listed(item(removed="")),
+            "removed item passing": listed(item(passes=True, revision="3f9c2e1a7b", removed="D9")),
+            "all items removed": listed(item(removed="D9")),
             "duplicate ID": listed(item(), item()),
             "missing ID": listed({k: v for k, v in item().items() if k != "id"}),
             "missing behavior": listed({k: v for k, v in item().items() if k != "behavior"}),
@@ -276,43 +298,70 @@ class ReportTests(unittest.TestCase):
             report.acceptance_line(base, listed())
         with self.assertRaises(ValueError):
             report.acceptance_line(base, {"items": deepcopy(base["items"])})
+
         once = listed(item(**amended), item("A2"))
         again = ["Open /account and choose Forgot password", "Submit the address: a reset message arrives"]
+        second_valid = listed(
+            item(steps=again, amended=["R1 F4: the form moved to /sign-in", "R2 F1: the form moved to /account"]),
+            item("A2"))
         self.assertEqual(report.acceptance_line(deepcopy(once), once), "W5 acceptance 0/2")
-        self.assertEqual(report.acceptance_line(
-            listed(item(steps=again, amended="R2 F1: the form moved to /account"), item("A2")), once),
-            "W5 acceptance 0/2")
-        for name, entry in (("the earlier record reused", item(steps=again, amended=amended["amended"])),
-                            ("the record dropped", item(steps=again)),
-                            ("restored without a record", item())):
-            with self.subTest(name), self.assertRaises(ValueError):
-                report.acceptance_line(listed(entry, item("A2")), once)
+        self.assertEqual(report.acceptance_line(second_valid, [base, once]), "W5 acceptance 0/2")
+        # Returning to the original base steps via a second recorded amendment is valid against [base, once]
+        reverted_valid = listed(
+            item(amended=["R1 F4: the form moved to /sign-in", "R2 F3: restored /login route"]),
+            item("A2"))
+        self.assertEqual(report.acceptance_line(reverted_valid, [base, once]), "W5 acceptance 0/2")
 
-    def test_cli_acceptance_compares_with_the_previous_list(self):
-        def listed(steps, passes=False):
-            entry = {"id": "A1", "behavior": "A visitor signs in", "steps": steps, "passes": passes}
+        for name, entry in (
+            ("the earlier amendment reused silently", item(steps=again, amended=amended["amended"])),
+            ("the earlier amendment overwritten", item(steps=again, amended=["R2 F1: overwrote R1"])),
+            ("the amendment list dropped", item(steps=again)),
+            ("restored to base without recording", item()),
+            ("padded amendment without text change", item(steps=amended["steps"],
+                                                          amended=["R1 F4: the form moved to /sign-in", "R2 pad"])),
+        ):
+            with self.subTest(name), self.assertRaises(ValueError):
+                report.acceptance_line(listed(entry, item("A2")), [base, once])
+
+        with_removed = listed(item(), item("A2", removed="Owner decision D9"))
+        with self.assertRaises(ValueError):
+            report.acceptance_line(listed(item(), item("A2")), with_removed)
+        with self.assertRaises(ValueError):
+            report.acceptance_line(listed(item(), item("A2", removed="Changed decision")), with_removed)
+
+    def test_cli_acceptance_compares_with_multiple_previous_snapshots(self):
+        def listed(steps, passes=False, **extra):
+            entry = {"id": "A1", "behavior": "A visitor signs in", "steps": steps, "passes": passes, **extra}
             return {"stage": "W5", "items": [{**entry, "revision": "3f9c2e1a7b"} if passes else entry]}
         with tempfile.TemporaryDirectory() as directory:
-            current, previous = Path(directory) / "acceptance.json", Path(directory) / "base.json"
-            previous.write_text(json.dumps(listed(["Open /login", "Submit valid credentials: the dashboard opens"])))
+            current = Path(directory) / "acceptance.json"
+            base = Path(directory) / "base.json"
+            head = Path(directory) / "head.json"
+            base.write_text(json.dumps(listed(["Open /login", "Submit valid credentials: the dashboard opens"])),
+                            encoding="utf-8")
+            head.write_text(json.dumps(listed(["Open /sign-in", "Submit valid credentials: the dashboard opens"],
+                                              amended=["R1 F1: path is /sign-in"])), encoding="utf-8")
             def run(value, *arguments):
-                current.write_text(json.dumps(value))
+                current.write_text(json.dumps(value), encoding="utf-8")
                 return subprocess.run([sys.executable, str(SCRIPT), "acceptance", str(current), *arguments],
                                       capture_output=True, text=True)
-            toggled = listed(["Open /login", "Submit valid credentials: the dashboard opens"], passes=True)
-            result = run(toggled, "--previous", str(previous))
+            toggled = listed(["Open /sign-in", "Submit valid credentials: the dashboard opens"],
+                             passes=True, amended=["R1 F1: path is /sign-in"])
+            result = run(toggled, "--previous", str(base), "--previous", str(head))
             self.assertEqual((result.returncode, result.stdout.strip()), (0, "W5 acceptance 1/1"))
-            weakened = listed(["Open /login"], passes=True)
-            self.assertEqual(run(weakened).stdout.strip(), "W5 acceptance 1/1")
-            result = run(weakened, "--previous", str(previous))
+
+            tampered = listed(["Open /sign-in"], passes=True, amended=["R1 F1: path is /sign-in"])
+            self.assertEqual(run(tampered).stdout.strip(), "W5 acceptance 1/1")
+            result = run(tampered, "--previous", str(base), "--previous", str(head))
             self.assertEqual((result.returncode, result.stdout), (2, ""))
             self.assertIn("`amended`", result.stderr)
+
             result = run(toggled, "--previous", str(Path(directory) / "absent.json"))
             self.assertEqual((result.returncode, result.stdout), (2, ""))
-            current.write_text(json.dumps(snapshot()))
+            current.write_text(json.dumps(snapshot()), encoding="utf-8")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(current)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0)
-            result = subprocess.run([sys.executable, str(SCRIPT), "status", str(current), "--previous", str(previous)],
+            result = subprocess.run([sys.executable, str(SCRIPT), "status", str(current), "--previous", str(base)],
                                     capture_output=True, text=True)
             self.assertEqual((result.returncode, result.stdout), (2, ""))
             self.assertIn("--previous applies to acceptance only", result.stderr)
@@ -321,15 +370,15 @@ class ReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "record.json"
             value = snapshot()
-            path.write_text(json.dumps(value))
+            path.write_text(json.dumps(value), encoding="utf-8")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0)
             self.assertEqual(result.stdout.strip(), "W5 (57%) ✅ 20 📋 11 ⚙️ 3 ⛔ 1 🙋 1")
             value["tasks"][20]["state"] = "done"
-            path.write_text(json.dumps(value))
+            path.write_text(json.dumps(value), encoding="utf-8")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.stdout.strip(), "W5 (60%) ✅ 21 📋 11 ⚙️ 2 ⛔ 1 🙋 1")
-            path.write_text("{}")
+            path.write_text("{}", encoding="utf-8")
             result = subprocess.run([sys.executable, str(SCRIPT), "status", str(path)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 2)
             self.assertEqual(result.stdout, "")

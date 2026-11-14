@@ -9,36 +9,44 @@ The method is independent of model provider and execution service. The main skil
 implement and integrate directly, and the implementation role separates context when delegation
 is available and authorized. Acceptance always comes from a separate review context (a subagent,
 another session or agent, or the owner); without one the outcome remains `UNVERIFIED`. Both
-Codex and Claude Code provide subagents; the rules use no platform-specific hooks. All operational instructions and resources are English and contained
-in this package.
+Codex and Claude Code provide subagents; the rules use no platform-specific hooks. All operational
+instructions and resources are English and contained in this package.
 
 ## Instruction limits
 
-- Rules are concise, so that a loaded skill leaves the context to the work; length is not
-  capped by word count.
+- Rules are concise and structured so that a loaded skill leaves context to the work; length is
+  not capped by word count.
 - Each operational Markdown file stays within 500 lines, because agents weigh the first
   500 lines most; decisive rules come first.
-- Operational references stay inside `skills/`; research documents are not automatically loaded.
+- Operational references stay inside `skills/`; research documents are not automatically loaded,
+  and package checks verify both file containment and heading fragments.
 
 Package checks reject violations. The main instruction retains the complete decision process;
-references supply the record formats, finding definitions, reporting rules and
+references supply the project layout, record formats, finding definitions, reporting rules and
 broad-dependency investigation.
 
 ## Records for long-running work
 
-Work that spans many sessions keeps its state in the repository, not in an agent's context:
+Work that spans many sessions keeps its state in the repository, not in an agent's context.
+Existing project records take precedence; when a repository has none, `rad-ai` uses `docs/rad/`
+(`PROJECT.md` for product claim, explicit refusals, invariants, decisions with rejected
+alternatives and ordered stages `W1..Wn`, plus `<stage>/stage.json`, `<stage>/acceptance.json`
+and `<stage>/outcomes/`):
 
 - **Acceptance list.** `acceptance.json` lists the stage's observable behaviors, each with
-  the steps a user performs and `passes`, false until a review has seen the steps pass. It is
-  written before implementation; afterwards items are only added and `passes` set, and none is
-  removed or reworded to pass. A blocking defect is then first of all an item whose steps fail.
-- **Project commands.** One run command starts the result and one check command runs every
-  required check.
+  the steps a user performs and `passes`, false until a review has seen the steps pass. Written
+  before implementation, items are never deleted from the list: new items may be appended, a
+  misdescribed step to an already-delivered behavior or an owner-approved behavior change appends
+  a record to `amended` (`["R1 F4: ..."]`), and an owner-withdrawn item sets `removed` (`"D9: ..."`)
+  with `passes: false`. A blocking defect is first of all an active item whose steps fail.
+- **Project commands.** `run` starts the result ready for use, `check` runs every required check,
+  and `smoke` runs a fast base sanity check (`smoke` equals `check` when `check` is fast).
 - **Git.** Every candidate is a commit; a workspace without a repository gets one first.
 - **Session start.** At every start, resume or context compaction the coordinator reads the
-  records, `git log` and `git status`, runs the check command and walks one passing item
-  before any new work; a broken base is repaired first. The implementer runs the check
-  command on its base before editing.
+  project frame, stage records, `acceptance.json`, `git log` and `git status`, runs `smoke` (or
+  `check` when fast) and walks one passing item unless already verified on clean `HEAD`; a broken
+  base is repaired as its own outcome first. The implementer verifies base sanity before editing
+  and runs the full `check` command before submitting.
 - **User's-eye check.** The implementer performs each item's steps on the running result
   before submitting; the reviewer performs them again.
 
@@ -57,8 +65,8 @@ reviewer changes. The counts are of open findings; there is no score.
   review.
 - A **note** becomes a task where it belongs or is declined with a reason; it never blocks.
 
-An outcome is complete when a separate review has accepted it and every correction is
-closed; acceptance carries to a final revision that differs only by those fixes.
+An outcome is complete when a separate review has accepted it and every correction across all
+rounds is closed; acceptance carries to a final revision that differs only by those fixes.
 Experiments are accepted on their answer. The contract sets a time budget and a round
 limit, two by default; the roles decide what happens at the limit without asking the
 owner, who decides only changes to the owner's requirements, critical consequences without
@@ -81,11 +89,11 @@ current revision, including delivery when required. Reopening work or adding tas
 reduce the percentage. Empty stages use 0%; missing or contradictory records
 produce an unavailable report rather than invented zero values.
 
-The optional stateless formatter reads a fresh JSON view of existing records:
+The stateless formatter reads a fresh JSON view of existing records:
 
 ```sh
-python3 rad-ai/skills/rad-ai/scripts/report.py status current-stage.json
-python3 rad-ai/skills/rad-ai/scripts/report.py verdict current-review.json
+python3 <rad-ai-skill-dir>/scripts/report.py status current-stage.json
+python3 <rad-ai-skill-dir>/scripts/report.py verdict current-review.json
 ```
 
 Stage input has `stage`, `tasks` with `id` and `state`, and `decisions` with `id`,
@@ -93,31 +101,30 @@ Stage input has `stage`, `tasks` with `id` and `state`, and `decisions` with `id
 `blocked`, `done`, `cancelled`; decision states are `open`, `resolved`.
 Review input has `verdict` and positive integer `round`; a `score` field is rejected.
 `ACCEPT` and `RETURN` also require `findings` with `id`, `kind` (`blocking`, `correction`
-or `note`) and `state` (`open` or `resolved`). A blocking defect carries `requirement` and
-`reproduction`. A correction carries `check`, the command or procedure that confirms its
-fix, and once resolved `result: pass` and the `revision` on which that check passed. `ACCEPT` requires `commit` and `checks` with `command` (or the observed manual
-procedure), `result` (`pass` or `fail`), `revision` (full or at least 7-character prefix),
+or `note`), `state` (`open` or `resolved`) and optional positive integer `round` (`<= review.round`).
+A blocking defect carries `requirement` and `reproduction`. A correction carries `check`, the
+command or procedure that confirms its fix, and once resolved `result: "pass"` and the `revision`
+on which that check passed. `ACCEPT` requires `commit` and `checks` with `command` (or the observed
+manual procedure), `result` (`pass` or `fail`), `revision` (exact match or a 7+ hex Git SHA prefix),
 optional `exit` and optional boolean `required` (default true): every required check
 passes on that commit, every `unchecked` entry is an object with `required: false` (plain
 text counts as required) and no blocking defect is open. `RETURN` names an open blocking
 defect; corrections and notes alone never return an outcome.
 
 ```sh
-python3 rad-ai/skills/rad-ai/scripts/report.py complete current-review.json
-python3 rad-ai/skills/rad-ai/scripts/report.py acceptance acceptance.json --previous base-acceptance.json
+python3 <rad-ai-skill-dir>/scripts/report.py complete current-review.json
+python3 <rad-ai-skill-dir>/scripts/report.py acceptance acceptance.json \
+  --previous base-acceptance.json --previous head-acceptance.json
 ```
 
 `complete` prints `COMPLETE Rn` only for an accepted review whose corrections are all
-resolved on one final revision: the accepted `commit`, or `final` when fixes followed it.
-`acceptance` prints `W5 acceptance 12/40`, the count of passing items; the list has `stage`
-and `items`, each item `id`, `behavior`, nonempty `steps` and boolean `passes`, and a passing
-item names the accepted `revision`. With `--previous` (the same stage's list at its base, for
-example from `git show`) it rejects a removed item and a `behavior` or `steps` changed without
-a new `amended` entry naming the reviewer's finding or the owner's decision; added items are
-allowed. It checks that such a change is recorded, not that it was justified. These commands check record consistency only; they cannot
-establish code quality or block a manual closure. The formatter stores no task state or displayed
-values. `status`, `verdict` and `complete` are optional, since the complete reporting rules are in
-the skill; the coordinator runs `acceptance --previous` whenever it sets `passes`.
+resolved: corrections of the final round must pass on the accepted `commit` (or on `final` when
+post-acceptance fixes followed it), while corrections carrying an earlier `round` keep the revision
+on which they closed prior to `ACCEPT`. `acceptance` prints `W5 acceptance 12/40`, counting passing
+active items (`removed` items excluded); with one or more `--previous` snapshots (the stage base and
+the latest committed list) it rejects deleted items, rewritten `amended` / `removed` histories, and
+any `behavior` or `steps` change that did not append a new entry to `amended`. These commands check
+record consistency only; they cannot establish code quality or block a manual closure.
 
 ## Invoke
 
@@ -164,6 +171,6 @@ GitHub Actions release after source changes reach `main`.
 
 ## Source checks
 
-`npm test` includes package integrity, the instruction line limit, calculated-report tests and shared-release checks.
+`npm test` includes package integrity, instruction line and anchor checks, calculated-report tests and shared-release checks.
 `python3 rad-ai/scripts/check-package.py` validates this package without installing it.
 Behavioral evaluation is separate from structural validation.

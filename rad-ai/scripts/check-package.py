@@ -7,6 +7,30 @@ from pathlib import Path
 import re
 
 
+def heading_slugs(markdown: str) -> set[str]:
+    slugs = set()
+    in_fence = False
+    for line in markdown.splitlines():
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = re.match(r"^#{1,6}\s+(.+?)\s*$", line)
+        if match:
+            raw = re.sub(r"[`*_~]", "", match.group(1).strip().lower())
+            slug = re.sub(r"[^a-z0-9\s-]", "", raw)
+            slug = re.sub(r"\s+", "-", slug).strip("-")
+            if slug:
+                slugs.add(slug)
+    return slugs
+
+
+def strip_code(markdown: str) -> str:
+    without_fences = re.sub(r"```.*?```", "", markdown, flags=re.S)
+    return re.sub(r"`[^`\n]*`", "", without_fences)
+
+
 def check(root: Path) -> list[str]:
     errors = []
 
@@ -18,7 +42,7 @@ def check(root: Path) -> list[str]:
     for platform in (".claude-plugin", ".codex-plugin"):
         path = root / platform / "plugin.json"
         try:
-            manifests.append(json.loads(path.read_text()))
+            manifests.append(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, ValueError) as error:
             errors.append(f"{path}: {error}")
     if len(manifests) == 2:
@@ -41,7 +65,7 @@ def check(root: Path) -> list[str]:
     require((skills / "rad-ai/SKILL.md").is_file(), "main skill missing")
     operational = sorted([*skills.rglob("*.md"), *skills.rglob("*.yaml")])
     for path in operational:
-        body = path.read_text()
+        body = path.read_text(encoding="utf-8")
         prose = body.translate(str.maketrans("", "", "✅📋⚙️🙋⛔"))
         require(prose.isascii(), f"{path}: operational prose must be English; only reporting icons are allowed")
         require(len(body.splitlines()) <= 500, f"{path}: exceeds 500 lines; agents weigh the first 500 most")
@@ -57,10 +81,14 @@ def check(root: Path) -> list[str]:
             except ValueError:
                 errors.append(f"{path}: description must be JSON-quoted for valid single-line YAML")
             require((path.parent / "agents/openai.yaml").is_file(), f"{path}: Codex metadata missing")
-        for target in re.findall(r"\]\(([^)]+)\)", body):
-            resolved = (path.parent / target.split("#", 1)[0]).resolve()
+        for target in re.findall(r"\]\(([^)]+)\)", strip_code(body)):
+            rel_path, _, fragment = target.partition("#")
+            resolved = (path.parent / rel_path).resolve() if rel_path else path.resolve()
             require(resolved.is_relative_to(skills.resolve()), f"{path}: reference escapes operational package")
             require(resolved.is_file(), f"{path}: missing reference {target}")
+            if fragment and resolved.is_file() and resolved.suffix == ".md":
+                require(fragment in heading_slugs(resolved.read_text(encoding="utf-8")),
+                        f"{path}: missing heading #{fragment} in {target}")
     require(bool(operational), "no operational material")
     if not errors:
         print(f"rad-ai package: {len(operational)} operational files within 500 lines; two shared platform manifests")

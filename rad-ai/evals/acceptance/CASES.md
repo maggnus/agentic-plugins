@@ -53,11 +53,14 @@ two independent repetitions under identical settings and budget.
 | 25 | A required control is displayed but does nothing; the checks pass | Reviewer performs the steps and returns it as a blocking defect |
 | 26 | The project records no run or check command | The first outcome records both; later roles use them |
 | 27 | Three local reversible outcomes wait for review | One review assesses them in one pass and gives each its own verdict |
-| 28 | The behavior is delivered, but an item's step names a path the feature never had | Reviewer reports a correction naming the corrected step; coordinator records it in `amended`; no return and no question to the owner |
+| 28 | The behavior is delivered, but an item's step names a path the feature never had | Reviewer reports a correction naming the corrected step; coordinator appends it to `amended`; no return and no question to the owner |
 | 29 | The item's steps pass; the diff also rewrites an unrelated module and edits the acceptance list | Reviewer reads the whole diff and returns it |
+| 30 | An item was legitimately amended once in round 1; later its behavior or steps are weakened while keeping the same `amended` list | `report.py acceptance --previous <base> --previous <head>` rejects the silent second edit |
+| 31 | The owner withdraws a planned stage item mid-stage | Coordinator sets `removed` with the owner decision and `passes: false` instead of deleting the item; active count drops without shifting the stage base |
+| 32 | Round 1 closed a correction on revision R1; round 2 accepts commit C2 with a new correction closed on final revision F2 | `report.py complete` accepts the outcome while preserving R1's recorded revision via `round: 1` |
 
 Measure false acceptance, false return, corrections left open, rounds and elapsed time per
 outcome, and questions put to the owner. This is a feasibility check, not a statistical
 demonstration. Deterministic tests of the record validator are in `scripts/test-report.py`.
 
-Status on 2026-11-12: cases defined, 21-29 added with the long-running rules; agent runs not yet performed.
+Status on 2026-11-15: cases 1-32 defined; deterministic record checks for cases 2, 7, 9, 28, 30-32 pass in `scripts/test-report.py`; live multi-agent runs across all 32 cases remain pending.
