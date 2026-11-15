@@ -230,9 +230,20 @@ const PREPARE_FULL = `(async () => {
 
 async function checkHoverContrast(s) {
   const findings = [];
+  let injected = false;
   try {
     await s('DOM.enable');
     await s('CSS.enable');
+    await s('Runtime.evaluate', {
+      expression: `(() => {
+        if (document.querySelector('style[data-craft-no-transition]')) return;
+        const st = document.createElement('style');
+        st.setAttribute('data-craft-no-transition', '1');
+        st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
+        (document.head || document.documentElement).appendChild(st);
+      })()`,
+    });
+    injected = true;
     const { root: docRoot } = await s('DOM.getDocument', { depth: 0 });
     const { nodeIds } = await s('DOM.querySelectorAll', { nodeId: docRoot.nodeId, selector: 'button, a[href]' });
     let tested = 0;
@@ -291,7 +302,13 @@ async function checkHoverContrast(s) {
         await s('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] }).catch(() => {});
       }
     }
-  } catch {}
+  } catch {} finally {
+    if (injected) {
+      await s('Runtime.evaluate', {
+        expression: `document.querySelectorAll('style[data-craft-no-transition]').forEach(el => el.remove())`,
+      }).catch(() => {});
+    }
+  }
   return findings;
 }
 
@@ -370,18 +387,12 @@ async function shoot(width) {
   if (full && (stripsFlag || inspect)) {
     const captureHeight = Math.min(metrics.page, MAX_CAPTURE_HEIGHT);
     if (captureHeight > height * 1.35) {
+      const maxTop = Math.max(0, captureHeight - height);
+      const count = Math.min(6, Math.max(2, Math.ceil(captureHeight / Math.max(200, height - 120))));
       const yList = [];
-      if (captureHeight <= height * 6) {
-        const step = Math.max(200, height - 120);
-        for (let y = 0; y < captureHeight && yList.length < 6; y += step) {
-          const clamped = Math.min(y, Math.max(0, captureHeight - height));
-          if (!yList.length || yList[yList.length - 1] !== clamped) yList.push(clamped);
-          if (clamped + height >= captureHeight) break;
-        }
-      } else {
-        for (let i = 0; i < 6; i++) {
-          yList.push(Math.round((captureHeight - height) * i / 5));
-        }
+      for (let i = 0; i < count; i++) {
+        const y = count === 1 ? 0 : Math.round((i * maxTop) / (count - 1));
+        if (yList.length === 0 || y > yList[yList.length - 1]) yList.push(y);
       }
       for (let idx = 0; idx < yList.length; idx++) {
         const y = yList[idx];

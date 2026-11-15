@@ -338,6 +338,25 @@ assert.deepEqual(laterFile.warnings, ['c.$value: redefined by b.json (the later 
 assert.ok(laterFile.css.includes('--c: blue;'));
 assert.deepEqual(importTokens({ sources: [{ json: { a: { $value: 'var(--outside)' } } }] }).warnings, [':root: --a uses --outside, which this import does not declare']);
 assert.ok(inspectHtml(goodTokens.replace('--accent: #b12642;', '--accent: var(--loop); --loop: var(--accent);')).warnings.some(w => w.code === 'token-cycle' && /--accent → --loop → --accent/.test(w.message)), 'check reports alias cycles');
+for (const badFontUrl of [
+  'https://fonts.googleapis.com.evil.com/evil.css',
+  'https://fonts.googleapis.com-evil.com/evil.css',
+  'https://fonts.googleapis.com@evil.com/evil.css',
+  'https://cdn.jsdelivr.net/npm/@fontsource-evil/pkg/index.css',
+  'https://cdn.jsdelivr.net/npm/@fontsource/../other/index.css',
+]) {
+  const htmlWithBadFont = goodTokens.replace('<meta name="viewport"', `<link rel="stylesheet" href="${badFontUrl}"><meta name="viewport"`);
+  assert.ok(inspectHtml(htmlWithBadFont).warnings.some(w => w.code === 'external-css'), `rejects bypass font URL: ${badFontUrl}`);
+}
+for (const sysName of ['atelier-zero', 'bold', 'clean', 'minimal', 'mono']) {
+  const sysDir = join(library, 'design-systems', sysName);
+  const css = read(join(sysDir, 'tokens.css'));
+  const json = JSON.parse(read(join(sysDir, 'design-tokens.json')));
+  const cssMap = new Map([...css.matchAll(/^\s*(--[\w-]+)\s*:\s*([^;]+);/gm)].map(m => [m[1], m[2].trim()]));
+  for (const tok of json.tokens) {
+    if (cssMap.has(tok.name)) assert.equal(tok.value, cssMap.get(tok.name), `${sysName} ${tok.name} matches between tokens.css and design-tokens.json`);
+  }
+}
 const importedTheme = goodTokens.replace(/\/\* tokens:start \*\/[^]*\/\* tokens:end \*\//, `/* tokens:start */\n${imported.css}/* tokens:end */`)
   .replace('var(--text-4xl)', 'var(--text-lg)').replace('var(--font-display)', 'var(--font-body)').replace('var(--radius-card)', 'var(--radius-ctl)');
 assert.ok(!inspectHtml(importedTheme).warnings.some(w => w.code !== 'unused-token'), 'an imported theme passes the static checks apart from unused scale steps');
@@ -384,6 +403,7 @@ try {
   assert.match(boardHtml, /layoutBoards/);
   assert.match(boardHtml, /Theme: Auto/);
   assert.match(boardHtml, /btn-ids/);
+  assert.match(boardHtml, /\[hidden\]\{display:none!important\}/);
   const boardApiRes = await fetch(`${base}api/board`);
   assert.equal(boardApiRes.status, 200);
   const boardJson = await boardApiRes.json();
@@ -396,6 +416,8 @@ try {
   assert.match(viewHtml, /btn-ids/);
   mkdirSync(join(root, '.craft-verification/demo-123'), { recursive: true });
   writeFileSync(join(root, '.craft-verification/demo-123/summary.json'), JSON.stringify({ status: 'passed', stage: 'full', clean: true, frames: [{ width: 1440 }] }));
+  mkdirSync(join(root, '.craft-verification/demo-456'), { recursive: true });
+  writeFileSync(join(root, '.craft-verification/demo-456/summary.json'), JSON.stringify({ status: 'incomplete', stage: 'full', clean: false, frames: [] }));
   try {
     const withVerify = await (await fetch(`${base}api/board`)).json();
     assert.equal(withVerify.verification?.status, 'passed');
@@ -501,6 +523,17 @@ try {
       const full = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '1440,390', '--wait', '0', '--full', '--strips', '--out', join(work, 'full.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(full.status, 0, `full capture runs: ${full.stderr}`);
       assert.ok(existsSync(join(work, 'full-1440-s1.png')), '--strips creates 1:1 viewport strip PNGs');
+      // Verify 5350px page bottom coverage by last 1:1 strip on 1440x900.
+      writeFileSync(join(root, 'demo/strips-bottom.html'), '<!doctype html><body style="margin:0;background:white"><div style="height:5270px"></div><footer style="height:80px;background:#00ff00"></footer></body>');
+      const stripsBottom = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/strips-bottom.html'), '--width', '1440', '--wait', '0', '--full', '--strips', '--out', join(work, 'strips5350.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(stripsBottom.status, 0, stripsBottom.stderr);
+      assert.deepEqual(screenshot(join(work, 'strips5350-s6.png')).pixel(10, 899), [0, 255, 0], 'last 1:1 strip reaches bottom of 5350px document');
+      // Verify hover-contrast-loss triggers on a button with CSS transition.
+      writeFileSync(join(root, 'demo/hover-trans.html'), '<!doctype html><style>body{margin:0;background:#fff}button{background:#111;color:#fff;padding:12px 20px;border:0;transition:background-color 0.4s}button:hover{background:#eee}</style><button>Hover me</button>');
+      const hoverCheck = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/hover-trans.html'), '--width', '1440', '--wait', '0', '--inspect', '--out', join(work, 'hover-trans.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(hoverCheck.status, 0, hoverCheck.stderr);
+      const hoverReport = JSON.parse(read(join(work, 'hover-trans.json')));
+      assert.ok(hoverReport.findings.some(f => f.code === 'hover-contrast-loss'), 'hover-contrast-loss detected despite transition: 0.4s');
       for (const [width, viewportHeight] of [[1440, 900], [390, 844]]) {
         const png = screenshot(join(work, `full-${width}.png`));
         const expected = viewportHeight / 2 + 80 + 4200 + width + 80;

@@ -1,6 +1,6 @@
 /* design-systems/atelier-zero/tokens.css
  * Structured token bindings for Atelier Zero.
- * independent studio identity with off-white canvas, sharp black type, and gallery restraint.
+ * Warm parchment canvas (#efe7d2), obsidian ink, Inter Tight display, Inter body, and coral signal (#ed6f5c).
  */
 
 :root {
@@ -20,8 +20,8 @@
   --success: #168a46;
   --warn: #b7791f;
   --danger: #c53030;
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "Inter Tight", system-ui, sans-serif;
+  --font-display: "Inter Tight", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   --text-xs: 12px;
   --text-sm: 14px;

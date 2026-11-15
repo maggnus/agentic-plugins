@@ -289,9 +289,22 @@ export function inspectHtml(html) {
   const unused = [...definitions].filter(([name]) => !used.has(name) && !preservedNames.has(name));
   if (unused.length) warn('unused-token', `${unused.length} token(s) declared but never referenced by var(): ${unused.slice(0, 40).map(([name]) => name).join(', ')}${unused.length > 40 ? `, … ${unused.length - 40} more` : ''}`, unused[0][1].start, unused[0][1].selector);
   if (svgCount) warn('svg-colors', `${svgCount} literal color occurrence(s) in SVG illustrations; review as one group`, parts.svgColors[0]?.start ?? 0, 'svg');
-  const ALLOWED_FONT_CSS = /^https:\/\/(?:fonts\.googleapis\.com|api\.fontshare\.com|use\.typekit\.net|cdn\.jsdelivr\.net\/npm\/@fontsource)\b/i;
+  const isAllowedFontStylesheet = href => {
+    if (!href || typeof href !== 'string') return false;
+    let u;
+    try { u = new URL(href); } catch { return false; }
+    if (u.protocol !== 'https:' || u.username || u.password || u.port) return false;
+    let segments;
+    try { segments = u.pathname.split('/').map(s => decodeURIComponent(s)); } catch { return false; }
+    if (segments.some((s, i) => (i > 0 && s === '') || s === '.' || s === '..')) return false;
+    if (u.hostname === 'fonts.googleapis.com' && (u.pathname === '/css' || u.pathname === '/css2' || u.pathname === '/icon')) return true;
+    if (u.hostname === 'api.fontshare.com' && u.pathname === '/v2/css') return true;
+    if (u.hostname === 'use.typekit.net' && /^\/[a-z0-9_-]+\.css$/i.test(u.pathname)) return true;
+    if (u.hostname === 'cdn.jsdelivr.net' && /^\/npm\/@fontsource(?:-variable)?\/[a-z0-9._-]+\/[a-z0-9._-]+\.css$/i.test(u.pathname)) return true;
+    return false;
+  };
   for (const link of parts.links) {
-    if (!ALLOWED_FONT_CSS.test(link.href ?? '')) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
+    if (!isAllowedFontStylesheet(link.href ?? '')) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
   }
   const registry = theme ? decls.filter(d => d.start >= theme.start && d.start < theme.end && d.prop.startsWith('--') && /(^|[\s>,]):root\b/.test(d.selector)) : [];
   if (theme && !registry.length) warn('theme-registry', 'no :root token registry between the theme markers', theme.start);
@@ -377,9 +390,22 @@ async function mutateTheme(tokens, semanticTokens, pureReferences) {
       if (rule.cssRules && !(rule instanceof CSSKeyframesRule)) rules(rule.cssRules);
     }
   };
-  const ALLOWED_FONT_CSS = /^https:\/\/(?:fonts\.googleapis\.com|api\.fontshare\.com|use\.typekit\.net|cdn\.jsdelivr\.net\/npm\/@fontsource)\b/i;
+  const isAllowedFontStylesheet = href => {
+    if (!href || typeof href !== 'string') return false;
+    let u;
+    try { u = new URL(href); } catch { return false; }
+    if (u.protocol !== 'https:' || u.username || u.password || u.port) return false;
+    let segments;
+    try { segments = u.pathname.split('/').map(s => decodeURIComponent(s)); } catch { return false; }
+    if (segments.some((s, i) => (i > 0 && s === '') || s === '.' || s === '..')) return false;
+    if (u.hostname === 'fonts.googleapis.com' && (u.pathname === '/css' || u.pathname === '/css2' || u.pathname === '/icon')) return true;
+    if (u.hostname === 'api.fontshare.com' && u.pathname === '/v2/css') return true;
+    if (u.hostname === 'use.typekit.net' && /^\/[a-z0-9_-]+\.css$/i.test(u.pathname)) return true;
+    if (u.hostname === 'cdn.jsdelivr.net' && /^\/npm\/@fontsource(?:-variable)?\/[a-z0-9._-]+\/[a-z0-9._-]+\.css$/i.test(u.pathname)) return true;
+    return false;
+  };
   for (const sheet of document.styleSheets) {
-    if (sheet.href && ALLOWED_FONT_CSS.test(sheet.href)) continue;
+    if (sheet.href && isAllowedFontStylesheet(sheet.href)) continue;
     if (sheet.disabled || sheet.media.mediaText && !matchMedia(sheet.media.mediaText).matches) continue;
     try { rules(sheet.cssRules); } catch (error) { applicabilityKnown = false; applicabilityLimits.add(error.message); }
   }

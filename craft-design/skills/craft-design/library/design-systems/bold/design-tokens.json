@@ -63,7 +63,7 @@
     },
     {
       "name": "--fg",
-      "value": "#111111",
+      "value": "#111827",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -135,7 +135,7 @@
     },
     {
       "name": "--accent",
-      "value": "#111111",
+      "value": "#0077bc",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -183,7 +183,7 @@
     },
     {
       "name": "--success",
-      "value": "#168a46",
+      "value": "#16a34a",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -195,7 +195,7 @@
     },
     {
       "name": "--warn",
-      "value": "#b7791f",
+      "value": "#d97706",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -207,7 +207,7 @@
     },
     {
       "name": "--danger",
-      "value": "#c53030",
+      "value": "#dc2626",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -219,7 +219,7 @@
     },
     {
       "name": "--font-display",
-      "value": "Arial Black, Impact, sans-serif",
+      "value": "\"Archivo Black\", Impact, sans-serif",
       "type": "fontFamily",
       "layer": "A1-identity",
       "confidence": "high",
@@ -231,7 +231,7 @@
     },
     {
       "name": "--font-body",
-      "value": "Inter, system-ui, sans-serif",
+      "value": "\"Inter\", system-ui, sans-serif",
       "type": "fontFamily",
       "layer": "A1-identity",
       "confidence": "high",
@@ -243,7 +243,7 @@
     },
     {
       "name": "--font-mono",
-      "value": "\"SF Mono\", ui-monospace, Menlo, monospace",
+      "value": "\"JetBrains Mono\", ui-monospace, Menlo, monospace",
       "type": "fontFamily",
       "layer": "A2",
       "confidence": "high",

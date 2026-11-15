@@ -123,25 +123,32 @@ function readVerificationSummary() {
       if (existsSync(p)) candidates.push(p);
     }
   } catch {}
-  let latest = null;
-  let latestMtime = -1;
+  let latestComplete = null;
+  let latestCompleteMtime = -1;
+  let latestAny = null;
+  let latestAnyMtime = -1;
   for (const file of candidates) {
     try {
       const st = statSync(file);
-      if (st.mtimeMs > latestMtime) {
-        const data = JSON.parse(readFileSync(file, 'utf8'));
-        latest = {
-          status: String(data.status || 'unknown'),
-          stage: String(data.stage || 'full'),
-          widths: Array.isArray(data.frames) ? data.frames.map(f => f.width).filter(Number.isFinite) : [],
-          clean: Boolean(data.clean),
-          updatedAt: new Date(st.mtimeMs).toISOString(),
-        };
-        latestMtime = st.mtimeMs;
+      const data = JSON.parse(readFileSync(file, 'utf8'));
+      const summary = {
+        status: String(data.status || 'unknown'),
+        stage: String(data.stage || 'full'),
+        widths: Array.isArray(data.frames) ? data.frames.map(f => f.width).filter(Number.isFinite) : [],
+        clean: Boolean(data.clean),
+        updatedAt: new Date(st.mtimeMs).toISOString(),
+      };
+      if (st.mtimeMs > latestAnyMtime) {
+        latestAny = summary;
+        latestAnyMtime = st.mtimeMs;
+      }
+      if (summary.status !== 'incomplete' && st.mtimeMs > latestCompleteMtime) {
+        latestComplete = summary;
+        latestCompleteMtime = st.mtimeMs;
       }
     } catch {}
   }
-  return latest;
+  return latestComplete || latestAny;
 }
 
 function boardState() {
@@ -199,6 +206,7 @@ const BASE_STYLE = `
 :root{color-scheme:light dark;--bg:oklch(96% .004 260);--canvas:oklch(92% .005 260);--fg:oklch(20% .01 260);--muted:oklch(48% .01 260);--line:oklch(85% .006 260);--panel:oklch(99% .002 260);--accent:oklch(55% .17 255);--dot:oklch(80% .008 260);--ok:oklch(52% .14 155);--warn:oklch(62% .16 70);--bad:oklch(56% .19 25)}
 @media (prefers-color-scheme:dark){:root{--bg:oklch(17% .006 260);--canvas:oklch(14% .006 260);--fg:oklch(93% .004 260);--muted:oklch(68% .008 260);--line:oklch(29% .008 260);--panel:oklch(21% .007 260);--accent:oklch(72% .14 255);--dot:oklch(28% .01 260);--ok:oklch(70% .14 155);--warn:oklch(76% .14 75);--bad:oklch(70% .16 25)}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{height:100%;margin:0}
 body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);overflow:hidden}
 a{color:inherit;text-decoration:none}
@@ -232,8 +240,8 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
 .stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
 .group-title{position:absolute;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));pointer-events:none}
 .board{position:absolute;background:#fff;box-shadow:0 0 0 1px var(--line),0 10px 30px oklch(0% 0 0/.12);border-radius:2px}
-.board-label{position:absolute;left:0;bottom:100%;padding-bottom:6px;display:flex;align-items:center;gap:8px;white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));font-size:12px}
-.board-label strong{font-weight:600}
+.board-label{position:absolute;left:0;bottom:100%;padding-bottom:6px;display:flex;align-items:center;gap:8px;white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));font-size:12px;max-width:calc((100% + 64px) * var(--zoom));overflow:hidden}
+.board-label strong{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .board-label .dims{color:var(--muted);font-variant-numeric:tabular-nums}
 .board-label a{color:var(--muted);padding:1px 5px;border-radius:4px;border:1px solid transparent}
 .board-label a:hover{color:var(--fg);border-color:var(--line);background:var(--panel)}
@@ -281,7 +289,7 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
 </main>
 <script>
 const INITIAL = ${safeJson(initial)};
-const GAP_X = 80, GAP_Y = 136, MIN_ZOOM = 0.08, MAX_ZOOM = 4;
+const GAP_X = 96, GAP_Y = 200, MIN_ZOOM = 0.08, MAX_ZOOM = 4;
 const viewport = document.getElementById('viewport');
 const stage = document.getElementById('stage');
 const emptyEl = document.getElementById('empty');
@@ -371,7 +379,7 @@ function layoutBoards(list) {
   for (const [groupName, items] of groups) {
     let x = 0;
     let rowH = 0;
-    groupLabels.push({ name: groupName, x: 0, y: y - 34 });
+    groupLabels.push({ name: groupName, x: 0, y });
     for (const b of items) {
       b.x = x;
       b.y = y;
@@ -406,15 +414,16 @@ function zoomAt(cx, cy, factor) {
 function fitView() {
   if (!boards.length) { cam = { x: 48, y: 64, zoom: 1 }; applyCamera(); return; }
   const rect = viewport.getBoundingClientRect();
-  const pad = 64;
+  const pad = 84;
   const availW = Math.max(120, rect.width - pad * 2);
   const availH = Math.max(120, rect.height - pad * 2);
   const bw = Math.max(1, bounds.width);
   const bh = Math.max(1, bounds.height);
-  const z = Math.min(1, Math.max(MIN_ZOOM, Math.min(availW / bw, availH / bh)));
+  const fitH = Math.min(bh, 2400);
+  const z = Math.min(1, Math.max(MIN_ZOOM, Math.min(availW / bw, availH / fitH)));
   cam.zoom = z;
   cam.x = (rect.width - bw * z) / 2 - bounds.minX * z;
-  cam.y = (rect.height - bh * z) / 2 - bounds.minY * z;
+  cam.y = bh > 2400 ? (pad - bounds.minY * z) : ((rect.height - bh * z) / 2 - bounds.minY * z);
   applyCamera();
 }
 
@@ -500,7 +509,7 @@ function relayout() {
     label.className = 'group-title';
     label.textContent = g.name;
     label.style.left = g.x + 'px';
-    label.style.top = g.y + 'px';
+    label.style.top = 'calc(' + g.y + 'px - 36px / var(--zoom))';
     stage.appendChild(label);
   }
 }

@@ -276,7 +276,7 @@ function choosePrompt(path) {
 }
 
 function readyOutput(state) {
-  const usesLibrary = state.plan?.use ? state.plan.use.includes('library') : state.plan?.capabilities?.library?.choice === 'use';
+  const usesLibrary = Boolean(state.plan?.use?.includes('library') || state.plan?.capabilities?.library?.choice === 'use');
   const row = usesLibrary && state.plan?.entryId ? entry(state.plan.entryId) : null;
   const folder = row && dirname(row.path).replace(/^library\//, '') + '/';
   return 'READY. Delivered and acknowledged: core briefing, capability map, and targeted detail packets' + (row ? `, plus ${row.path} and its craft files` : '') + '. Route recorded. Not delivered automatically: ' + (row ? `the other files of ${folder} (sections, references, templates, examples), ` : '') + 'design-system and brand files. Read those the task needs before authoring' + (row ? '; ' + guideCommand('read', '--path', folder) + ' lists the entry files' : '') + '. Build within scope, then use verify.mjs with this state.';

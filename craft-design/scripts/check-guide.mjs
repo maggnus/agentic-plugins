@@ -195,6 +195,16 @@ try{
  assert.ok(existsSync(firstReportPath),'verifying another file preserves sibling report subdir');
  // Failed check preserves previous successful subdir for same key.
  assert.equal(verify([otherHtml,'--state',state,'--width','1440'],()=>({status:2,stdout:'',stderr:'boom'})),1);
- assert.equal(readdirSync(join(dir,'.craft-verification')).filter(n=>n.startsWith('pricing-')).length,2,'failed run does not delete previous run');
+ assert.equal(readdirSync(join(dir,'.craft-verification')).filter(n=>n.startsWith('pricing--')).length,2,'failed run does not delete previous run');
+ // Prefix-sharing files (index.html vs index-v2.html) never delete each other's reports; --bogus creates no directory.
+ const idxV2=join(dir,'index-v2.html'), idx=join(dir,'index.html');
+ writeFileSync(idxV2,'<!doctype html><p>v2</p>'); writeFileSync(idx,'<!doctype html><p>v1</p>');
+ assert.equal(verify([idxV2,'--state',state,'--width','1440'],evidence()),0);
+ const v2Report=latest.report;
+ assert.equal(verify([idx,'--state',state,'--width','1440'],evidence()),0);
+ assert.ok(existsSync(v2Report),'verifying index.html preserves index-v2.html report');
+ const beforeBogus=readdirSync(join(dir,'.craft-verification')).length;
+ assert.throws(()=>verify([idx,'--state',state,'--bogus'],evidence()),/Unknown option/);
+ assert.equal(readdirSync(join(dir,'.craft-verification')).length,beforeBogus,'invalid flag creates no verification subdir');
 }finally{console.log=capture;rmSync(dir,{recursive:true,force:true});}
 console.log(`guide: packet completeness, bounded unicode, receipts, recovery, stale editions, route coverage, ranked search, library reading, conditional details and combined-check failures passed (${curriculum().pages.length} base packets)`);

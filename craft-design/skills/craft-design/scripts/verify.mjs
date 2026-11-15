@@ -62,11 +62,24 @@ export function verify(argv, run = spawnSync) {
   if (stage === 'full' && !args.includes('--fit') && !args.includes('--at') && !args.includes('--full')) args.push('--full');
   for (let n = args.indexOf('--strict'); n >= 0; n = args.indexOf('--strict')) args.splice(n, 1);
 
+  const VALUE_FLAGS = new Set(['--height', '--wait', '--at', '--mode', '--contract', '--scenario', '--click', '--width']);
+  const BOOL_FLAGS = new Set(['--full', '--strips', '--fit', '--inspect']);
+  for (let idx = 0; idx < args.length; idx++) {
+    const a = args[idx];
+    if (VALUE_FLAGS.has(a)) {
+      if (args[idx + 1] === undefined || args[idx + 1].startsWith('--')) throw new Error(`Missing value for ${a}.`);
+      idx++;
+    } else if (!BOOL_FLAGS.has(a)) {
+      throw new Error(a.startsWith('-') ? `Unknown option: ${a}` : `Unexpected argument: ${a}`);
+    }
+  }
+
   const startedAtMs = Date.now();
-  const key = basename(source, extname(source)).replace(/[^\w.-]+/g, '-') + (suffix ? '-' + hash(suffix).slice(0, 6) : '') + (stage === 'calibrate' ? '-calibrate' : '');
+  const rawKey = basename(source, extname(source)).replace(/[^\w.]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'artifact';
+  const safeKey = rawKey + (suffix ? '-' + hash(suffix).slice(0, 6) : '') + (stage === 'calibrate' ? '-calibrate' : '');
   const verifyRoot = join(dirname(statePath), '.craft-verification');
   mkdirSync(verifyRoot, { recursive: true });
-  const directory = mkdtempSync(join(verifyRoot, key + '-'));
+  const directory = mkdtempSync(join(verifyRoot, safeKey + '--'));
   const before = hash(readFileSync(source)), scriptRoot = dirname(fileURLToPath(import.meta.url));
   const steps = [['tokens', ['check', targetSpec, '--width', widths, ...modeArgs, '--strict', '--json']], ['inspect', [targetSpec, ...args, '--out', join(directory, 'frame.png'), '--strict']]];
   const results = [], diagnostics = [], frames = [], deferredInCalibrate = [];
@@ -118,7 +131,7 @@ export function verify(argv, run = spawnSync) {
 
   if (counts.checkFailures === 0) {
     for (const entry of readdirSync(verifyRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory() || entry.name === basename(directory) || !entry.name.startsWith(key + '-')) continue;
+      if (!entry.isDirectory() || entry.name === basename(directory) || !entry.name.startsWith(safeKey + '--') || entry.name.slice(safeKey.length + 2).includes('--')) continue;
       const oldDir = join(verifyRoot, entry.name);
       try {
         if (statSync(oldDir).mtimeMs <= startedAtMs) rmSync(oldDir, { recursive: true, force: true });

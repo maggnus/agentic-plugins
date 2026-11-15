@@ -27,7 +27,7 @@
   "tokens": [
     {
       "name": "--bg",
-      "value": "#ffffff",
+      "value": "#f4f4f1",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -39,7 +39,7 @@
     },
     {
       "name": "--surface",
-      "value": "#fafafa",
+      "value": "#ffffff",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -51,7 +51,7 @@
     },
     {
       "name": "--surface-warm",
-      "value": "#f5f5f5",
+      "value": "#ecece7",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -63,7 +63,7 @@
     },
     {
       "name": "--fg",
-      "value": "#111111",
+      "value": "#0c0c09",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -75,7 +75,7 @@
     },
     {
       "name": "--fg-2",
-      "value": "#3a3a3a",
+      "value": "#312c85",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -99,7 +99,7 @@
     },
     {
       "name": "--meta",
-      "value": "#111111",
+      "value": "#0c0c09",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -135,7 +135,7 @@
     },
     {
       "name": "--accent",
-      "value": "#111111",
+      "value": "#0c0c09",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -147,7 +147,7 @@
     },
     {
       "name": "--accent-on",
-      "value": "#ffffff",
+      "value": "#f4f4f1",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -183,7 +183,7 @@
     },
     {
       "name": "--success",
-      "value": "#168a46",
+      "value": "#16a34a",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -195,7 +195,7 @@
     },
     {
       "name": "--warn",
-      "value": "#b7791f",
+      "value": "#d97706",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -207,7 +207,7 @@
     },
     {
       "name": "--danger",
-      "value": "#c53030",
+      "value": "#dc2626",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -231,7 +231,7 @@
     },
     {
       "name": "--font-body",
-      "value": "Inter, system-ui, sans-serif",
+      "value": "\"Open Sans\", system-ui, sans-serif",
       "type": "fontFamily",
       "layer": "A1-identity",
       "confidence": "high",
@@ -243,7 +243,7 @@
     },
     {
       "name": "--font-mono",
-      "value": "\"SF Mono\", ui-monospace, Menlo, monospace",
+      "value": "Inconsolata, ui-monospace, Menlo, monospace",
       "type": "fontFamily",
       "layer": "A2",
       "confidence": "high",

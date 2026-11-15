@@ -21,7 +21,7 @@
   --warn: #d97706;
   --danger: #dc2626;
   --font-display: "Archivo Black", Impact, sans-serif;
-  --font-body: "Archivo Black", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   --text-xs: 12px;
   --text-sm: 14px;

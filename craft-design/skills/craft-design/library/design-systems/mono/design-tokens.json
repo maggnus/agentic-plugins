@@ -27,7 +27,7 @@
   "tokens": [
     {
       "name": "--bg",
-      "value": "#ffffff",
+      "value": "#e7e5e4",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -39,7 +39,7 @@
     },
     {
       "name": "--surface",
-      "value": "#f7f7f7",
+      "value": "#f5f5f4",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -51,7 +51,7 @@
     },
     {
       "name": "--surface-warm",
-      "value": "#eeeeee",
+      "value": "#d6d3d1",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -63,7 +63,7 @@
     },
     {
       "name": "--fg",
-      "value": "#111111",
+      "value": "#292524",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -75,7 +75,7 @@
     },
     {
       "name": "--fg-2",
-      "value": "#3a3a3a",
+      "value": "#57534e",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -87,7 +87,7 @@
     },
     {
       "name": "--muted",
-      "value": "#707070",
+      "value": "#78716b",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -99,7 +99,7 @@
     },
     {
       "name": "--meta",
-      "value": "#111111",
+      "value": "#292524",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -111,7 +111,7 @@
     },
     {
       "name": "--border",
-      "value": "#d9d9d9",
+      "value": "#d6d3d1",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -123,7 +123,7 @@
     },
     {
       "name": "--border-soft",
-      "value": "#eeeeee",
+      "value": "#e7e5e4",
       "type": "color",
       "layer": "B-slot",
       "confidence": "high",
@@ -135,7 +135,7 @@
     },
     {
       "name": "--accent",
-      "value": "#111111",
+      "value": "#37f712",
       "type": "color",
       "layer": "A1-identity",
       "confidence": "high",
@@ -147,7 +147,7 @@
     },
     {
       "name": "--accent-on",
-      "value": "#ffffff",
+      "value": "#1c1917",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -183,7 +183,7 @@
     },
     {
       "name": "--success",
-      "value": "#168a46",
+      "value": "#00a63d",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -195,7 +195,7 @@
     },
     {
       "name": "--warn",
-      "value": "#b7791f",
+      "value": "#fe9900",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -207,7 +207,7 @@
     },
     {
       "name": "--danger",
-      "value": "#c53030",
+      "value": "#ff2157",
       "type": "color",
       "layer": "A2",
       "confidence": "high",
@@ -219,7 +219,7 @@
     },
     {
       "name": "--font-display",
-      "value": "\"IBM Plex Mono\", ui-monospace, monospace",
+      "value": "\"Space Mono\", ui-monospace, Menlo, monospace",
       "type": "fontFamily",
       "layer": "A1-identity",
       "confidence": "high",
@@ -231,7 +231,7 @@
     },
     {
       "name": "--font-body",
-      "value": "\"IBM Plex Mono\", ui-monospace, monospace",
+      "value": "\"Space Mono\", ui-monospace, Menlo, monospace",
       "type": "fontFamily",
       "layer": "A1-identity",
       "confidence": "high",
@@ -243,7 +243,7 @@
     },
     {
       "name": "--font-mono",
-      "value": "\"IBM Plex Mono\", ui-monospace, monospace",
+      "value": "\"JetBrains Mono\", ui-monospace, Menlo, monospace",
       "type": "fontFamily",
       "layer": "A2",
       "confidence": "high",

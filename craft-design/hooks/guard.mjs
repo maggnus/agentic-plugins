@@ -116,6 +116,7 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
         values[flag]=value;
       }
       if(!values['--state'] || !values['--reason'])return deny('Cancellation requires exactly --state FILE --reason TEXT.');
+      if(active?.state && (!state || state!==resolve(active.state)))return deny('Cannot cancel another active state: '+active.state);
       if(existsSync(registry))unlinkSync(registry);
       issueInvocation(root,cwd,argv.slice(2),data);return {};
     }
