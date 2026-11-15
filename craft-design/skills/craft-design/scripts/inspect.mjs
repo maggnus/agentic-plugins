@@ -251,6 +251,74 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       }
     }
   }
+  if (document.querySelectorAll('section, article, aside, [data-craft-id]').length >= 4) {
+    const oklabL = ([r, g, b]) => {
+      const lin = v => { const c = v / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+      const R = lin(r), G = lin(g), B = lin(b);
+      const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B);
+      const m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B);
+      const s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B);
+      return 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+    };
+    const bodyBg = colour(style(document.body).backgroundColor);
+    const htmlBg = colour(style(document.documentElement).backgroundColor);
+    const docBg = bodyBg[3] >= 0.92 ? bodyBg : htmlBg[3] >= 0.92 ? htmlBg : [255, 255, 255, 1];
+    const docL = oklabL(docBg);
+    let bleedCount = 0, weakCount = 0;
+    const bleedKeys = new Set(), weakKeys = new Set();
+    for (const el of document.querySelectorAll('body *')) {
+      if (bleedCount >= 3 && weakCount >= 3) break;
+      if (el.closest('script,style,noscript,svg') || !visible(el)) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 120 || r.height < 38) continue;
+      const es = style(el);
+      if (es.backgroundImage !== 'none') continue;
+      const elBg = colour(es.backgroundColor);
+      if (elBg[3] < 0.92) continue;
+      const elL = oklabL(elBg);
+      const structKey = el.localName + '|' + [...el.classList].sort().join('.');
+      if (bleedCount < 3 && !bleedKeys.has(structKey)) {
+        const rgbDiffDoc = Math.abs(elBg[0] - docBg[0]) + Math.abs(elBg[1] - docBg[1]) + Math.abs(elBg[2] - docBg[2]);
+        if (Math.abs(elL - docL) < 0.008 && rgbDiffDoc < 6) {
+          let surfaceParent = null;
+          for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+            const pBg = colour(style(p).backgroundColor);
+            if (pBg[3] >= 0.92 && Math.abs(oklabL(pBg) - docL) >= 0.03) { surfaceParent = p; break; }
+          }
+          if (surfaceParent) {
+            bleedKeys.add(structKey);
+            add('canvas-bleed-through', 'review', el, 'Nested surface reuses the outer document canvas color; step to --surface-2 instead.', { parent: selector(surfaceParent) }, r);
+            bleedCount++;
+          }
+        }
+      }
+      if (weakCount < 3 && !weakKeys.has(structKey) && r.width >= 180 && r.height >= 80 &&
+          parseFloat(es.paddingTop) >= 10 && parseFloat(es.paddingLeft) >= 10) {
+        let parentBg = docBg;
+        for (let p = el.parentElement; p; p = p.parentElement) {
+          const pBg = colour(style(p).backgroundColor);
+          if (pBg[3] >= 0.92) { parentBg = pBg; break; }
+          if (p === document.body) break;
+        }
+        const parentL = oklabL(parentBg);
+        const rgbDist = Math.abs(elBg[0] - parentBg[0]) + Math.abs(elBg[1] - parentBg[1]) + Math.abs(elBg[2] - parentBg[2]);
+        if (rgbDist >= 3 && Math.abs(elL - parentL) < 0.026 && es.boxShadow === 'none') {
+          const hasCrispBorder = ['Top', 'Right', 'Bottom', 'Left'].some(side => {
+            const bw = parseFloat(es['border' + side + 'Width']) || 0;
+            if (bw < 1 || es['border' + side + 'Style'] === 'none') return false;
+            const bc = colour(es['border' + side + 'Color']);
+            return bc[3] >= 0.35 && Math.abs(oklabL(bc) - parentL) >= 0.07;
+          });
+          if (!hasCrispBorder) {
+            weakKeys.add(structKey);
+            add('weak-surface-separation', 'review', el, 'Container surface differs from its parent by less than 0.026 OKLab L without a crisp border or shadow.',
+              { deltaL: Math.round(Math.abs(elL - parentL) * 1000) / 1000 }, r);
+            weakCount++;
+          }
+        }
+      }
+    }
+  }
   if (root.scrollWidth > width + 1) add('horizontal-overflow', 'error', root, 'Document is wider than the requested viewport.',
     { scrollWidth: root.scrollWidth, viewportWidth: width });
   if (fit && root.scrollHeight > height + 1) add('vertical-overflow', 'error', root, 'Document is taller than the required frame.',

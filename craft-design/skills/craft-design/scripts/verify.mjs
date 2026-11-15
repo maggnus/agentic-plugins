@@ -26,6 +26,8 @@ const repairs = {
   'cramped-uppercase': 'Add at least 0.04em (>= 0.3px) letter-spacing to small uppercase labels.',
   'card-grid-monotony': 'Break up consecutive uniform card grids with tables, asymmetric splits, lists, or interactive blocks.',
   'hover-contrast-loss': 'Preserve >= 3:1 (ideally >= 4.5:1) text contrast in :hover styles.',
+  'canvas-bleed-through': 'Introduce a distinct --surface-2 token in oklch() (|ΔL| >= 0.04–0.07) and replace nested var(--bg) inside --surface containers with var(--surface-2).',
+  'weak-surface-separation': 'Separate --bg, --surface, and --surface-2 in oklch() with perceptual lightness step ΔL >= 0.05 (or add a crisp structural border).',
 };
 
 export function verify(argv, run = spawnSync) {

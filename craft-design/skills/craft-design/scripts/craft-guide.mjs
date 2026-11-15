@@ -10,8 +10,8 @@ import { consumeInvocation } from './guide-runtime.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 export const skillRoot = resolve(here, '..');
 export const PAGE_BYTES = 16000;
-const DETAIL_INLINE_LIMIT = 60000;
-const DETAIL_PAGE_BYTES = 48000;
+const DETAIL_INLINE_LIMIT = 90000;
+const DETAIL_PAGE_BYTES = 80000;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const read = file => readFileSync(file, 'utf8');
 export const capabilities = JSON.parse(read(join(skillRoot, 'references/capabilities.json')));
@@ -141,7 +141,7 @@ function craftFilesForEntry(row) {
     } catch {}
   }
   const existing = names.filter(n => existsSync(join(skillRoot, 'library/craft', n + '.md')));
-  const finalNames = existing.length ? existing : ['typography', 'color', 'anti-ai-slop'];
+  const finalNames = [...new Set(['typography', 'color', ...(existing.length ? existing : ['anti-ai-slop'])])];
   return finalNames.map(name => 'library/craft/' + name + '.md');
 }
 
@@ -159,6 +159,16 @@ export function coreBriefing() {
     '- Bind one visual contract before authoring: supplied brand source, active project design system, or a subject-specific design spec written in an HTML comment at the top of the file.',
     '- Place all visual tokens inside the first `<style>` between `/* tokens:start */` and `/* tokens:end */`. Bind colors, typography, radii, shadows, and surfaces via `var(...)`; never leave unbacked literal colors or duplicated magic values outside the theme.',
     '- For library design systems, read `USAGE.md -> DESIGN.md -> tokens.css` and preserve real theme values.',
+    '',
+    '## Typography & Optical Hierarchy',
+    '- Pair a subject-fit `--font-display` with a calm `--font-body` and tabular `--font-mono` (`font-variant-numeric: tabular-nums` for numbers/codes). Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display` unless an external brand contract requires it; even dense dashboards need an intentional engineered webfont pair instead of bare `system-ui`.',
+    '- Load real webfonts (e.g. via an allowed Google Fonts `<link>`) covering required weights (`400/500/600/700`) and the target script (Cyrillic for Russian). On screenshots, inspect stroke weight: avoid fragile hairline serifs at small sizes or dense technical UI.',
+    '- Declare a full modular scale (`--text-xs`…`--text-4xl` with `clamp()`), build hierarchy through strong scale contrast (poster-scale hero H1 on landing pages, stepped-down section H2s; `text-wrap: balance` on headings; `0.06–0.1em` tracking on ALL CAPS), and follow locale microtypography (Russian: `«ёлочки»`, non-breaking spaces before `—` and units like `5&nbsp;мин`, generous button width).',
+    '',
+    '## OKLch Surface Planes & Section Rhythm',
+    '- Build the neutral ramp in `oklch()` with at least three distinct planes (`--bg` page canvas, `--surface` primary card/panel, `--surface-2` nested block/input/table header/chart plot, plus `--border` and `--border-strong`) separated by a perceptual lightness step `|ΔL| >= 0.04–0.07` (or a crisp border) so silhouettes read clearly even when zoomed out.',
+    '- Never paint elements nested inside `--surface` back to the outer canvas `--bg` (this creates canvas bleed-through holes and breaks panel cohesion); use `--surface-2` or a derived surface token instead.',
+    '- Alternate adjacent section type, density, and ground (`--bg`, `--surface-2`, `.on-dark` contrast band) instead of repeating identical card grids on one flat background.',
     '',
     '## Honesty & Demo Data',
     '- Preserve supplied facts verbatim; never invent metrics, testimonials, or unverified brand assets.',

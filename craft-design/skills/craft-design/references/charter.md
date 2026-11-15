@@ -113,7 +113,7 @@ earlier): extract actual values before planning (hex from CSS, characteristics
 from screenshots; never guess colors), then write `brand-spec.md` next to the
 artifact with:
 
-- six OKLch tokens: `--bg`, `--surface`, `--fg`, `--muted`, `--border`, `--accent`;
+- seven OKLch tokens: `--bg`, `--surface`, `--surface-2`, `--fg`, `--muted`, `--border`, `--accent`;
 - display, body and mono font stacks;
 - 3–5 observed rules that define the visual language.
 
@@ -214,7 +214,7 @@ asking again.
 **Materialize the contract as a theme,** whatever the branch. The first
 `<style>` opens with the theme between `/* tokens:start */` and
 `/* tokens:end */`: a `:root` registry with the library systems' names (colors
-`--bg --surface --fg --fg-2 --muted --border --accent --accent-on` and state
+`--bg --surface --surface-2 --fg --fg-2 --muted --border --accent --accent-on` and state
 colors; `--font-display --font-body --font-mono`; `--text-xs`…`--text-4xl`,
 `--leading-*`; `--space-1`…`--space-12`; `--radius-*`; `--elev-*`;
 `--motion-*`), extra names allowed. An active system's `tokens.css` is that

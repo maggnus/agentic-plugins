@@ -92,8 +92,13 @@ disintegrating into letters.
   used at multiple weights).
 - Always declare a system fallback chain. If the active `DESIGN.md`
   ships a webfont URL, the fallback must still produce a coherent look.
-- Never set `font-family: system-ui` alone on a heading — that is the
-  textbook AI default; always pair it with an intentional first choice.
+- Load real webfonts supporting the document's script (e.g. Cyrillic
+  subsets for Russian) and inspect optical stroke density on screenshots:
+  avoid fragile hairline serifs in small callouts or dense UI.
+- Never leave generic `Inter`, `Roboto`, `Arial`, or bare `system-ui` as
+  `--font-display` — even utilitarian dashboards should pair a distinct
+  engineered grotesk with a tabular monospace face (`font-variant-numeric:
+  tabular-nums`).
 
 ## Line length
 

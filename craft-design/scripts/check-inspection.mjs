@@ -126,6 +126,17 @@ try {
     assert.ok(!radioCard.report.findings.some(f => f.code === 'small-target'), 'input inside large <label> uses label target size');
     const bloatedHdr = run('bloated-header', html('<header style="height:120px"><nav><a href="#a" style="display:inline-block;min-height:48px">Home</a></nav></header><main><h1>Title</h1></main>'), [], process.env, 390);
     assert.ok(bloatedHdr.report.findings.some(f => f.code === 'bloated-mobile-header' && f.severity === 'review'), 'bloated mobile header detected as review');
+    const bleedHtml = '<!doctype html><body style="margin:0;background:#090b12;color:#f0f0f0">' +
+      '<section data-craft-id="s1" style="background:#121722;padding:24px;width:400px">' +
+      '<div data-craft-id="inner" style="background:#090b12;width:200px;height:60px">Bleed</div>' +
+      '</section><section data-craft-id="s2"></section><section data-craft-id="s3"></section></body>';
+    const bleedCheck = run('bleed', bleedHtml, [], process.env, 1440);
+    assert.ok(bleedCheck.report.findings.some(f => f.code === 'canvas-bleed-through' && f.severity === 'review'), 'canvas-bleed-through detected as review');
+    const weakHtml = '<!doctype html><body style="margin:0;background:#F4F1EA;color:#111">' +
+      '<section data-craft-id="c1" style="background:#FAF8F3;width:300px;height:120px;padding:16px">Weak card</section>' +
+      '<section data-craft-id="c2"></section><section data-craft-id="c3"></section><section data-craft-id="c4"></section></body>';
+    const weakCheck = run('weak-surface', weakHtml, [], process.env, 1440);
+    assert.ok(weakCheck.report.findings.some(f => f.code === 'weak-surface-separation' && f.severity === 'review'), 'weak-surface-separation detected as review');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }
