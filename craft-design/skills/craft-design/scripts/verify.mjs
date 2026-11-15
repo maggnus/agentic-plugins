@@ -26,8 +26,11 @@ const repairs = {
   'cramped-uppercase': 'Add at least 0.04em (>= 0.3px) letter-spacing to small uppercase labels.',
   'card-grid-monotony': 'Break up consecutive uniform card grids with tables, asymmetric splits, lists, or interactive blocks.',
   'hover-contrast-loss': 'Preserve >= 3:1 (ideally >= 4.5:1) text contrast in :hover styles.',
-  'canvas-bleed-through': 'Introduce a distinct --surface-2 token in oklch() (|ΔL| >= 0.04–0.07) and replace nested var(--bg) inside --surface containers with var(--surface-2).',
-  'weak-surface-separation': 'Separate --bg, --surface, and --surface-2 in oklch() with perceptual lightness step ΔL >= 0.05 (or add a crisp structural border).',
+  'canvas-bleed-through': 'Keep nested regions inside --surface cards transparent with 1px solid var(--border) dividers, or use a subtle --surface-2 (L_bg <= L_surface2 <= L_surface).',
+  'weak-surface-separation': 'Separate --bg, --surface, and --surface-2 in oklch() with monotonic lightness (or add a crisp structural border and two-layer shadow).',
+  'sunken-inner-surface': 'Keep nested regions inside elevated --surface cards transparent with 1px solid var(--border) dividers, or use a subtle --surface-2 that is never darker than --bg (L_bg <= L_surface2 <= L_surface).',
+  'competing-solid-actions': 'Keep at most ONE solid high-contrast button per action group (including --danger); render secondary and destructive actions beside a primary CTA as quiet outlined/transparent buttons.',
+  'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 10 SVG primitives).',
 };
 
 export function verify(argv, run = spawnSync) {

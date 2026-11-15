@@ -148,6 +148,24 @@ try {
       '</section><section data-craft-id="od2"></section><section data-craft-id="od3"></section></body>';
     const onDarkCheck = run('on-dark', onDarkHtml, [], process.env, 1440);
     assert.ok(!onDarkCheck.report.findings.some(f => f.code === 'canvas-bleed-through'), 'light cards inside inverse .on-dark band are not flagged as bleed-through');
+    const sunkenHtml = '<!doctype html><body style="margin:0;background:#F8FAFC;color:#111">' +
+      '<section data-craft-id="sk1" style="background:#FFFFFF;padding:24px;width:400px">' +
+      '<div data-craft-id="sk-in" style="background:#E2E8F0;width:240px;height:64px">Sunken box</div>' +
+      '</section><section data-craft-id="sk2"></section><section data-craft-id="sk3"></section></body>';
+    const sunkenCheck = run('sunken', sunkenHtml, [], process.env, 1440);
+    assert.ok(sunkenCheck.report.findings.some(f => f.code === 'sunken-inner-surface' && f.severity === 'review'), 'sunken-inner-surface detected as review');
+    const competingHtml = '<!doctype html><body style="margin:0;background:#F8FAFC;color:#111">' +
+      '<section data-craft-id="btn-sec1"><div style="display:flex;gap:12px">' +
+      '<button style="background:#2563EB;color:#fff;width:140px;height:40px;border:0">Save</button>' +
+      '<button style="background:#DC2626;color:#fff;width:140px;height:40px;border:0">Delete</button>' +
+      '</div></section><section data-craft-id="btn-sec2"></section><section data-craft-id="btn-sec3"></section><section data-craft-id="btn-sec4"></section></body>';
+    const competingCheck = run('competing', competingHtml, [], process.env, 1440);
+    assert.ok(competingCheck.report.findings.some(f => f.code === 'competing-solid-actions' && f.severity === 'review'), 'competing-solid-actions detected as review');
+    const primSvgHtml = '<!doctype html><body style="margin:0;background:#fff;color:#111">' +
+      '<section data-craft-id="ps1"><svg width="320" height="180" viewBox="0 0 320 180"><rect x="10" y="10" width="300" height="160" fill="none" stroke="#111"/><polyline points="20,140 120,80 220,110 300,40" fill="none" stroke="#2563EB"/></svg></section>' +
+      '<section data-craft-id="ps2"></section><section data-craft-id="ps3"></section><section data-craft-id="ps4"></section></body>';
+    const primSvgCheck = run('prim-svg', primSvgHtml, [], process.env, 1440);
+    assert.ok(primSvgCheck.report.findings.some(f => f.code === 'primitive-svg' && f.severity === 'review'), 'primitive-svg detected as review');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }

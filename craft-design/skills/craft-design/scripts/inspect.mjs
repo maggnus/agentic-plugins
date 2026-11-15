@@ -264,20 +264,20 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     const htmlBg = colour(style(document.documentElement).backgroundColor);
     const docBg = bodyBg[3] >= 0.92 ? bodyBg : htmlBg[3] >= 0.92 ? htmlBg : [255, 255, 255, 1];
     const docL = oklabL(docBg);
-    let bleedCount = 0, weakCount = 0;
-    const bleedKeys = new Set(), weakKeys = new Set();
+    let bleedCount = 0, weakCount = 0, sunkenCount = 0;
+    const bleedKeys = new Set(), weakKeys = new Set(), sunkenKeys = new Set();
     for (const el of document.querySelectorAll('body *')) {
-      if (bleedCount >= 3 && weakCount >= 3) break;
+      if (bleedCount >= 3 && weakCount >= 3 && sunkenCount >= 3) break;
       if (el.closest('script,style,noscript,svg') || !visible(el)) continue;
       const r = el.getBoundingClientRect();
-      if (r.width < 120 || r.height < 38) continue;
+      if (r.width < 120 || r.height < 36) continue;
       const es = style(el);
       if (es.backgroundImage !== 'none') continue;
       const elBg = colour(es.backgroundColor);
       if (elBg[3] < 0.92) continue;
       const elL = oklabL(elBg);
       const structKey = el.localName + '|' + [...el.classList].sort().join('.');
-      if (bleedCount < 3 && !bleedKeys.has(structKey)) {
+      if (bleedCount < 3 && r.height >= 38 && !bleedKeys.has(structKey)) {
         const rgbDiffDoc = Math.abs(elBg[0] - docBg[0]) + Math.abs(elBg[1] - docBg[1]) + Math.abs(elBg[2] - docBg[2]);
         if (Math.abs(elL - docL) < 0.008 && rgbDiffDoc < 6) {
           let surfaceParent = null;
@@ -291,8 +291,26 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
           }
           if (surfaceParent) {
             bleedKeys.add(structKey);
-            add('canvas-bleed-through', 'review', el, 'Nested surface reuses the outer document canvas color; step to --surface-2 instead.', { parent: selector(surfaceParent) }, r);
+            add('canvas-bleed-through', 'review', el, 'Nested region inside --surface reuses the outer canvas color; keep it transparent with 1px solid var(--border) dividers or use a subtle --surface-2 (L_bg <= L_surface2 <= L_surface).', { parent: selector(surfaceParent) }, r);
             bleedCount++;
+          }
+        }
+      }
+      if (sunkenCount < 3 && docL >= 0.85 && !sunkenKeys.has(structKey)) {
+        const chromaSpread = Math.max(elBg[0], elBg[1], elBg[2]) - Math.min(elBg[0], elBg[1], elBg[2]);
+        if (chromaSpread < 35 && elL < docL - 0.012 && elL > 0.50) {
+          let elevatedParent = null;
+          for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+            const pBg = colour(style(p).backgroundColor);
+            if (pBg[3] >= 0.92) {
+              const pL = oklabL(pBg);
+              if (pL > docL + 0.01 && pL >= 0.94) { elevatedParent = p; break; }
+            }
+          }
+          if (elevatedParent) {
+            sunkenKeys.add(structKey);
+            add('sunken-inner-surface', 'review', el, 'Nested neutral container inside an elevated card is darker than the page canvas (L_el < L_bg); keep it transparent or use L_bg <= L_surface2 <= L_surface.', { parent: selector(elevatedParent) }, r);
+            sunkenCount++;
           }
         }
       }
@@ -321,6 +339,54 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             weakCount++;
           }
         }
+      }
+    }
+    const solidButtons = [];
+    const bgLOf = node => {
+      for (let p = node; p; p = p.parentElement) {
+        const bg = colour(style(p).backgroundColor);
+        if (bg[3] >= 0.92) return oklabL(bg);
+      }
+      return docL;
+    };
+    for (const btn of document.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]')) {
+      if (btn.getAttribute('role') === 'tab' || !visible(btn)) continue;
+      const br = btn.getBoundingClientRect();
+      if (br.height < 34 || br.width < 110) continue;
+      const btnBg = colour(style(btn).backgroundColor);
+      if (btnBg[3] < 0.85) continue;
+      const containerL = bgLOf(btn.parentElement);
+      if (Math.abs(oklabL(btnBg) - containerL) >= 0.22) solidButtons.push({ btn, br, parent: btn.parentElement });
+    }
+    let competingCount = 0;
+    const reportedGroups = new Set();
+    for (let i = 0; i < solidButtons.length && competingCount < 3; i++) {
+      for (let j = i + 1; j < solidButtons.length && competingCount < 3; j++) {
+        const a = solidButtons[i], b = solidButtons[j];
+        const sameParent = a.parent && a.parent === b.parent;
+        const dx = Math.max(0, a.br.left - b.br.right, b.br.left - a.br.right);
+        const dy = Math.max(0, a.br.top - b.br.bottom, b.br.top - a.br.bottom);
+        const dist = Math.hypot(dx, dy);
+        if (sameParent || dist <= 32) {
+          const target = a.parent || b.btn;
+          if (!reportedGroups.has(target)) {
+            reportedGroups.add(target);
+            add('competing-solid-actions', 'review', target, 'Multiple solid high-contrast action buttons appear in the same group; keep at most one solid CTA and outline secondary/destructive buttons.');
+            competingCount++;
+          }
+        }
+      }
+    }
+    let primSvgCount = 0;
+    for (const svg of document.querySelectorAll('svg')) {
+      if (primSvgCount >= 3) break;
+      if (svg.getAttribute('aria-hidden') === 'true' || !visible(svg)) continue;
+      const sr = svg.getBoundingClientRect();
+      if (sr.width < 240 || sr.height < 140) continue;
+      const primitives = svg.querySelectorAll('path, line, polyline, polygon, rect, circle, ellipse, text').length;
+      if (primitives < 10) {
+        add('primitive-svg', 'review', svg, `Large diagram/chart SVG has only ${primitives} primitives; enrich with gridlines, stroke hierarchy, hatching/bands, and callouts.`, { primitives }, sr);
+        primSvgCount++;
       }
     }
   }

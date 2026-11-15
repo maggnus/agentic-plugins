@@ -21,12 +21,12 @@ A coherent palette has four layers. Plan all four before writing any CSS.
 
 ## Surface planes & separation (OKLch)
 
-Build neutral planes in `oklch()` with at least **three** distinct background levels separated by perceptual lightness `|ΔL| >= 0.04–0.07`:
+Obey monotonic lightness in `oklch()` and avoid **contour congestion** ("box inside a box"):
 
-- `--bg`: outer page canvas (e.g. light `oklch(0.96 0.008 85)` or dark `oklch(0.14 0.015 260)`).
-- `--surface`: primary card, panel, or container (e.g. light `oklch(0.995 0.004 85)` or dark `oklch(0.19 0.016 260)`).
-- `--surface-2`: nested inset, table header, input well, or chart plot area inside `--surface` (e.g. light `oklch(0.92 0.010 85)` or dark `oklch(0.24 0.018 260)`).
-- **Never paint nested blocks inside `--surface` back to `--bg`**: reusing the outer canvas color inside a card creates a canvas bleed-through hole. Always step to `--surface-2` (or add a structural `--border`).
+- **Light mode (`L_bg <= L_surface2 <= L_surface`):** `--bg` (`oklch(0.968 0.004 H)`) → elevated `--surface` (`oklch(0.998 0.002 H)`) with `1px solid oklch(0.20 0.01 H / 0.10)` and a two-layer physical shadow (contact occlusion + soft penumbra). Never make `--surface-2` darker than `--bg` (keep it `oklch(0.980 0.003 H)`).
+- **Dark mode (monotonic step-up):** `--bg` (`oklch(0.14 0.015 H)`) → `--surface` (`oklch(0.19 0.016 H)`) → `--surface-2` (`oklch(0.23 0.018 H)`) with `oklch(1 0 0 / 0.08)` border and `inset 0 1px 0 oklch(1 0 0 / 0.06)` top highlight.
+- **Keep nested card regions transparent:** charts, KPI summaries, logs, specs, and button footers inside `--surface` use `background: transparent` with whitespace and `1px solid var(--border)` hairlines. Reserve `--surface-2` strictly for functional wells (`thead`, switch tracks, code blocks). Never paint nested blocks inside `--surface` back to `--bg`.
+- **85–10–5 budget & action restraint:** keep 85% neutral planes, 10% quiet structural contrast, 5% `--accent`. At most ONE solid high-contrast button per action group (including `--danger`: beside `--accent`, style destructive actions as quiet outlined/transparent buttons with `--danger` text). Avoid the default warm-beige + terracotta cliché (`#F4F1EA + #A8421E`) unless requested by the brand.
 
 ## Accent discipline
 

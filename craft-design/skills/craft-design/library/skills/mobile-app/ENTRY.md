@@ -28,6 +28,8 @@ craft:
     requires: [state-coverage, animation-discipline]
 ---
 
+> **craft-design adaptation.** Write a normal self-contained HTML file (no `<artifact>` tags). Do NOT draw a fake iPhone bezel, Dynamic Island, status-bar clock, or battery icon inside the screen, and do NOT force serif headings. Deliver a full-bleed responsive mobile web interface at `390px` (compact header `<= 56px`, thumb-zone bottom navigation) that adapts cleanly to `1440px`, uses fonts from the subject's visual contract, and keeps surfaces clean without nested grey boxes.
+
 # Mobile App Skill
 
 Produce a single mobile-app screen mockup, framed inside a real-feeling iPhone 15 Pro device.

@@ -11,13 +11,12 @@ The second part of the charter; `charter.md` is the first. The guide delivers bo
 - the "colored left bar + rounded card" callout;
 - hover that greys or lightens text;
 - hand-drawn SVG people or scenes;
-- several solid buttons for one action in a viewport, icons beside every heading;
+- several solid buttons in one action group or panel footer (including `--danger` beside `--accent`), icons beside every heading;
 - Inter, Roboto, Arial or Fraunces as display faces (fine for body) unless the
   visual contract names them;
 - vanity metrics and filler copy that fits any business ("for your perfect
   day", "it all starts with the bean");
-- beige or cream as a default background; use warm paper tones only when the
-  domain or the contract calls for them (food, coffee, print, craft);
+- default warm-beige + terracotta/ochre cliché (`#F4F1EA + #A8421E + #1A1814`) for craft, architectural, or consumer briefs unless explicitly requested by the brand: derive a fresh domain palette (e.g. cool architectural limestone + graphite steel + pine/cobalt/amber signal);
 - designer-only or presenter-only control panels inside a product artifact;
 - OS chrome drawn inside a screen: a status bar with a clock, signal and
   battery, a drawn keyboard, a fake browser bar. The screen keeps the safe-area
@@ -66,27 +65,24 @@ principles; the figures in them are examples, not a house style to repeat.
   when it has few columns), side-by-side actions go full width (a pair of
   compact actions such as Cancel / Save may share one row); the mobile header
   stays one compact row.
+- **Grid proportions, Gestalt proximity & concentric radii.** Align blocks to 3–4 shared vertical grid axes (12-column desktop grid with asymmetric `5:7`, `4:8`, `7:5` splits instead of monotonous `1fr 1fr 1fr` card rows; never repeat the same section structure twice in a row). Enforce strict Gestalt proximity: `label→value (4–6px) < sibling gap (12–16px) < container padding (20–28px) < section rhythm (72–112px desktop, 48–64px phone)`. Pick one radius family per project (architectural `2–4px`, tooling `8–10px`, or tactile `14–16px`) and obey concentricity `R_inner = max(0, R_outer - padding)`.
+- **SVG & data micro-detail (Berlyne / Tufte).** Never draw stick-figure SVG icons or two nested rectangles in place of a real floorplan or technical diagram. Technical sections and plans require at least 3 stroke weights and 4 layers: (1) `0.5px` coordinate grid at 10–15% opacity, (2) double-line walls/structures (`1.5–2px`) with `<pattern>` material hatching, openings, and swing arcs, (3) `0.75px` dimension/leader lines with ticks and monospace mm labels, (4) live response to configurator/filter state. Data charts follow Tufte: hairline horizontal gridlines (`10–14%` opacity, transparent plot background), target/tolerance band, `>= 12–24` points with subtle vertical area fill (`12% -> 0%`), extremum callouts, and inline sparklines in comparison rows.
 - **One memorable move** that belongs to this subject, not a repeated trick.
 
 ### Color and typography
 
 - Take the palette from the visual contract, never from the host's chrome.
 - Derive missing state colors with `oklch()` from the contract's tokens.
-- Build neutral surfaces as a three-plane OKLch hierarchy (`--bg` page canvas, `--surface` primary card/panel, `--surface-2` nested block/input/table header/chart plot — or `--surface-warm` / `--surface-elevated` in bundled library design systems — plus `--border` and `--border-strong`) with perceptual lightness separation `|ΔL| >= 0.04–0.07` between adjacent planes. Never paint elements nested inside `--surface` back to the outer canvas `--bg` (this creates canvas bleed-through holes).
-- One accent color, spent where it carries meaning (the primary action, the key
-  figure, one highlight), not sprinkled. A second accent or categorical colors
-  take the first one's lightness and chroma in OKLch and differ in hue, kept
-  inside the sRGB gamut; the contract's own values win over this rule.
-- Near-neutrals stay neutral: a "white" or "black" with a visible tint reads as
-  a mistake unless the tint is the idea (keep chroma under about 0.02).
-- Display and body faces differ; one family only for utilitarian or data-dense
-  briefs. Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display`
-  unless an external brand contract explicitly requires them.
-- A web font in the contract must really load: a reachable `@font-face` file or
-  an authorized source such as Google Fonts, with the weights used, the script's
-  glyphs (Cyrillic for Russian) and a fallback stack. On the 1:1 PNGs, confirm
-  the display face rendered and inspect optical stroke density so thin hairline
-  serifs do not break up at small sizes or in dense technical UI.
+- **Monotonic OKLch lightness & anti-contour-congestion.**
+  - Light mode: `--bg` (`oklch(0.965–0.982 ...)`) → elevated `--surface` (`oklch(0.996–1.0 ...)` with `1px solid oklch(0.20 0.01 H / 0.10)` and a two-layer physical shadow: contact occlusion + soft penumbra). `--surface-2` must NEVER be darker than `--bg` (`L_bg <= L_surface2 <= L_surface`, e.g. `oklch(0.976–0.986 ...)`).
+  - Dark mode: lightness increases monotonically with elevation (`--bg 0.13–0.15` → `--surface 0.18–0.20` → `--surface-2 0.22–0.25`) with `oklch(1 0 0 / 0.08)` border and `inset 0 1px 0 oklch(1 0 0 / 0.06)` top highlight.
+  - Inside `--surface` cards/panels, charts, KPI summaries, logs, specs, and action footers keep `background: transparent` and structure via whitespace and `1px solid var(--border)` hairlines — no nested grey boxes! Reserve `--surface-2` strictly for functional wells (switch tracks, `thead`, code blocks).
+- **Action hierarchy (Chevreul).** At most ONE solid high-contrast button per action group or panel footer — including `--danger`. Never place a solid `--accent` button beside or above a solid `--danger` button; render destructive actions beside a primary CTA as quiet outlined/transparent buttons (border + `--danger` text) until explicit confirmation. In dense operational panels, keep buttons compact (`34–38px` tall, `flex-wrap` horizontal row), not stacked full-width banners.
+- One accent color, spent where it carries meaning (85–10–5 neutral/surface/accent pixel budget), not sprinkled. A second accent or categorical colors take the first one's lightness and chroma in OKLch and differ in hue, kept inside sRGB gamut; the contract's own values win over this rule.
+- Near-neutrals stay neutral: keep chroma under `0.02` unless tint is intentional.
+- Display and body faces differ; one family only for utilitarian or data-dense briefs. Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display` unless an external brand contract explicitly requires them.
+- **Optical typography & Cyrillic restraint (Bringhurst / Korolkova).** Avoid shouting with `800/900` weights simultaneously across headings, prices, and logos. Build hierarchy with modular scale ratios (`1.200` for operational consoles, `1.333–1.414` for editorial/brand pages), tight display tracking (`-0.02em..-0.035em`), and restrained `400–600` weights on crisp Cyrillic webfonts (`Golos Text`, `Manrope`, `Onest`, `IBM Plex Sans`, `PT Serif`, `Cormorant Garamond 500/600`, `Playfair Display 500/600`, `Spectral`, `JetBrains Mono`, `IBM Plex Mono`).
+- A web font in the contract must really load: reachable `@font-face` or allowed Google Fonts `<link>` with needed weights and target script glyphs (Cyrillic for Russian) plus fallback stack. On 1:1 PNGs, confirm the display face rendered and inspect optical stroke density so hairline serifs do not break up at small sizes or in dense technical UI.
 - One decisive flourish per design; three is noise.
 
 ### Text and language

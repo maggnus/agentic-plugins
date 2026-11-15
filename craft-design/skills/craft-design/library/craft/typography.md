@@ -9,7 +9,7 @@ behave at every size.
 
 ## Type scale
 
-Use a multiplicative scale (1.2 or 1.25). Cap at 6–8 sizes per artifact.
+Use a mathematical modular scale: `1.200` (Minor Third) for operational consoles and `1.333–1.414` (Perfect Fourth / Augmented Fourth) for editorial and brand pages. Cap at 6–8 sizes per artifact and respect Gestalt proximity in vertical rhythm (`label→value 4–6px < sibling gap 12–16px < container padding 20–28px < section rhythm 72–112px`).
 
 | Role | Range |
 |---|---|
@@ -114,7 +114,10 @@ Most well-crafted UIs use exactly 3 weights:
 - **Announce** (590 / 600) — headlines, buttons
 
 Weight 700+ is rarely needed. If your design uses bold for "emphasis on
-emphasis," it likely lacks weight discipline elsewhere.
+emphasis," it likely lacks weight discipline elsewhere. For Cyrillic text,
+avoid shouting with `800/900` weights across headings, prices, and logos at once:
+prefer crisp `400–600` weights and add `+0.03–0.05` line-height over Latin
+baselines to open the dense vertical rhythm of Cyrillic stems.
 
 ## Common mistakes (lint these)
 

@@ -358,6 +358,12 @@ for (const sysName of ['atelier-zero', 'bold', 'clean', 'minimal', 'mono']) {
     if (cssMap.has(tok.name)) assert.equal(tok.value, cssMap.get(tok.name), `${sysName} ${tok.name} matches between tokens.css and design-tokens.json`);
   }
 }
+assert.ok(statSync(join(skill, 'references/charter-craft.md')).size < 24500, 'charter-craft.md stays under 24.5 KB');
+for (const overlayId of ['dashboard', 'mobile-app']) {
+  const overlayBody = read(join(plugin, 'overlays', overlayId + '.md')).trim();
+  const entryBody = read(join(library, 'skills', overlayId, 'ENTRY.md'));
+  assert.ok(overlayBody.length > 50 && entryBody.includes(overlayBody), `${overlayId}/ENTRY.md includes its adaptation overlay`);
+}
 const importedTheme = goodTokens.replace(/\/\* tokens:start \*\/[^]*\/\* tokens:end \*\//, `/* tokens:start */\n${imported.css}/* tokens:end */`)
   .replace('var(--text-4xl)', 'var(--text-lg)').replace('var(--font-display)', 'var(--font-body)').replace('var(--radius-card)', 'var(--radius-ctl)');
 assert.ok(!inspectHtml(importedTheme).warnings.some(w => w.code !== 'unused-token'), 'an imported theme passes the static checks apart from unused scale steps');
