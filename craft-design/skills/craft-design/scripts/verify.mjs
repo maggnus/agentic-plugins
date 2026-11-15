@@ -30,7 +30,7 @@ const repairs = {
   'weak-surface-separation': 'Separate --bg, --surface, and --surface-2 in oklch() with monotonic lightness (or add a crisp structural border and two-layer shadow).',
   'sunken-inner-surface': 'Keep nested regions inside elevated --surface cards transparent with 1px solid var(--border) dividers, or use a subtle --surface-2 that is never darker than --bg (L_bg <= L_surface2 <= L_surface).',
   'competing-solid-actions': 'Keep at most ONE solid high-contrast button per action group (including --danger); render secondary and destructive actions beside a primary CTA as quiet outlined/transparent buttons.',
-  'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 10 SVG primitives).',
+  'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 12 SVG primitives).',
 };
 
 export function verify(argv, run = spawnSync) {

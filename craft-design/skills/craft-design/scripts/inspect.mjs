@@ -297,8 +297,9 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         }
       }
       if (sunkenCount < 3 && docL >= 0.85 && !sunkenKeys.has(structKey) && r.width >= 150 && r.height >= 44 &&
-          !(el.matches('button, input, select, textarea, a, label, summary, code, pre, kbd, th, td, tr, thead, [role="button"], [role="tab"], [role="switch"]') ||
-            el.closest('button, a, label, summary, pre, code, thead'))) {
+          !(el.matches('button, input, select, textarea, a, label, summary, code, pre, kbd, th, td, tr, thead, [role="button"], [role="tab"], [role="switch"], [role="tablist"], [role="radiogroup"]') ||
+            el.closest('button, a, label, summary, pre, code, thead, [role="tablist"]') ||
+            (r.height <= 64 && el.querySelector('input, select, textarea') && !el.querySelector('table, svg[width], article, section')))) {
         const chromaSpread = Math.max(elBg[0], elBg[1], elBg[2]) - Math.min(elBg[0], elBg[1], elBg[2]);
         if (chromaSpread < 35 && elL < docL - 0.012 && elL > 0.50) {
           let elevatedParent = null;
@@ -306,7 +307,9 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             const pBg = colour(style(p).backgroundColor);
             if (pBg[3] >= 0.92) {
               const pL = oklabL(pBg);
-              if (pL > docL + 0.01 && pL >= 0.94) { elevatedParent = p; break; }
+              if (Math.abs(pL - docL) >= 0.30 || pL <= docL + 0.01 || pL < 0.94) break;
+              elevatedParent = p;
+              break;
             }
           }
           if (elevatedParent) {
@@ -357,6 +360,15 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         const ps = style(p);
         const hasBorder = ['Top', 'Right', 'Bottom', 'Left'].some(s => (parseFloat(ps['border' + s + 'Width']) || 0) >= 1 && ps['border' + s + 'Style'] !== 'none');
         if (hasBorder || ps.boxShadow !== 'none' || colour(ps.backgroundColor)[3] >= 0.92) return p;
+        const parent = p.parentElement;
+        if (parent && parent !== document.body && parent !== document.documentElement) {
+          const pds = style(parent);
+          const isGrid = (pds.display === 'grid' || pds.display === 'inline-grid') && pds.gridTemplateColumns.trim().split(/\s+/).filter(Boolean).length >= 2;
+          const isFlex = pds.display === 'flex' || pds.display === 'inline-flex';
+          if ((isGrid || isFlex) && (p.querySelector('h1, h2, h3, h4, h5, h6') || p.getBoundingClientRect().height >= 120)) {
+            if ([...parent.children].some(c => c !== p && c.getBoundingClientRect().height >= 120)) return p;
+          }
+        }
       }
       return null;
     };

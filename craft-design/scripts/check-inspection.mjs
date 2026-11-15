@@ -175,6 +175,30 @@ try {
     const cleanCardsCheck = run('clean-cards', cleanCardsHtml, [], process.env, 1440);
     assert.ok(!cleanCardsCheck.report.findings.some(f => f.code === 'competing-solid-actions'), 'adjacent article cards with one solid CTA each do not trigger competing-solid-actions');
     assert.ok(!cleanCardsCheck.report.findings.some(f => f.code === 'sunken-inner-surface'), 'input and button inside white card do not trigger sunken-inner-surface');
+    const edgeCleanHtml = '<!doctype html><body style="margin:0;background:#F8FAFC;color:#111">' +
+      '<header data-craft-id="hdr" style="background:#FFFFFF;padding:16px;display:flex;gap:16px">' +
+      '<div style="background:#E2E8F0;width:240px;height:48px;display:flex;align-items:center"><input value="Search" style="width:200px"></div>' +
+      '<div role="tablist" style="background:#E2E8F0;width:220px;height:48px;display:flex"><button role="tab">A</button><button role="tab">B</button></div>' +
+      '</header>' +
+      '<main style="background:#FFFFFF;padding:24px">' +
+      '<section data-craft-id="ondark" style="background:#151821;color:#fff;padding:24px">' +
+      '<div style="background:#94A3B8;color:#111;width:260px;height:64px">Nested inside .on-dark</div>' +
+      '</section>' +
+      '<section data-craft-id="grid-cols" style="background:#FFFFFF;padding:24px;display:grid;grid-template-columns:repeat(3,220px);gap:20px">' +
+      '<div class="col"><h3>Tier 1</h3><div style="height:80px">Details</div><button style="background:#2563EB;color:#fff;width:100%;height:40px;border:0">Select 1</button></div>' +
+      '<div class="col"><h3>Tier 2</h3><div style="height:80px">Details</div><button style="background:#2563EB;color:#fff;width:100%;height:40px;border:0">Select 2</button></div>' +
+      '<div class="col"><h3>Tier 3</h3><div style="height:80px">Details</div><button style="background:#2563EB;color:#fff;width:100%;height:40px;border:0">Select 3</button></div>' +
+      '</section></main><section data-craft-id="ec4"></section></body>';
+    const edgeCleanCheck = run('edge-clean', edgeCleanHtml, [], process.env, 1440);
+    assert.ok(!edgeCleanCheck.report.findings.some(f => f.code === 'sunken-inner-surface'), '.on-dark inside white main, search wrapper, and tablist do not trigger sunken-inner-surface');
+    assert.ok(!edgeCleanCheck.report.findings.some(f => f.code === 'competing-solid-actions'), 'transparent grid column cards with gap:20px inside white section do not trigger competing-solid-actions');
+    const wrappedFooterBtnsHtml = '<!doctype html><body style="margin:0;background:#F8FAFC;color:#111">' +
+      '<section data-craft-id="wf1" style="background:#FFFFFF;padding:24px"><div style="display:flex;gap:12px">' +
+      '<div class="btn-wrap" style="height:40px"><button style="background:#2563EB;color:#fff;width:140px;height:40px;border:0">Save</button></div>' +
+      '<div class="btn-wrap" style="height:40px"><button style="background:#DC2626;color:#fff;width:140px;height:40px;border:0">Delete</button></div>' +
+      '</div></section><section data-craft-id="wf2"></section><section data-craft-id="wf3"></section><section data-craft-id="wf4"></section></body>';
+    const wrappedFooterBtnsCheck = run('wrapped-footer-btns', wrappedFooterBtnsHtml, [], process.env, 1440);
+    assert.ok(wrappedFooterBtnsCheck.report.findings.some(f => f.code === 'competing-solid-actions' && f.severity === 'review'), 'two solid buttons wrapped in small btn-wrap divs inside one panel still trigger competing-solid-actions');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }
