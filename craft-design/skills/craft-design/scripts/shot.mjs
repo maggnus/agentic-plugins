@@ -46,6 +46,7 @@ const heightFlag = flag('--height');
 const wait = Number(flag('--wait', 1500));
 const at = flag('--at', '');
 const full = bool('--full');
+const stripsFlag = bool('--strips');
 const inspect = bool('--inspect');
 const fit = bool('--fit');
 const strict = bool('--strict');
@@ -227,6 +228,73 @@ const PREPARE_FULL = `(async () => {
   return [...document.images].filter(img => !img.complete || !img.naturalWidth).length;
 })()`;
 
+async function checkHoverContrast(s) {
+  const findings = [];
+  try {
+    await s('DOM.enable');
+    await s('CSS.enable');
+    const { root: docRoot } = await s('DOM.getDocument', { depth: 0 });
+    const { nodeIds } = await s('DOM.querySelectorAll', { nodeId: docRoot.nodeId, selector: 'button, a[href]' });
+    let tested = 0;
+    for (const nodeId of nodeIds) {
+      if (tested >= 8) break;
+      const { object } = await s('DOM.resolveNode', { nodeId });
+      if (!object?.objectId) continue;
+      const rest = await s('Runtime.callFunctionOn', {
+        objectId: object.objectId,
+        functionDeclaration: `function() {
+          const r = this.getBoundingClientRect();
+          const st = getComputedStyle(this);
+          if (r.width <= 0 || r.height <= 0 || st.visibility === 'hidden' || st.display === 'none') return null;
+          if (!this.innerText || !this.innerText.trim()) return null;
+          const parse = c => { const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+          const bg = parse(st.backgroundColor), fg = parse(st.color);
+          if (!bg || !fg || bg[3] < 0.9 || fg[3] < 0.9) return null;
+          const lum = ([R, G, B]) => [R, G, B].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, b, i) => a + b * [0.2126, 0.7152, 0.0722][i], 0);
+          const L1 = lum(fg), L2 = lum(bg);
+          const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+          const sel = this.tagName.toLowerCase() + (this.id ? '#' + this.id : '');
+          return { ratio, sel, craftId: this.getAttribute('data-craft-id') || null };
+        }`,
+        returnByValue: true,
+      });
+      const base = rest.result?.value;
+      if (!base) continue;
+      tested++;
+      if (base.ratio < 4.5) continue;
+      try {
+        await s('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['hover'] });
+        const hov = await s('Runtime.callFunctionOn', {
+          objectId: object.objectId,
+          functionDeclaration: `function() {
+            const st = getComputedStyle(this);
+            const parse = c => { const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+            const bg = parse(st.backgroundColor), fg = parse(st.color);
+            if (!bg || !fg || bg[3] < 0.5) return null;
+            const lum = ([R, G, B]) => [R, G, B].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, b, i) => a + b * [0.2126, 0.7152, 0.0722][i], 0);
+            const L1 = lum(fg), L2 = lum(bg);
+            return (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+          }`,
+          returnByValue: true,
+        });
+        const hoverRatio = hov.result?.value;
+        if (typeof hoverRatio === 'number' && hoverRatio < 3.0) {
+          findings.push({
+            code: 'hover-contrast-loss',
+            severity: 'review',
+            selector: base.sel,
+            craftId: base.craftId,
+            message: `Contrast drops from ${base.ratio.toFixed(2)} to ${hoverRatio.toFixed(2)} on :hover.`,
+          });
+        }
+      } finally {
+        await s('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] }).catch(() => {});
+      }
+    }
+  } catch {}
+  return findings;
+}
+
 async function shoot(width) {
   const mobile = mode === 'mobile' || mode === 'auto' && width < 600;
   const height = Number(heightFlag ?? (mobile ? 844 : 900));
@@ -285,6 +353,7 @@ async function shoot(width) {
     if (missing) throw new Error(missing);
     await new Promise(ok => setTimeout(ok, 100));
   }
+  const hoverFindings = inspect ? await checkHoverContrast(s) : [];
   const metrics = JSON.parse((await s('Runtime.evaluate', { expression: MEASURE(width), returnByValue: true })).result.value);
   const params = { format: 'png' };
   if (full) {
@@ -297,10 +366,42 @@ async function shoot(width) {
   const out = outPath(width, height);
   writeFileSync(out, Buffer.from(data, 'base64'));
   const hash = value => createHash('sha256').update(value).digest('hex');
+  const strips = [];
+  if (full && (stripsFlag || inspect)) {
+    const captureHeight = Math.min(metrics.page, MAX_CAPTURE_HEIGHT);
+    if (captureHeight > height * 1.35) {
+      const yList = [];
+      if (captureHeight <= height * 6) {
+        const step = Math.max(200, height - 120);
+        for (let y = 0; y < captureHeight && yList.length < 6; y += step) {
+          const clamped = Math.min(y, Math.max(0, captureHeight - height));
+          if (!yList.length || yList[yList.length - 1] !== clamped) yList.push(clamped);
+          if (clamped + height >= captureHeight) break;
+        }
+      } else {
+        for (let i = 0; i < 6; i++) {
+          yList.push(Math.round((captureHeight - height) * i / 5));
+        }
+      }
+      for (let idx = 0; idx < yList.length; idx++) {
+        const y = yList[idx];
+        const stripHeight = Math.min(height, captureHeight - y);
+        const { data: stripData } = await s('Page.captureScreenshot', {
+          format: 'png',
+          clip: { x: 0, y, width, height: stripHeight, scale: 1 },
+          captureBeyondViewport: true,
+        });
+        const stripPath = out.replace(/\.png$/i, `-s${idx + 1}.png`);
+        const stripBuf = Buffer.from(stripData, 'base64');
+        writeFileSync(stripPath, stripBuf);
+        strips.push({ index: idx + 1, y, width, height: stripHeight, screenshot: stripPath, screenshotSha256: hash(stripBuf) });
+      }
+    }
+  }
   let evidence;
   if (inspect || scenario) {
     const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
-    evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, viewport: { width, height },
+    evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, strips, viewport: { width, height },
       capture: { width, height: full ? Math.min(metrics.page, MAX_CAPTURE_HEIGHT) : height, documentHeight: metrics.page, documentWidth: metrics.scrollWidth, internalScrollRegions: metrics.internalScrollRegions,
         fullDocument: metrics.internalScrollRegions === 0 && metrics.scrollWidth <= width && (full ? metrics.page <= MAX_CAPTURE_HEIGHT : !at && metrics.page <= height), limited: full && metrics.page > MAX_CAPTURE_HEIGHT },
       screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
@@ -310,6 +411,7 @@ async function shoot(width) {
   if (inspect) {
     const report = await inspectPage(s, { fit, width, height });
     Object.assign(report, evidence, { runtime });
+    if (hoverFindings.length) report.findings.push(...hoverFindings);
     if (evidence.capture.limited) report.findings.push({ code: 'capture-truncated', severity: 'error', selector: null,
       message: 'The full-page capture exceeded the image height limit. Capture and review the remaining sections explicitly.', evidence: evidence.capture });
     if (contract) {

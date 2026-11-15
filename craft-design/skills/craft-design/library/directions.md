@@ -152,3 +152,12 @@ selects this direction unchanged; otherwise the authored visual contract wins.
 - asymmetric layouts: one column 70%, the other 30%
 - almost no border-radius (0–2px). No shadows. No gradients.
 - underline links, no hover decoration — let the typography carry it
+
+## Compositional proportions & section alternation
+
+Avoid stacking three or more uniform card grids in a row. Alternate structural grammar across consecutive bands:
+
+- **Asymmetric split (`0.8fr / 1.2fr`):** anchor narrative, index, or visual proof on the narrower track while giving dense interactive or media content the wider track.
+- **Operational ledger:** hairline-bordered tabular rows with `tabular-nums`, inline status pills, and monospace IDs instead of boxed stat cards.
+- **Editorial dossier:** numbered or Roman-numeral chapters with sticky margin metadata, pull quotes, and full-bleed contrast bands.
+- **Engineering configurator:** live interactive controls (toggles, sliders, range filters, preset switches) paired directly with computed output.

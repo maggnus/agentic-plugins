@@ -208,7 +208,7 @@ product-scale controls.
 
 Add `data-craft-id="kebab-case-id"` to regions, headings, CTAs, controls and repeated
 cards the user may point at; repeated cards get unique ids (`feature-card-speed`).
-Decoration needs none. The preview's comments use these ids.
+Decoration needs none. Inspection reports, preview overlays and revision discussions use these ids.
 
 ### Files
 

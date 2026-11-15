@@ -168,13 +168,89 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         || (el.matches('input[type="image"]') ? el.getAttribute('alt') : '');
       if (!label) add('control-name', 'error', el, 'Control has no detectable accessible name.');
       clipping(el, r, 0, true);
-      if (innerWidth < 600 && (r.width < 44 || r.height < 44)) add('small-target', 'review', el,
+      let targetRect = r;
+      if (el.matches('input')) {
+        const labelEl = el.closest('label') || (el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null);
+        if (labelEl) {
+          const lr = labelEl.getBoundingClientRect();
+          if (lr.width > 0 && lr.height > 0 && getComputedStyle(labelEl).visibility !== 'hidden') {
+            targetRect = { width: Math.max(r.width, lr.width), height: Math.max(r.height, lr.height) };
+          }
+        }
+      }
+      if (innerWidth < 600 && (targetRect.width < 44 || targetRect.height < 44)) add('small-target', 'review', el,
         'Target is smaller than the skill’s 44 px touch guideline; check spacing and the intended platform.');
       if (fit && outside(r)) add('outside-frame', 'error', el, 'Control is outside the required single-screen frame.');
       occlusion(el, r);
     }
   }
   const root = document.documentElement;
+  if (width <= 480) {
+    const hdr = document.querySelector('body > header, [role="banner"]');
+    if (hdr && !hdr.querySelector('h1')) {
+      const hr = hdr.getBoundingClientRect();
+      if (hr.width > 0 && hr.height > 92 && hr.top < 40 && getComputedStyle(hdr).visibility !== 'hidden') {
+        add('bloated-mobile-header', 'review', hdr, 'Mobile header exceeds 92px height; compact or collapse navigation.');
+      }
+    }
+  }
+  const h1El = [...document.querySelectorAll('h1')].find(el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden');
+  if (h1El && document.querySelectorAll('section, article').length >= 3 && root.scrollHeight > height * 1.2) {
+    const firstScreenHeadings = [...document.querySelectorAll('h1, h2')].filter(el => {
+      const r = el.getBoundingClientRect();
+      return r.width > 0 && r.height > 0 && r.top < height && getComputedStyle(el).visibility !== 'hidden';
+    });
+    const bodyPara = [...document.querySelectorAll('p')].find(el => el.getBoundingClientRect().height > 0 && el.innerText.trim().length > 0 && getComputedStyle(el).visibility !== 'hidden');
+    if (firstScreenHeadings.length && bodyPara) {
+      const maxHeadingPx = Math.max(...firstScreenHeadings.map(el => parseFloat(getComputedStyle(el).fontSize) || 0));
+      const bodyPx = parseFloat(getComputedStyle(bodyPara).fontSize) || 16;
+      if (bodyPx > 0 && maxHeadingPx / bodyPx < 1.75) {
+        add('flat-hierarchy', 'review', h1El, `Display-to-body ratio (${(maxHeadingPx / bodyPx).toFixed(2)}x) is below 1.75x.`);
+      }
+    }
+  }
+  let crampedCount = 0;
+  for (const el of document.querySelectorAll('body *')) {
+    if (crampedCount >= 5) break;
+    const s = getComputedStyle(el);
+    if (s.textTransform !== 'uppercase' || s.visibility === 'hidden' || s.display === 'none') continue;
+    const fs = parseFloat(s.fontSize) || 16;
+    if (fs > 14) continue;
+    const ls = s.letterSpacing === 'normal' ? 0 : (parseFloat(s.letterSpacing) || 0);
+    if (ls >= 0.3) continue;
+    const direct = [...el.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+    if (direct.replace(/[^\p{L}]/gu, '').length > 6 && el.getClientRects().length > 0) {
+      add('cramped-uppercase', 'review', el, 'Small uppercase text (<=14px) has letter-spacing below 0.3px.');
+      crampedCount++;
+    }
+  }
+  const topSections = [...document.querySelectorAll('main > section, body > section')].filter(sec => sec.getClientRects().length > 0 && getComputedStyle(sec).visibility !== 'hidden');
+  if (topSections.length >= 4) {
+    const isUniformCardGrid = sec => {
+      if (sec.querySelector('table')) return false;
+      const containers = [sec, ...sec.querySelectorAll('div, ul')];
+      for (const box of containers) {
+        const st = getComputedStyle(box);
+        if (!/grid|flex/.test(st.display)) continue;
+        const kids = [...box.children].filter(k => k.getBoundingClientRect().width > 40 && k.getBoundingClientRect().height > 40);
+        if (kids.length < 3) continue;
+        const rects = kids.map(k => k.getBoundingClientRect());
+        const sameRow = rects.filter(r => Math.abs(r.top - rects[0].top) <= 8).length >= 2;
+        const uniform = rects.every(r => Math.abs(r.width - rects[0].width) <= 24 && Math.abs(r.height - rects[0].height) <= 40);
+        if (sameRow && uniform) return true;
+      }
+      return false;
+    };
+    let streak = 0;
+    for (let i = 0; i < topSections.length; i++) {
+      if (isUniformCardGrid(topSections[i])) {
+        streak++;
+        if (streak === 3) add('card-grid-monotony', 'review', topSections[i - 2], 'Three or more consecutive sections use uniform multi-column card grids.');
+      } else {
+        streak = 0;
+      }
+    }
+  }
   if (root.scrollWidth > width + 1) add('horizontal-overflow', 'error', root, 'Document is wider than the requested viewport.',
     { scrollWidth: root.scrollWidth, viewportWidth: width });
   if (fit && root.scrollHeight > height + 1) add('vertical-overflow', 'error', root, 'Document is taller than the required frame.',

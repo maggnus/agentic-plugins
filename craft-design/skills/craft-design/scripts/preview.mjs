@@ -47,6 +47,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
 const rawRoot = resolve(args[0] || 'design');
 mkdirSync(rawRoot, { recursive: true });
 const root = realpathSync(rawRoot);
+const encodePath = p => String(p).split('/').map(encodeURIComponent).join('/');
 
 function inside(rel, allowMissingIndex = false) {
   let decoded;
@@ -109,9 +110,44 @@ function htmlFiles(dir = root, out = []) {
   return out.sort();
 }
 
+function readVerificationSummary() {
+  const vDir = join(root, '.craft-verification');
+  if (!existsSync(vDir)) return null;
+  const candidates = [];
+  const direct = join(vDir, 'summary.json');
+  if (existsSync(direct)) candidates.push(direct);
+  try {
+    for (const entry of readdirSync(vDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const p = join(vDir, entry.name, 'summary.json');
+      if (existsSync(p)) candidates.push(p);
+    }
+  } catch {}
+  let latest = null;
+  let latestMtime = -1;
+  for (const file of candidates) {
+    try {
+      const st = statSync(file);
+      if (st.mtimeMs > latestMtime) {
+        const data = JSON.parse(readFileSync(file, 'utf8'));
+        latest = {
+          status: String(data.status || 'unknown'),
+          stage: String(data.stage || 'full'),
+          widths: Array.isArray(data.frames) ? data.frames.map(f => f.width).filter(Number.isFinite) : [],
+          clean: Boolean(data.clean),
+          updatedAt: new Date(st.mtimeMs).toISOString(),
+        };
+        latestMtime = st.mtimeMs;
+      }
+    } catch {}
+  }
+  return latest;
+}
+
 function boardState() {
   const files = htmlFiles();
   const fallbackTitle = basename(root) || 'Design Board';
+  const verification = readVerificationSummary();
   const manifestPath = join(root, 'design.json');
   if (existsSync(manifestPath)) {
     try {
@@ -141,6 +177,7 @@ function boardState() {
           title: typeof data.title === 'string' && data.title.trim() ? data.title.trim() : fallbackTitle,
           files,
           artboards,
+          verification,
         };
       }
     } catch {}
@@ -151,6 +188,7 @@ function boardState() {
     title: fallbackTitle,
     files,
     artboards: [],
+    verification,
   };
 }
 
@@ -158,8 +196,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const safeJson = obj => JSON.stringify(obj).replace(/</g, '\\u003c');
 
 const BASE_STYLE = `
-:root{color-scheme:light dark;--bg:oklch(96% .004 260);--canvas:oklch(92% .005 260);--fg:oklch(20% .01 260);--muted:oklch(48% .01 260);--line:oklch(85% .006 260);--panel:oklch(99% .002 260);--accent:oklch(55% .17 255);--dot:oklch(80% .008 260)}
-@media (prefers-color-scheme:dark){:root{--bg:oklch(17% .006 260);--canvas:oklch(14% .006 260);--fg:oklch(93% .004 260);--muted:oklch(68% .008 260);--line:oklch(29% .008 260);--panel:oklch(21% .007 260);--accent:oklch(72% .14 255);--dot:oklch(28% .01 260)}}
+:root{color-scheme:light dark;--bg:oklch(96% .004 260);--canvas:oklch(92% .005 260);--fg:oklch(20% .01 260);--muted:oklch(48% .01 260);--line:oklch(85% .006 260);--panel:oklch(99% .002 260);--accent:oklch(55% .17 255);--dot:oklch(80% .008 260);--ok:oklch(52% .14 155);--warn:oklch(62% .16 70);--bad:oklch(56% .19 25)}
+@media (prefers-color-scheme:dark){:root{--bg:oklch(17% .006 260);--canvas:oklch(14% .006 260);--fg:oklch(93% .004 260);--muted:oklch(68% .008 260);--line:oklch(29% .008 260);--panel:oklch(21% .007 260);--accent:oklch(72% .14 255);--dot:oklch(28% .01 260);--ok:oklch(70% .14 155);--warn:oklch(76% .14 75);--bad:oklch(70% .16 25)}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);overflow:hidden}
@@ -168,17 +206,23 @@ button{font:inherit;color:inherit;background:transparent;border:1px solid var(--
 button:hover{background:color-mix(in oklch,var(--fg) 8%,transparent)}
 button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.muted{color:var(--muted)}`;
+.muted{color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:11px;font-weight:600;white-space:nowrap}
+.badge[data-status="passed"]{color:var(--ok);border-color:color-mix(in oklch,var(--ok) 45%,transparent)}
+.badge[data-status="needs-review"]{color:var(--warn);border-color:color-mix(in oklch,var(--warn) 45%,transparent)}
+.badge[data-status="failed"],.badge[data-status="incomplete"]{color:var(--bad);border-color:color-mix(in oklch,var(--bad) 45%,transparent)}`;
+
+const OVERLAY_CSS = ':host{position:absolute;inset:0;pointer-events:none;overflow:hidden}.grid{position:absolute;inset:0;display:none;background-image:linear-gradient(to right,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}.ids{position:absolute;inset:0;display:none}.id-tag{position:absolute;font:600 10px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:rgba(15,23,42,.78);border:1px solid rgba(59,130,246,.65);border-radius:4px;padding:2px 5px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}';
 
 function indexPage() {
   const initial = boardState();
-  const navLinks = initial.files.map(f => `<a class="file-chip" data-file="${esc(f)}" href="/view/${encodeURI(f)}">${esc(f)}</a>`).join('');
+  const navLinks = initial.files.map(f => `<a class="file-chip" data-file="${esc(f)}" href="/view/${encodePath(f)}">${esc(f)}</a>`).join('');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(initial.title)} · craft-design preview</title><style>${BASE_STYLE}
 body{display:flex;flex-direction:column;--zoom:1}
 header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);z-index:20;flex-wrap:wrap}
 .brand{display:flex;align-items:baseline;gap:8px;margin-right:4px}
 .brand strong{font-size:14px;font-weight:600}
-.files-bar{display:flex;align-items:center;gap:4px;overflow-x:auto;max-width:40vw;padding:2px 0}
+.files-bar{display:flex;align-items:center;gap:4px;overflow-x:auto;max-width:34vw;padding:2px 0}
 .file-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;white-space:nowrap}
 .file-chip:hover{background:color-mix(in oklch,var(--fg) 8%,transparent)}
 .spacer{flex:1}
@@ -195,14 +239,14 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
 .board-label a:hover{color:var(--fg);border-color:var(--line);background:var(--panel)}
 .board-body{position:relative;width:100%;height:100%;overflow:hidden}
 .board-body iframe{display:block;border:0;width:100%;height:100%;background:#fff}
-.grid-host{position:absolute;inset:0;pointer-events:none;z-index:5}
+.overlay-host{position:absolute;inset:0;pointer-events:none;z-index:5}
 .empty{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center}
 .empty-card{max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 8px 28px oklch(0% 0 0/.08)}
 .empty-card h2{margin:0 0 8px;font-size:16px}
 .empty-card p{margin:0;color:var(--muted)}
 </style></head><body>
 <header class="topbar">
-  <div class="brand"><strong id="board-title">${esc(initial.title)}</strong><span class="muted" id="file-count">${initial.files.length} file${initial.files.length === 1 ? '' : 's'}</span></div>
+  <div class="brand"><strong id="board-title">${esc(initial.title)}</strong><span class="muted" id="file-count">${initial.files.length} file${initial.files.length === 1 ? '' : 's'}</span><span class="badge" id="verify-badge" hidden></span></div>
   <nav class="files-bar" id="files-bar" aria-label="Files">${navLinks}</nav>
   <div class="spacer"></div>
   <div class="group" id="layout-group" role="group" aria-label="Layout widths">
@@ -212,6 +256,11 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
     <button data-layout="768">768</button>
     <button data-layout="390">390</button>
   </div>
+  <div class="group" id="theme-group" role="group" aria-label="Theme preview">
+    <button data-theme-mode="auto" aria-pressed="true" title="Document default theme">Theme: Auto</button>
+    <button data-theme-mode="light" aria-pressed="false" title="Force data-theme=light in memory">Light</button>
+    <button data-theme-mode="dark" aria-pressed="false" title="Force data-theme=dark in memory">Dark</button>
+  </div>
   <div class="group" role="group" aria-label="Camera">
     <button id="btn-fit" title="Fit all (Cmd/Ctrl+0)">Fit</button>
     <button id="btn-zoom-out" title="Zoom out (Cmd/Ctrl+-)">−</button>
@@ -219,6 +268,7 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
     <button id="btn-zoom-in" title="Zoom in (Cmd/Ctrl+=)">+</button>
   </div>
   <button id="btn-grid" aria-pressed="false" title="Toggle 8px grid (Shift+G)">Grid 8px</button>
+  <button id="btn-ids" aria-pressed="false" title="Toggle data-craft-id labels">IDs</button>
 </header>
 <main class="viewport" id="viewport">
   <div class="stage" id="stage"></div>
@@ -237,19 +287,28 @@ const stage = document.getElementById('stage');
 const emptyEl = document.getElementById('empty');
 const filesBar = document.getElementById('files-bar');
 const layoutGroup = document.getElementById('layout-group');
+const themeGroup = document.getElementById('theme-group');
 const boardTitle = document.getElementById('board-title');
 const fileCount = document.getElementById('file-count');
+const verifyBadge = document.getElementById('verify-badge');
 const zoomResetBtn = document.getElementById('btn-zoom-reset');
 const gridBtn = document.getElementById('btn-grid');
+const idsBtn = document.getElementById('btn-ids');
 
 let state = INITIAL;
 let layoutMode = localStorage.getItem('craft-board-layout') || 'pair';
 let showGrid = localStorage.getItem('craft-board-grid') === '1';
+let showIds = localStorage.getItem('craft-board-ids') === '1';
+let themeMode = 'auto';
 let cam = { x: 48, y: 64, zoom: 1 };
 let boards = [];
 let bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
 let spaceDown = false;
 let initializedCamera = false;
+
+function encodePath(p) {
+  return String(p).split('/').map(encodeURIComponent).join('/');
+}
 
 function escHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -257,6 +316,15 @@ function escHtml(s) {
 
 function defaultHeight(width) {
   return width < 600 ? 844 : 900;
+}
+
+function renderVerifyBadge(v) {
+  if (!v || !v.status) { verifyBadge.hidden = true; return; }
+  verifyBadge.hidden = false;
+  verifyBadge.dataset.status = v.status;
+  const w = v.widths && v.widths.length ? ' (' + v.widths.join(', ') + ')' : '';
+  const st = v.stage && v.stage !== 'full' ? ' [' + v.stage + ']' : '';
+  verifyBadge.textContent = 'Verify: ' + v.status + st + w;
 }
 
 function buildSpecs(data) {
@@ -361,26 +429,59 @@ function focusBoard(board) {
   applyCamera();
 }
 
-function renderGridOverlay(host) {
+function ensureOverlay(board) {
+  const host = board.overlayHost;
   if (!host._shadow) {
     host._shadow = host.attachShadow({ mode: 'closed' });
     const style = document.createElement('style');
-    style.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:none}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.18) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.18) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
-    const div = document.createElement('div');
-    div.className = 'grid';
-    host._shadow.append(style, div);
+    style.textContent = ${JSON.stringify(OVERLAY_CSS)};
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    const ids = document.createElement('div');
+    ids.className = 'ids';
+    host._shadow.append(style, grid, ids);
+    host._grid = grid;
+    host._ids = ids;
   }
-  host.style.display = showGrid ? 'block' : 'none';
-  if (host._shadow.lastChild) {
-    host._shadow.host.style.display = showGrid ? 'block' : 'none';
-    const sheet = host._shadow.firstChild;
-    sheet.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:' + (showGrid ? 'block' : 'none') + '}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
+  host._grid.style.display = showGrid ? 'block' : 'none';
+  host._ids.style.display = showIds ? 'block' : 'none';
+  host._ids.textContent = '';
+  if (showIds) {
+    let doc;
+    try { doc = board.iframe.contentDocument; } catch { doc = null; }
+    if (doc) {
+      let count = 0;
+      for (const el of doc.querySelectorAll('[data-craft-id]')) {
+        if (count >= 120) break;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        const tag = document.createElement('span');
+        tag.className = 'id-tag';
+        tag.textContent = el.getAttribute('data-craft-id');
+        tag.style.left = Math.max(0, Math.round(r.left)) + 'px';
+        tag.style.top = Math.max(0, Math.round(r.top)) + 'px';
+        host._ids.appendChild(tag);
+        count++;
+      }
+    }
   }
 }
 
-function updateGrid() {
+function updateOverlays() {
   gridBtn.setAttribute('aria-pressed', String(showGrid));
-  for (const b of boards) if (b.gridHost) renderGridOverlay(b.gridHost);
+  idsBtn.setAttribute('aria-pressed', String(showIds));
+  for (const b of boards) if (b.overlayHost) ensureOverlay(b);
+}
+
+function applyThemeToBoard(board, force) {
+  let doc;
+  try { doc = board.iframe.contentDocument; } catch { return; }
+  if (!doc || !doc.documentElement) return;
+  if (themeMode === 'auto') {
+    if (force) doc.documentElement.removeAttribute('data-theme');
+  } else {
+    doc.documentElement.setAttribute('data-theme', themeMode);
+  }
 }
 
 function relayout() {
@@ -428,7 +529,7 @@ function handleShortcut(e) {
     e.preventDefault();
     showGrid = !showGrid;
     localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
-    updateGrid();
+    updateOverlays();
     return true;
   }
   if (!(e.ctrlKey || e.metaKey)) return false;
@@ -458,11 +559,13 @@ function attachIframe(board) {
       board.height = natural;
       relayout();
     }
+    if (showIds) ensureOverlay(board);
   };
   frame.addEventListener('load', () => {
     let win, doc;
     try { win = frame.contentWindow; doc = frame.contentDocument; } catch { return; }
     if (!win || !doc) return;
+    applyThemeToBoard(board, false);
     if (board.pendingScrollY) {
       try { win.scrollTo(0, board.pendingScrollY); } catch {}
       board.pendingScrollY = 0;
@@ -499,7 +602,8 @@ function attachIframe(board) {
       let resolved;
       try { resolved = new URL(href, win.location.href); } catch { return; }
       if (resolved.origin !== window.location.origin || !resolved.pathname.startsWith('/raw/')) return;
-      const targetFile = decodeURIComponent(resolved.pathname.slice(5));
+      let targetFile;
+      try { targetFile = decodeURIComponent(resolved.pathname.slice(5)); } catch { return; }
       const targetBoard = boards.find(b => b.file === targetFile);
       if (targetBoard) {
         e.preventDefault();
@@ -513,11 +617,12 @@ function renderBoard(data, preserveCamera = false) {
   state = data;
   boardTitle.textContent = data.title;
   fileCount.textContent = data.files.length + ' file' + (data.files.length === 1 ? '' : 's');
+  renderVerifyBadge(data.verification);
   layoutGroup.hidden = data.mode === 'manifest';
   for (const btn of layoutGroup.querySelectorAll('[data-layout]')) {
     btn.setAttribute('aria-pressed', String(btn.dataset.layout === layoutMode));
   }
-  filesBar.innerHTML = data.files.map(f => '<a class="file-chip" data-file="' + escHtml(f) + '" href="/view/' + encodeURI(f) + '">' + escHtml(f) + '</a>').join('');
+  filesBar.innerHTML = data.files.map(f => '<a class="file-chip" data-file="' + escHtml(f) + '" href="/view/' + encodePath(f) + '">' + escHtml(f) + '</a>').join('');
   for (const chip of filesBar.querySelectorAll('.file-chip')) {
     chip.addEventListener('click', e => {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -539,7 +644,7 @@ function renderBoard(data, preserveCamera = false) {
     const dims = document.createElement('span');
     dims.className = 'dims';
     const open = document.createElement('a');
-    open.href = '/view/' + encodeURI(spec.file);
+    open.href = '/view/' + encodePath(spec.file);
     open.textContent = '↗';
     open.title = 'Open single view';
     label.append(title, dims, open);
@@ -548,20 +653,20 @@ function renderBoard(data, preserveCamera = false) {
     body.className = 'board-body';
     const iframe = document.createElement('iframe');
     iframe.title = spec.title;
-    iframe.src = '/raw/' + encodeURI(spec.file);
-    const gridHost = document.createElement('div');
-    gridHost.className = 'grid-host';
-    body.append(iframe, gridHost);
+    iframe.src = '/raw/' + encodePath(spec.file);
+    const overlayHost = document.createElement('div');
+    overlayHost.className = 'overlay-host';
+    body.append(iframe, overlayHost);
     el.append(label, body);
     stage.appendChild(el);
 
-    const board = { ...spec, el, dimsEl: dims, iframe, gridHost, pendingScrollY: 0 };
+    const board = { ...spec, el, dimsEl: dims, iframe, overlayHost, pendingScrollY: 0 };
     attachIframe(board);
     return board;
   });
 
   relayout();
-  updateGrid();
+  updateOverlays();
   if (!preserveCamera || !initializedCamera) {
     fitView();
     initializedCamera = true;
@@ -619,6 +724,16 @@ for (const btn of layoutGroup.querySelectorAll('[data-layout]')) {
   });
 }
 
+for (const btn of themeGroup.querySelectorAll('[data-theme-mode]')) {
+  btn.addEventListener('click', () => {
+    themeMode = btn.dataset.themeMode;
+    for (const x of themeGroup.querySelectorAll('[data-theme-mode]')) {
+      x.setAttribute('aria-pressed', String(x === btn));
+    }
+    for (const b of boards) applyThemeToBoard(b, true);
+  });
+}
+
 document.getElementById('btn-fit').addEventListener('click', fitView);
 document.getElementById('btn-zoom-in').addEventListener('click', () => {
   const r = viewport.getBoundingClientRect();
@@ -635,7 +750,12 @@ zoomResetBtn.addEventListener('click', () => {
 gridBtn.addEventListener('click', () => {
   showGrid = !showGrid;
   localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
-  updateGrid();
+  updateOverlays();
+});
+idsBtn.addEventListener('click', () => {
+  showIds = !showIds;
+  localStorage.setItem('craft-board-ids', showIds ? '1' : '0');
+  updateOverlays();
 });
 
 renderBoard(INITIAL, false);
@@ -647,6 +767,7 @@ new EventSource('/events').onmessage = async () => {
     const next = await res.json();
     const prevSpecs = buildSpecs(state).map(s => s.id + ':' + s.width + ':' + s.fixedHeight).join('|');
     const nextSpecs = buildSpecs(next).map(s => s.id + ':' + s.width + ':' + s.fixedHeight).join('|');
+    renderVerifyBadge(next.verification);
     if (prevSpecs !== nextSpecs || state.mode !== next.mode) {
       const hadBoards = boards.length > 0;
       renderBoard(next, hadBoards);
@@ -657,7 +778,7 @@ new EventSource('/events').onmessage = async () => {
           b.pendingScrollY = b.iframe.contentWindow.scrollY || 0;
           b.iframe.contentWindow.location.reload();
         } catch {
-          b.iframe.src = '/raw/' + encodeURI(b.file) + '?t=' + Date.now();
+          b.iframe.src = '/raw/' + encodePath(b.file) + '?t=' + Date.now();
         }
       }
     }
@@ -667,16 +788,17 @@ new EventSource('/events').onmessage = async () => {
 }
 
 function viewPage(file) {
+  const encoded = encodePath(file);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(file)} · preview</title><style>${BASE_STYLE}
 body{display:flex;flex-direction:column}
 header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
-header .path{font-weight:600;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40vw}
+header .path{font-weight:600;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:35vw}
 .group{display:flex;gap:4px}
 .stage{flex:1;overflow:auto;display:flex;justify-content:center;background:var(--bg)}
 .frame-wrap{position:relative;height:100%;width:100%;transition:width .2s}
 .framed .frame-wrap{box-shadow:0 0 0 1px var(--line),0 8px 32px oklch(0% 0 0/.12)}
 iframe{border:0;background:#fff;height:100%;width:100%;display:block}
-.grid-host{position:absolute;inset:0;pointer-events:none;z-index:5}
+.overlay-host{position:absolute;inset:0;pointer-events:none;z-index:5}
 </style></head><body>
 <header>
   <a href="/" aria-label="Back to board">← Board</a>
@@ -688,13 +810,19 @@ iframe{border:0;background:#fff;height:100%;width:100%;display:block}
     <button data-w="768">Tablet 768</button>
     <button data-w="390">Phone 390</button>
   </div>
+  <div class="group" id="theme-group" role="group" aria-label="Theme preview">
+    <button data-theme-mode="auto" aria-pressed="true">Theme: Auto</button>
+    <button data-theme-mode="light" aria-pressed="false">Light</button>
+    <button data-theme-mode="dark" aria-pressed="false">Dark</button>
+  </div>
   <button id="btn-grid" aria-pressed="false">Grid 8px</button>
-  <a href="/raw/${encodeURI(file)}" target="_blank" rel="noopener">Raw ↗</a>
+  <button id="btn-ids" aria-pressed="false">IDs</button>
+  <a href="/raw/${encoded}" target="_blank" rel="noopener">Raw ↗</a>
 </header>
 <div class="stage" id="stage">
   <div class="frame-wrap" id="wrap">
-    <iframe id="frame" title="${esc(file)}" src="/raw/${encodeURI(file)}"></iframe>
-    <div class="grid-host" id="grid-host"></div>
+    <iframe id="frame" title="${esc(file)}" src="/raw/${encoded}"></iframe>
+    <div class="overlay-host" id="overlay-host"></div>
   </div>
 </div>
 <script>
@@ -702,28 +830,80 @@ const frame = document.getElementById('frame');
 const stage = document.getElementById('stage');
 const wrap = document.getElementById('wrap');
 const gridBtn = document.getElementById('btn-grid');
-const gridHost = document.getElementById('grid-host');
-const gridShadow = gridHost.attachShadow({ mode: 'closed' });
-const gridStyle = document.createElement('style');
+const idsBtn = document.getElementById('btn-ids');
+const overlayHost = document.getElementById('overlay-host');
+const shadow = overlayHost.attachShadow({ mode: 'closed' });
+const styleEl = document.createElement('style');
+styleEl.textContent = ${JSON.stringify(OVERLAY_CSS)};
 const gridDiv = document.createElement('div');
 gridDiv.className = 'grid';
-gridShadow.append(gridStyle, gridDiv);
+const idsDiv = document.createElement('div');
+idsDiv.className = 'ids';
+shadow.append(styleEl, gridDiv, idsDiv);
 
 let showGrid = localStorage.getItem('craft-board-grid') === '1';
+let showIds = localStorage.getItem('craft-board-ids') === '1';
+let themeMode = 'auto';
 let scroll = 0;
 
-function applyGrid() {
+function applyOverlays() {
   gridBtn.setAttribute('aria-pressed', String(showGrid));
-  gridHost.style.display = showGrid ? 'block' : 'none';
-  gridStyle.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:' + (showGrid ? 'block' : 'none') + '}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
+  idsBtn.setAttribute('aria-pressed', String(showIds));
+  gridDiv.style.display = showGrid ? 'block' : 'none';
+  idsDiv.style.display = showIds ? 'block' : 'none';
+  idsDiv.textContent = '';
+  if (showIds) {
+    let doc;
+    try { doc = frame.contentDocument; } catch { doc = null; }
+    if (doc) {
+      let count = 0;
+      for (const el of doc.querySelectorAll('[data-craft-id]')) {
+        if (count >= 120) break;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 0 || r.height <= 0) continue;
+        const tag = document.createElement('span');
+        tag.className = 'id-tag';
+        tag.textContent = el.getAttribute('data-craft-id');
+        tag.style.left = Math.max(0, Math.round(r.left)) + 'px';
+        tag.style.top = Math.max(0, Math.round(r.top)) + 'px';
+        idsDiv.appendChild(tag);
+        count++;
+      }
+    }
+  }
+}
+
+function applyTheme(force) {
+  let doc;
+  try { doc = frame.contentDocument; } catch { return; }
+  if (!doc || !doc.documentElement) return;
+  if (themeMode === 'auto') {
+    if (force) doc.documentElement.removeAttribute('data-theme');
+  } else {
+    doc.documentElement.setAttribute('data-theme', themeMode);
+  }
 }
 
 gridBtn.onclick = () => {
   showGrid = !showGrid;
   localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
-  applyGrid();
+  applyOverlays();
 };
-applyGrid();
+idsBtn.onclick = () => {
+  showIds = !showIds;
+  localStorage.setItem('craft-board-ids', showIds ? '1' : '0');
+  applyOverlays();
+};
+for (const btn of document.querySelectorAll('[data-theme-mode]')) {
+  btn.onclick = () => {
+    themeMode = btn.dataset.themeMode;
+    for (const x of document.querySelectorAll('[data-theme-mode]')) {
+      x.setAttribute('aria-pressed', String(x === btn));
+    }
+    applyTheme(true);
+  };
+}
+applyOverlays();
 
 document.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
   document.querySelectorAll('[data-w]').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -735,7 +915,10 @@ const saved = localStorage.getItem('craft-w');
 if (saved) document.querySelector('[data-w="' + saved + '"]')?.click();
 
 frame.addEventListener('load', () => {
+  applyTheme(false);
   try { frame.contentWindow.scrollTo(0, scroll); } catch {}
+  if (showIds) applyOverlays();
+  try { frame.contentWindow.addEventListener('scroll', () => { if (showIds) applyOverlays(); }, { passive: true }); } catch {}
 });
 new EventSource('/events').onmessage = () => {
   try { scroll = frame.contentWindow.scrollY || 0; } catch {}
@@ -834,7 +1017,7 @@ function announce(p, running) {
   const base = `http://${host}:${p}/`;
   console.log(`craft-design preview${running ? ' already running' : ''}: ${base}  (root: ${root})`);
   console.log(`artifacts open at ${base}view/<path under root>, for example ${base}view/<slug>/index.html`);
-  for (const file of htmlFiles().slice(0, 12)) console.log(`  ${base}view/${encodeURI(file)}`);
+  for (const file of htmlFiles().slice(0, 12)) console.log(`  ${base}view/${encodePath(file)}`);
 }
 
 async function listen(p, attempts = 20) {

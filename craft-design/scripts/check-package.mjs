@@ -124,6 +124,8 @@ for (const system of readdirSync(join(library, 'design-systems')).filter(n => !n
   assert.ok(existsSync(join(library, 'design-systems', system, 'DESIGN.md')), `DESIGN.md exists: ${system}`);
   assert.ok(!existsSync(join(library, 'design-systems', system, 'preview')), `no preview bundle: ${system}`);
 }
+const atelierTokens = read(join(library, 'design-systems/atelier-zero/tokens.css'));
+assert.ok(atelierTokens.includes('#efe7d2') && atelierTokens.includes('#ed6f5c'), 'atelier-zero tokens.css matches its DESIGN.md');
 const size = walk(library).reduce((sum, p) => sum + statSync(p).size, 0);
 assert.ok(size < 40 * 1024 * 1024, `library stays under 40 MB (${(size / 1048576).toFixed(1)} MB)`);
 
@@ -380,6 +382,8 @@ try {
   assert.match(boardHtml, /demo\/index\.html/);
   assert.match(boardHtml, /Grid 8px/);
   assert.match(boardHtml, /layoutBoards/);
+  assert.match(boardHtml, /Theme: Auto/);
+  assert.match(boardHtml, /btn-ids/);
   const boardApiRes = await fetch(`${base}api/board`);
   assert.equal(boardApiRes.status, 200);
   const boardJson = await boardApiRes.json();
@@ -388,6 +392,16 @@ try {
   assert.equal(viewRes.status, 200);
   const viewHtml = await viewRes.text();
   assert.ok(!viewHtml.includes('/api/comments'));
+  assert.match(viewHtml, /Theme: Auto/);
+  assert.match(viewHtml, /btn-ids/);
+  mkdirSync(join(root, '.craft-verification/demo-123'), { recursive: true });
+  writeFileSync(join(root, '.craft-verification/demo-123/summary.json'), JSON.stringify({ status: 'passed', stage: 'full', clean: true, frames: [{ width: 1440 }] }));
+  try {
+    const withVerify = await (await fetch(`${base}api/board`)).json();
+    assert.equal(withVerify.verification?.status, 'passed');
+  } finally {
+    rmSync(join(root, '.craft-verification'), { recursive: true, force: true });
+  }
   assert.match(await (await fetch(`${base}raw/demo/index.html`)).text(), /data-craft-id="title"/);
   assert.equal((await fetch(`${base}raw/%2e%2e/%2e%2e/etc/passwd`)).status, 404);
   assert.equal((await fetch(`${base}raw/%E0%A4%A`)).status, 404);
@@ -453,6 +467,19 @@ try {
       const narrowDesktop = runTokens(['check', goodFile, '--width', '480', '--mode', 'desktop', '--strict', '--json']);
       assert.equal(narrowDesktop.status, 0, narrowDesktop.stderr + narrowDesktop.stdout);
       assert.equal(JSON.parse(narrowDesktop.stdout).summary.warnings, 0);
+      const fontLinkHtml = goodTokens.replace('<meta name="viewport"', '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter&display=swap"><meta name="viewport"');
+      const fontLinkFile = join(root, 'demo/font-link.html');
+      writeFileSync(fontLinkFile, fontLinkHtml);
+      const fontLinkCheck = runTokens(['check', fontLinkFile, '--width', '1440', '--strict', '--json']);
+      assert.equal(fontLinkCheck.status, 0, fontLinkCheck.stderr + fontLinkCheck.stdout);
+      const hiddenStateHtml = goodTokens.replace('--space-4: 19px;', '--space-4: 19px; --space-8: 24px;')
+        .replace('</style>', '.drawer{padding:var(--space-8)}</style>')
+        .replace('</body>', '<div class="drawer" hidden>Drawer</div></body>');
+      const hiddenStateFile = join(root, 'demo/hidden-state.html');
+      writeFileSync(hiddenStateFile, hiddenStateHtml);
+      const hiddenStateCheck = runTokens(['check', hiddenStateFile, '--width', '1440', '--strict', '--json']);
+      assert.equal(hiddenStateCheck.status, 0, hiddenStateCheck.stderr + hiddenStateCheck.stdout);
+      assert.equal(JSON.parse(hiddenStateCheck.stdout).frames[0].results.find(r => r.token === '--space-8').deferredToHiddenState, true);
       assert.equal(read(goodFile), goodTokens, 'browser mutations leave the good file unchanged');
       assert.equal(read(badFile), badTokens, 'browser mutations leave the bad file unchanged');
     }
@@ -471,8 +498,9 @@ try {
         <style>html{scroll-behavior:smooth}body{margin:0;background:white}img{display:block;width:100%;height:auto}</style>
         <div style="height:50vh;background:red"></div><div id="target" style="height:80px;background:#ff00ff"></div>
         <div style="height:4200px"></div><img src="lazy.svg" loading="lazy"><footer style="height:80px;background:#00ff00"></footer>`);
-      const full = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '1440,390', '--wait', '0', '--full', '--out', join(work, 'full.png')], { encoding: 'utf8', timeout: 60000 });
+      const full = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '1440,390', '--wait', '0', '--full', '--strips', '--out', join(work, 'full.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(full.status, 0, `full capture runs: ${full.stderr}`);
+      assert.ok(existsSync(join(work, 'full-1440-s1.png')), '--strips creates 1:1 viewport strip PNGs');
       for (const [width, viewportHeight] of [[1440, 900], [390, 844]]) {
         const png = screenshot(join(work, `full-${width}.png`));
         const expected = viewportHeight / 2 + 80 + 4200 + width + 80;

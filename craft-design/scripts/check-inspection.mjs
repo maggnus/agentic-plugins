@@ -121,6 +121,11 @@ try {
     assert.deepEqual(unnamed.report.findings.filter(f => f.code === 'control-name').map(f => f.selector).sort(), ['#choice','#notes']);
     const named = run('named-values', html('<label>Choice<select><option>Value</option></select></label><textarea aria-label="Notes">Existing value</textarea>'), ['--strict']);
     assert.equal(named.status, 0, named.stdout);
+    const radioCard = run('radio-label', html('<label style="display:inline-flex;align-items:center;min-width:120px;min-height:56px"><input type="radio" name="plan" style="min-width:16px;min-height:16px;width:16px;height:16px"> Pro</label>'), ['--strict'], process.env, 390);
+    assert.equal(radioCard.status, 0, radioCard.stdout);
+    assert.ok(!radioCard.report.findings.some(f => f.code === 'small-target'), 'input inside large <label> uses label target size');
+    const bloatedHdr = run('bloated-header', html('<header style="height:120px"><nav><a href="#a" style="display:inline-block;min-height:48px">Home</a></nav></header><main><h1>Title</h1></main>'), [], process.env, 390);
+    assert.ok(bloatedHdr.report.findings.some(f => f.code === 'bloated-mobile-header' && f.severity === 'review'), 'bloated mobile header detected as review');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }

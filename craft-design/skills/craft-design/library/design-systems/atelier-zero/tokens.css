@@ -4,25 +4,25 @@
  */
 
 :root {
-  --bg: #ffffff;
-  --surface: #f7f7f7;
-  --surface-warm: #eeeeee;
-  --fg: #111111;
-  --fg-2: #3a3a3a;
-  --muted: #707070;
-  --meta: #111111;
-  --border: #d9d9d9;
-  --border-soft: #eeeeee;
-  --accent: #111111;
-  --accent-on: #ffffff;
+  --bg: #efe7d2;
+  --surface: #f7f1de;
+  --surface-warm: #ece4cf;
+  --fg: #15140f;
+  --fg-2: #2a2620;
+  --muted: #5a5448;
+  --meta: #8b8676;
+  --border: #ddd2b6;
+  --border-soft: #ece4cf;
+  --accent: #ed6f5c;
+  --accent-on: #15140f;
   --accent-hover: color-mix(in oklab, var(--accent), black 8%);
   --accent-active: color-mix(in oklab, var(--accent), black 14%);
   --success: #168a46;
   --warn: #b7791f;
   --danger: #c53030;
-  --font-display: "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Inter Tight", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;

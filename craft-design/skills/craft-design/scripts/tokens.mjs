@@ -289,7 +289,10 @@ export function inspectHtml(html) {
   const unused = [...definitions].filter(([name]) => !used.has(name) && !preservedNames.has(name));
   if (unused.length) warn('unused-token', `${unused.length} token(s) declared but never referenced by var(): ${unused.slice(0, 40).map(([name]) => name).join(', ')}${unused.length > 40 ? `, … ${unused.length - 40} more` : ''}`, unused[0][1].start, unused[0][1].selector);
   if (svgCount) warn('svg-colors', `${svgCount} literal color occurrence(s) in SVG illustrations; review as one group`, parts.svgColors[0]?.start ?? 0, 'svg');
-  for (const link of parts.links) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
+  const ALLOWED_FONT_CSS = /^https:\/\/(?:fonts\.googleapis\.com|api\.fontshare\.com|use\.typekit\.net|cdn\.jsdelivr\.net\/npm\/@fontsource)\b/i;
+  for (const link of parts.links) {
+    if (!ALLOWED_FONT_CSS.test(link.href ?? '')) warn('external-css', `linked CSS is not statically inspected: ${link.href ?? '(no href)'}`, link.start);
+  }
   const registry = theme ? decls.filter(d => d.start >= theme.start && d.start < theme.end && d.prop.startsWith('--') && /(^|[\s>,]):root\b/.test(d.selector)) : [];
   if (theme && !registry.length) warn('theme-registry', 'no :root token registry between the theme markers', theme.start);
   const tokens = [...new Set(registry.map(d => d.prop))]
@@ -327,25 +330,37 @@ async function mutateTheme(tokens, semanticTokens, pureReferences) {
   // remains a consumer even when overridden: that is precisely a broken binding
   // mutation must detect. Unknown rules/selectors keep the warning, never waive it.
   const uses = value => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]);
-  const aliases = new Map(), consumers = [], authored = new WeakMap();
+  const aliases = new Map(), consumers = [], hiddenStateConsumers = [], authored = new WeakMap();
   let applicabilityKnown = true;
   const applicabilityLimits = new Set();
   const visibleConsumer = el => el.getClientRects().length > 0 || [...el.querySelectorAll('*')].some(child => child.getClientRects().length > 0);
+  const hiddenByState = el => Boolean(el.closest('[hidden], dialog:not([open]), [aria-hidden="true"]'));
   const collect = (style, matches) => {
     for (const el of matches) {
       const entries = authored.get(el) ?? [];
       entries.push(style); authored.set(el, entries);
     }
     let hasProperty = false;
+    const isVisible = matches.some(visibleConsumer);
+    const isHiddenState = matches.length > 0 && !isVisible && matches.some(hiddenByState);
     for (const prop of style) {
       const dependencies = uses(style.getPropertyValue(prop));
       if (prop.startsWith('--')) aliases.set(prop, [...(aliases.get(prop) ?? []), ...dependencies]);
-      else { hasProperty = true; if (dependencies.length && matches.some(visibleConsumer)) consumers.push(dependencies); }
+      else {
+        hasProperty = true;
+        if (dependencies.length) {
+          if (isVisible) consumers.push(dependencies);
+          else if (isHiddenState) hiddenStateConsumers.push(dependencies);
+        }
+      }
     }
     // CSSOM can enumerate empty longhands for a var()-bearing shorthand.
     // Retain the serialized dependencies conservatively instead of mistaking
     // an overridden font/padding shorthand for an absent consumer.
-    if (hasProperty && matches.some(visibleConsumer)) consumers.push(uses(style.cssText));
+    if (hasProperty) {
+      if (isVisible) consumers.push(uses(style.cssText));
+      else if (isHiddenState) hiddenStateConsumers.push(uses(style.cssText));
+    }
   };
   const rules = list => {
     for (const rule of list) {
@@ -362,7 +377,9 @@ async function mutateTheme(tokens, semanticTokens, pureReferences) {
       if (rule.cssRules && !(rule instanceof CSSKeyframesRule)) rules(rule.cssRules);
     }
   };
+  const ALLOWED_FONT_CSS = /^https:\/\/(?:fonts\.googleapis\.com|api\.fontshare\.com|use\.typekit\.net|cdn\.jsdelivr\.net\/npm\/@fontsource)\b/i;
   for (const sheet of document.styleSheets) {
+    if (sheet.href && ALLOWED_FONT_CSS.test(sheet.href)) continue;
     if (sheet.disabled || sheet.media.mediaText && !matchMedia(sheet.media.mediaText).matches) continue;
     try { rules(sheet.cssRules); } catch (error) { applicabilityKnown = false; applicabilityLimits.add(error.message); }
   }
@@ -449,7 +466,9 @@ async function mutateTheme(tokens, semanticTokens, pureReferences) {
         // evidence of copying a literal. Other matches remain only candidates.
         if (same.length && raw && !/^(?:0|0px)$/.test(sample)) duplicates.push({ element: label(elements[i]), properties: same });
       }
-      results.push({ token, changed: changed.length, examples: changed.slice(0, 5), activeConsumers: applicabilityKnown ? consumers.filter(names => depends(names, token)).length : null, duplicates: duplicates.slice(0, 8), duplicateCount: duplicates.length, restored, ...(!restored && { restoration }) });
+      const activeConsumers = applicabilityKnown ? consumers.filter(names => depends(names, token)).length : null;
+      const boundToHiddenState = activeConsumers === 0 && hiddenStateConsumers.some(names => depends(names, token));
+      results.push({ token, changed: changed.length, examples: changed.slice(0, 5), activeConsumers, boundToHiddenState, duplicates: duplicates.slice(0, 8), duplicateCount: duplicates.length, restored, ...(!restored && { restoration }) });
     }
     return { results, elements: elements.length, viewport: innerWidth, applicabilityLimits:[...applicabilityLimits] };
   } finally { restore(); probe.remove(); freeze.remove(); }
@@ -900,7 +919,9 @@ export async function main(argv) {
       if (!row.restored) throw new Error(`could not restore ${row.token}: ${JSON.stringify(row.restoration)}`);
       const inactive = !row.changed && row.activeConsumers === 0 && frames.some(frame => frame.results.some(other => other.token === row.token && other.changed > 0));
       row.inactiveInThisViewport = inactive;
+      row.deferredToHiddenState = !row.changed && row.activeConsumers === 0 && Boolean(row.boundToHiddenState);
       if (inactive) log(`  ${width}px ${row.token}: inactive here; binding observed at another requested width`);
+      else if (row.deferredToHiddenState) log(`  ${width}px ${row.token}: bound to hidden state ([hidden]/dialog/aria-hidden)`);
       else if (!row.changed) warning('mutation-no-effect', `${width}px ${row.token}: no visible effect; review overrides, hidden components or local themes`);
       if (row.duplicateCount) warning('possible-duplicate', `${width}px ${row.token}: ${row.duplicateCount} element(s) matched the old value but did not follow it: ${row.duplicates.map(d => d.element + ' (' + d.properties.join(', ') + ')').join('; ')}`);
     }

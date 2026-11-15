@@ -4,25 +4,25 @@
  */
 
 :root {
-  --bg: #ffffff;
-  --surface: #fafafa;
-  --surface-warm: #f5f5f5;
-  --fg: #111111;
-  --fg-2: #3a3a3a;
+  --bg: #f4f4f1;
+  --surface: #ffffff;
+  --surface-warm: #ecece7;
+  --fg: #0c0c09;
+  --fg-2: #312c85;
   --muted: #777777;
-  --meta: #111111;
+  --meta: #0c0c09;
   --border: #e2e2e2;
   --border-soft: #eeeeee;
-  --accent: #111111;
-  --accent-on: #ffffff;
+  --accent: #0c0c09;
+  --accent-on: #f4f4f1;
   --accent-hover: color-mix(in oklab, var(--accent), black 8%);
   --accent-active: color-mix(in oklab, var(--accent), black 14%);
-  --success: #168a46;
-  --warn: #b7791f;
-  --danger: #c53030;
+  --success: #16a34a;
+  --warn: #d97706;
+  --danger: #dc2626;
   --font-display: Inter, system-ui, sans-serif;
-  --font-body: Inter, system-ui, sans-serif;
-  --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+  --font-body: "Open Sans", system-ui, sans-serif;
+  --font-mono: Inconsolata, ui-monospace, Menlo, monospace;
   --text-xs: 12px;
   --text-sm: 14px;
   --text-base: 16px;

@@ -13,43 +13,32 @@ brand/component sources. `<skill>` is the directory containing this file.
 First study the user's brief and existing project/brand files in the workspace
 (tokens, components, attached references), and only then start `craft-guide.mjs
 begin`: between `begin` and `READY`, the guard blocks arbitrary shell commands.
-Complete the guide before choosing a method or writing the artifact. It delivers
-the full capability map, both charter parts and visual-method guidance in
-packets. Knowing every capability is mandatory; using every method is not.
+`begin` delivers the core briefing, browser detection, capability map, and
+optional catalog matches in one call:
 
 ```sh
-node <skill>/scripts/craft-guide.mjs begin --state <absolute-artifact-directory>/.craft-guide.json
+node <skill>/scripts/craft-guide.mjs begin --state <absolute-artifact-directory>/.craft-guide.json --query "WORDS"
 ```
 
-Run this as one literal command with the actual absolute skill path. Do not use
-a path variable, `cd &&`, a wrapper, pipe or redirection. Use absolute --state
-and --plan paths: some clients report the session directory to hooks even when
-a shell command uses another working directory. The bundled host guard
-must be enabled/trusted. An unobserved invocation does not by itself prove that
-the hook is inactive: retry the printed literal command once in the same working
-directory. If that also fails, stop preparation and report activation as unverified;
-do not forge receipts or silently proceed. This guard controls supported local
-calls after begin; it is not a sandbox or proof of comprehension.
+Run this as one literal command with the actual absolute skill path (no path
+variable, `cd &&`, wrapper, pipe or redirection). Use absolute `--state` and
+`--plan` paths. The bundled host guard must be enabled/trusted: if a call fails
+as unobserved, retry the printed literal command once in the same directory; if
+that also fails, stop and report activation as unverified.
 
-Use a fresh state next to each artifact; never another agent's state. Follow each
-packet's next command in its own tool call, allowing at least 4500 output tokens.
-Read through its ending receipt. Do not loop, batch, pipe, truncate or automate
-acknowledgements. `status --state FILE` repeats an interrupted packet.
+At `BASE COMPLETE`, inspect at most two catalog candidates if needed with
+`entry --id ID --page N` or `read --path skills/ID/`, then submit the route:
 
-At BASE COMPLETE, inspect actual tools and select the library entry with guide
-commands, using the absolute forms they print: `catalog --query WORDS` ranks
-catalog rows (English catalog words or an id; common Russian artifact words are
-mapped), `entry --id ID --page N` previews an ENTRY.md, `read --path skills/ID/`
-or `design-systems/ID/` lists a directory and `read --path FILE --page N` pages a
-listed text file. Record the route plan with entryId when using the library.
-`decide --state FILE --json 'JSON'` requires a reason for using, skipping or
-lacking every capability and separate generation/viewing evidence. Unknown tool
-availability is not absence. Read the applicable detail packets, selected ENTRY and its craft rules until READY.
-The state records delivery and declared decisions. The guard rejects piped reading
-and other local tool calls during packet delivery, and authoring during selection.
-Use literal, standalone guide commands; catalog, entry, read and tool discovery
-remain available when choosing. No separate plan-file write is needed with --json. After context loss, use status and revisit relevant sections;
-a changed edition requires a fresh state. Library-specific reading still follows.
+```sh
+node <skill>/scripts/craft-guide.mjs decide --state <abs>/.craft-guide.json --json '{"visualPath":"direct","reason":"...","tools":{"generation":{"status":"...","evidence":"..."},"viewing":{"status":"...","evidence":"..."}},"entryId":"...","use":["library","tokens","inspection","preview"]}'
+```
+
+Compact `use: [...]` (or full `capabilities`) compiles only the selected rules,
+the chosen `ENTRY.md` and its `craft` files. When the compiled slice fits in
+one response, `decide` returns the details and `READY` immediately; larger
+routes finish with `next --state FILE --receipt TOKEN` (retain at least 4500
+output tokens per packet). `status --state FILE` repeats an interrupted packet.
+After context loss, use `status` and revisit relevant sections.
 
 ## Find and reuse
 
@@ -99,16 +88,20 @@ preview board (paired widths automatically or layout from optional
 single-file view, and `/raw/<path>` serves the raw document. Do not expose
 neighbouring experiment results.
 
-After implementation, run the combined checks at the requested sizes:
+For multi-section pages, build the first screen and calibrate early with
+`--stage calibrate` (`1440×900` and `390×844` 1:1 without `--full`), then build
+remaining sections and run full verification:
 
 ```sh
 node <skill>/scripts/verify.mjs design/<slug>/index.html --state design/<slug>/.craft-guide.json --width 1440,390
 ```
 
 Check responsive widths together: default heights are 900 for desktop and 844 for
-phone. Add --height for another common height, --fit for a no-scroll frame, and
---mode desktop for a narrow fixed artboard. The command owns output paths and
-returns current counts, source-bound PNGs, diagnostics and a repeatCommand.
+phone. Add `--height` for another common height, `--fit` for a no-scroll frame,
+`--mode desktop` for a narrow fixed artboard, and `--stage calibrate` for fast
+first-screen calibration. The command owns output paths and returns current
+counts, source-bound PNGs, 1:1 viewport `strips` (`frame-*-s*.png`) for long
+pages, diagnostics and a `repeatCommand`.
 When passed:false, repair the listed causes and run that complete command again;
 ordinary quality findings are not a reason to stop after one diagnostic. Read
 summary.json if remainingDiagnostics is nonzero. Never change checks or hide
@@ -116,7 +109,7 @@ required content to obtain a pass. Use the latest counts, not earlier logs or
 memory; an edit invalidates the previous verification at every affected size.
 Keep `.craft-verification` next to the state with the deliverable; its reports
 and screenshots are evidence, not scratch files. Then view every final PNG and
-check its facts against the brief. Explain genuine
+the 1:1 viewport `strips` (`frame-*-s*.png`) and check facts against the brief. Explain genuine
 source-contract exceptions without claiming a full pass. No browser means
 incomplete checks, explicitly reported after diagnosing the environment failure.
 A technical pass does not prove taste, facts, accessibility or visual review.
