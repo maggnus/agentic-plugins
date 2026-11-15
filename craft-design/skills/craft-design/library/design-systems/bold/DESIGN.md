@@ -18,18 +18,18 @@ Strong visual presence with heavyweight typography, high-contrast colors, and co
 - **Success:** `#16A34A` — Token from style foundations.
 - **Warning:** `#D97706` — Token from style foundations.
 - **Danger:** `#DC2626` — Token from style foundations.
-- **Surface:** `#111111` — Token from style foundations.
+- **Surface:** `#FFFFFF` — Token from style foundations.
 - **Text:** `#111827` — Token from style foundations.
-- **Neutral:** `#111111` — Derived from the surface token for official format compatibility.
+- **Neutral:** `#F7F7F7` — Derived from the surface token for official format compatibility.
 
 - Favor Primary (#0077BC) for CTA emphasis.
-- Use Surface (#111111) for large backgrounds and cards.
+- Use Surface (#FFFFFF) and Neutral (#F7F7F7) for large backgrounds and cards.
 - Keep body copy on Text (#111827) for legibility.
 
 ## 3. Typography
 
 - **Scale:** desktop-first expressive scale
-- **Families:** primary=Archivo Black, display=Archivo Black, mono=JetBrains Mono
+- **Families:** primary=Inter, display=Archivo Black, mono=JetBrains Mono
 - **Weights:** 100, 200, 300, 400, 500, 600, 700, 800, 900
 - Headings should carry the style personality; body text should optimize scanability and contrast.
 

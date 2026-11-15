@@ -63,6 +63,14 @@ assert.equal(r.status,0,r.stderr);
 assert.match(r.stdout,/READY\./,'compact decide reaches READY in 2 calls');
 assert.equal(requireReady(quickState).phase,'ready');
 
+const mixedState=join(dir,'mixed-state.json');
+r=run('begin','--state',mixedState);assert.equal(r.status,0,r.stderr);
+const mixedPlan={visualPath:'direct',reason:'Mixed plan test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{library:{choice:'skip',evidence:'Only custom tokens'}}};
+r=run('decide','--state',mixedState,'--json',JSON.stringify(mixedPlan));
+assert.equal(r.status,0,r.stderr);
+assert.match(r.stdout,/READY\./);
+assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in readyOutput');
+
 const oddDir=join(dir,"it's a dir"),oddState=join(oddDir,'state.json');mkdirSync(oddDir);
 r=run('begin','--state',oddState);assert.equal(r.status,0,r.stderr);assert.ok(!r.stdout.includes('<skill>'));
 const plan={visualPath:'direct',reason:'Existing component change',tools:{generation:{status:'unknown',evidence:'Not discovered'},viewing:{status:'available',evidence:'view_image'}},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'Not required by this fixture'}]))};

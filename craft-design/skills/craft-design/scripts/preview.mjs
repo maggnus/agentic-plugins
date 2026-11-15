@@ -238,7 +238,7 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
 .viewport{position:relative;flex:1;overflow:hidden;background-color:var(--canvas);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px;cursor:grab;user-select:none}
 .viewport.panning{cursor:grabbing}
 .stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
-.group-title{position:absolute;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));pointer-events:none}
+.group-title{position:absolute;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transform-origin:top left;transform:scale(calc(1 / var(--zoom))) translateY(calc(-100% - 34px));pointer-events:none}
 .board{position:absolute;background:#fff;box-shadow:0 0 0 1px var(--line),0 10px 30px oklch(0% 0 0/.12);border-radius:2px}
 .board-label{position:absolute;left:0;bottom:100%;padding-bottom:6px;display:flex;align-items:center;gap:8px;white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));font-size:12px;max-width:calc((100% + 64px) * var(--zoom));overflow:hidden}
 .board-label strong{font-weight:600;overflow:hidden;text-overflow:ellipsis}
@@ -289,7 +289,7 @@ header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-b
 </main>
 <script>
 const INITIAL = ${safeJson(initial)};
-const GAP_X = 96, GAP_Y = 200, MIN_ZOOM = 0.08, MAX_ZOOM = 4;
+const GAP_X = 96, GAP_Y = 420, MIN_ZOOM = 0.15, MAX_ZOOM = 4;
 const viewport = document.getElementById('viewport');
 const stage = document.getElementById('stage');
 const emptyEl = document.getElementById('empty');
@@ -392,7 +392,7 @@ function layoutBoards(list) {
   const maxY = Math.max(0, y - GAP_Y);
   return {
     groups: groupLabels,
-    bounds: { minX: 0, minY: list.length ? -44 : 0, maxX, maxY, width: maxX, height: maxY + (list.length ? 44 : 0) },
+    bounds: { minX: 0, minY: list.length ? -96 : 0, maxX, maxY, width: maxX, height: maxY + (list.length ? 96 : 0) },
   };
 }
 
@@ -509,7 +509,7 @@ function relayout() {
     label.className = 'group-title';
     label.textContent = g.name;
     label.style.left = g.x + 'px';
-    label.style.top = 'calc(' + g.y + 'px - 36px / var(--zoom))';
+    label.style.top = g.y + 'px';
     stage.appendChild(label);
   }
 }

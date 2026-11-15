@@ -10,6 +10,7 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inflateSync } from 'node:zlib';
 import { importTokens, inspectHtml, themeRange } from '../skills/craft-design/scripts/tokens.mjs';
+import { findBrowser } from '../skills/craft-design/scripts/craft-guide.mjs';
 
 const plugin = join(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = join(plugin, '..');
@@ -534,6 +535,85 @@ try {
       assert.equal(hoverCheck.status, 0, hoverCheck.stderr);
       const hoverReport = JSON.parse(read(join(work, 'hover-trans.json')));
       assert.ok(hoverReport.findings.some(f => f.code === 'hover-contrast-loss'), 'hover-contrast-loss detected despite transition: 0.4s');
+      writeFileSync(join(root, 'demo/hover-oklab.html'), '<!doctype html><style>body{margin:0;background:#fff}button{background:#111;color:#fff;padding:12px 20px;border:0}button:hover{background:color-mix(in oklab, #ffffff 95%, #111111)}</style><button>Hover oklab</button>');
+      const hoverOklab = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/hover-oklab.html'), '--width', '1440', '--wait', '0', '--inspect', '--out', join(work, 'hover-oklab.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(hoverOklab.status, 0, hoverOklab.stderr);
+      const hoverOklabReport = JSON.parse(read(join(work, 'hover-oklab.json')));
+      assert.ok(hoverOklabReport.findings.some(f => f.code === 'hover-contrast-loss'), 'hover-contrast-loss detected with color-mix(in oklab, ...)');
+      // Verify preview.mjs .group-title / .board-label / .board geometry at Fit, 100%, 200% and #layout-group hidden in manifest mode.
+      const chromePath = findBrowser();
+      if (chromePath) {
+        writeFileSync(join(root, 'design.json'), JSON.stringify({
+          artboards: [
+            { id: 'home', title: 'Home', file: 'demo/index.html', width: 1280, height: 800, group: 'Group One' },
+            { id: 'detail', title: 'Detail', file: 'demo/tokens-good.html', width: 1280, height: 800, group: 'Group Two' },
+          ],
+        }));
+        const chromeProfile = join(work, 'chrome-preview');
+        mkdirSync(chromeProfile, { recursive: true });
+        const chromeProc = spawn(chromePath, ['--headless=new', '--no-sandbox', '--disable-gpu', '--window-size=1440,900', '--remote-debugging-port=0', `--user-data-dir=${chromeProfile}`, 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+        try {
+          const wsUrl = await new Promise((resolveWs, rejectWs) => {
+            const t = setTimeout(() => rejectWs(new Error('chrome did not start for preview test')), 10000);
+            let errBuf = '';
+            chromeProc.stderr.on('data', d => {
+              errBuf += d;
+              const m = errBuf.match(/DevTools listening on (ws:\/\/[^\s]+)/);
+              if (m) { clearTimeout(t); resolveWs(m[1]); }
+            });
+          });
+          const targets = await (await fetch(wsUrl.replace(/^ws:/, 'http:').replace(/\/devtools\/browser\/.*/, '/json/list'))).json();
+          const pageWs = new WebSocket(targets.find(t => t.type === 'page').webSocketDebuggerUrl);
+          await new Promise((res, rej) => { pageWs.onopen = res; pageWs.onerror = rej; });
+          let cdpId = 0;
+          const pending = new Map();
+          pageWs.onmessage = ev => {
+            const msg = JSON.parse(ev.data);
+            if (msg.id && pending.has(msg.id)) { pending.get(msg.id)(msg); pending.delete(msg.id); }
+          };
+          const cdp = (method, params = {}) => new Promise(res => {
+            const id = ++cdpId;
+            pending.set(id, res);
+            pageWs.send(JSON.stringify({ id, method, params }));
+          });
+          await cdp('Page.enable');
+          await cdp('Page.navigate', { url: base });
+          await new Promise(r => setTimeout(r, 800));
+          const evalRes = await cdp('Runtime.evaluate', {
+            returnByValue: true,
+            expression: `(() => {
+              const layoutHidden = getComputedStyle(document.getElementById('layout-group')).display === 'none';
+              const checkMode = label => {
+                const titles = [...document.querySelectorAll('.group-title')].map(el => el.getBoundingClientRect());
+                const labels = [...document.querySelectorAll('.board-label')].map(el => el.getBoundingClientRect());
+                const boardsEl = [...document.querySelectorAll('.board')].map(el => el.getBoundingClientRect());
+                if (titles.length !== 2 || labels.length !== 2 || boardsEl.length !== 2) return { ok: false, reason: label + ' counts' };
+                for (let i = 0; i < 2; i++) {
+                  if (titles[i].bottom > labels[i].top + 0.5) return { ok: false, reason: label + ' title-label overlap ' + i + ': ' + titles[i].bottom + ' > ' + labels[i].top };
+                }
+                if (boardsEl[0].bottom > titles[1].top + 0.5) return { ok: false, reason: label + ' prev-board overlap: ' + boardsEl[0].bottom + ' > ' + titles[1].top };
+                return { ok: true };
+              };
+              document.getElementById('btn-fit').click();
+              const fit = checkMode('fit');
+              document.getElementById('btn-zoom-reset').click();
+              const z100 = checkMode('100%');
+              for (let i = 0; i < 6; i++) document.getElementById('btn-zoom-in').click();
+              const z200 = checkMode('200%');
+              return { layoutHidden, fit, z100, z200 };
+            })()`,
+          });
+          pageWs.close();
+          const g = evalRes.result.result.value;
+          assert.equal(g.layoutHidden, true, '#layout-group hidden when design.json is present');
+          assert.equal(g.fit.ok, true, g.fit.reason);
+          assert.equal(g.z100.ok, true, g.z100.reason);
+          assert.equal(g.z200.ok, true, g.z200.reason);
+        } finally {
+          chromeProc.kill();
+          unlinkSync(join(root, 'design.json'));
+        }
+      }
       for (const [width, viewportHeight] of [[1440, 900], [390, 844]]) {
         const png = screenshot(join(work, `full-${width}.png`));
         const expected = viewportHeight / 2 + 80 + 4200 + width + 80;

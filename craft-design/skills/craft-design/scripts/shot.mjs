@@ -258,7 +258,16 @@ async function checkHoverContrast(s) {
           const st = getComputedStyle(this);
           if (r.width <= 0 || r.height <= 0 || st.visibility === 'hidden' || st.display === 'none') return null;
           if (!this.innerText || !this.innerText.trim()) return null;
-          const parse = c => { const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+          const parse = c => {
+            if (!c || c === 'transparent' || c === 'rgba(0, 0, 0, 0)') return [0, 0, 0, 0];
+            const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/);
+            if (m) return [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]];
+            const cv = window.__craftColorCanvas || (window.__craftColorCanvas = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }));
+            const ctx = cv.getContext('2d', { willReadFrequently: true });
+            ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1);
+            const d = ctx.getImageData(0, 0, 1, 1).data;
+            return [d[0], d[1], d[2], d[3] / 255];
+          };
           const bg = parse(st.backgroundColor), fg = parse(st.color);
           if (!bg || !fg || bg[3] < 0.9 || fg[3] < 0.9) return null;
           const lum = ([R, G, B]) => [R, G, B].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, b, i) => a + b * [0.2126, 0.7152, 0.0722][i], 0);
@@ -279,7 +288,16 @@ async function checkHoverContrast(s) {
           objectId: object.objectId,
           functionDeclaration: `function() {
             const st = getComputedStyle(this);
-            const parse = c => { const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/); return m ? [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]] : null; };
+            const parse = c => {
+            if (!c || c === 'transparent' || c === 'rgba(0, 0, 0, 0)') return [0, 0, 0, 0];
+            const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/);
+            if (m) return [+m[1], +m[2], +m[3], m[4] === undefined ? 1 : +m[4]];
+            const cv = window.__craftColorCanvas || (window.__craftColorCanvas = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }));
+            const ctx = cv.getContext('2d', { willReadFrequently: true });
+            ctx.clearRect(0, 0, 1, 1); ctx.fillStyle = c; ctx.fillRect(0, 0, 1, 1);
+            const d = ctx.getImageData(0, 0, 1, 1).data;
+            return [d[0], d[1], d[2], d[3] / 255];
+          };
             const bg = parse(st.backgroundColor), fg = parse(st.color);
             if (!bg || !fg || bg[3] < 0.5) return null;
             const lum = ([R, G, B]) => [R, G, B].map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((a, b, i) => a + b * [0.2126, 0.7152, 0.0722][i], 0);

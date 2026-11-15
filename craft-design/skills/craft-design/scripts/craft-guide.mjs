@@ -39,7 +39,7 @@ export function splitText(text, limit = PAGE_BYTES) {
   return parts;
 }
 
-function findBrowser() {
+export function findBrowser() {
   if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
   const mac = ['Google Chrome', 'Chromium', 'Microsoft Edge', 'Brave Browser', 'Google Chrome Canary']
     .flatMap(app => [`/Applications/${app}.app/Contents/MacOS/${app}`, `${process.env.HOME}/Applications/${app}.app/Contents/MacOS/${app}`]);
@@ -276,7 +276,7 @@ function choosePrompt(path) {
 }
 
 function readyOutput(state) {
-  const usesLibrary = Boolean(state.plan?.use?.includes('library') || state.plan?.capabilities?.library?.choice === 'use');
+  const usesLibrary = state.plan?.capabilities?.library?.choice === 'use';
   const row = usesLibrary && state.plan?.entryId ? entry(state.plan.entryId) : null;
   const folder = row && dirname(row.path).replace(/^library\//, '') + '/';
   return 'READY. Delivered and acknowledged: core briefing, capability map, and targeted detail packets' + (row ? `, plus ${row.path} and its craft files` : '') + '. Route recorded. Not delivered automatically: ' + (row ? `the other files of ${folder} (sections, references, templates, examples), ` : '') + 'design-system and brand files. Read those the task needs before authoring' + (row ? '; ' + guideCommand('read', '--path', folder) + ' lists the entry files' : '') + '. Build within scope, then use verify.mjs with this state.';
