@@ -296,7 +296,9 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
           }
         }
       }
-      if (sunkenCount < 3 && docL >= 0.85 && !sunkenKeys.has(structKey)) {
+      if (sunkenCount < 3 && docL >= 0.85 && !sunkenKeys.has(structKey) && r.width >= 150 && r.height >= 44 &&
+          !(el.matches('button, input, select, textarea, a, label, summary, code, pre, kbd, th, td, tr, thead, [role="button"], [role="tab"], [role="switch"]') ||
+            el.closest('button, a, label, summary, pre, code, thead'))) {
         const chromaSpread = Math.max(elBg[0], elBg[1], elBg[2]) - Math.min(elBg[0], elBg[1], elBg[2]);
         if (chromaSpread < 35 && elL < docL - 0.012 && elL > 0.50) {
           let elevatedParent = null;
@@ -349,6 +351,15 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       }
       return docL;
     };
+    const cardOf = node => {
+      for (let p = node; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+        if (p.matches('article, form, dialog, aside, header, footer, li, tr')) return p;
+        const ps = style(p);
+        const hasBorder = ['Top', 'Right', 'Bottom', 'Left'].some(s => (parseFloat(ps['border' + s + 'Width']) || 0) >= 1 && ps['border' + s + 'Style'] !== 'none');
+        if (hasBorder || ps.boxShadow !== 'none' || colour(ps.backgroundColor)[3] >= 0.92) return p;
+      }
+      return null;
+    };
     for (const btn of document.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]')) {
       if (btn.getAttribute('role') === 'tab' || !visible(btn)) continue;
       const br = btn.getBoundingClientRect();
@@ -356,7 +367,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       const btnBg = colour(style(btn).backgroundColor);
       if (btnBg[3] < 0.85) continue;
       const containerL = bgLOf(btn.parentElement);
-      if (Math.abs(oklabL(btnBg) - containerL) >= 0.22) solidButtons.push({ btn, br, parent: btn.parentElement });
+      if (Math.abs(oklabL(btnBg) - containerL) >= 0.22) solidButtons.push({ btn, br, parent: btn.parentElement, card: cardOf(btn.parentElement) });
     }
     let competingCount = 0;
     const reportedGroups = new Set();
@@ -364,11 +375,12 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       for (let j = i + 1; j < solidButtons.length && competingCount < 3; j++) {
         const a = solidButtons[i], b = solidButtons[j];
         const sameParent = a.parent && a.parent === b.parent;
+        const sameCard = a.card && a.card === b.card;
         const dx = Math.max(0, a.br.left - b.br.right, b.br.left - a.br.right);
         const dy = Math.max(0, a.br.top - b.br.bottom, b.br.top - a.br.bottom);
         const dist = Math.hypot(dx, dy);
-        if (sameParent || dist <= 32) {
-          const target = a.parent || b.btn;
+        if (sameParent || (sameCard && dist <= 28)) {
+          const target = (sameParent ? a.parent : a.card) || b.btn;
           if (!reportedGroups.has(target)) {
             reportedGroups.add(target);
             add('competing-solid-actions', 'review', target, 'Multiple solid high-contrast action buttons appear in the same group; keep at most one solid CTA and outline secondary/destructive buttons.');
@@ -382,9 +394,9 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       if (primSvgCount >= 3) break;
       if (svg.getAttribute('aria-hidden') === 'true' || !visible(svg)) continue;
       const sr = svg.getBoundingClientRect();
-      if (sr.width < 240 || sr.height < 140) continue;
-      const primitives = svg.querySelectorAll('path, line, polyline, polygon, rect, circle, ellipse, text').length;
-      if (primitives < 10) {
+      if (sr.width < 220 || sr.height < 130) continue;
+      const primitives = svg.querySelectorAll('path, line, polyline, polygon, rect, circle, ellipse, text, use').length;
+      if (primitives < 12) {
         add('primitive-svg', 'review', svg, `Large diagram/chart SVG has only ${primitives} primitives; enrich with gridlines, stroke hierarchy, hatching/bands, and callouts.`, { primitives }, sr);
         primSvgCount++;
       }

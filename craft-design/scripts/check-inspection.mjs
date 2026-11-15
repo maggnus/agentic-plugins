@@ -166,6 +166,15 @@ try {
       '<section data-craft-id="ps2"></section><section data-craft-id="ps3"></section><section data-craft-id="ps4"></section></body>';
     const primSvgCheck = run('prim-svg', primSvgHtml, [], process.env, 1440);
     assert.ok(primSvgCheck.report.findings.some(f => f.code === 'primitive-svg' && f.severity === 'review'), 'primitive-svg detected as review');
+    const cleanCardsHtml = '<!doctype html><body style="margin:0;background:#F8FAFC;color:#111">' +
+      '<section data-craft-id="cc1" style="display:flex;gap:20px;padding:24px">' +
+      '<article style="background:#FFFFFF;padding:20px;border:1px solid #E2E8F0"><input value="A" style="background:#E2E8F0;width:180px;height:48px;border:0"><button style="background:#2563EB;color:#fff;width:140px;height:40px;border:0">Plan A</button></article>' +
+      '<article style="background:#FFFFFF;padding:20px;border:1px solid #E2E8F0"><button style="background:#2563EB;color:#fff;width:140px;height:40px;border:0">Plan B</button></article>' +
+      '<article style="background:#FFFFFF;padding:20px;border:1px solid #E2E8F0"><button style="background:#2563EB;color:#fff;width:140px;height:40px;border:0">Plan C</button></article>' +
+      '</section><section data-craft-id="cc2"></section><section data-craft-id="cc3"></section></body>';
+    const cleanCardsCheck = run('clean-cards', cleanCardsHtml, [], process.env, 1440);
+    assert.ok(!cleanCardsCheck.report.findings.some(f => f.code === 'competing-solid-actions'), 'adjacent article cards with one solid CTA each do not trigger competing-solid-actions');
+    assert.ok(!cleanCardsCheck.report.findings.some(f => f.code === 'sunken-inner-surface'), 'input and button inside white card do not trigger sunken-inner-surface');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }
