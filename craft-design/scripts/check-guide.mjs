@@ -61,7 +61,23 @@ const quickPlan={visualPath:'direct',reason:'Fast 2-step route test',tools:{gene
 r=run('decide','--state',quickState,'--json',JSON.stringify(quickPlan));
 assert.equal(r.status,0,r.stderr);
 assert.match(r.stdout,/READY\./,'compact decide reaches READY in 2 calls');
+assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'compact use:[library] includes ENTRY.md hint');
+assert.match(r.stdout,/read --path skills\/saas-landing\//,'compact use:[library] includes read --path hint');
 assert.equal(requireReady(quickState).phase,'ready');
+r=run('status','--state',quickState);
+assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'status for compact use:[library] includes ENTRY.md hint');
+assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for compact use:[library] includes read --path hint');
+
+const mixedUseState=join(dir,'mixed-use-state.json');
+r=run('begin','--state',mixedUseState);assert.equal(r.status,0,r.stderr);
+const mixedUsePlan={visualPath:'direct',reason:'Mixed use+capabilities test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{tokens:{choice:'skip',evidence:'Static snippet only'}}};
+r=run('decide','--state',mixedUseState,'--json',JSON.stringify(mixedUsePlan));
+assert.equal(r.status,0,r.stderr);
+assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'mixed plan with use:[library] includes ENTRY.md hint');
+assert.match(r.stdout,/read --path skills\/saas-landing\//,'mixed plan with use:[library] includes read --path hint');
+r=run('status','--state',mixedUseState);
+assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'status for mixed plan includes ENTRY.md hint');
+assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for mixed plan includes read --path hint');
 
 const mixedState=join(dir,'mixed-state.json');
 r=run('begin','--state',mixedState);assert.equal(r.status,0,r.stderr);
@@ -70,6 +86,8 @@ r=run('decide','--state',mixedState,'--json',JSON.stringify(mixedPlan));
 assert.equal(r.status,0,r.stderr);
 assert.match(r.stdout,/READY\./);
 assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in readyOutput');
+r=run('status','--state',mixedState);
+assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in status');
 
 const oddDir=join(dir,"it's a dir"),oddState=join(oddDir,'state.json');mkdirSync(oddDir);
 r=run('begin','--state',oddState);assert.equal(r.status,0,r.stderr);assert.ok(!r.stdout.includes('<skill>'));
