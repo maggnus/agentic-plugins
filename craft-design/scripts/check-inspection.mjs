@@ -133,10 +133,21 @@ try {
     const bleedCheck = run('bleed', bleedHtml, [], process.env, 1440);
     assert.ok(bleedCheck.report.findings.some(f => f.code === 'canvas-bleed-through' && f.severity === 'review'), 'canvas-bleed-through detected as review');
     const weakHtml = '<!doctype html><body style="margin:0;background:#F4F1EA;color:#111">' +
-      '<section data-craft-id="c1" style="background:#FAF8F3;width:300px;height:120px;padding:16px">Weak card</section>' +
+      '<section data-craft-id="c1" style="background:#FAF8F3;width:300px;height:120px;padding:16px;border:1px solid rgba(0,0,0,0.04)">Weak card</section>' +
       '<section data-craft-id="c2"></section><section data-craft-id="c3"></section><section data-craft-id="c4"></section></body>';
     const weakCheck = run('weak-surface', weakHtml, [], process.env, 1440);
-    assert.ok(weakCheck.report.findings.some(f => f.code === 'weak-surface-separation' && f.severity === 'review'), 'weak-surface-separation detected as review');
+    assert.ok(weakCheck.report.findings.some(f => f.code === 'weak-surface-separation' && f.severity === 'review'), 'weak-surface-separation detected even with faint rgba(0,0,0,0.04) border');
+    const darkBorderHtml = '<!doctype html><body style="margin:0;background:#0e0e11;color:#f0f0f0">' +
+      '<section data-craft-id="d1" style="background:#141417;width:300px;height:120px;padding:16px;border:1px solid rgba(255,255,255,0.08)">Dark card</section>' +
+      '<section data-craft-id="d2"></section><section data-craft-id="d3"></section><section data-craft-id="d4"></section></body>';
+    const darkBorderCheck = run('dark-border', darkBorderHtml, [], process.env, 1440);
+    assert.ok(!darkBorderCheck.report.findings.some(f => f.code === 'weak-surface-separation'), '1px solid rgba(255,255,255,0.08) on dark panel is crisp');
+    const onDarkHtml = '<!doctype html><body style="margin:0;background:#ffffff;color:#111">' +
+      '<section data-craft-id="od1" style="background:#15140f;color:#fff;padding:32px">' +
+      '<div data-craft-id="od-card" style="background:#ffffff;color:#111;width:240px;height:80px">Light card inside .on-dark</div>' +
+      '</section><section data-craft-id="od2"></section><section data-craft-id="od3"></section></body>';
+    const onDarkCheck = run('on-dark', onDarkHtml, [], process.env, 1440);
+    assert.ok(!onDarkCheck.report.findings.some(f => f.code === 'canvas-bleed-through'), 'light cards inside inverse .on-dark band are not flagged as bleed-through');
     console.log('inspection fixtures passed: clipping, occlusion, repair, scroll policy, names, images, fonts, state and hashes');
   }
 } finally { rmSync(work, { recursive: true, force: true }); }

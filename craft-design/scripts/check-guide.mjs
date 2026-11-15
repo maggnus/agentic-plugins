@@ -5,15 +5,19 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {curriculum,coreBriefing,splitText,capabilities,requireReady,validatePlan,skillRoot,PAGE_BYTES,searchCatalog,libraryResource} from '../skills/craft-design/scripts/craft-guide.mjs';
+import {curriculum,splitText,capabilities,requireReady,validatePlan,skillRoot,PAGE_BYTES,searchCatalog,libraryResource} from '../skills/craft-design/scripts/craft-guide.mjs';
 import {verify} from '../skills/craft-design/scripts/verify.mjs';
 import {issueInvocation,consumeInvocation} from '../skills/craft-design/scripts/guide-runtime.mjs';
 import {words} from '../hooks/guard.mjs';
 
 assert.deepEqual([...new Set(capabilities.flatMap(c=>c.commands))].sort(),readdirSync(join(skillRoot,'scripts')).filter(p=>p.endsWith('.mjs')).sort(),'every script has a capability-map home');
-assert.equal(curriculum().pages.length,1,'base briefing stays within 1 packet');
-assert.match(coreBriefing(),/## Typography & Optical Hierarchy/,'coreBriefing includes typography rules');
-assert.match(coreBriefing(),/## OKLch Surface Planes/,'coreBriefing includes OKLch surface planes');
+const baseCurriculum=curriculum();
+assert.ok(baseCurriculum.pages.length>=2&&baseCurriculum.pages.length<=4,'base curriculum packs verbatim references into 2-4 packets');
+assert.ok(baseCurriculum.pages.every(p=>Buffer.byteLength(p.body)<=PAGE_BYTES),'every base packet is <= PAGE_BYTES');
+const baseJoined=baseCurriculum.pages.map(p=>p.body.replace(/^=== [^\n]+ ===\n/gm,'')).join('');
+for(const ref of ['references/charter.md','references/charter-craft.md','references/visual-concepts.md']){
+ assert.ok(baseJoined.includes(readFileSync(join(skillRoot,ref),'utf8')),`${ref} included 100% verbatim in base packets`);
+}
 assert.deepEqual([...new Set(['charter.md','charter-craft.md','visual-concepts.md',...capabilities.flatMap(c=>c.details).map(p=>p.slice('references/'.length))])].sort(),readdirSync(join(skillRoot,'references')).filter(p=>p.endsWith('.md')).sort(),'every reference is introduced before route selection');
 
 const dir=mkdtempSync(join(tmpdir(),'craft-guide-test-'));
@@ -35,15 +39,21 @@ issueInvocation(skillRoot,dir,['decide','--state',absoluteArgs[2],'--plan','plan
 assert.throws(()=>consumeInvocation(skillRoot,otherCwd,['decide','--state',absoluteArgs[2],'--plan','plan.json'],proofData),/did not observe/,'relative plan remains cwd-sensitive');
 
 const run=(...args)=>{issueInvocation(skillRoot,process.cwd(),args);return spawnSync(process.execPath,[script,...args],{encoding:'utf8'});};
+const finishPackets=(statePath,firstOut)=>{
+ let out=firstOut;
+ while(true){
+  const m=out.match(/Receipt: ([0-9a-f-]+)/);
+  if(!m)break;
+  const nr=run('next','--state',statePath,'--receipt',m[1]);
+  assert.equal(nr.status,0,nr.stderr);
+  out=nr.stdout;
+ }
+ return out;
+};
 const state=join(dir,'state.json');
 const text='Пример 🧭\n\n'.repeat(1500)+'x'.repeat(PAGE_BYTES + 800);
 const chunks=splitText(text);
 assert.equal(chunks.join(''),text); assert.ok(chunks.every(x=>Buffer.byteLength(x)<=PAGE_BYTES));
-assert.equal(curriculum().pages.length,1,'base core briefing fits in 1 packet');
-for(const source of new Set(curriculum().pages.map(x=>x.source))) {
- const parts=curriculum().pages.filter(p=>p.source===source);
- if(source!=='capability-map')assert.equal(parts.map(p=>p.body).join(''),readFileSync(join(skillRoot,source),'utf8'));
-}
 const unobserved=spawnSync(process.execPath,[script,'begin','--state',join(dir,'unguarded.json')],{encoding:'utf8'});
 assert.equal(unobserved.status,2,'unobserved CLI cannot claim delivery');
 assert.match(unobserved.stderr,/unsupported command form OR an inactive hook/);
@@ -51,21 +61,26 @@ assert.ok(unobserved.stderr.includes(script));
 assert.match(unobserved.stderr,/Retry once.*SAME working directory/);
 let r=run('begin','--state',state,'--query','saas landing');assert.equal(r.status,0,r.stderr);
 assert.match(r.stdout,/Browser: (?:detected|unavailable)/,'begin reports browser availability');
-assert.match(r.stdout,/saas-landing/,'begin --query surfaces catalog matches immediately');
-assert.equal(JSON.parse(readFileSync(state)).phase,'choose','single-packet begin lands directly in choose');
 assert.equal(run('begin','--state',state).status,2,'never overwrite an existing task');
 assert.throws(()=>requireReady(state),/incomplete/);
 assert.equal(run('status','--state',state).status,0);
-assert.ok(r.stdout.includes(script+' read --path skills/ID/'),'selection names the absolute library reader');
+assert.equal(run('next','--state',state,'--receipt','wrong').status,2,'wrong receipt rejected');
+const baseDone=finishPackets(state,r.stdout);
+assert.match(baseDone,/BASE COMPLETE/,'next loop reaches BASE COMPLETE');
+assert.match(baseDone,/saas-landing/,'begin --query surfaces catalog matches at BASE COMPLETE');
+assert.equal(JSON.parse(readFileSync(state)).phase,'choose','completed base packets land in choose');
+assert.ok(baseDone.includes(script+' read --path skills/ID/'),'selection names the absolute library reader');
 
 const quickState=join(dir,'quick-state.json');
 r=run('begin','--state',quickState);assert.equal(r.status,0,r.stderr);
-const quickPlan={visualPath:'direct',reason:'Fast 2-step route test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens','inspection','preview']};
+finishPackets(quickState,r.stdout);
+const quickPlan={visualPath:'direct',reason:'Fast route test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens','inspection','preview']};
 r=run('decide','--state',quickState,'--json',JSON.stringify(quickPlan));
 assert.equal(r.status,0,r.stderr);
-assert.match(r.stdout,/READY\./,'compact decide reaches READY in 2 calls');
-assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'compact use:[library] includes ENTRY.md hint');
-assert.match(r.stdout,/read --path skills\/saas-landing\//,'compact use:[library] includes read --path hint');
+const quickDone=finishPackets(quickState,r.stdout);
+assert.match(quickDone,/READY\./,'decide + details reach READY');
+assert.match(quickDone,/library\/skills\/saas-landing\/ENTRY\.md/,'compact use:[library] includes ENTRY.md hint');
+assert.match(quickDone,/read --path skills\/saas-landing\//,'compact use:[library] includes read --path hint');
 assert.equal(requireReady(quickState).phase,'ready');
 r=run('status','--state',quickState);
 assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'status for compact use:[library] includes ENTRY.md hint');
@@ -73,22 +88,26 @@ assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for compact u
 
 const mixedUseState=join(dir,'mixed-use-state.json');
 r=run('begin','--state',mixedUseState);assert.equal(r.status,0,r.stderr);
+finishPackets(mixedUseState,r.stdout);
 const mixedUsePlan={visualPath:'direct',reason:'Mixed use+capabilities test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{tokens:{choice:'skip',evidence:'Static snippet only'}}};
 r=run('decide','--state',mixedUseState,'--json',JSON.stringify(mixedUsePlan));
 assert.equal(r.status,0,r.stderr);
-assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'mixed plan with use:[library] includes ENTRY.md hint');
-assert.match(r.stdout,/read --path skills\/saas-landing\//,'mixed plan with use:[library] includes read --path hint');
+const mixedUseDone=finishPackets(mixedUseState,r.stdout);
+assert.match(mixedUseDone,/library\/skills\/saas-landing\/ENTRY\.md/,'mixed plan with use:[library] includes ENTRY.md hint');
+assert.match(mixedUseDone,/read --path skills\/saas-landing\//,'mixed plan with use:[library] includes read --path hint');
 r=run('status','--state',mixedUseState);
 assert.match(r.stdout,/library\/skills\/saas-landing\/ENTRY\.md/,'status for mixed plan includes ENTRY.md hint');
 assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for mixed plan includes read --path hint');
 
 const mixedState=join(dir,'mixed-state.json');
 r=run('begin','--state',mixedState);assert.equal(r.status,0,r.stderr);
+finishPackets(mixedState,r.stdout);
 const mixedPlan={visualPath:'direct',reason:'Mixed plan test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{library:{choice:'skip',evidence:'Only custom tokens'}}};
 r=run('decide','--state',mixedState,'--json',JSON.stringify(mixedPlan));
 assert.equal(r.status,0,r.stderr);
-assert.match(r.stdout,/READY\./);
-assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in readyOutput');
+const mixedDone=finishPackets(mixedState,r.stdout);
+assert.match(mixedDone,/READY\./);
+assert.ok(!mixedDone.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in readyOutput');
 r=run('status','--state',mixedState);
 assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overrides use:[library] in status');
 
@@ -135,12 +154,23 @@ plan.capabilities.inspection.choice='use';
 plan.capabilities.library.choice='use';plan.entryId='dashboard';
 assert.throws(()=>validatePlan({...plan,entryId:'../../outside'}),/catalog/);
 assert.ok(validatePlan(plan).includes('library/craft/typography.md'),'dashboard plan includes typography.md');
+assert.ok(validatePlan(plan).includes('library/craft/typography-hierarchy.md'),'dashboard plan includes typography-hierarchy.md');
+assert.ok(!validatePlan(plan).includes('library/craft/typography-hierarchy-editorial.md'),'dashboard plan excludes editorial hierarchy');
 assert.ok(validatePlan(plan).includes('library/craft/color.md'),'dashboard plan includes color.md');
 assert.ok(validatePlan(plan).includes('library/craft/state-coverage.md'));
+const allSkillIds=readFileSync(join(skillRoot,'library/catalog.tsv'),'utf8').trim().split('\n').slice(1).map(l=>l.split('\t')).filter(c=>c[0]==='skill').map(c=>c[1]);
+const t0=Date.now();
+for(const id of allSkillIds){
+ const out=validatePlan({...plan,entryId:id});
+ assert.ok(out.includes('library/craft/typography-hierarchy.md'),`${id} includes typography-hierarchy.md`);
+ if(id==='saas-landing')assert.ok(out.includes('library/craft/typography-hierarchy-editorial.md'),'saas-landing includes editorial hierarchy');
+}
+assert.ok(Date.now()-t0<500,`validatePlan across all ${allSkillIds.length} skills completed in <500ms`);
 writeFileSync(planFile,JSON.stringify(plan));
 const dashDecide=run('decide','--state',state,'--plan',planFile);
 assert.equal(dashDecide.status,0,dashDecide.stderr);
-assert.match(dashDecide.stdout,/READY\./,'dashboard plan reaches READY immediately');
+const dashDone=finishPackets(state,dashDecide.stdout);
+assert.match(dashDone,/READY\./,'dashboard plan reaches READY after details');
 assert.equal(requireReady(state).phase,'ready');
 r=run('status','--state',state);assert.match(r.stdout,/plus library\/skills\/dashboard\/ENTRY\.md and its craft files/);assert.match(r.stdout,/Not delivered automatically: the other files of skills\/dashboard\//);assert.ok(!r.stdout.includes('Selected entry and craft rules are included'),'READY names what was delivered');
 const good=readFileSync(state,'utf8');const broken=JSON.parse(good);broken.edition='old';writeFileSync(state,JSON.stringify(broken));assert.throws(()=>requireReady(state),/changed/);writeFileSync(state,good);

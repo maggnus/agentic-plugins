@@ -93,12 +93,13 @@ disintegrating into letters.
 - Always declare a system fallback chain. If the active `DESIGN.md`
   ships a webfont URL, the fallback must still produce a coherent look.
 - Load real webfonts supporting the document's script (e.g. Cyrillic
-  subsets for Russian) and inspect optical stroke density on screenshots:
-  avoid fragile hairline serifs in small callouts or dense UI.
+  subsets for Russian) and inspect optical stroke density on 1:1 PNG
+  screenshots: avoid fragile hairline serifs in small callouts or dense UI,
+  and calibrate optical weights (400/500/600) so strokes hold evenly.
 - Never leave generic `Inter`, `Roboto`, `Arial`, or bare `system-ui` as
-  `--font-display` — even utilitarian dashboards should pair a distinct
-  engineered grotesk with a tabular monospace face (`font-variant-numeric:
-  tabular-nums`).
+  `--font-display` unless an external brand contract explicitly requires them —
+  even utilitarian dashboards should pair a distinct engineered grotesk with a
+  tabular monospace face (`font-variant-numeric: tabular-nums`).
 
 ## Line length
 

@@ -865,7 +865,7 @@ export function importTokens({ sources, dark = [], map = null, prefix = '', dark
   return { css, warnings, count: light.size, darkCount: night.size };
 }
 
-export const REGISTRY = ['--bg', '--surface', '--fg', '--fg-2', '--muted', '--border', '--accent', '--accent-on', '--font-display', '--font-body', '--font-mono'];
+export const REGISTRY = ['--bg', '--surface', '--surface-2', '--fg', '--fg-2', '--muted', '--border', '--border-strong', '--accent', '--accent-on', '--font-display', '--font-body', '--font-mono'];
 
 export async function main(argv) {
   const args = [...argv], command = args.shift();

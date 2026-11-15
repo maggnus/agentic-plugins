@@ -9,9 +9,7 @@ import { consumeInvocation } from './guide-runtime.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const skillRoot = resolve(here, '..');
-export const PAGE_BYTES = 16000;
-const DETAIL_INLINE_LIMIT = 90000;
-const DETAIL_PAGE_BYTES = 80000;
+export const PAGE_BYTES = 24000;
 const hash = value => createHash('sha256').update(value).digest('hex');
 const read = file => readFileSync(file, 'utf8');
 export const capabilities = JSON.parse(read(join(skillRoot, 'references/capabilities.json')));
@@ -121,83 +119,108 @@ function entry(id) {
   return row;
 }
 
+function parseCraftRequires(md) {
+  if (!md.startsWith('---\n')) return [];
+  const end = md.indexOf('\n---', 4);
+  if (end < 0) return [];
+  const lines = md.slice(4, end).split('\n');
+  let inCraft = false, craftIndent = -1, inRequires = false, reqIndent = -1;
+  const out = [];
+  for (const line of lines) {
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+    const indent = line.search(/\S/);
+    const trimmed = line.trim();
+    if (inRequires) {
+      if (indent > reqIndent && trimmed.startsWith('-')) {
+        const val = trimmed.slice(1).trim().replace(/^['"]|['"]$/g, '');
+        if (val) out.push(val);
+        continue;
+      }
+      if (indent <= reqIndent) inRequires = false;
+    }
+    if (inCraft && indent <= craftIndent) inCraft = false;
+    if (trimmed === 'craft:') { inCraft = true; craftIndent = indent; continue; }
+    if (trimmed.startsWith('requires:')) {
+      const rest = trimmed.slice('requires:'.length).trim();
+      if (rest.startsWith('[') && rest.endsWith(']')) {
+        return rest.slice(1, -1).split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+      }
+      inRequires = true;
+      reqIndent = indent;
+    }
+  }
+  return out;
+}
+
 function craftFilesForEntry(row) {
   let names = (row.craft || '').split(',').map(s => s.trim()).filter(Boolean);
   if (!names.length) {
-    try {
-      const md = read(join(skillRoot, row.path));
-      const fm = md.match(/^---\n([\s\S]*?)\n---/);
-      if (fm) {
-        const inline = fm[1].match(/^\s*requires:\s*\[([^\]]*)\]/m);
-        if (inline) {
-          names = inline[1].split(',').map(s => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
-        } else {
-          const block = fm[1].match(/^\s*craft:\s*\n(?:\s+[^\n]+\n)*?\s*requires:\s*\n((?:\s*-\s+[^\n]+\n?)*)/m);
-          if (block) {
-            names = [...block[1].matchAll(/^\s*-\s+([^\n]+)/gm)].map(m => m[1].trim().replace(/^['"]|['"]$/g, ''));
-          }
-        }
-      }
-    } catch {}
+    try { names = parseCraftRequires(read(join(skillRoot, row.path))); } catch {}
   }
   const existing = names.filter(n => existsSync(join(skillRoot, 'library/craft', n + '.md')));
-  const finalNames = [...new Set(['typography', 'color', ...(existing.length ? existing : ['anti-ai-slop'])])];
+  const isEditorial = /\b(landing|marketing|editorial|brand|portfolio|blog|article|magazine|poster|brochure|print)\b/i
+    .test([row.id, row.mode, row.scenario, row.summary].join(' '));
+  const coreCraft = isEditorial
+    ? ['typography', 'typography-hierarchy', 'typography-hierarchy-editorial', 'color', 'anti-ai-slop']
+    : ['typography', 'typography-hierarchy', 'color', 'anti-ai-slop'];
+  const finalNames = [...new Set([...coreCraft, ...existing])];
   return finalNames.map(name => 'library/craft/' + name + '.md');
 }
 
-export function coreBriefing() {
+function capabilityMapText() {
   const capLines = capabilities.map(c => `- **${c.id}**: ${c.when} (${c.commands.join(', ') || 'host/library'})`).join('\n');
   return [
-    '# craft-design Core Briefing',
+    '# craft-design Capability Map',
     '',
-    '## Instruction Priority & Scope',
-    '- Follow explicit user instructions, existing project/brand sources, and the core craft rules below.',
-    '- Decks/slides and rendered `.mp4` video are out of scope.',
-    '- Complete the brief without extra turns when requirements are clear; ask at most one focused round only for consequential structural gaps.',
-    '',
-    '## Visual Contract & Theme Registry',
-    '- Bind one visual contract before authoring: supplied brand source, active project design system, or a subject-specific design spec written in an HTML comment at the top of the file.',
-    '- Place all visual tokens inside the first `<style>` between `/* tokens:start */` and `/* tokens:end */`. Bind colors, typography, radii, shadows, and surfaces via `var(...)`; never leave unbacked literal colors or duplicated magic values outside the theme.',
-    '- For library design systems, read `USAGE.md -> DESIGN.md -> tokens.css` and preserve real theme values.',
-    '',
-    '## Typography & Optical Hierarchy',
-    '- Pair a subject-fit `--font-display` with a calm `--font-body` and tabular `--font-mono` (`font-variant-numeric: tabular-nums` for numbers/codes). Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display` unless an external brand contract requires it; even dense dashboards need an intentional engineered webfont pair instead of bare `system-ui`.',
-    '- Load real webfonts (e.g. via an allowed Google Fonts `<link>`) covering required weights (`400/500/600/700`) and the target script (Cyrillic for Russian). On screenshots, inspect stroke weight: avoid fragile hairline serifs at small sizes or dense technical UI.',
-    '- Declare a full modular scale (`--text-xs`…`--text-4xl` with `clamp()`), build hierarchy through strong scale contrast (poster-scale hero H1 on landing pages, stepped-down section H2s; `text-wrap: balance` on headings; `0.06–0.1em` tracking on ALL CAPS), and follow locale microtypography (Russian: `«ёлочки»`, non-breaking spaces before `—` and units like `5&nbsp;мин`, generous button width).',
-    '',
-    '## OKLch Surface Planes & Section Rhythm',
-    '- Build the neutral ramp in `oklch()` with at least three distinct planes (`--bg` page canvas, `--surface` primary card/panel, `--surface-2` nested block/input/table header/chart plot, plus `--border` and `--border-strong`) separated by a perceptual lightness step `|ΔL| >= 0.04–0.07` (or a crisp border) so silhouettes read clearly even when zoomed out.',
-    '- Never paint elements nested inside `--surface` back to the outer canvas `--bg` (this creates canvas bleed-through holes and breaks panel cohesion); use `--surface-2` or a derived surface token instead.',
-    '- Alternate adjacent section type, density, and ground (`--bg`, `--surface-2`, `.on-dark` contrast band) instead of repeating identical card grids on one flat background.',
-    '',
-    '## Honesty & Demo Data',
-    '- Preserve supplied facts verbatim; never invent metrics, testimonials, or unverified brand assets.',
-    '- Mark any placeholder/demo data with `data-demo`, quiet footnotes, and honest non-submitting demo forms.',
-    '- Add stable `data-craft-id="kebab-case-id"` to key regions, headings, CTAs, controls, and repeated cards.',
-    '',
-    '## Two-Stage Build & Verification',
-    '- For multi-section pages, build the first screen (hero/header/primary view) and run `verify.mjs FILE --state STATE --stage calibrate --width 1440,390` first, inspect the 1:1 PNGs, then build remaining sections.',
-    '- Run full `verify.mjs FILE --state STATE --width 1440,390` after final edits, then inspect the generated 1:1 viewport `strips` (`frame-*-s*.png`) and full PNGs against the brief.',
-    '',
-    '## Capabilities Map (know all; use only what the task needs)',
+    'Know every capability below; select only what the task needs.',
     capLines,
+    '',
+    'For multi-section pages, build the first screen and run `verify.mjs FILE --state STATE --stage calibrate --width 1440,390` early, then build remaining sections and run full `verify.mjs`.',
   ].join('\n');
 }
 
-export function curriculum(extra = []) {
-  const core = coreBriefing();
-  const extraFiles = extra.filter((s, i, a) => a.indexOf(s) === i).map(p => [p, read(join(skillRoot, p))]);
-  const pages = [{ source: 'capability-map', part: 1, total: 1, body: core }];
-  if (extraFiles.length) {
-    const combined = extraFiles.map(([source, text]) => `=== ${source} ===\n${text}`).join('\n\n');
-    const chunks = splitText(combined, DETAIL_PAGE_BYTES);
-    chunks.forEach((body, idx) => {
-      pages.push({ source: extraFiles[0][0], part: idx + 1, total: chunks.length, body });
-    });
+function packSources(sources, limit = PAGE_BYTES) {
+  const rawPages = [];
+  let buf = '';
+  let sourcesInBuf = [];
+  for (const [source, text] of sources) {
+    const header = `=== ${source} ===\n`;
+    const block = header + text;
+    if (Buffer.byteLength(block) > limit) {
+      if (buf) { rawPages.push({ source: sourcesInBuf.join('+'), body: buf }); buf = ''; sourcesInBuf = []; }
+      const chunks = splitText(text, Math.max(1000, limit - Buffer.byteLength(header)));
+      for (const chunk of chunks) rawPages.push({ source, body: header + chunk });
+      continue;
+    }
+    const sep = buf ? '\n\n' : '';
+    if (Buffer.byteLength(buf + sep + block) > limit) {
+      rawPages.push({ source: sourcesInBuf.join('+'), body: buf });
+      buf = block;
+      sourcesInBuf = [source];
+    } else {
+      buf += sep + block;
+      sourcesInBuf.push(source);
+    }
   }
-  const refFiles = ['references/charter.md', 'references/charter-craft.md', 'references/visual-concepts.md'];
+  if (buf) rawPages.push({ source: sourcesInBuf.join('+'), body: buf });
+  const total = rawPages.length;
+  return rawPages.map((p, i) => ({ source: p.source, part: i + 1, total, body: p.body }));
+}
+
+export function curriculum(extra = []) {
+  const baseSources = [
+    ['capability-map', capabilityMapText()],
+    ['references/charter.md', read(join(skillRoot, 'references/charter.md'))],
+    ['references/charter-craft.md', read(join(skillRoot, 'references/charter-craft.md'))],
+    ['references/visual-concepts.md', read(join(skillRoot, 'references/visual-concepts.md'))],
+  ];
+  const basePages = packSources(baseSources, PAGE_BYTES);
+  const extraFiles = extra.filter((s, i, a) => a.indexOf(s) === i).map(p => [p, read(join(skillRoot, p))]);
+  const detailPages = extraFiles.length ? packSources(extraFiles, PAGE_BYTES) : [];
+  const pages = [...basePages, ...detailPages];
   return {
-    edition: hash(JSON.stringify([read(join(skillRoot, 'SKILL.md')), core, ...refFiles.map(p => read(join(skillRoot, p))), extraFiles])),
+    edition: hash(JSON.stringify([read(join(skillRoot, 'SKILL.md')), baseSources, extraFiles])),
+    baseCount: basePages.length,
     pages,
   };
 }
@@ -338,64 +361,67 @@ export function main(argv) {
   if (command === 'begin') {
     guide = curriculum();
     const browser = findBrowser();
-    state = { schema: 1, edition: guide.edition, extra: [], acknowledged: 1, phase: 'choose', pending: null, plan: null };
+    state = { schema: 1, edition: guide.edition, extra: [], acknowledged: 0, phase: 'reading', pending: randomUUID(), beginQuery: beginQuery?.trim() || null, plan: null };
     save(path, state, true);
     console.log(`Browser: ${browser ? 'detected (' + browser + ')' : 'unavailable'}`);
-    console.log(guide.pages[0].body);
-    if (beginQuery?.trim()) {
-      console.log('');
-      try { console.log(formatCatalog(beginQuery)); } catch (err) { console.log('Catalog note: ' + err.message); }
+  } else {
+    try { ({ state, guide } = loadState(path)); } catch (error) {
+      if (command === 'cancel' && cancelReason?.trim()) { console.log('CANCELLED. Host guard released; unreadable or absent state left unchanged. No readiness claim.'); return; }
+      throw error;
     }
-    console.log('\n' + choosePrompt(path));
-    return;
-  }
 
-  try { ({ state, guide } = loadState(path)); } catch (error) {
-    if (command === 'cancel' && cancelReason?.trim()) { console.log('CANCELLED. Host guard released; unreadable or absent state left unchanged. No readiness claim.'); return; }
-    throw error;
-  }
-
-  if (command === 'cancel') {
-    if (!cancelReason?.trim()) throw new Error('cancel needs --reason documenting an explicit task cancellation.');
-    state.phase = 'cancelled'; state.pending = null; state.cancelReason = cancelReason; save(path, state);
-    console.log('CANCELLED. No readiness claim; checks requiring READY remain unavailable.');
-    return;
-  }
-
-  if (command === 'next') {
-    if (state.phase !== 'reading' || !receipt || receipt !== state.pending) throw new Error('Missing/wrong receipt. Read the complete pending packet with status; no progress recorded.');
-    state.acknowledged++;
-    state.pending = state.acknowledged < guide.pages.length ? randomUUID() : null;
-    if (!state.pending) state.phase = state.plan ? 'ready' : 'choose';
-    save(path, state);
-  } else if (command === 'decide') {
-    if (state.phase !== 'choose' || state.acknowledged !== guide.pages.length) throw new Error('Finish base instructions before choosing the route.');
-    if (!!planFile === !!inlinePlan) throw new Error('Provide either --plan FILE or --json JSON with visualPath, reason, tools, capabilities or use, and entryId when using the library.');
-    const plan = JSON.parse(inlinePlan ?? read(resolve(planFile)));
-    const extra = validatePlan(plan);
-    state.plan = plan; state.extra = extra;
-    guide = curriculum(extra); state.edition = guide.edition;
-    const detailsPages = guide.pages.slice(1);
-    const totalDetailBytes = detailsPages.reduce((sum, p) => sum + Buffer.byteLength(p.body), 0);
-    if (!detailsPages.length || totalDetailBytes <= DETAIL_INLINE_LIMIT) {
-      state.acknowledged = guide.pages.length;
-      state.pending = null;
-      state.phase = 'ready';
-      save(path, state);
-      if (detailsPages.length) console.log(detailsPages.map(p => p.body).join('\n\n'));
-      console.log(readyOutput(state));
+    if (command === 'cancel') {
+      if (!cancelReason?.trim()) throw new Error('cancel needs --reason documenting an explicit task cancellation.');
+      state.phase = 'cancelled'; state.pending = null; state.cancelReason = cancelReason; save(path, state);
+      console.log('CANCELLED. No readiness claim; checks requiring READY remain unavailable.');
       return;
     }
-    state.acknowledged = 1;
-    state.pending = randomUUID();
-    state.phase = 'reading';
-    save(path, state);
+
+    if (command === 'next') {
+      if (state.phase !== 'reading' || !receipt || receipt !== state.pending) throw new Error('Missing/wrong receipt. Read the complete pending packet with status; no progress recorded.');
+      state.acknowledged++;
+      state.pending = state.acknowledged < guide.pages.length ? randomUUID() : null;
+      if (!state.pending) state.phase = state.plan ? 'ready' : 'choose';
+      save(path, state);
+    } else if (command === 'decide') {
+      if (state.phase !== 'choose' || state.acknowledged !== guide.baseCount) throw new Error('Finish base instructions before choosing the route.');
+      if (!!planFile === !!inlinePlan) throw new Error('Provide either --plan FILE or --json JSON with visualPath, reason, tools, capabilities or use, and entryId when using the library.');
+      const plan = JSON.parse(inlinePlan ?? read(resolve(planFile)));
+      const extra = validatePlan(plan);
+      state.plan = plan; state.extra = extra;
+      guide = curriculum(extra); state.edition = guide.edition;
+      const detailPages = guide.pages.slice(guide.baseCount);
+      if (!detailPages.length) {
+        state.acknowledged = guide.pages.length;
+        state.pending = null;
+        state.phase = 'ready';
+        save(path, state);
+        console.log(readyOutput(state));
+        return;
+      }
+      if (detailPages.length === 1) {
+        state.acknowledged = guide.pages.length;
+        state.pending = null;
+        state.phase = 'ready';
+        save(path, state);
+        console.log(detailPages[0].body);
+        console.log('\n' + readyOutput(state));
+        return;
+      }
+      state.acknowledged = guide.baseCount;
+      state.pending = randomUUID();
+      state.phase = 'reading';
+      save(path, state);
+    }
   }
 
   if (state.phase === 'reading') {
     const p = guide.pages[state.acknowledged];
     console.log(`CRAFT GUIDE ${state.acknowledged + 1}/${guide.pages.length} | ${p.source} ${p.part}/${p.total}\n${p.body}\nEND PACKET. Receipt: ${state.pending}\nNext: ${guideCommand('next', '--state', path, '--receipt', state.pending)}\nOne packet per tool call; retain the whole output (at least 4500 output tokens).`);
   } else if (state.phase === 'choose') {
+    if (state.beginQuery) {
+      try { console.log(formatCatalog(state.beginQuery) + '\n'); } catch (err) { console.log('Catalog note: ' + err.message + '\n'); }
+    }
     console.log(choosePrompt(path));
   } else if (state.phase === 'cancelled') {
     console.log('CANCELLED. No readiness claim; checks requiring READY remain unavailable.');

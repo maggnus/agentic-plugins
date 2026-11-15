@@ -13,8 +13,8 @@ brand/component sources. `<skill>` is the directory containing this file.
 First study the user's brief and existing project/brand files in the workspace
 (tokens, components, attached references), and only then start `craft-guide.mjs
 begin`: between `begin` and `READY`, the guard blocks arbitrary shell commands.
-`begin` delivers the core briefing, browser detection, capability map, and
-optional catalog matches in one call:
+`begin` starts the bundled artistic charter, capability map, and visual-concepts
+curriculum in verbatim 24 KB packets (below the 30 KB output cap):
 
 ```sh
 node <skill>/scripts/craft-guide.mjs begin --state <absolute-artifact-directory>/.craft-guide.json --query "WORDS"
@@ -26,6 +26,8 @@ variable, `cd &&`, wrapper, pipe or redirection). Use absolute `--state` and
 as unobserved, retry the printed literal command once in the same directory; if
 that also fails, stop and report activation as unverified.
 
+Acknowledge each base packet with the printed `next --state FILE --receipt TOKEN`
+command (retain at least 4500 output tokens per packet) until `BASE COMPLETE`.
 At `BASE COMPLETE`, inspect at most two catalog candidates if needed with
 `entry --id ID --page N` or `read --path skills/ID/`, then submit the route:
 
@@ -33,12 +35,12 @@ At `BASE COMPLETE`, inspect at most two catalog candidates if needed with
 node <skill>/scripts/craft-guide.mjs decide --state <abs>/.craft-guide.json --json '{"visualPath":"direct","reason":"...","tools":{"generation":{"status":"...","evidence":"..."},"viewing":{"status":"...","evidence":"..."}},"entryId":"...","use":["library","tokens","inspection","preview"]}'
 ```
 
-Compact `use: [...]` (or full `capabilities`) compiles only the selected rules,
-the chosen `ENTRY.md` and its `craft` files. When the compiled slice fits in
-one response, `decide` returns the details and `READY` immediately; larger
-routes finish with `next --state FILE --receipt TOKEN` (retain at least 4500
-output tokens per packet). `status --state FILE` repeats an interrupted packet.
-After context loss, use `status` and revisit relevant sections.
+Compact `use: [...]` (or full `capabilities`) compiles the selected references,
+the chosen `ENTRY.md` and its `craft` files into 24 KB packets. When the
+compiled slice fits in one packet, `decide` returns it and `READY` immediately;
+larger routes finish with `next --state FILE --receipt TOKEN`. `status --state FILE`
+repeats an interrupted packet. After context loss, use `status` and revisit
+relevant sections.
 
 ## Find and reuse
 
@@ -54,9 +56,11 @@ Every new artifact selects an entry, craft rules and a visual contract:
    working template code; the brief determines sections and behavior. Check sizes:
    text above 30 KB is read by headings/ranges, not one huge result. Copy a large
    template before editing it by search. In entries, SKILL.md means ENTRY.md.
-3. Its catalog `craft` files from `<skill>/library/craft/` arrive with READY; an
-   empty list means typography, color and anti-ai-slop. Read form-validation
-   yourself for forms. Ignore frontmatter requirements with no file.
+3. Its catalog `craft` files from `<skill>/library/craft/` arrive with READY
+   (always including `typography`, `typography-hierarchy`, `color`, and
+   `anti-ai-slop`, plus `typography-hierarchy-editorial` for landing/editorial
+   entries). Read `form-validation` yourself for forms. Ignore frontmatter
+   requirements with no file.
 4. Bind exactly one visual contract: supplied brand source, active project/design
    system, or a subject-specific design spec. It overrides template aesthetics.
    For a library system read USAGE.md → DESIGN.md → tokens.css (not delivered by

@@ -72,6 +72,7 @@ principles; the figures in them are examples, not a house style to repeat.
 
 - Take the palette from the visual contract, never from the host's chrome.
 - Derive missing state colors with `oklch()` from the contract's tokens.
+- Build neutral surfaces as a three-plane OKLch hierarchy (`--bg` page canvas, `--surface` primary card/panel, `--surface-2` nested block/input/table header/chart plot — or `--surface-warm` / `--surface-elevated` in bundled library design systems — plus `--border` and `--border-strong`) with perceptual lightness separation `|ΔL| >= 0.04–0.07` between adjacent planes. Never paint elements nested inside `--surface` back to the outer canvas `--bg` (this creates canvas bleed-through holes).
 - One accent color, spent where it carries meaning (the primary action, the key
   figure, one highlight), not sprinkled. A second accent or categorical colors
   take the first one's lightness and chroma in OKLch and differ in hue, kept
@@ -79,11 +80,13 @@ principles; the figures in them are examples, not a house style to repeat.
 - Near-neutrals stay neutral: a "white" or "black" with a visible tint reads as
   a mistake unless the tint is the idea (keep chroma under about 0.02).
 - Display and body faces differ; one family only for utilitarian or data-dense
-  briefs.
+  briefs. Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display`
+  unless an external brand contract explicitly requires them.
 - A web font in the contract must really load: a reachable `@font-face` file or
   an authorized source such as Google Fonts, with the weights used, the script's
-  glyphs (Cyrillic for Russian) and a fallback stack. In the shots, confirm the
-  display face rendered.
+  glyphs (Cyrillic for Russian) and a fallback stack. On the 1:1 PNGs, confirm
+  the display face rendered and inspect optical stroke density so thin hairline
+  serifs do not break up at small sizes or in dense technical UI.
 - One decisive flourish per design; three is noise.
 
 ### Text and language

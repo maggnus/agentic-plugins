@@ -283,7 +283,11 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
           let surfaceParent = null;
           for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
             const pBg = colour(style(p).backgroundColor);
-            if (pBg[3] >= 0.92 && Math.abs(oklabL(pBg) - docL) >= 0.03) { surfaceParent = p; break; }
+            if (pBg[3] >= 0.92) {
+              const parentDeltaDoc = Math.abs(oklabL(pBg) - docL);
+              if (parentDeltaDoc >= 0.025 && parentDeltaDoc < 0.30) { surfaceParent = p; break; }
+              if (parentDeltaDoc >= 0.30) break;
+            }
           }
           if (surfaceParent) {
             bleedKeys.add(structKey);
@@ -307,7 +311,8 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             const bw = parseFloat(es['border' + side + 'Width']) || 0;
             if (bw < 1 || es['border' + side + 'Style'] === 'none') return false;
             const bc = colour(es['border' + side + 'Color']);
-            return bc[3] >= 0.35 && Math.abs(oklabL(bc) - parentL) >= 0.07;
+            const composited = over(bc, parentBg);
+            return Math.abs(oklabL(composited) - parentL) >= 0.055;
           });
           if (!hasCrispBorder) {
             weakKeys.add(structKey);

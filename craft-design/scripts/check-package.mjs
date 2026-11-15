@@ -365,7 +365,7 @@ for (const [name, json] of Object.entries({ 'dtcg.json': dtcg, 'sd.json': styleD
 operation = runTokens(['import', 'dtcg.json', 'sd.json', 'plain.json', '--dark', 'dark.json', '--map', 'map.json', '--out', join(root, 'brand/tokens.css')], { cwd: root });
 assert.equal(operation.status, 0, operation.stderr);
 assert.match(operation.stdout, /imported: .*brand\/tokens.css \(\d+ token\(s\), \d+ dark, 0 warning\(s\)\)/);
-assert.match(operation.stderr, /note: registry names not bound by the map: --surface, --fg-2, --border/, 'the CLI lists registry names the map leaves unbound');
+assert.match(operation.stderr, /note: registry names not bound by the map: --surface, --surface-2, --fg-2, --border/, 'the CLI lists registry names the map leaves unbound');
 const written = read(join(root, 'brand/tokens.css'));
 assert.match(written, /^\/\* Imported by tokens\.mjs import: import dtcg\.json sd\.json plain\.json --dark dark\.json --map map\.json\. /, 'the header records the relative command');
 assert.ok(written.includes('--radius-ctl: 10px;') && written.includes('[data-theme=dark] {'), 'the CLI writes the function result');
