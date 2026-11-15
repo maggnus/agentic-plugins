@@ -10,8 +10,11 @@ brand/component sources. `<skill>` is the directory containing this file.
 
 ## Before authoring
 
+First study the user's brief and existing project/brand files in the workspace
+(tokens, components, attached references), and only then start `craft-guide.mjs
+begin`: between `begin` and `READY`, the guard blocks arbitrary shell commands.
 Complete the guide before choosing a method or writing the artifact. It delivers
-the full capability map, both charter parts and visual-method guidance in small
+the full capability map, both charter parts and visual-method guidance in
 packets. Knowing every capability is mandatory; using every method is not.
 
 ```sh
@@ -29,7 +32,7 @@ do not forge receipts or silently proceed. This guard controls supported local
 calls after begin; it is not a sandbox or proof of comprehension.
 
 Use a fresh state next to each artifact; never another agent's state. Follow each
-packet's next command in its own tool call, allowing at least 1800 output tokens.
+packet's next command in its own tool call, allowing at least 4500 output tokens.
 Read through its ending receipt. Do not loop, batch, pipe, truncate or automate
 acknowledgements. `status --state FILE` repeats an interrupted packet.
 
@@ -90,10 +93,11 @@ Serve only the intended artifact directory:
 node <skill>/scripts/preview.mjs design/<slug> --port 4178
 ```
 
-Use the printed URL; a busy port changes it. `/view/` adds a preview shell,
-`/raw/` shows the artifact. The server reloads edits and records Alt+click comments
-against data-craft-id values; `--comments DIR` lists them, `--resolve DIR ID`
-resolves an applied comment. Do not expose neighbouring experiment results.
+Use the printed URL; a busy port changes it. `/` opens a read-only multi-frame
+preview board (paired widths automatically or layout from optional
+`design.json`, pan/zoom, `8px` grid, live reload), `/view/<path>` opens a
+single-file view, and `/raw/<path>` serves the raw document. Do not expose
+neighbouring experiment results.
 
 After implementation, run the combined checks at the requested sizes:
 
@@ -110,9 +114,9 @@ ordinary quality findings are not a reason to stop after one diagnostic. Read
 summary.json if remainingDiagnostics is nonzero. Never change checks or hide
 required content to obtain a pass. Use the latest counts, not earlier logs or
 memory; an edit invalidates the previous verification at every affected size.
-Keep the latest verification directory with the deliverable; its reports are
-evidence, not scratch files. Then view every final PNG and check its facts against
-the brief. Explain genuine
+Keep `.craft-verification` next to the state with the deliverable; its reports
+and screenshots are evidence, not scratch files. Then view every final PNG and
+check its facts against the brief. Explain genuine
 source-contract exceptions without claiming a full pass. No browser means
 incomplete checks, explicitly reported after diagnosing the environment failure.
 A technical pass does not prove taste, facts, accessibility or visual review.

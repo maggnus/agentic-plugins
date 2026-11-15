@@ -33,9 +33,10 @@ assert.throws(()=>consumeInvocation(skillRoot,otherCwd,['decide','--state',absol
 
 const run=(...args)=>{issueInvocation(skillRoot,process.cwd(),args);return spawnSync(process.execPath,[script,...args],{encoding:'utf8'});};
 const state=join(dir,'state.json');
-const text='Пример 🧭\n\n'.repeat(1500)+'x'.repeat(4000);
+const text='Пример 🧭\n\n'.repeat(1500)+'x'.repeat(PAGE_BYTES + 800);
 const chunks=splitText(text);
 assert.equal(chunks.join(''),text); assert.ok(chunks.every(x=>Buffer.byteLength(x)<=PAGE_BYTES));
+assert.ok(curriculum().pages.length<=7,'base onboarding fits in <= 7 packets');
 for(const source of new Set(curriculum().pages.map(x=>x.source))) {
  const parts=curriculum().pages.filter(p=>p.source===source);
  if(source!=='capability-map')assert.equal(parts.map(p=>p.body).join(''),readFileSync(join(skillRoot,source),'utf8'));
@@ -45,7 +46,7 @@ assert.equal(unobserved.status,2,'unobserved CLI cannot claim delivery');
 assert.match(unobserved.stderr,/unsupported command form OR an inactive hook/);
 assert.ok(unobserved.stderr.includes(script));
 assert.match(unobserved.stderr,/Retry once.*SAME working directory/);
-let r=run('begin','--state',state);assert.equal(r.status,0,r.stderr);assert.ok(Buffer.byteLength(r.stdout)<5000);
+let r=run('begin','--state',state);assert.equal(r.status,0,r.stderr);assert.ok(Buffer.byteLength(r.stdout)<PAGE_BYTES+2000);
 assert.equal(run('begin','--state',state).status,2,'never overwrite an existing task');
 assert.throws(()=>requireReady(state),/incomplete/);
 const first=readFileSync(state,'utf8');
@@ -66,7 +67,7 @@ assert.equal(run('decide','--state',state,'--plan',planFile).status,2,'cannot de
 function finish(){
  while(JSON.parse(readFileSync(state)).phase==='reading'){
   const s=JSON.parse(readFileSync(state));r=run('next','--state',state,'--receipt',s.pending);
-  assert.equal(r.status,0,r.stderr);assert.ok(Buffer.byteLength(r.stdout)<5000);
+  assert.equal(r.status,0,r.stderr);assert.ok(Buffer.byteLength(r.stdout)<PAGE_BYTES+2000);
  }
 }
 finish();assert.equal(JSON.parse(readFileSync(state)).phase,'choose');assert.throws(()=>requireReady(state),/incomplete/);
@@ -87,6 +88,7 @@ assert.ok(top('кофейня лендинг',3).includes('cafe') && top('коф
 r=run('catalog','--query','кофейня лендинг');assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/coffee\/cafe \+ landing/);assert.ok(r.stdout.includes(script+' entry --id ID'),'printed follow-up commands are absolute');
 for(const args of [[],['--query','   '],['--query','для страницы']])assert.equal(run('catalog',...args).status,2,'no searchable query is an explicit error');
 r=run('catalog','--query','фотограф');assert.equal(r.status,2);assert.match(r.stderr,/unmapped: фотограф/,'unmapped words are reported, not guessed');
+assert.deepEqual(searchCatalog('презентация слайды').unknown,['презентация','слайды'],'out-of-scope deck/slides words remain unmapped');
 // Library resources: complete pages and listings, never outside library/.
 r=run('read','--path','skills/taste-skill/');assert.equal(r.status,0,r.stderr);assert.match(r.stdout,/skills\/taste-skill\/sections\/05-4-design-engineering/);
 const sections='skills/taste-skill/sections/',long=readdirSync(join(skillRoot,'library',sections)).map(n=>sections+n).find(p=>libraryResource(p).pages.length>1);
@@ -119,7 +121,8 @@ let latest;
 const capture=console.log;console.log=value=>{latest=JSON.parse(value);};
 const evidence=(options={})=>(_cmd,args)=>{
  calls.push(args);
- const source=args[0].endsWith('/tokens.mjs')?args[2]:args[1];
+ const rawSource=args[0].endsWith('/tokens.mjs')?args[2]:args[1];
+ const source=rawSource.replace(/[?#].*$/,'');
  const widths=args[args.indexOf('--width')+1].split(',').map(Number);
  const sourceHash=digest(readFileSync(source));
  if(args[0].endsWith('/tokens.mjs'))return {status:options.tokenExit??0,stdout:JSON.stringify({schemaVersion:1,source,sourceSha256:sourceHash,widths,browserAvailable:options.browser!==false,findings:options.tokenWarnings?[{code:'literal',message:'fixture warning',line:1,selector:'p'}]:[]})};
@@ -158,5 +161,13 @@ try{
  assert.throws(()=>verify([html,'--state',state,'--width','390,390']),/distinct/);
  const runner=evidence();
  assert.equal(verify([html,'--state',state],(cmd,args)=>{const result=runner(cmd,args);writeFileSync(html,'changed');return result;}),1,'mutation invalidates evidence');
+ writeFileSync(html,'<!doctype html><p>fixture</p>');
+ calls.length=0;
+ assert.equal(verify([html+'?tab=billing#plan','--state',state,'--width','480','--mode','desktop','--fit'],evidence()),0);
+ assert.ok(calls[0].includes(html+'?tab=billing#plan')&&calls[0].includes('--mode')&&calls[0][calls[0].indexOf('--mode')+1]==='desktop','tokens receives query/fragment and --mode');
+ assert.ok(calls[1].includes(html+'?tab=billing#plan')&&calls[1].includes('--mode')&&calls[1][calls[1].indexOf('--mode')+1]==='desktop','inspect receives query/fragment and --mode');
+ assert.equal(latest.source,html);
+ assert.ok(latest.repeatCommand.includes('?tab=billing#plan'),'repeatCommand preserves query and fragment');
+ assert.ok(existsSync(join(dir,'.craft-verification','summary.json')),'summary written to .craft-verification');
 }finally{console.log=capture;rmSync(dir,{recursive:true,force:true});}
 console.log(`guide: packet completeness, bounded unicode, receipts, recovery, stale editions, route coverage, ranked search, library reading, conditional details and combined-check failures passed (${curriculum().pages.length} base packets)`);

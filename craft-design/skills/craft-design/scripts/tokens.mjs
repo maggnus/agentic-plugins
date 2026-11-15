@@ -467,7 +467,7 @@ function findBrowser() {
   return null;
 }
 
-async function browserCheck(file, widths, tokens, semanticTokens, report) {
+async function browserCheck(file, widths, tokens, semanticTokens, report, { mode = 'auto', suffix = '' } = {}) {
   const browser = findBrowser();
   if (!browser || typeof WebSocket !== 'function') return false;
   const profile = mkdtempSync(join(tmpdir(), 'craft-design-tokens-'));
@@ -503,11 +503,12 @@ async function browserCheck(file, widths, tokens, semanticTokens, report) {
       const s = (method, params) => send(method, params, sessionId);
       try {
         await s('Page.enable');
-        await s('Emulation.setDeviceMetricsOverride', { width, height: width < 600 ? 844 : 900, deviceScaleFactor: 1, mobile: width < 600 });
+        const mobile = mode === 'mobile' || (mode === 'auto' && width < 600);
+        await s('Emulation.setDeviceMetricsOverride', { width, height: mobile ? 844 : 900, deviceScaleFactor: 1, mobile });
         let listener;
         const loaded = new Promise(ok => { listener = msg => { if (msg.method === 'Page.loadEventFired' && msg.sessionId === sessionId) ok(); }; listeners.add(listener); });
         try {
-          const nav = await s('Page.navigate', { url: pathToFileURL(resolve(file)).href });
+          const nav = await s('Page.navigate', { url: pathToFileURL(resolve(file)).href + suffix });
           if (nav.errorText) throw new Error(nav.errorText);
           await timed(loaded, 20000, 'page load timed out');
         } finally { listeners.delete(listener); }
@@ -876,10 +877,12 @@ export async function main(argv) {
   const jsonIndex = args.indexOf('--json'), json = jsonIndex >= 0;
   if (json) args.splice(jsonIndex, 1);
   const widths = String(take('--width', '1440,390')).split(',').map(Number);
+  const mode = take('--mode', 'auto');
   const strictIndex = args.indexOf('--strict'), strict = strictIndex >= 0;
   if (strict) args.splice(strictIndex, 1);
-  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--strict] [--json]');
-  const file = resolve(args[0]), html = readFileSync(file, 'utf8');
+  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000) || !['auto', 'desktop', 'mobile'].includes(mode)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--mode auto|desktop|mobile] [--strict] [--json]');
+  const [, rawFile, suffix = ''] = args[0].match(/^([^?#]*)(.*)$/);
+  const file = resolve(rawFile), html = readFileSync(file, 'utf8');
   const { warnings, tokens, exceptions, semanticTokens } = inspectHtml(html);
   const findings = [], frames = [], log = (...values) => { if (!json) console.log(...values); };
   const warning = (code, message, line, selector) => { findings.push({code, message, line:line ?? null, selector:selector ?? null}); log(`warning ${code}: ${file}${line ? ':' + line : ''}${selector ? ' [' + selector + ']' : ''}: ${message}`); };
@@ -887,7 +890,7 @@ export async function main(argv) {
   for (const item of exceptions) log(`accepted ${item.code}: ${item.matchingSystems.join(", ")}, ${item.tokens.length} unchanged library token(s) retained`);
   const available = await browserCheck(file, widths, tokens, semanticTokens, (width, result) => {
     frames.push({width, ...result});
-  });
+  }, { mode, suffix });
   for (const result of frames) {
     const { width } = result;
     log(`${width}px: inspected ${result.elements} rendered element(s)`);

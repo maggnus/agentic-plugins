@@ -87,7 +87,7 @@
   {
     "id": "preview",
     "when": "An artifact can be shown or revised",
-    "recommendation": "preview.mjs serves only the intended artifact directory, reloads files and records comments against stable data-craft-id values. Resolve comments after applying changes; a preview does not publish the work.",
+    "recommendation": "preview.mjs serves only the intended artifact directory as a read-only viewing board with live reload and side-by-side width comparison on the canvas; a preview does not publish the work.",
     "details": [
       "references/conventions.md"
     ],

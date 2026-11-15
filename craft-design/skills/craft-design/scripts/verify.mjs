@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Combined evidence for one source revision. Child success alone is insufficient.
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, rmSync, mkdirSync, statSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -25,9 +25,18 @@ export function verify(argv, run = spawnSync) {
   const args=[...argv], file=args.shift();
   const i=args.indexOf('--state');
   if(!file || file.startsWith('-') || i<0 || !args[i+1]) throw new Error('verify.mjs FILE --state STATE [inspection options]; local HTML only.');
-  const statePath=resolve(args.splice(i,2)[1]),state=requireReady(statePath),source=resolve(file);
+  const statePath=resolve(args.splice(i,2)[1]),state=requireReady(statePath);
+  const [, rawFile, suffix = '']=file.match(/^([^?#]*)(.*)$/);
+  const source=resolve(rawFile), targetSpec=source+suffix;
   if(!statSync(source).isFile())throw new Error('Expected a local HTML file.');
   if(args.some(a=>a==='--out' || a.startsWith('--out=')))throw new Error('verify owns --out; use inspect.mjs for a custom output path.');
+  const modeIndex=args.indexOf('--mode');
+  let modeArgs=[];
+  if(modeIndex>=0){
+    const modeVal=args[modeIndex+1];
+    if(!['auto','desktop','mobile'].includes(modeVal))throw new Error('Invalid --mode; expected auto, desktop or mobile.');
+    modeArgs=['--mode',modeVal];
+  }
   const widthIndex=args.indexOf('--width'),widths=widthIndex>=0?args[widthIndex+1]:'1440,390';
   if(!/^\d+(,\d+)*$/.test(widths??''))throw new Error('Invalid --width.');
   const widthList=widths.split(',').map(Number);
@@ -37,9 +46,11 @@ export function verify(argv, run = spawnSync) {
   // Ordinary pages need the whole document in the visual evidence.
   if(!args.includes('--fit')&&!args.includes('--at')&&!args.includes('--full'))args.push('--full');
   for(let n=args.indexOf('--strict');n>=0;n=args.indexOf('--strict'))args.splice(n,1);
-  const directory=mkdtempSync(join(dirname(statePath),'craft-verification-'));
+  const directory=join(dirname(statePath),'.craft-verification');
+  rmSync(directory,{recursive:true,force:true});
+  mkdirSync(directory,{recursive:true});
   const before=hash(readFileSync(source)),scriptRoot=dirname(fileURLToPath(import.meta.url));
-  const steps=[['tokens',['check',source,'--width',widths,'--strict','--json']],['inspect',[source,...args,'--out',join(directory,'frame.png'),'--strict']]];
+  const steps=[['tokens',['check',targetSpec,'--width',widths,...modeArgs,'--strict','--json']],['inspect',[targetSpec,...args,'--out',join(directory,'frame.png'),'--strict']]];
   const results=[],diagnostics=[],frames=[];
   let tokenReport=null;
   for(const [name,options] of steps) {
@@ -70,7 +81,7 @@ export function verify(argv, run = spawnSync) {
   const validationExit = r => r.exitCode===1 && (r.name==='tokens' ? tokenReport?.findings?.length>0 : frames.some(f=>f.errors>0));
   const counts={tokenWarnings:tokenReport?.findings?.length??null,renderErrors:frames.reduce((n,f)=>n+f.errors,0),renderReviews:frames.reduce((n,f)=>n+f.review,0),checkFailures:results.filter(r=>r.error||r.evidenceError||(r.exitCode!==0&&!validationExit(r))).length};
   const passed=unchanged&&counts.checkFailures===0&&counts.tokenWarnings===0&&counts.renderErrors===0&&frames.length===widthList.length;
-  const repeat=['node',join(scriptRoot,'verify.mjs'),source,'--state',statePath,...args].map(quote).join(' ');
+  const repeat=['node',join(scriptRoot,'verify.mjs'),targetSpec,'--state',statePath,...args].map(quote).join(' ');
   const status=counts.checkFailures?'incomplete':!passed?'failed':counts.renderReviews?'needs-review':'passed';
   const report={schemaVersion:2,source,sourceSha256:before,guideEdition:state.edition,route:state.plan.visualPath,checks:results,sourceUnchanged:unchanged,counts,passed,clean:passed&&counts.renderReviews===0,status,acceptedExceptions:tokenReport?.exceptions??[],
     coverage:{content:args.includes('--contract')?'explicit expectations only':'not checked: compare required facts across every frame',screenshots:frames.some(f=>f.capture.internalScrollRegions>0)?'document canvas only; internal scroll regions require separate captures':frames.length===widthList.length&&frames.every(f=>f.capture.fullDocument)?'full documents':'requested frames or regions; not all page content'},frames,diagnostics,repeatCommand:repeat,

@@ -17,11 +17,11 @@ the top of an entry overrides this table.
 | `$CRAFT_PROJECT_ID`, `$CRAFT_PROJECT_DIR`, "the project" | The artifact directory, by default `design/<slug>/`. `{{project_id}}` placeholders become the slug. |
 | The app's preview pane, "the preview iframe", Design/Preview tab | The craft-design preview (`scripts/preview.mjs`). Its rules still hold: no `scrollIntoView`, no hotlinked images. |
 | In-app Browser tab, `agent-browser` driving app tabs | The host's browser tool; `agent-browser` only when its CLI is already installed; otherwise fetch HTML and CSS directly and say so. |
-| Comment / inspect mode, "the element the user selected" | Comments from `design/.craft-comments.jsonl` (written by the preview on Alt+click), matched by `data-craft-id` or selector. |
+| Comment / inspect mode, "the element the user selected" | User feedback from the conversation, matched by `data-craft-id`, selector, or visible text; the preview board is read-only. |
 | Live Artifact, `craft tools live-artifacts create/update`, connectors, `POST /api/craft/connectors/poll`, `<meta name="craft:project">` | A static artifact with a data snapshot: fetch real data once through the host's MCP tools or CLIs (`gh`, files the user names), write it into `data.json` or inline it, and show its timestamp. Without a source, use clearly labeled demo data. No polling endpoint exists. |
 | Daemon endpoints (`/api/projects/…`, `/api/craft/…`), `CRAFT_DAEMON_URL` | Do not call them. Scripts that accept them as optional run without them. |
 | `postMessage` to the host app (`craft:*` message types) | Harmless no-op; leave it. |
-| `data-craft-id`, `data-craft-edit` attributes | Keep and add them as the charter says; the preview uses `data-craft-id`. |
+| `data-craft-id`, `data-craft-edit` attributes | Keep and add them as the charter says; they identify elements in inspection reports and edit discussions. |
 
 Product endpoints that belong to the designed product itself (for example a
 contact form posting to `/api/contact`) are content, not app protocol: keep them

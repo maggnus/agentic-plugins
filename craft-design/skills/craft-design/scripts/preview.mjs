@@ -1,21 +1,13 @@
 #!/usr/bin/env node
-// craft-design preview: a dependency-free local server for design artifacts.
+// craft-design preview: dependency-free read-only multi-frame viewing board.
 //
-//   node preview.mjs <root> [--port 4178]     serve <root> with live reload
-//   node preview.mjs --comments <root>        print open comments
-//   node preview.mjs --resolve <root> <id>…   mark comments as handled
-//
-// The page lists every HTML file under <root>, reloads it on save, switches
-// viewport widths and lets the user Alt+click an element to leave a comment.
-// Comments are stored in <root>/.craft-comments.jsonl, one JSON object per line.
+//   node preview.mjs [root] [--port 4178] [--host 127.0.0.1]
 
 import { createServer } from 'node:http';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, watch, writeFileSync, createReadStream } from 'node:fs';
-import { extname, join, relative, resolve, sep } from 'node:path';
-import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, watch, createReadStream } from 'node:fs';
+import { basename, extname, join, relative, resolve, sep } from 'node:path';
 
-const COMMENTS = '.craft-comments.jsonl';
-const SKIP = /(^|[\\/])(node_modules|\.git)([\\/]|$)/;
+const SKIP = /(^|[\\/])(\.|node_modules)([\\/]|$)/;
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.htm': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.jsx': 'text/javascript; charset=utf-8',
@@ -25,164 +17,772 @@ const TYPES = {
   '.ttf': 'font/ttf', '.otf': 'font/otf', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
 };
 
+const USAGE = 'usage: node preview.mjs [root] [--port 4178] [--host 127.0.0.1]';
 const args = process.argv.slice(2);
-const flag = name => { const i = args.indexOf(name); return i >= 0 ? args.splice(i, 2)[1] : undefined; };
-const has = name => { const i = args.indexOf(name); return i >= 0 ? (args.splice(i, 1), true) : false; };
-
-function readComments(root) {
-  const file = join(root, COMMENTS);
-  if (!existsSync(file)) return [];
-  return readFileSync(file, 'utf8').split('\n').filter(Boolean).flatMap(line => {
-    try { return [JSON.parse(line)]; } catch { return []; }
-  });
-}
-function writeComments(root, list) {
-  writeFileSync(join(root, COMMENTS), list.map(c => JSON.stringify(c)).join('\n') + (list.length ? '\n' : ''));
+function takeFlag(name) {
+  const i = args.indexOf(name);
+  if (i < 0) return undefined;
+  const val = args[i + 1];
+  if (val === undefined || val.startsWith('--')) {
+    console.error(USAGE);
+    process.exit(2);
+  }
+  return args.splice(i, 2)[1];
 }
 
-if (has('--comments')) {
-  const root = resolve(args[0] || 'design');
-  const open = readComments(root).filter(c => c.status !== 'resolved');
-  if (!open.length) console.log('no open comments');
-  for (const c of open) console.log(JSON.stringify(c));
-  process.exit(0);
-}
-if (has('--resolve')) {
-  const [dir, ...ids] = args;
-  const root = resolve(dir || 'design');
-  const list = readComments(root);
-  let n = 0;
-  for (const c of list) if (ids.includes(c.id) && c.status !== 'resolved') { c.status = 'resolved'; c.resolvedAt = new Date().toISOString(); n++; }
-  writeComments(root, list);
-  console.log(`resolved ${n} of ${ids.length}`);
-  process.exit(n === ids.length ? 0 : 1);
+const portRaw = takeFlag('--port');
+const hostRaw = takeFlag('--host');
+if (args.some(a => a.startsWith('-')) || args.length > 1) {
+  console.error(USAGE);
+  process.exit(2);
 }
 
-const port = Number(flag('--port') || 4178);
-const host = flag('--host') || '127.0.0.1';
-const root = resolve(args[0] || 'design');
-mkdirSync(root, { recursive: true });
+const port = portRaw !== undefined ? Number(portRaw) : 4178;
+const host = hostRaw || '127.0.0.1';
+if (!Number.isInteger(port) || port < 1 || port > 65535) {
+  console.error(USAGE);
+  process.exit(2);
+}
 
-function inside(rel) {
-  const path = resolve(root, '.' + sep + decodeURIComponent(rel));
-  return path === root || path.startsWith(root + sep) ? path : null;
+const rawRoot = resolve(args[0] || 'design');
+mkdirSync(rawRoot, { recursive: true });
+const root = realpathSync(rawRoot);
+
+function inside(rel, allowMissingIndex = false) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(rel);
+  } catch {
+    return null;
+  }
+  if (decoded.includes('\0')) return null;
+  const candidate = resolve(root, '.' + sep + decoded);
+  if (candidate !== root && !candidate.startsWith(root + sep)) return null;
+  let real;
+  try {
+    real = realpathSync(candidate);
+  } catch {
+    return null;
+  }
+  if (real !== root && !real.startsWith(root + sep)) return null;
+  let st;
+  try {
+    st = statSync(real);
+  } catch {
+    return null;
+  }
+  if (st.isDirectory()) {
+    if (!allowMissingIndex) return null;
+    const idx = join(real, 'index.html');
+    let realIdx;
+    try {
+      realIdx = realpathSync(idx);
+    } catch {
+      return null;
+    }
+    if (!realIdx.startsWith(root + sep)) return null;
+    try {
+      return statSync(realIdx).isFile() ? realIdx : null;
+    } catch {
+      return null;
+    }
+  }
+  return st.isFile() ? real : null;
 }
 
 function htmlFiles(dir = root, out = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) htmlFiles(path, out);
-    else if (/\.html?$/i.test(entry.name)) out.push(relative(root, path).split(sep).join('/'));
+    const full = join(dir, entry.name);
+    let real;
+    try {
+      real = realpathSync(full);
+    } catch {
+      continue;
+    }
+    if (!real.startsWith(root + sep)) continue;
+    if (entry.isDirectory()) htmlFiles(full, out);
+    else if (/\.html?$/i.test(entry.name) && statSync(real).isFile()) {
+      out.push(relative(root, full).split(sep).join('/'));
+    }
   }
   return out.sort();
 }
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+function boardState() {
+  const files = htmlFiles();
+  const fallbackTitle = basename(root) || 'Design Board';
+  const manifestPath = join(root, 'design.json');
+  if (existsSync(manifestPath)) {
+    try {
+      const data = JSON.parse(readFileSync(manifestPath, 'utf8'));
+      if (data && Array.isArray(data.artboards)) {
+        const artboards = [];
+        data.artboards.forEach((item, index) => {
+          if (!item || typeof item.file !== 'string' || !item.file.trim()) return;
+          const cleanFile = item.file.replace(/^\/+/, '');
+          const abs = inside(cleanFile, false);
+          if (!abs) return;
+          const relFile = relative(root, abs).split(sep).join('/');
+          const w = Number(item.width);
+          const h = Number(item.height);
+          artboards.push({
+            id: typeof item.id === 'string' && item.id.trim() ? item.id.trim() : `${relFile}-${index}`,
+            title: typeof item.title === 'string' && item.title.trim() ? item.title.trim() : relFile,
+            file: relFile,
+            width: Number.isFinite(w) && w > 0 ? Math.round(w) : 1440,
+            height: Number.isFinite(h) && h > 0 ? Math.round(h) : null,
+            group: typeof item.group === 'string' && item.group.trim() ? item.group.trim() : relFile,
+          });
+        });
+        return {
+          root,
+          mode: 'manifest',
+          title: typeof data.title === 'string' && data.title.trim() ? data.title.trim() : fallbackTitle,
+          files,
+          artboards,
+        };
+      }
+    } catch {}
+  }
+  return {
+    root,
+    mode: 'auto',
+    title: fallbackTitle,
+    files,
+    artboards: [],
+  };
+}
 
-const STYLE = `
-:root{color-scheme:light dark;--bg:oklch(97% .004 260);--fg:oklch(22% .01 260);--muted:oklch(50% .01 260);--line:oklch(88% .006 260);--panel:oklch(100% 0 0);--accent:oklch(55% .17 255)}
-@media (prefers-color-scheme:dark){:root{--bg:oklch(19% .006 260);--fg:oklch(93% .004 260);--muted:oklch(68% .008 260);--line:oklch(32% .008 260);--panel:oklch(23% .007 260);--accent:oklch(72% .14 255)}}
-*{box-sizing:border-box}body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg)}
-a{color:inherit}button{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:6px;padding:4px 10px;min-height:30px;cursor:pointer}
-button:hover{background:color-mix(in oklch,var(--fg) 8%,transparent)}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const safeJson = obj => JSON.stringify(obj).replace(/</g, '\\u003c');
+
+const BASE_STYLE = `
+:root{color-scheme:light dark;--bg:oklch(96% .004 260);--canvas:oklch(92% .005 260);--fg:oklch(20% .01 260);--muted:oklch(48% .01 260);--line:oklch(85% .006 260);--panel:oklch(99% .002 260);--accent:oklch(55% .17 255);--dot:oklch(80% .008 260)}
+@media (prefers-color-scheme:dark){:root{--bg:oklch(17% .006 260);--canvas:oklch(14% .006 260);--fg:oklch(93% .004 260);--muted:oklch(68% .008 260);--line:oklch(29% .008 260);--panel:oklch(21% .007 260);--accent:oklch(72% .14 255);--dot:oklch(28% .01 260)}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:13px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--fg);overflow:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:transparent;border:1px solid var(--line);border-radius:6px;padding:4px 9px;min-height:28px;cursor:pointer;white-space:nowrap}
+button:hover{background:color-mix(in oklch,var(--fg) 8%,transparent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button[aria-pressed=true]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 .muted{color:var(--muted)}`;
 
 function indexPage() {
-  const files = htmlFiles();
-  const open = readComments(root).filter(c => c.status !== 'resolved');
-  const count = f => open.filter(c => c.file === f).length;
-  const rows = files.map(f => `<li><a href="/view/${encodeURI(f)}">${esc(f)}</a>${count(f) ? ` <span class="muted">· ${count(f)} open comment${count(f) > 1 ? 's' : ''}</span>` : ''}</li>`).join('');
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>craft-design preview</title><style>${STYLE}
-main{max-width:760px;margin:48px auto;padding:0 24px}h1{font-size:20px;margin:0 0 4px}ul{list-style:none;padding:0;margin:24px 0}li{padding:10px 0;border-bottom:1px solid var(--line)}li a{text-decoration:none;font-weight:600}li a:hover{text-decoration:underline}</style></head>
-<body><main><h1>craft-design preview</h1><p class="muted">${esc(root)}</p>${files.length ? `<ul>${rows}</ul>` : '<p>No HTML files yet. This page refreshes when the first one is written.</p>'}</main>
-<script>new EventSource('/events').onmessage=()=>location.reload()</script></body></html>`;
+  const initial = boardState();
+  const navLinks = initial.files.map(f => `<a class="file-chip" data-file="${esc(f)}" href="/view/${encodeURI(f)}">${esc(f)}</a>`).join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(initial.title)} · craft-design preview</title><style>${BASE_STYLE}
+body{display:flex;flex-direction:column;--zoom:1}
+header.topbar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel);z-index:20;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:8px;margin-right:4px}
+.brand strong{font-size:14px;font-weight:600}
+.files-bar{display:flex;align-items:center;gap:4px;overflow-x:auto;max-width:40vw;padding:2px 0}
+.file-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;white-space:nowrap}
+.file-chip:hover{background:color-mix(in oklch,var(--fg) 8%,transparent)}
+.spacer{flex:1}
+.group{display:flex;align-items:center;gap:4px}
+.viewport{position:relative;flex:1;overflow:hidden;background-color:var(--canvas);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:20px 20px;cursor:grab;user-select:none}
+.viewport.panning{cursor:grabbing}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.group-title{position:absolute;font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));pointer-events:none}
+.board{position:absolute;background:#fff;box-shadow:0 0 0 1px var(--line),0 10px 30px oklch(0% 0 0/.12);border-radius:2px}
+.board-label{position:absolute;left:0;bottom:100%;padding-bottom:6px;display:flex;align-items:center;gap:8px;white-space:nowrap;transform-origin:bottom left;transform:scale(calc(1 / var(--zoom)));font-size:12px}
+.board-label strong{font-weight:600}
+.board-label .dims{color:var(--muted);font-variant-numeric:tabular-nums}
+.board-label a{color:var(--muted);padding:1px 5px;border-radius:4px;border:1px solid transparent}
+.board-label a:hover{color:var(--fg);border-color:var(--line);background:var(--panel)}
+.board-body{position:relative;width:100%;height:100%;overflow:hidden}
+.board-body iframe{display:block;border:0;width:100%;height:100%;background:#fff}
+.grid-host{position:absolute;inset:0;pointer-events:none;z-index:5}
+.empty{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center}
+.empty-card{max-width:440px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:24px;box-shadow:0 8px 28px oklch(0% 0 0/.08)}
+.empty-card h2{margin:0 0 8px;font-size:16px}
+.empty-card p{margin:0;color:var(--muted)}
+</style></head><body>
+<header class="topbar">
+  <div class="brand"><strong id="board-title">${esc(initial.title)}</strong><span class="muted" id="file-count">${initial.files.length} file${initial.files.length === 1 ? '' : 's'}</span></div>
+  <nav class="files-bar" id="files-bar" aria-label="Files">${navLinks}</nav>
+  <div class="spacer"></div>
+  <div class="group" id="layout-group" role="group" aria-label="Layout widths">
+    <button data-layout="pair" aria-pressed="true">Pair 1440+390</button>
+    <button data-layout="1440">1440</button>
+    <button data-layout="1024">1024</button>
+    <button data-layout="768">768</button>
+    <button data-layout="390">390</button>
+  </div>
+  <div class="group" role="group" aria-label="Camera">
+    <button id="btn-fit" title="Fit all (Cmd/Ctrl+0)">Fit</button>
+    <button id="btn-zoom-out" title="Zoom out (Cmd/Ctrl+-)">−</button>
+    <button id="btn-zoom-reset" title="100% (Cmd/Ctrl+1)">100%</button>
+    <button id="btn-zoom-in" title="Zoom in (Cmd/Ctrl+=)">+</button>
+  </div>
+  <button id="btn-grid" aria-pressed="false" title="Toggle 8px grid (Shift+G)">Grid 8px</button>
+</header>
+<main class="viewport" id="viewport">
+  <div class="stage" id="stage"></div>
+  <div class="empty" id="empty" ${initial.files.length ? 'hidden' : ''}>
+    <div class="empty-card">
+      <h2>No HTML files yet</h2>
+      <p>Watching <code>${esc(root)}</code>. Frames appear automatically when the first HTML artifact is written.</p>
+    </div>
+  </div>
+</main>
+<script>
+const INITIAL = ${safeJson(initial)};
+const GAP_X = 80, GAP_Y = 136, MIN_ZOOM = 0.08, MAX_ZOOM = 4;
+const viewport = document.getElementById('viewport');
+const stage = document.getElementById('stage');
+const emptyEl = document.getElementById('empty');
+const filesBar = document.getElementById('files-bar');
+const layoutGroup = document.getElementById('layout-group');
+const boardTitle = document.getElementById('board-title');
+const fileCount = document.getElementById('file-count');
+const zoomResetBtn = document.getElementById('btn-zoom-reset');
+const gridBtn = document.getElementById('btn-grid');
+
+let state = INITIAL;
+let layoutMode = localStorage.getItem('craft-board-layout') || 'pair';
+let showGrid = localStorage.getItem('craft-board-grid') === '1';
+let cam = { x: 48, y: 64, zoom: 1 };
+let boards = [];
+let bounds = { minX: 0, minY: 0, maxX: 0, maxY: 0, width: 0, height: 0 };
+let spaceDown = false;
+let initializedCamera = false;
+
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+function defaultHeight(width) {
+  return width < 600 ? 844 : 900;
+}
+
+function buildSpecs(data) {
+  if (data.mode === 'manifest') {
+    return data.artboards.map(a => ({
+      id: a.id,
+      title: a.title,
+      file: a.file,
+      width: a.width,
+      fixedHeight: a.height,
+      height: a.height || defaultHeight(a.width),
+      group: a.group || a.file,
+    }));
+  }
+  const widths = layoutMode === 'pair' ? [1440, 390] : [Number(layoutMode) || 1440];
+  const specs = [];
+  for (const file of data.files) {
+    for (const w of widths) {
+      specs.push({
+        id: file + '@' + w,
+        title: widths.length > 1 ? file + ' · ' + w + 'px' : file,
+        file,
+        width: w,
+        fixedHeight: null,
+        height: defaultHeight(w),
+        group: file,
+      });
+    }
+  }
+  return specs;
+}
+
+function layoutBoards(list) {
+  const groups = [];
+  const byGroup = new Map();
+  for (const b of list) {
+    let arr = byGroup.get(b.group);
+    if (!arr) { arr = []; byGroup.set(b.group, arr); groups.push([b.group, arr]); }
+    arr.push(b);
+  }
+  let y = 0;
+  let maxX = 0;
+  const groupLabels = [];
+  for (const [groupName, items] of groups) {
+    let x = 0;
+    let rowH = 0;
+    groupLabels.push({ name: groupName, x: 0, y: y - 34 });
+    for (const b of items) {
+      b.x = x;
+      b.y = y;
+      x += b.width + GAP_X;
+      if (b.height > rowH) rowH = b.height;
+    }
+    maxX = Math.max(maxX, x - GAP_X);
+    y += rowH + GAP_Y;
+  }
+  const maxY = Math.max(0, y - GAP_Y);
+  return {
+    groups: groupLabels,
+    bounds: { minX: 0, minY: list.length ? -44 : 0, maxX, maxY, width: maxX, height: maxY + (list.length ? 44 : 0) },
+  };
+}
+
+function applyCamera() {
+  stage.style.transform = 'translate3d(' + cam.x + 'px,' + cam.y + 'px,0) scale(' + cam.zoom + ')';
+  document.body.style.setProperty('--zoom', String(cam.zoom));
+  zoomResetBtn.textContent = Math.round(cam.zoom * 100) + '%';
+}
+
+function zoomAt(cx, cy, factor) {
+  const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, cam.zoom * factor));
+  const ratio = next / cam.zoom;
+  cam.x = cx - (cx - cam.x) * ratio;
+  cam.y = cy - (cy - cam.y) * ratio;
+  cam.zoom = next;
+  applyCamera();
+}
+
+function fitView() {
+  if (!boards.length) { cam = { x: 48, y: 64, zoom: 1 }; applyCamera(); return; }
+  const rect = viewport.getBoundingClientRect();
+  const pad = 64;
+  const availW = Math.max(120, rect.width - pad * 2);
+  const availH = Math.max(120, rect.height - pad * 2);
+  const bw = Math.max(1, bounds.width);
+  const bh = Math.max(1, bounds.height);
+  const z = Math.min(1, Math.max(MIN_ZOOM, Math.min(availW / bw, availH / bh)));
+  cam.zoom = z;
+  cam.x = (rect.width - bw * z) / 2 - bounds.minX * z;
+  cam.y = (rect.height - bh * z) / 2 - bounds.minY * z;
+  applyCamera();
+}
+
+function focusBoard(board) {
+  if (!board) return;
+  const rect = viewport.getBoundingClientRect();
+  const pad = 56;
+  const z = Math.min(1, Math.max(MIN_ZOOM, Math.min((rect.width - pad * 2) / board.width, (rect.height - pad * 2) / Math.min(board.height, 960))));
+  cam.zoom = z;
+  cam.x = (rect.width - board.width * z) / 2 - board.x * z;
+  cam.y = pad - board.y * z;
+  applyCamera();
+}
+
+function renderGridOverlay(host) {
+  if (!host._shadow) {
+    host._shadow = host.attachShadow({ mode: 'closed' });
+    const style = document.createElement('style');
+    style.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:none}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.18) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.18) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
+    const div = document.createElement('div');
+    div.className = 'grid';
+    host._shadow.append(style, div);
+  }
+  host.style.display = showGrid ? 'block' : 'none';
+  if (host._shadow.lastChild) {
+    host._shadow.host.style.display = showGrid ? 'block' : 'none';
+    const sheet = host._shadow.firstChild;
+    sheet.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:' + (showGrid ? 'block' : 'none') + '}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
+  }
+}
+
+function updateGrid() {
+  gridBtn.setAttribute('aria-pressed', String(showGrid));
+  for (const b of boards) if (b.gridHost) renderGridOverlay(b.gridHost);
+}
+
+function relayout() {
+  const res = layoutBoards(boards);
+  bounds = res.bounds;
+  for (const b of boards) {
+    b.el.style.left = b.x + 'px';
+    b.el.style.top = b.y + 'px';
+    b.el.style.width = b.width + 'px';
+    b.el.style.height = b.height + 'px';
+    b.dimsEl.textContent = b.width + ' × ' + b.height;
+  }
+  stage.querySelectorAll('.group-title').forEach(el => el.remove());
+  for (const g of res.groups) {
+    const label = document.createElement('div');
+    label.className = 'group-title';
+    label.textContent = g.name;
+    label.style.left = g.x + 'px';
+    label.style.top = g.y + 'px';
+    stage.appendChild(label);
+  }
+}
+
+function canScroll(doc, dx, dy) {
+  const rootEl = doc.scrollingElement || doc.documentElement;
+  if (!rootEl) return false;
+  if (Math.abs(dy) >= Math.abs(dx)) {
+    if (dy < 0 && rootEl.scrollTop > 0) return true;
+    if (dy > 0 && rootEl.scrollTop + rootEl.clientHeight < rootEl.scrollHeight - 1) return true;
+  } else {
+    if (dx < 0 && rootEl.scrollLeft > 0) return true;
+    if (dx > 0 && rootEl.scrollLeft + rootEl.clientWidth < rootEl.scrollWidth - 1) return true;
+  }
+  return false;
+}
+
+function isEditable(el) {
+  if (!el) return false;
+  return /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable;
+}
+
+function handleShortcut(e) {
+  if (isEditable(e.target)) return false;
+  if (e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey && (e.key === 'G' || e.key === 'g')) {
+    e.preventDefault();
+    showGrid = !showGrid;
+    localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
+    updateGrid();
+    return true;
+  }
+  if (!(e.ctrlKey || e.metaKey)) return false;
+  const rect = viewport.getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  if (e.key === '=' || e.key === '+') { e.preventDefault(); zoomAt(cx, cy, 1.2); return true; }
+  if (e.key === '-') { e.preventDefault(); zoomAt(cx, cy, 1 / 1.2); return true; }
+  if (e.key === '0') { e.preventDefault(); fitView(); return true; }
+  if (e.key === '1') {
+    e.preventDefault();
+    zoomAt(cx, cy, 1 / cam.zoom);
+    return true;
+  }
+  return false;
+}
+
+function attachIframe(board) {
+  const frame = board.iframe;
+  const measure = () => {
+    if (board.fixedHeight) return;
+    let doc;
+    try { doc = frame.contentDocument; } catch { return; }
+    if (!doc || !doc.documentElement) return;
+    const minH = defaultHeight(board.width);
+    const natural = Math.min(16000, Math.max(minH, doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0));
+    if (natural !== board.height) {
+      board.height = natural;
+      relayout();
+    }
+  };
+  frame.addEventListener('load', () => {
+    let win, doc;
+    try { win = frame.contentWindow; doc = frame.contentDocument; } catch { return; }
+    if (!win || !doc) return;
+    if (board.pendingScrollY) {
+      try { win.scrollTo(0, board.pendingScrollY); } catch {}
+      board.pendingScrollY = 0;
+    }
+    measure();
+    if (typeof ResizeObserver === 'function' && doc.documentElement) {
+      const ro = new ResizeObserver(measure);
+      ro.observe(doc.documentElement);
+    }
+    win.addEventListener('wheel', e => {
+      const rect = frame.getBoundingClientRect();
+      const vRect = viewport.getBoundingClientRect();
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const cx = rect.left - vRect.left + e.clientX * cam.zoom;
+        const cy = rect.top - vRect.top + e.clientY * cam.zoom;
+        zoomAt(cx, cy, Math.exp(-e.deltaY * 0.004));
+        return;
+      }
+      if (!canScroll(doc, e.deltaX, e.deltaY)) {
+        e.preventDefault();
+        cam.x -= e.deltaX;
+        cam.y -= e.deltaY;
+        applyCamera();
+      }
+    }, { passive: false });
+    win.addEventListener('keydown', handleShortcut);
+    doc.addEventListener('click', e => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const anchor = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#')) return;
+      let resolved;
+      try { resolved = new URL(href, win.location.href); } catch { return; }
+      if (resolved.origin !== window.location.origin || !resolved.pathname.startsWith('/raw/')) return;
+      const targetFile = decodeURIComponent(resolved.pathname.slice(5));
+      const targetBoard = boards.find(b => b.file === targetFile);
+      if (targetBoard) {
+        e.preventDefault();
+        focusBoard(targetBoard);
+      }
+    });
+  });
+}
+
+function renderBoard(data, preserveCamera = false) {
+  state = data;
+  boardTitle.textContent = data.title;
+  fileCount.textContent = data.files.length + ' file' + (data.files.length === 1 ? '' : 's');
+  layoutGroup.hidden = data.mode === 'manifest';
+  for (const btn of layoutGroup.querySelectorAll('[data-layout]')) {
+    btn.setAttribute('aria-pressed', String(btn.dataset.layout === layoutMode));
+  }
+  filesBar.innerHTML = data.files.map(f => '<a class="file-chip" data-file="' + escHtml(f) + '" href="/view/' + encodeURI(f) + '">' + escHtml(f) + '</a>').join('');
+  for (const chip of filesBar.querySelectorAll('.file-chip')) {
+    chip.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const target = boards.find(b => b.file === chip.dataset.file);
+      if (target) { e.preventDefault(); focusBoard(target); }
+    });
+  }
+
+  const specs = buildSpecs(data);
+  emptyEl.hidden = specs.length > 0;
+  stage.innerHTML = '';
+  boards = specs.map(spec => {
+    const el = document.createElement('section');
+    el.className = 'board';
+    const label = document.createElement('div');
+    label.className = 'board-label';
+    const title = document.createElement('strong');
+    title.textContent = spec.title;
+    const dims = document.createElement('span');
+    dims.className = 'dims';
+    const open = document.createElement('a');
+    open.href = '/view/' + encodeURI(spec.file);
+    open.textContent = '↗';
+    open.title = 'Open single view';
+    label.append(title, dims, open);
+
+    const body = document.createElement('div');
+    body.className = 'board-body';
+    const iframe = document.createElement('iframe');
+    iframe.title = spec.title;
+    iframe.src = '/raw/' + encodeURI(spec.file);
+    const gridHost = document.createElement('div');
+    gridHost.className = 'grid-host';
+    body.append(iframe, gridHost);
+    el.append(label, body);
+    stage.appendChild(el);
+
+    const board = { ...spec, el, dimsEl: dims, iframe, gridHost, pendingScrollY: 0 };
+    attachIframe(board);
+    return board;
+  });
+
+  relayout();
+  updateGrid();
+  if (!preserveCamera || !initializedCamera) {
+    fitView();
+    initializedCamera = true;
+  } else {
+    applyCamera();
+  }
+}
+
+let drag = null;
+viewport.addEventListener('pointerdown', e => {
+  if (e.button === 1 || (e.button === 0 && (spaceDown || e.target === viewport || e.target === stage))) {
+    e.preventDefault();
+    drag = { x: e.clientX, y: e.clientY, camX: cam.x, camY: cam.y, id: e.pointerId };
+    viewport.setPointerCapture(e.pointerId);
+    viewport.classList.add('panning');
+  }
+});
+viewport.addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  cam.x = drag.camX + (e.clientX - drag.x);
+  cam.y = drag.camY + (e.clientY - drag.y);
+  applyCamera();
+});
+const endDrag = e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  drag = null;
+  viewport.classList.remove('panning');
+};
+viewport.addEventListener('pointerup', endDrag);
+viewport.addEventListener('pointercancel', endDrag);
+
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = viewport.getBoundingClientRect();
+  if (e.ctrlKey || e.metaKey) {
+    zoomAt(e.clientX - rect.left, e.clientY - rect.top, Math.exp(-e.deltaY * 0.004));
+  } else {
+    cam.x -= e.deltaX;
+    cam.y -= e.deltaY;
+    applyCamera();
+  }
+}, { passive: false });
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !isEditable(e.target)) spaceDown = true;
+  handleShortcut(e);
+});
+window.addEventListener('keyup', e => { if (e.code === 'Space') spaceDown = false; });
+
+for (const btn of layoutGroup.querySelectorAll('[data-layout]')) {
+  btn.addEventListener('click', () => {
+    layoutMode = btn.dataset.layout;
+    localStorage.setItem('craft-board-layout', layoutMode);
+    renderBoard(state, false);
+  });
+}
+
+document.getElementById('btn-fit').addEventListener('click', fitView);
+document.getElementById('btn-zoom-in').addEventListener('click', () => {
+  const r = viewport.getBoundingClientRect();
+  zoomAt(r.width / 2, r.height / 2, 1.25);
+});
+document.getElementById('btn-zoom-out').addEventListener('click', () => {
+  const r = viewport.getBoundingClientRect();
+  zoomAt(r.width / 2, r.height / 2, 1 / 1.25);
+});
+zoomResetBtn.addEventListener('click', () => {
+  const r = viewport.getBoundingClientRect();
+  zoomAt(r.width / 2, r.height / 2, 1 / cam.zoom);
+});
+gridBtn.addEventListener('click', () => {
+  showGrid = !showGrid;
+  localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
+  updateGrid();
+});
+
+renderBoard(INITIAL, false);
+
+new EventSource('/events').onmessage = async () => {
+  try {
+    const res = await fetch('/api/board', { cache: 'no-store' });
+    if (!res.ok) return;
+    const next = await res.json();
+    const prevSpecs = buildSpecs(state).map(s => s.id + ':' + s.width + ':' + s.fixedHeight).join('|');
+    const nextSpecs = buildSpecs(next).map(s => s.id + ':' + s.width + ':' + s.fixedHeight).join('|');
+    if (prevSpecs !== nextSpecs || state.mode !== next.mode) {
+      const hadBoards = boards.length > 0;
+      renderBoard(next, hadBoards);
+    } else {
+      state = next;
+      for (const b of boards) {
+        try {
+          b.pendingScrollY = b.iframe.contentWindow.scrollY || 0;
+          b.iframe.contentWindow.location.reload();
+        } catch {
+          b.iframe.src = '/raw/' + encodeURI(b.file) + '?t=' + Date.now();
+        }
+      }
+    }
+  } catch {}
+};
+</script></body></html>`;
 }
 
 function viewPage(file) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(file)} · preview</title><style>${STYLE}
-html,body{height:100%}body{display:flex;flex-direction:column}
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(file)} · preview</title><style>${BASE_STYLE}
+body{display:flex;flex-direction:column}
 header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel)}
 header .path{font-weight:600;margin-right:auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:40vw}
-.group{display:flex;gap:4px}.stage{flex:1;overflow:auto;display:flex;justify-content:center;background:var(--bg)}
-iframe{border:0;background:#fff;height:100%;width:100%;transition:width .2s}.framed iframe{box-shadow:0 0 0 1px var(--line),0 8px 32px oklch(0% 0 0/.12)}
-aside{position:fixed;right:12px;top:56px;width:340px;max-height:70vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;box-shadow:0 12px 40px oklch(0% 0 0/.18)}
-aside[hidden]{display:none}aside h2{font-size:13px;margin:0 0 8px}aside li{margin:0 0 10px;padding:0 0 10px;border-bottom:1px solid var(--line);list-style:none}aside ul{padding:0;margin:0}
-aside code{font-size:12px;word-break:break-all}dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);width:min(440px,92vw);padding:16px}
-dialog::backdrop{background:oklch(0% 0 0/.3)}textarea{width:100%;min-height:96px;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
-.row{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none}.toast.in{opacity:1}
+.group{display:flex;gap:4px}
+.stage{flex:1;overflow:auto;display:flex;justify-content:center;background:var(--bg)}
+.frame-wrap{position:relative;height:100%;width:100%;transition:width .2s}
+.framed .frame-wrap{box-shadow:0 0 0 1px var(--line),0 8px 32px oklch(0% 0 0/.12)}
+iframe{border:0;background:#fff;height:100%;width:100%;display:block}
+.grid-host{position:absolute;inset:0;pointer-events:none;z-index:5}
 </style></head><body>
-<header><a href="/" aria-label="All files">←</a><span class="path" title="${esc(file)}">${esc(file)}</span>
-<div class="group" role="group" aria-label="Viewport width">
-<button data-w="" aria-pressed="true">Fill</button><button data-w="1440">Desktop 1440</button><button data-w="1024">Laptop 1024</button><button data-w="768">Tablet 768</button><button data-w="390">Phone 390</button></div>
-<button id="comments" aria-expanded="false">Comments <span id="count"></span></button>
-<span class="muted">Alt+click an element to comment</span></header>
-<div class="stage" id="stage"><iframe id="frame" title="${esc(file)}" src="/raw/${encodeURI(file)}"></iframe></div>
-<aside id="panel" hidden><h2>Open comments</h2><ul id="list"></ul></aside>
-<dialog id="dlg"><form method="dialog"><p style="margin:0 0 8px"><strong>Comment on</strong> <code id="target"></code></p><textarea id="note" required placeholder="What should change?"></textarea>
-<div class="row"><button value="cancel" formnovalidate>Cancel</button><button value="ok" class="primary">Save and copy</button></div></form></dialog>
-<div class="toast" id="toast" role="status"></div>
+<header>
+  <a href="/" aria-label="Back to board">← Board</a>
+  <span class="path" title="${esc(file)}">${esc(file)}</span>
+  <div class="group" role="group" aria-label="Viewport width">
+    <button data-w="" aria-pressed="true">Fill</button>
+    <button data-w="1440">Desktop 1440</button>
+    <button data-w="1024">Laptop 1024</button>
+    <button data-w="768">Tablet 768</button>
+    <button data-w="390">Phone 390</button>
+  </div>
+  <button id="btn-grid" aria-pressed="false">Grid 8px</button>
+  <a href="/raw/${encodeURI(file)}" target="_blank" rel="noopener">Raw ↗</a>
+</header>
+<div class="stage" id="stage">
+  <div class="frame-wrap" id="wrap">
+    <iframe id="frame" title="${esc(file)}" src="/raw/${encodeURI(file)}"></iframe>
+    <div class="grid-host" id="grid-host"></div>
+  </div>
+</div>
 <script>
-const FILE=${JSON.stringify(file).replace(/</g, '\\u003c')};const frame=document.getElementById('frame'),stage=document.getElementById('stage');
-let pending=null,scroll=0;
-const toast=t=>{const el=document.getElementById('toast');el.textContent=t;el.classList.add('in');setTimeout(()=>el.classList.remove('in'),1800)};
-document.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-w]').forEach(x=>x.setAttribute('aria-pressed',x===b));
-  frame.style.width=b.dataset.w?b.dataset.w+'px':'100%';stage.classList.toggle('framed',!!b.dataset.w);localStorage.setItem('craft-w',b.dataset.w)});
-const saved=localStorage.getItem('craft-w');if(saved)document.querySelector('[data-w="'+saved+'"]')?.click();
-function selectorOf(el){const parts=[];while(el&&el.nodeType===1&&el.tagName!=='HTML'){if(el.id){parts.unshift('#'+CSS.escape(el.id));break}
-  let i=1,s=el;while((s=s.previousElementSibling))if(s.tagName===el.tagName)i++;parts.unshift(el.tagName.toLowerCase()+':nth-of-type('+i+')');el=el.parentElement}return parts.join(' > ')}
-function attach(){let doc;try{doc=frame.contentDocument}catch{return}if(!doc)return;try{frame.contentWindow.scrollTo(0,scroll)}catch{}
-  let hot=null;const mark=el=>{if(hot)hot.style.outline=hot.dataset.craftOutline||'';hot=el;if(el){el.dataset.craftOutline=el.style.outline;el.style.outline='2px solid #3b82f6'}};
-  doc.addEventListener('mousemove',e=>mark(e.altKey?(e.target.closest('[data-craft-id]')||e.target):null),true);
-  doc.addEventListener('keyup',e=>{if(e.key==='Alt')mark(null)},true);
-  doc.addEventListener('click',e=>{if(!e.altKey)return;e.preventDefault();e.stopPropagation();const el=e.target.closest('[data-craft-id]')||e.target;mark(null);
-    pending={file:FILE,craftId:el.getAttribute('data-craft-id')||null,selector:selectorOf(el),text:(el.innerText||el.getAttribute('alt')||'').trim().replace(/\\s+/g,' ').slice(0,160)};
-    document.getElementById('target').textContent=pending.craftId?'[data-craft-id="'+pending.craftId+'"]':pending.selector;document.getElementById('note').value='';document.getElementById('dlg').showModal()},true)}
-frame.addEventListener('load',attach);
-document.getElementById('dlg').addEventListener('close',async e=>{if(e.target.returnValue!=='ok'||!pending)return;const note=document.getElementById('note').value.trim();if(!note)return;
-  const r=await fetch('/api/comments',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...pending,note})});const c=await r.json();
-  const line='In '+c.file+', '+(c.craftId?'[data-craft-id="'+c.craftId+'"]':c.selector)+(c.text?' ("'+c.text.slice(0,60)+'")':'')+': '+c.note;
-  try{await navigator.clipboard.writeText(line);toast('Saved and copied for the agent')}catch{toast('Saved for the agent')}load()});
-async function load(){const list=(await (await fetch('/api/comments')).json()).filter(c=>c.file===FILE);document.getElementById('count').textContent=list.length?'('+list.length+')':'';
-  document.getElementById('list').innerHTML=list.length?list.map(c=>'<li><code>'+esc(c.craftId?'[data-craft-id="'+c.craftId+'"]':c.selector)+'</code><div>'+esc(c.note)+'</div></li>').join(''):'<li class="muted">None</li>'}
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-document.getElementById('comments').onclick=e=>{const p=document.getElementById('panel');p.hidden=!p.hidden;e.currentTarget.setAttribute('aria-expanded',!p.hidden)};
-new EventSource('/events').onmessage=m=>{const d=JSON.parse(m.data);if(d.comments){load();return}try{scroll=frame.contentWindow.scrollY}catch{}frame.contentWindow.location.reload()};
-load();
+const frame = document.getElementById('frame');
+const stage = document.getElementById('stage');
+const wrap = document.getElementById('wrap');
+const gridBtn = document.getElementById('btn-grid');
+const gridHost = document.getElementById('grid-host');
+const gridShadow = gridHost.attachShadow({ mode: 'closed' });
+const gridStyle = document.createElement('style');
+const gridDiv = document.createElement('div');
+gridDiv.className = 'grid';
+gridShadow.append(gridStyle, gridDiv);
+
+let showGrid = localStorage.getItem('craft-board-grid') === '1';
+let scroll = 0;
+
+function applyGrid() {
+  gridBtn.setAttribute('aria-pressed', String(showGrid));
+  gridHost.style.display = showGrid ? 'block' : 'none';
+  gridStyle.textContent = ':host{position:absolute;inset:0;pointer-events:none;display:' + (showGrid ? 'block' : 'none') + '}.grid{width:100%;height:100%;background-image:linear-gradient(to right,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.20) 1px,transparent 1px),linear-gradient(to right,rgba(59,130,246,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(59,130,246,.08) 1px,transparent 1px);background-size:64px 64px,64px 64px,8px 8px,8px 8px}';
+}
+
+gridBtn.onclick = () => {
+  showGrid = !showGrid;
+  localStorage.setItem('craft-board-grid', showGrid ? '1' : '0');
+  applyGrid();
+};
+applyGrid();
+
+document.querySelectorAll('[data-w]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-w]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  wrap.style.width = b.dataset.w ? b.dataset.w + 'px' : '100%';
+  stage.classList.toggle('framed', !!b.dataset.w);
+  localStorage.setItem('craft-w', b.dataset.w);
+});
+const saved = localStorage.getItem('craft-w');
+if (saved) document.querySelector('[data-w="' + saved + '"]')?.click();
+
+frame.addEventListener('load', () => {
+  try { frame.contentWindow.scrollTo(0, scroll); } catch {}
+});
+new EventSource('/events').onmessage = () => {
+  try { scroll = frame.contentWindow.scrollY || 0; } catch {}
+  frame.contentWindow.location.reload();
+};
 </script></body></html>`;
 }
 
 const clients = new Set();
-function broadcast(payload) { for (const res of clients) res.write(`data: ${JSON.stringify(payload)}\n\n`); }
-let timer = null, changed = new Set();
+function broadcast(payload) {
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const res of clients) res.write(data);
+}
+
+let timer = null;
+let changed = new Set();
 function onChange(name) {
   if (!name || SKIP.test(name)) return;
   const file = String(name).split(sep).join('/');
-  if (file.endsWith(COMMENTS)) { broadcast({ comments: true }); return; }
   changed.add(file);
   clearTimeout(timer);
-  timer = setTimeout(() => { broadcast({ files: [...changed] }); changed = new Set(); }, 120);
+  timer = setTimeout(() => {
+    broadcast({ files: [...changed] });
+    changed = new Set();
+  }, 120);
 }
+
 try {
   watch(root, { recursive: true }, (_event, name) => onChange(name));
 } catch {
-  // Platforms without recursive watching: poll modification times.
   let last = new Map();
   const scan = (dir = root, seen = new Map()) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, e.name);
-      if (SKIP.test(path)) continue;
-      try { if (e.isDirectory()) scan(path, seen); else seen.set(path, statSync(path).mtimeMs); } catch {}
+      const p = join(dir, e.name);
+      if (SKIP.test(p)) continue;
+      try {
+        if (e.isDirectory()) scan(p, seen);
+        else seen.set(p, statSync(p).mtimeMs);
+      } catch {}
     }
     return seen;
   };
   last = scan();
   setInterval(() => {
     const now = scan();
-    for (const [path, mtime] of now) if (last.get(path) !== mtime) onChange(relative(root, path));
-    for (const path of last.keys()) if (!now.has(path)) onChange(relative(root, path));
+    for (const [p, mtime] of now) if (last.get(p) !== mtime) onChange(relative(root, p));
+    for (const p of last.keys()) if (!now.has(p)) onChange(relative(root, p));
     last = now;
   }, 800);
 }
@@ -197,6 +797,7 @@ const server = createServer((req, res) => {
   const path = url.pathname;
   if (path === '/') return send(res, 200, indexPage());
   if (path === '/api/info') return send(res, 200, JSON.stringify({ app: 'craft-design-preview', root }), 'application/json');
+  if (path === '/api/board') return send(res, 200, JSON.stringify(boardState()), 'application/json');
   if (path === '/events') {
     res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive' });
     res.write(': connected\n\n');
@@ -204,36 +805,15 @@ const server = createServer((req, res) => {
     req.on('close', () => clients.delete(res));
     return;
   }
-  if (path === '/api/comments' && req.method === 'GET') {
-    return send(res, 200, JSON.stringify(readComments(root).filter(c => c.status !== 'resolved')), 'application/json');
-  }
-  if (path === '/api/comments' && req.method === 'POST') {
-    let body = '';
-    req.on('data', chunk => { body += chunk; if (body.length > 65536) req.destroy(); });
-    req.on('end', () => {
-      try {
-        const input = JSON.parse(body);
-        const comment = {
-          id: randomUUID().slice(0, 8), time: new Date().toISOString(), status: 'open',
-          file: String(input.file || ''), craftId: input.craftId ? String(input.craftId) : null,
-          selector: String(input.selector || ''), text: String(input.text || '').slice(0, 200), note: String(input.note || '').slice(0, 4000),
-        };
-        writeComments(root, [...readComments(root), comment]);
-        send(res, 201, JSON.stringify(comment), 'application/json');
-      } catch { send(res, 400, '{"error":"bad request"}', 'application/json'); }
-    });
-    return;
-  }
   if (path.startsWith('/view/')) {
-    const file = decodeURIComponent(path.slice(6));
-    const abs = inside(path.slice(6));
-    if (!abs || !existsSync(abs)) return send(res, 404, 'Not found', 'text/plain');
-    return send(res, 200, viewPage(file));
+    const abs = inside(path.slice(6), false);
+    if (!abs) return send(res, 404, 'Not found', 'text/plain');
+    const rel = relative(root, abs).split(sep).join('/');
+    return send(res, 200, viewPage(rel));
   }
   if (path.startsWith('/raw/')) {
-    let abs = inside(path.slice(5));
-    if (abs && existsSync(abs) && statSync(abs).isDirectory()) abs = join(abs, 'index.html');
-    if (!abs || !existsSync(abs) || !statSync(abs).isFile()) return send(res, 404, 'Not found', 'text/plain');
+    const abs = inside(path.slice(5), true);
+    if (!abs) return send(res, 404, 'Not found', 'text/plain');
     res.writeHead(200, { 'content-type': TYPES[extname(abs).toLowerCase()] || 'application/octet-stream', 'cache-control': 'no-store' });
     return createReadStream(abs).pipe(res);
   }
@@ -245,10 +825,11 @@ async function existing(p) {
     const r = await fetch(`http://${host}:${p}/api/info`, { signal: AbortSignal.timeout(800) });
     const info = await r.json();
     return info.app === 'craft-design-preview' ? info.root : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-// Artifacts open at /view/<path under root>; print the pattern and the current files.
 function announce(p, running) {
   const base = `http://${host}:${p}/`;
   console.log(`craft-design preview${running ? ' already running' : ''}: ${base}  (root: ${root})`);
@@ -268,4 +849,5 @@ async function listen(p, attempts = 20) {
   server.once('listening', onListening);
   server.listen(p, host);
 }
+
 listen(port);

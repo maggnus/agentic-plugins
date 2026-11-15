@@ -13,7 +13,8 @@ const options={root:skillRoot,data};
 const blocked=result=>result.hookSpecificOutput?.permissionDecision==='deny';
 try {
  assert.deepEqual(words("node 'a b.mjs' decide --json '{\"reason\":\"a | b\"}'"),['node','a b.mjs','decide','--json','{"reason":"a | b"}']);
- for(const c of ['node a | tail -8','node a > file','node a; date','node a && b','node $X','node `x`','node $(x)','node a\ncat b'])assert.throws(()=>words(c));
+ assert.deepEqual(words('node "a b.mjs" decide --json "{\\"reason\\":\\"User\'s café\\\\bar\\"}"'),['node','a b.mjs','decide','--json','{"reason":"User\'s café\\bar"}']);
+ for(const c of ['node a | tail -8','node a > file','node a; date','node a && b','node $X','node `x`','node $(x)','node a\ncat b','node "$X"','node "`x`"','node "a\\nb"'])assert.throws(()=>words(c));
  assert.ok(attemptsGuide(`cd '${skillRoot}'; mkdir -p output; node scripts/craft-guide.mjs begin --state state.json`,dir,skillRoot),'literal cd is resolved before a compound start');
  assert.ok(attemptsGuide(`zsh -lc 'node ${script} begin --state state.json'`,dir,skillRoot),'literal shell wrapper still counts as an attempt');
  assert.ok(attemptsGuide(`node > out ${script} begin --state state.json`,dir,skillRoot),'redirection targets are not arguments or commands');

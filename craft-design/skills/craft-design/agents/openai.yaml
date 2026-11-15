@@ -1,4 +1,7 @@
 interface:
   display_name: "Craft Design"
   short_description: "Design any visual artifact, from brief to a verified result, with a live preview"
-  default_prompt: "Use $craft-design to design this artifact, start the live preview and verify the result."
+  default_prompt: "Use $craft-design:craft-design to design this artifact, start the live preview and verify the result."
+
+policy:
+  allow_implicit_invocation: true

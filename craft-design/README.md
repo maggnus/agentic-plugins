@@ -96,7 +96,7 @@ was never created or is unreadable, without overwriting an unrelated file.
 
 `verify.mjs FILE --state STATE [inspection options]` refuses an incomplete guide,
 runs both strict token and render checks, and saves separate logs plus `summary.json`
-in a fresh directory next to the state. It validates source/PNG hashes and expected
+in `.craft-verification` next to the state. It validates source/PNG hashes and expected
 render reports, reports current counts and repair diagnostics, and returns the exact
 command to repeat after edits. Check responsive widths together; the default
 1440,390 widths use 900,844 heights. `tokens check --json` exposes structured
@@ -107,11 +107,12 @@ failures justify incomplete verification. The author still inspects PNGs and fac
 `passed` covers mandatory technical checks; `clean` also requires zero review findings.
 
 
-`scripts/preview.mjs` is a dependency-free Node server bound to `127.0.0.1`: a list of
-artifacts, live reload on save, desktop/laptop/tablet/phone widths, and Alt+click comments that
-are stored next to the artifacts for the agent and copied to the clipboard. `scripts/shot.mjs`
+`scripts/preview.mjs` is a dependency-free read-only Node viewing board bound to `127.0.0.1`:
+an infinite canvas with paired widths (`1440` + `390`) or optional `design.json` layout,
+pan and zoom, an `8px` grid, live reload on save, and a single-file view at `/view/<file>`,
+without comment writing. `scripts/shot.mjs`
 renders one or more exact viewport widths (phone emulation below 600px) with an installed
-Chrome, Chromium, Edge or Brave, opens states first on request (`--click <selector>`, a `#fragment`)
+Chrome, Chromium, Edge or Brave, opens states first on request (`--click <selector>`, `?query` and `#fragment`)
 and reports horizontal overflow with the offending elements.
 `scripts/inspect.mjs` adds a structured report from that same render: clipping,
 possible occlusion, broken images, control names, contrast review and sampled

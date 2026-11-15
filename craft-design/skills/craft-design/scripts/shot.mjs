@@ -15,8 +15,8 @@
 // the viewport; --at scrolls to a CSS offset or to the
 // first element matching a selector. --click (repeatable) clicks the first
 // element matching each selector in order before the capture, and a file path
-// may end in #fragment, so a state (a tab, the back of a card, an open menu)
-// can be shot. Set CHROME_PATH to choose the browser.
+// may end in ?query and/or #fragment, so a state (a tab, the back of a card,
+// an open menu) can be shot. Set CHROME_PATH to choose the browser.
 
 import { spawn, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync, statSync } from 'node:fs';
@@ -70,13 +70,13 @@ try {
 } catch (error) { console.error(`invalid scenario: ${error.message}`); process.exit(2); }
 
 const isUrl = /^[a-z][a-z\d+.-]*:\/\//i.test(target);
-const [file, fragment = ''] = isUrl ? [target] : target.split(/(?=#)/, 2);
+const [, file, suffix = ''] = isUrl ? [null, target, ''] : target.match(/^([^?#]*)(.*)$/);
 let sourceFile;
 try { sourceFile = !isUrl ? resolve(file) : new URL(target).protocol === 'file:' ? fileURLToPath(target) : null; }
 catch (error) { console.error(`invalid source: ${error.message}`); process.exit(2); }
 if (sourceFile && !existsSync(sourceFile)) { console.error(`not found: ${sourceFile}`); process.exit(2); }
 // The preview's /view/ page is a shell around an iframe; shoot the artifact itself.
-const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(file)).href + fragment;
+const url = isUrl ? target.replace(/^(http:\/\/(?:127\.0\.0\.1|localhost):\d+)\/view\//, '$1/raw/') : pathToFileURL(resolve(file)).href + suffix;
 
 function findBrowser() {
   if (process.env.CHROME_PATH && existsSync(process.env.CHROME_PATH)) return process.env.CHROME_PATH;
@@ -95,7 +95,7 @@ const stem = isUrl ? new URL(target).pathname.split('/').filter(Boolean).slice(-
 function outPath(width, height) {
   if (outFlag) return resolve(widths.length > 1 ? outFlag.replace(/(\.png)?$/i, `-${width}.png`) : outFlag);
   mkdirSync(shotDir, { recursive: true });
-  const where = (clicks.length || fragment ? '-state' : '') + (full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '');
+  const where = (clicks.length || suffix ? '-state' : '') + (full ? '-full' : at ? `-at-${String(at).replace(/[^\w-]+/g, '')}` : '');
   return join(shotDir, `${stem}-${width}x${height}${where}-${Date.now()}.png`);
 }
 // A report named like its contract would otherwise destroy the expectations.
@@ -269,7 +269,7 @@ async function shoot(width) {
     await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
     await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
   }
-  if (fragment) await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+  if (suffix) await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
   for (const selector of clicks) {
     const clicked = (await s('Runtime.evaluate', { expression: `(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return false; el.click(); return true; })()`, returnByValue: true })).result.value;
     if (!clicked) throw new Error(`no element matches ${selector}`);
@@ -304,7 +304,7 @@ async function shoot(width) {
       capture: { width, height: full ? Math.min(metrics.page, MAX_CAPTURE_HEIGHT) : height, documentHeight: metrics.page, documentWidth: metrics.scrollWidth, internalScrollRegions: metrics.internalScrollRegions,
         fullDocument: metrics.internalScrollRegions === 0 && metrics.scrollWidth <= width && (full ? metrics.page <= MAX_CAPTURE_HEIGHT : !at && metrics.page <= height), limited: full && metrics.page > MAX_CAPTURE_HEIGHT },
       screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
-      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment, at, full, mode, mobile } };
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment: suffix, at, full, mode, mobile } };
     if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
   }
   if (inspect) {

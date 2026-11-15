@@ -16,7 +16,7 @@
     "capabilities": [
       "Design charter and brief",
       "On-demand skill, design-system and direction library",
-      "Live preview with element comments",
+      "Live multi-frame preview board",
       "Headless screenshots"
     ],
     "defaultPrompt": [

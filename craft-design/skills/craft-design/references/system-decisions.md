@@ -63,8 +63,7 @@ every simple artifact or equate a clean scenario report with visual quality.
 
 ## Learn from confirmed changes
 
-Existing preview comments identify elements; resolving a comment fixes that
-artifact, not the global design system. A conversation is not authorization to
+Specific element feedback fixes that artifact, not the global design system. A conversation is not authorization to
 change rules. When the user asks to retain a preference or improve guidance,
 record a compact before/after example in the project's existing design records:
 

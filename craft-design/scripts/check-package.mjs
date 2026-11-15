@@ -4,7 +4,7 @@
 
 import assert from 'node:assert/strict';
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync, symlinkSync, unlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -374,18 +374,49 @@ try {
       if (url && printed.includes('view/demo/index.html')) { clearTimeout(timer); resolve(url); }
     });
   });
-  assert.match(await (await fetch(base)).text(), /demo\/index\.html/);
-  assert.equal((await fetch(`${base}view/demo/index.html`)).status, 200);
+  const boardRes = await fetch(base);
+  assert.equal(boardRes.status, 200);
+  const boardHtml = await boardRes.text();
+  assert.match(boardHtml, /demo\/index\.html/);
+  assert.match(boardHtml, /Grid 8px/);
+  assert.match(boardHtml, /layoutBoards/);
+  const boardApiRes = await fetch(`${base}api/board`);
+  assert.equal(boardApiRes.status, 200);
+  const boardJson = await boardApiRes.json();
+  assert.ok(boardJson.files.includes('demo/index.html'));
+  const viewRes = await fetch(`${base}view/demo/index.html`);
+  assert.equal(viewRes.status, 200);
+  const viewHtml = await viewRes.text();
+  assert.ok(!viewHtml.includes('/api/comments'));
   assert.match(await (await fetch(`${base}raw/demo/index.html`)).text(), /data-craft-id="title"/);
   assert.equal((await fetch(`${base}raw/%2e%2e/%2e%2e/etc/passwd`)).status, 404);
-  const comment = await (await fetch(`${base}api/comments`, {
-    method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ file: 'demo/index.html', odId: 'title', selector: 'h1', text: 'Demo', note: 'Larger' }),
-  })).json();
-  const listed = execFileSync(process.execPath, [join(scripts, 'preview.mjs'), '--comments', root], { encoding: 'utf8' });
-  assert.match(listed, new RegExp(comment.id));
-  execFileSync(process.execPath, [join(scripts, 'preview.mjs'), '--resolve', root, comment.id]);
-  assert.deepEqual(await (await fetch(`${base}api/comments`)).json(), []);
+  assert.equal((await fetch(`${base}raw/%E0%A4%A`)).status, 404);
+  assert.equal((await fetch(`${base}view/%E0%A4%A`)).status, 404);
+  assert.equal((await fetch(`${base}api/info`)).status, 200);
+  writeFileSync(join(work, 'outside.html'), '<p>secret</p>');
+  symlinkSync(join(work, 'outside.html'), join(root, 'demo/escape.html'));
+  try {
+    assert.equal((await fetch(`${base}raw/demo/escape.html`)).status, 404);
+    assert.equal((await fetch(`${base}view/demo/escape.html`)).status, 404);
+  } finally {
+    unlinkSync(join(root, 'demo/escape.html'));
+  }
+  const badFlag = spawnSync(process.execPath, [join(scripts, 'preview.mjs'), '--comments', root], { encoding: 'utf8' });
+  assert.equal(badFlag.status, 2);
+  writeFileSync(join(root, 'design.json'), JSON.stringify({
+    artboards: [
+      { id: 'home', title: 'Home', file: 'demo/index.html', width: 1280, height: 800, group: 'Main' },
+      { id: 'bad', file: '../../etc/passwd', width: 800 }
+    ]
+  }));
+  try {
+    const manifestBoard = await (await fetch(`${base}api/board`)).json();
+    assert.equal(manifestBoard.mode, 'manifest');
+    assert.equal(manifestBoard.artboards.length, 1);
+    assert.equal(manifestBoard.artboards[0].id, 'home');
+  } finally {
+    unlinkSync(join(root, 'design.json'));
+  }
   // Screenshots need a local browser; CI runners lack a usable Chrome sandbox.
   if (!process.env.CI) {
     const checked = runTokens(['check', goodFile, '--width', '1440,390', '--strict']);
@@ -419,6 +450,9 @@ try {
       assert.match(broken.stdout, /possible-duplicate:.*390px --text-4xl:.*h1#title.*font-size/);
       const strict = runTokens(['check', badFile, '--width', '390', '--strict']);
       assert.equal(strict.status, 1, strict.stderr);
+      const narrowDesktop = runTokens(['check', goodFile, '--width', '480', '--mode', 'desktop', '--strict', '--json']);
+      assert.equal(narrowDesktop.status, 0, narrowDesktop.stderr + narrowDesktop.stdout);
+      assert.equal(JSON.parse(narrowDesktop.stdout).summary.warnings, 0);
       assert.equal(read(goodFile), goodTokens, 'browser mutations leave the good file unchanged');
       assert.equal(read(badFile), badTokens, 'browser mutations leave the bad file unchanged');
     }
@@ -462,6 +496,9 @@ try {
       const targeted = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), `${join(root, 'demo/state.html')}#panel`, '--width', '390', '--wait', '0', '--out', join(work, 'target.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(targeted.status, 0, `fragment capture runs: ${targeted.stderr}`);
       assert.deepEqual(screenshot(join(work, 'target.png')).pixel(10, 400), [0, 255, 0], 'a #fragment in the file path opens that state');
+      const queryTargeted = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), `${join(root, 'demo/state.html')}?view=card#panel`, '--width', '390', '--wait', '0', '--out', join(work, 'query-target.png')], { encoding: 'utf8', timeout: 60000 });
+      assert.equal(queryTargeted.status, 0, `query+fragment capture runs: ${queryTargeted.stderr}`);
+      assert.deepEqual(screenshot(join(work, 'query-target.png')).pixel(10, 400), [0, 255, 0], 'a ?query#fragment in the file path opens that state');
       const missing = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/state.html'), '--width', '390', '--wait', '0', '--click', '#nope', '--out', join(work, 'nope.png')], { encoding: 'utf8', timeout: 60000 });
       assert.notEqual(missing.status, 0, 'a selector that matches nothing fails the capture');
       assert.match(missing.stderr + missing.stdout, /no element matches #nope/);

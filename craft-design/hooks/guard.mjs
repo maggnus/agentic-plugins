@@ -16,7 +16,14 @@ export function words(command) {
     const c=command[i];
     if(quote) {
       if(c===quote){quote=null;continue;}
-      if(quote==='"' && /[$`\\]/.test(c))throw new Error('No shell expansion or escapes in double quotes; use literal single quotes.');
+      if(quote==='"') {
+        if(c==='$'||c==='`')throw new Error('No shell expansion in double quotes; use literal single quotes.');
+        if(c==='\\') {
+          const next=command[i+1];
+          if(next==='"'||next==='\\'){word+=next;i++;continue;}
+          throw new Error('Only \\" and \\\\ escapes are allowed in double quotes.');
+        }
+      }
       word+=c;continue;
     }
     if(c==='"'||c==="'"){quote=c;started=true;continue;}
