@@ -50,9 +50,17 @@ These are the patterns the linter blocks at P0 (must-fix):
   assets, `scripts/images.mjs`, or inline SVG/CSS media frames.
 - **Hardcoded literals outside `:root`.** Tokens were not honoured (`scripts/tokens.mjs`).
 - **Competing solid action buttons or unfocused accent scatter.** Keep at
-  most one solid CTA per action group and allocate color by the four
-  semantic roles (`--accent`, `--accent-soft`, `--accent-2`, status signals)
-  rather than sprinkling solid fills everywhere.
+  most one solid CTA per action group; let neutral surfaces carry 70–90% of
+  the canvas and reserve `--accent` for the primary focal point rather than
+  sprinkling solid fills everywhere.
+- **Chromatic noise and unmotivated multi-color** *(guidance, not
+  auto-checked)*. Adding a second accent (`--accent-2`), colored badges, or
+  status hues without genuine informational necessity (independent data
+  series or real system incidents) dilutes hierarchy.
+- **Defensive simplification** *(guidance, not auto-checked)*. Replacing
+  informative annotated diagrams, architectural plans, or rich charts with
+  empty cards, bare numbers, or stripped-down boxes merely to pass automated
+  checks easily. Preserve real structural detail and clean label placement.
 
 ## Polish tells (P2 — nice to fix)
 

@@ -159,7 +159,7 @@ assert.throws(()=>validatePlan({...plan,visualContract:{source:'library-system',
 const libExtra=validatePlan({...plan,visualContract:{source:'library-system',systemId:'stripe',adaptation:'Keep Stripe crisp light canvas and slate borders'}});
 assert.ok(libExtra.includes('library/design-systems/stripe/DESIGN.md'),'library-system auto-delivers DESIGN.md');
 assert.ok(libExtra.includes('library/design-systems/stripe/tokens.css'),'library-system auto-delivers tokens.css');
-const customExtra=validatePlan({...plan,visualContract:{source:'custom-spec',palette:'oklch(0.98 0.005 90) canvas, oklch(0.2 0.01 90) ink, oklch(0.55 0.16 250) accent',tonalPlan:'80% light paper canvas, 15% elevated cards, 5% high-contrast dark anchor footer',typography:'Golos Text + JetBrains Mono (Cyrillic + Latin)',inspiredBy:'directions.md#tech-utility'}});
+const customExtra=validatePlan({...plan,visualContract:{source:'custom-spec',palette:'oklch(0.98 0.005 90) canvas, oklch(0.2 0.01 90) ink, oklch(0.55 0.16 250) accent',tonalPlan:'All-light monochrome paper canvas with whitespace and typographic scale, single focal accent, no dark slabs',typography:'Golos Text + JetBrains Mono (Cyrillic + Latin)',inspiredBy:'directions.md#tech-utility'}});
 assert.ok(customExtra.includes('library/directions.md'),'custom-spec with directions.md reference delivers directions.md');
 const catRes=searchCatalog('fintech dashboard');
 assert.ok(Array.isArray(catRes.systems)&&catRes.systems.length>=3,'searchCatalog returns systems');

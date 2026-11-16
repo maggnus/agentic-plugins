@@ -267,7 +267,7 @@ export function inspectHtml(html) {
     const colors = COLOR_PROPERTY.test(d.prop) || d.prop.startsWith('--') ? colorLiterals(d.value) : [];
     if (d.svg) svgCount += colors.length;
     else if (colors.length) warn('literal', `${d.prop}: literal color ${[...new Set(colors)].join(', ')}`, d.start, d.selector);
-    if ((STYLE_PROPERTY.test(d.prop) || decorative.has(d.prop)) && !tokenExpression(d.value) && !(colors.length && !d.svg)) {
+    if (!d.svg && (STYLE_PROPERTY.test(d.prop) || decorative.has(d.prop)) && !tokenExpression(d.value) && !colors.length) {
       warn('literal', `${d.prop}: decorative value outside the theme (${d.value})`, d.start, d.selector);
     }
     if (/^font$/.test(d.prop) && !tokenExpression(d.value)) warn('literal', 'font shorthand contains values outside the theme', d.start, d.selector);

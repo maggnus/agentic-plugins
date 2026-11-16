@@ -331,7 +331,7 @@ export function validatePlan(plan) {
       throw new Error('visualContract.palette must describe concrete palette/role tokens (>= 16 chars, no placeholder).');
     }
     if (typeof vc.tonalPlan !== 'string' || vc.tonalPlan.trim().length < 16 || isPlaceholder(vc.tonalPlan)) {
-      throw new Error('visualContract.tonalPlan must describe distribution of light, tinted, and dark anchor masses (>= 16 chars).');
+      throw new Error('visualContract.tonalPlan must describe the tonal and color hierarchy for the genre and medium (including all-light/monochrome compositions built on whitespace and scale without dark slabs or a second accent) (>= 16 chars).');
     }
     if (typeof vc.typography !== 'string' || vc.typography.trim().length < 12 || isPlaceholder(vc.typography)) {
       throw new Error('visualContract.typography must specify chosen fonts supporting the target script (>= 12 chars).');

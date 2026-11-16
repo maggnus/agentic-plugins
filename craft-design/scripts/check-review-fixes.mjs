@@ -134,7 +134,7 @@ try {
     // 2. Auto-check of [data-theme="dark"] and inactive [role="tab"] in verify.mjs (pass + fail).
     const themedTabsTheme=':root{--bg:#f8fafc;--surface:#ffffff;--fg:#0f172a;--border:#cbd5e1;--accent:#1d4ed8;--accent-on:#ffffff;--font-body:system-ui,sans-serif}[data-theme="dark"]{--bg:#0f172a;--surface:#1e293b;--fg:#f1f5f9;--border:#334155;--accent:#60a5fa;--accent-on:#0f172a}';
     const themedTabsCss='body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}.tabs{display:flex;gap:8px;margin-bottom:16px}[role="tab"]{min-height:44px;min-width:88px;padding:10px 16px;border:1px solid var(--border);background:var(--surface);color:var(--fg)}[role="tab"][aria-selected="true"]{background:var(--accent);color:var(--accent-on)}.panel{padding:20px;background:var(--surface);border:1px solid var(--border)}[hidden]{display:none}';
-    const themedTabsBody=`<main><div role="tablist" class="tabs"><button role="tab" id="t1" aria-selected="true" aria-controls="p1">Overview</button><button role="tab" id="t2" aria-selected="false" aria-controls="p2">Details</button></div><section id="p1" class="panel"><h1>Overview</h1><p>Primary panel content with readable contrast.</p></section><section id="p2" class="panel" hidden><h2>Details</h2><p>Secondary tab panel content.</p></section></main><script>for(const b of document.querySelectorAll('[role=tab]'))b.onclick=()=>{for(const x of document.querySelectorAll('[role=tab]')){const on=x===b;x.setAttribute('aria-selected',String(on));document.getElementById(x.getAttribute('aria-controls')).hidden=!on;}};</script>`;
+    const themedTabsBody=`<main><div role="tablist" class="tabs"><button role="tab" id="t1" aria-selected="true" aria-controls="p1">Overview</button><button role="tab" id="t2" aria-selected="false" aria-controls="p2">Details</button></div><section id="p1" class="panel"><h1>Overview</h1><p>Primary panel content with readable contrast.</p></section><section id="p2" class="panel" hidden><h2>Details</h2><p>Secondary tab panel content.</p></section></main><script>const tabs=[...document.querySelectorAll('[role=tab]')];const activate=b=>{for(const x of tabs){const on=x===b;x.setAttribute('aria-selected',String(on));document.getElementById(x.getAttribute('aria-controls')).hidden=!on;}};for(const b of tabs){b.onclick=()=>activate(b);b.onkeydown=e=>{const i=tabs.indexOf(b);if(e.key==='ArrowRight'||e.key==='ArrowLeft'){const n=tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];n.focus();activate(n);}};}</script>`;
     writeFileSync(html,wrap(themedTabsTheme,themedTabsCss,themedTabsBody));
     const goodStates=runVerify();
     assert.equal(goodStates.status,0,'page with valid dark theme and 2 tabs passes: '+goodStates.stdout);
@@ -322,7 +322,7 @@ try {
     // 13. Verify inspects tabs on both 1440 and 390.
     const multiTabHtml=wrap(':root{--bg:#ffffff;--fg:#111111;--border:#cbd5e1;--font-body:sans-serif}',
       'body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}[role="tablist"]{display:flex;gap:8px}[role="tab"]{min-height:44px;min-width:88px;border:1px solid var(--border);background:transparent}[hidden]{display:none}',
-      '<main><div role="tablist"><button role="tab" aria-selected="true" aria-controls="tp1" id="t1">Tab 1</button><button role="tab" aria-selected="false" aria-controls="tp2" id="t2">Tab 2</button></div><section id="tp1" role="tabpanel">Panel 1</section><section id="tp2" role="tabpanel" hidden>Panel 2</section></main><script>document.querySelectorAll("[role=tab]").forEach(btn=>btn.onclick=()=>{document.querySelectorAll("[role=tab]").forEach(b=>b.setAttribute("aria-selected",String(b===btn)));document.querySelectorAll("[role=tabpanel]").forEach(p=>p.hidden=p.id!==btn.getAttribute("aria-controls"));});</script>');
+      '<main><div role="tablist"><button role="tab" aria-selected="true" aria-controls="tp1" id="t1">Tab 1</button><button role="tab" aria-selected="false" aria-controls="tp2" id="t2">Tab 2</button></div><section id="tp1" role="tabpanel">Panel 1</section><section id="tp2" role="tabpanel" hidden>Panel 2</section></main><script>const mTabs=[...document.querySelectorAll("[role=tab]")];const act=btn=>{mTabs.forEach(b=>b.setAttribute("aria-selected",String(b===btn)));document.querySelectorAll("[role=tabpanel]").forEach(p=>p.hidden=p.id!==btn.getAttribute("aria-controls"));};mTabs.forEach(btn=>{btn.onclick=()=>act(btn);btn.onkeydown=e=>{const i=mTabs.indexOf(btn);if(e.key==="ArrowRight"||e.key==="ArrowLeft"){const n=mTabs[(i+(e.key==="ArrowRight"?1:-1)+mTabs.length)%mTabs.length];n.focus();act(n);}};});</script>');
     writeFileSync(html,multiTabHtml);
     const multiTabRes=runVerify();
     assert.equal(multiTabRes.status,0,'tabs pass on both 1440 and 390: '+multiTabRes.stdout);
@@ -330,7 +330,62 @@ try {
     assert.ok(multiTabRes.data.stateFrames.some(f=>f.state==='tab-1'&&f.width===390));
     assert.equal(multiTabRes.data.stateCoverage.tabs.totalChecks,2);
     assert.equal(multiTabRes.data.stateCoverage.tabs.checked,2);
+    assert.equal(multiTabRes.data.stateCoverage.tabs.keyboard?.passed,true);
     assert.deepEqual(multiTabRes.data.stateCoverage.tabs.perWidth,[{width:1440,total:2,inactive:1,checked:1},{width:390,total:2,inactive:1,checked:1}]);
+
+    // 14. Missing ArrowRight/ArrowLeft keyboard navigation on [role="tablist"] triggers tab-keyboard-navigation.
+    const noKbTabHtml=wrap(':root{--bg:#ffffff;--fg:#111111;--border:#cbd5e1;--font-body:sans-serif}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}[role="tablist"]{display:flex;gap:8px}[role="tab"]{min-height:44px;min-width:88px;border:1px solid var(--border);background:transparent}[hidden]{display:none}',
+      '<main><div role="tablist"><button role="tab" aria-selected="true" aria-controls="tp1" id="t1">Tab 1</button><button role="tab" aria-selected="false" aria-controls="tp2" id="t2">Tab 2</button></div><section id="tp1" role="tabpanel">Panel 1</section><section id="tp2" role="tabpanel" hidden>Panel 2</section></main><script>document.querySelectorAll("[role=tab]").forEach(btn=>btn.onclick=()=>{document.querySelectorAll("[role=tab]").forEach(b=>b.setAttribute("aria-selected",String(b===btn)));document.querySelectorAll("[role=tabpanel]").forEach(p=>p.hidden=p.id!==btn.getAttribute("aria-controls"));});</script>');
+    writeFileSync(html,noKbTabHtml);
+    const noKbTabRes=runVerify();
+    assert.equal(noKbTabRes.status,1,'tabs without keyboard arrow navigation fail verify');
+    assert.equal(noKbTabRes.data.stateCoverage.tabs.keyboard?.passed,false);
+    assert.ok(noKbTabRes.data.diagnostics.some(d=>d.code==='tab-keyboard-navigation'));
+
+    // 15. [hidden] overridden by CSS (e.g. svg { display: block } without [hidden] { display: none !important }) -> hidden-attribute-visible.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}svg{display:block}',
+      '<main><h1>Hidden attr check</h1><svg hidden width="32" height="32" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="#111"/></svg></main>'));
+    const hiddenPng=join(work,'hidden-vis.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',hiddenPng],{encoding:'utf8',timeout:60000});
+    const hiddenRep=JSON.parse(readFileSync(hiddenPng.replace('.png','.json'),'utf8'));
+    assert.ok(hiddenRep.findings.some(f=>f.code==='hidden-attribute-visible'&&f.severity==='error'),'hidden SVG overridden by display:block triggers hidden-attribute-visible');
+
+    // 16. Fixed bottom bar with tight inner height (< 44px) -> fixed-bar-safe-area-clip; normal bar -> clean.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--surface:#f8fafc}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}.tight-bar{box-sizing:border-box;position:fixed;left:0;right:0;bottom:0;height:56px;padding:8px 16px 20px;background:var(--surface);display:flex;align-items:center}.tight-bar button{height:28px}',
+      '<main><h1>Safe area</h1></main><nav class="tight-bar"><button>Home</button></nav>'));
+    const tightBarPng=join(work,'tight-bar.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','390','--inspect','--wait','0','--out',tightBarPng],{encoding:'utf8',timeout:60000});
+    const tightBarRep=JSON.parse(readFileSync(tightBarPng.replace('.png','.json'),'utf8'));
+    assert.ok(tightBarRep.findings.some(f=>f.code==='fixed-bar-safe-area-clip'),'tight fixed bottom bar triggers fixed-bar-safe-area-clip');
+
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--surface:#f8fafc}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}.ok-bar{position:fixed;left:0;right:0;bottom:0;min-height:64px;padding:8px 16px 16px;background:var(--surface);display:flex;align-items:center}.ok-bar button{min-height:44px;min-width:44px}',
+      '<main><h1>Safe area ok</h1></main><nav class="ok-bar"><button>Home</button></nav>'));
+    const okBarPng=join(work,'ok-bar.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','390','--inspect','--wait','0','--out',okBarPng],{encoding:'utf8',timeout:60000});
+    const okBarRep=JSON.parse(readFileSync(okBarPng.replace('.png','.json'),'utf8'));
+    assert.ok(!okBarRep.findings.some(f=>f.code==='fixed-bar-safe-area-clip'),'normal fixed bottom bar does not false-positive');
+
+    // 17. SVG collision calibration: faint <g opacity="0.12"> gridlines and paint-order:stroke halo labels do not false-positive.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}',
+      `<main><svg width="320" height="160" viewBox="0 0 320 160">
+        <g opacity="0.12">
+          <line x1="20" y1="40" x2="300" y2="40" stroke="#111" stroke-width="1"/>
+          <line x1="20" y1="80" x2="300" y2="80" stroke="#111" stroke-width="1"/>
+          <line x1="20" y1="120" x2="300" y2="120" stroke="#111" stroke-width="1"/>
+          <rect x="20" y="20" width="280" height="120" fill="none" stroke="#111" stroke-width="1"/>
+        </g>
+        <line x1="20" y1="100" x2="300" y2="100" stroke="#111" stroke-width="2"/>
+        <text x="60" y="84" font-size="12" fill="#111">Faint grid label</text>
+        <text x="180" y="104" font-size="12" fill="#111" stroke="#ffffff" stroke-width="4" paint-order="stroke">Halo protected</text>
+      </svg></main>`));
+    const svgCalPng=join(work,'svg-cal.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',svgCalPng],{encoding:'utf8',timeout:60000});
+    const svgCalRep=JSON.parse(readFileSync(svgCalPng.replace('.png','.json'),'utf8'));
+    assert.ok(!svgCalRep.findings.some(f=>f.code==='svg-label-collision'),'faint ancestor opacity grid and paint-order:stroke halo avoid false-positive svg-label-collision');
   }
 
   // Non-browser: validatePlan rejects tools.*.status='unavailable' when evidence only says "not needed" / "не нужна" (including MCP/browser phrasing).

@@ -33,8 +33,11 @@ const repairs = {
   'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 12 SVG primitives) and keep screen <text> >= 10px.',
   'internal-horizontal-scroll': 'Reflow wide content, tables, or grids into stacked cards/rows on mobile (<= 768px) instead of relying on internal horizontal scroll.',
   'svg-label-overlap': 'Reposition or stagger overlapping SVG <text> labels so their bounding boxes have clear separation.',
-  'svg-label-collision': 'Move SVG <text> labels into clear space or add an opaque background pill behind the label so it never crosses structural <rect> borders or solid <line> paths.',
+  'svg-label-collision': 'Move SVG <text> labels into clear space, add an opaque <rect> pill, or add a paint-order: stroke halo (stroke-width >= 2) behind the label so it never crosses structural <rect> borders or solid <line> paths.',
   'broken-theme-toggle': 'Wire the visible theme toggle button to update document.documentElement.dataset.theme (data-theme="dark") on real click.',
+  'hidden-attribute-visible': 'Ensure elements with the HTML hidden attribute remain display: none (add [hidden] { display: none !important; } to CSS resets).',
+  'fixed-bar-safe-area-clip': 'Give fixed bottom bars flexible or sufficient height alongside env(safe-area-inset-bottom) so interactive controls retain >= 44px inner height.',
+  'tab-keyboard-navigation': 'Support ArrowLeft/ArrowRight keyboard navigation between visible [role="tab"] controls inside [role="tablist"] (updating focus and aria-selected).',
 };
 
 export function verify(argv, run = spawnSync) {
@@ -179,8 +182,17 @@ export function verify(argv, run = spawnSync) {
   const discovered = firstReport?.discoveredStates ?? { hasDarkTheme: false, tabs: [] };
   const stateCoverage = {
     darkTheme: { declared: Boolean(discovered.hasDarkTheme), checked: false, frames: [] },
-    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, totalChecks: 0, checked: 0, perWidth: [], frames: [] },
+    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, totalChecks: 0, checked: 0, keyboard: { applicable: false, tested: false, passed: true }, perWidth: [], frames: [] },
   };
+  const keyboardReports = [...reportsByWidth.values()].map(r => r?.discoveredStates?.tabKeyboard).filter(Boolean);
+  const applicableKb = keyboardReports.filter(k => k.applicable);
+  if (applicableKb.length) {
+    stateCoverage.tabs.keyboard = {
+      applicable: true,
+      tested: applicableKb.every(k => k.tested),
+      passed: applicableKb.every(k => k.passed),
+    };
+  }
   const hasAt = inspectArgs.includes('--at'), hasThemeFlag = inspectArgs.includes('--theme'), hasClickFlag = inspectArgs.includes('--click');
   if (stage === 'full' && !hasAt && firstReport) {
     if (discovered.hasDarkTheme && !hasThemeFlag) {

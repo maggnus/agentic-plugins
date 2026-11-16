@@ -256,6 +256,29 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       occlusion(el, r, true);
     }
   }
+  for (const el of document.querySelectorAll('[hidden]')) {
+    const cs = style(el);
+    if (cs.display === 'none' || !visible(el)) continue;
+    const hr = el.getBoundingClientRect();
+    if (hr.width > 0 && hr.height > 0) {
+      add('hidden-attribute-visible', 'error', el, 'Element has the HTML hidden attribute, but CSS overrides display so it remains visible.', { display: cs.display, tag: el.localName }, hr);
+    }
+  }
+  for (const el of document.querySelectorAll('body *')) {
+    const ps = style(el);
+    if (ps.position !== 'fixed' || !visible(el)) continue;
+    const pr = el.getBoundingClientRect();
+    if (pr.width < innerWidth * 0.35 || pr.height <= 0 || pr.height > 160 || pr.bottom < innerHeight - 8) continue;
+    const hasInteractive = [...el.querySelectorAll('button, a[href], [role="button"], [role="tab"]')].some(c => visible(c) && c.getBoundingClientRect().width > 0);
+    if (!hasInteractive) continue;
+    const pt = parseFloat(ps.paddingTop) || 0, pb = parseFloat(ps.paddingBottom) || 0;
+    const bt = parseFloat(ps.borderTopWidth) || 0, bb = parseFloat(ps.borderBottomWidth) || 0;
+    const innerH = pr.height - pt - pb - bt - bb;
+    if (innerH < 44) {
+      add('fixed-bar-safe-area-clip', 'review', el, `Fixed bottom bar leaves only ${Math.round(innerH * 10) / 10}px inner height (< 44px) after padding/borders, risking clipped touch targets.`,
+        { height: Math.round(pr.height * 10) / 10, paddingTop: pt, paddingBottom: pb, innerHeight: Math.round(innerH * 10) / 10 }, pr);
+    }
+  }
   const root = document.documentElement;
   if (width <= 480) {
     const hdr = document.querySelector('body > header, [role="banner"]');
@@ -532,7 +555,16 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         for (const t of svg.querySelectorAll('text')) {
           if (t.closest('svg') !== svg || !t.textContent?.trim() || !visible(t)) continue;
           const tr = t.getBoundingClientRect();
-          if (tr.width > 0 && tr.height > 0) textNodes.push({ el: t, r: tr, text: t.textContent.trim().slice(0, 40) });
+          if (tr.width > 0 && tr.height > 0) {
+            const ts = style(t);
+            const poFirst = (ts.paintOrder || '').trim().toLowerCase().split(/\s+/)[0];
+            const haloW = parseFloat(ts.strokeWidth) || 0;
+            const haloOp = parseFloat(ts.strokeOpacity);
+            const haloAlpha = ts.stroke && ts.stroke !== 'none' && ts.stroke !== 'transparent'
+              ? colour(ts.stroke)[3] * (Number.isNaN(haloOp) ? 1 : haloOp) : 0;
+            const hasStrokeHalo = poFirst === 'stroke' && haloW >= 2 && haloAlpha >= 0.85;
+            textNodes.push({ el: t, r: tr, text: t.textContent.trim().slice(0, 40), hasStrokeHalo });
+          }
         }
         if (svgOverlapCount < 3 && textNodes.length >= 2) {
           let overlapped = false;
@@ -567,7 +599,9 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             const opaqueFill = Boolean(rs.fill && rs.fill !== 'none' && rs.fill !== 'transparent' && rs.fill !== 'rgba(0, 0, 0, 0)' && fillAlpha >= 0.85);
             const strokeW = parseFloat(rs.strokeWidth) || 0;
             const strokeOp = parseFloat(rs.strokeOpacity);
-            const hasStroke = Boolean(rs.stroke && rs.stroke !== 'none' && rs.stroke !== 'transparent' && strokeW > 0 && (Number.isNaN(strokeOp) || strokeOp > 0.15));
+            const strokeAlpha = rs.stroke && rs.stroke !== 'none' && rs.stroke !== 'transparent'
+              ? colour(rs.stroke)[3] * (Number.isNaN(strokeOp) ? 1 : strokeOp) * ancestorOp : 0;
+            const hasStroke = Boolean(strokeW > 0 && strokeAlpha > 0.25);
             rectInfos.push({ el: rect, r: rr, opaqueFill, hasStroke });
           }
           const lineSegs = [];
@@ -575,9 +609,15 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (line.closest('svg') !== svg || !visible(line)) continue;
             const ls = style(line);
             const strokeW = parseFloat(ls.strokeWidth) || 0;
-            const strokeOp = parseFloat(ls.strokeOpacity), op = parseFloat(ls.opacity);
+            const strokeOp = parseFloat(ls.strokeOpacity);
+            let lineAncestorOp = 1;
+            for (let p = line; p && p !== svg.parentElement; p = p.parentElement) {
+              const po = parseFloat(style(p).opacity);
+              if (!Number.isNaN(po)) lineAncestorOp *= po;
+            }
             if (!ls.stroke || ls.stroke === 'none' || ls.stroke === 'transparent' || strokeW <= 0) continue;
-            if ((!Number.isNaN(strokeOp) && strokeOp < 0.4) || (!Number.isNaN(op) && op < 0.4)) continue;
+            const strokeAlpha = colour(ls.stroke)[3] * (Number.isNaN(strokeOp) ? 1 : strokeOp) * lineAncestorOp;
+            if (strokeAlpha < 0.4) continue;
             if (ls.strokeDasharray && ls.strokeDasharray !== 'none') continue;
             const ctm = typeof line.getScreenCTM === 'function' ? line.getScreenCTM() : null;
             if (!ctm) continue;
@@ -588,6 +628,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (Math.hypot(x2 - x1, y2 - y1) > 20) lineSegs.push({ el: line, x1, y1, x2, y2 });
           }
           for (const tn of textNodes) {
+            if (tn.hasStrokeHalo) continue;
             const labelPills = rectInfos.filter(ri => ri.opaqueFill &&
               ri.r.left <= tn.r.left + 1 && ri.r.right >= tn.r.right - 1 &&
               ri.r.top <= tn.r.top + 1 && ri.r.bottom >= tn.r.bottom - 1 &&
@@ -679,6 +720,99 @@ export async function inspectPage(send, options) {
   delete report.fontSamples;
   for (const face of report.fontFaces.filter(f => f.status === 'error')) report.findings.push({ code: 'font-load-error', severity: 'review',
     selector: null, craftId: null, rect: null, message: 'A declared font failed to load; compare requested and actual fonts.', evidence: face });
+  report.discoveredStates.tabKeyboard = { applicable: false, tested: false, passed: true };
+  try {
+    const tabSetup = await send('Runtime.evaluate', {
+      expression: `(() => {
+        const isVis = el => {
+          if (!el.getClientRects().length) return false;
+          for (let p = el; p; p = p.parentElement) {
+            const s = getComputedStyle(p);
+            if (s.visibility === 'hidden' || s.visibility === 'collapse' || Number(s.opacity) === 0 || s.contentVisibility === 'hidden') return false;
+          }
+          return true;
+        };
+        const sel = el => {
+          if (el.id) return '#' + CSS.escape(el.id);
+          const parts = [];
+          for (let p = el; p && p.nodeType === 1; p = p.parentElement) {
+            const tag = p.localName;
+            const sibs = p.parentElement ? [...p.parentElement.children].filter(e => e.localName === tag) : [p];
+            parts.unshift(tag + (sibs.length > 1 ? ':nth-of-type(' + (sibs.indexOf(p) + 1) + ')' : ''));
+            if (p === document.body) break;
+          }
+          return parts.join(' > ');
+        };
+        for (const list of document.querySelectorAll('[role="tablist"]')) {
+          if (!isVis(list)) continue;
+          const tabs = [...list.querySelectorAll('[role="tab"]')].filter(t => t.closest('[role="tablist"]') === list && isVis(t));
+          if (tabs.length < 2) continue;
+          const active = tabs.find(t => t.getAttribute('aria-selected') === 'true') || tabs[0];
+          active.focus({ preventScroll: true });
+          const r = list.getBoundingClientRect();
+          window.__craftTabProbe = { list, tabs, startIndex: tabs.indexOf(active), startSelected: tabs.findIndex(t => t.getAttribute('aria-selected') === 'true') };
+          return { applicable: true, selector: sel(list), craftId: list.closest('[data-craft-id]')?.getAttribute('data-craft-id') ?? null, rect: { x: Math.round(r.x * 10) / 10, y: Math.round(r.y * 10) / 10, width: Math.round(r.width * 10) / 10, height: Math.round(r.height * 10) / 10 }, tabCount: tabs.length };
+        }
+        return { applicable: false };
+      })()`,
+      returnByValue: true,
+    });
+    const info = tabSetup.result?.value;
+    if (info?.applicable) {
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 });
+      const afterRight = await send('Runtime.evaluate', {
+        expression: `(() => {
+          const p = window.__craftTabProbe;
+          if (!p) return null;
+          const focusIdx = p.tabs.indexOf(document.activeElement);
+          const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+          return { focusMoved: focusIdx >= 0 && focusIdx !== p.startIndex, selectedMoved: selIdx >= 0 && selIdx !== p.startSelected, focusIdx, selIdx };
+        })()`,
+        returnByValue: true,
+      });
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 });
+      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 });
+      const afterLeft = await send('Runtime.evaluate', {
+        expression: `(() => {
+          const p = window.__craftTabProbe;
+          delete window.__craftTabProbe;
+          if (!p) return null;
+          const focusIdx = p.tabs.indexOf(document.activeElement);
+          const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+          return { focusIdx, selIdx };
+        })()`,
+        returnByValue: true,
+      });
+      const rVal = afterRight.result?.value;
+      const lVal = afterLeft.result?.value;
+      const arrowRightMoved = Boolean(rVal && (rVal.focusMoved || rVal.selectedMoved));
+      const arrowLeftMoved = Boolean(lVal && rVal && (lVal.focusIdx !== rVal.focusIdx || lVal.selIdx !== rVal.selIdx));
+      const passed = arrowRightMoved;
+      report.discoveredStates.tabKeyboard = {
+        applicable: true,
+        tested: true,
+        passed,
+        tablistSelector: info.selector,
+        tabCount: info.tabCount,
+        arrowRightMoved,
+        arrowLeftMoved,
+      };
+      if (!passed) {
+        report.findings.push({
+          code: 'tab-keyboard-navigation',
+          severity: 'review',
+          selector: info.selector,
+          craftId: info.craftId,
+          rect: info.rect,
+          message: 'Tabs inside [role="tablist"] do not respond to ArrowRight/ArrowLeft keyboard navigation.',
+          evidence: { tabCount: info.tabCount, arrowRightMoved, arrowLeftMoved },
+        });
+      }
+    }
+  } catch (err) {
+    report.limitations.push('Tab keyboard navigation check unavailable: ' + err.message);
+  }
   report.summary = { errors: report.findings.filter(f => f.severity === 'error').length,
     review: report.findings.filter(f => f.severity === 'review').length };
   return report;

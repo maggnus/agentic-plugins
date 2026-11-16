@@ -9,7 +9,7 @@ behave at every size.
 
 ## Type scale
 
-Use a mathematical modular scale: `1.200` (Minor Third) for operational consoles and `1.333–1.414` (Perfect Fourth / Augmented Fourth) for editorial and brand pages. Cap at 6–8 sizes per artifact and respect Gestalt proximity in vertical rhythm (`label→value 4–6px < sibling gap 12–16px < container padding 20–28px < section rhythm 72–112px`).
+Use a mathematical modular scale (`1.200` Minor Third for operational consoles; `1.333–1.414` Perfect/Augmented Fourth for editorial and brand pages). Cap at 6–8 sizes per artifact and respect Gestalt proximity in vertical rhythm (`label→value < sibling gap < container padding < section rhythm`).
 
 | Role | Range |
 |---|---|
@@ -92,10 +92,7 @@ disintegrating into letters.
   used at multiple weights).
 - Always declare a system fallback chain. If the active `DESIGN.md`
   ships a webfont URL, the fallback must still produce a coherent look.
-- Load real webfonts supporting the document's script (e.g. Cyrillic
-  subsets for Russian) and inspect optical stroke density on 1:1 PNG
-  screenshots: avoid fragile hairline serifs in small callouts or dense UI,
-  and calibrate optical weights (400/500/600) so strokes hold evenly.
+- Choose an expressive typographic voice suited to the genre and medium: delicate serifs are welcome for print, cultural, and editorial work, while crisp engineered grotesks fit operational UIs. Load real webfonts supporting the document's script (e.g. Cyrillic subsets for Russian) and check 1:1 PNG screenshots so stroke weight and optical contrast remain legible at the rendered size and medium.
 - Never leave generic `Inter`, `Roboto`, `Arial`, or bare `system-ui` as
   `--font-display` unless an external brand contract explicitly requires them —
   even utilitarian dashboards should pair a distinct engineered grotesk with a

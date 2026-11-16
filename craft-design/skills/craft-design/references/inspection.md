@@ -184,6 +184,19 @@ node <skill>/scripts/inspect.mjs design/export/index.html --width 390 --height 8
 - **control-clipped:** a clipping ancestor cuts off part of a control's box,
   even when its label is readable. Fit the whole target; do not merely move its
   text upward. Ordinary scroll regions remain governed by the brief and --fit.
+- **hidden-attribute-visible:** an element with the HTML `hidden` attribute
+  still has computed `display !== 'none'` and non-zero layout dimensions (e.g.
+  `svg { display: block }` without `[hidden] { display: none !important }`).
+- **fixed-bar-safe-area-clip:** a `position: fixed` bottom bar with interactive
+  controls leaves less than 44px of inner height after padding/borders, risking
+  clipped touch targets on mobile/safe-area layouts.
+- **tab-keyboard-navigation:** a `[role="tablist"]` with two or more visible
+  `[role="tab"]` buttons did not move focus or `aria-selected` on
+  `ArrowRight`/`ArrowLeft` in Chromium; also recorded in `stateCoverage.tabs.keyboard`.
+- **svg-label-collision:** an SVG `<text>` label crosses a visible structural
+  `<rect>` border or solid `<line>` (accounting for ancestor `<g opacity>`)
+  without an opaque `<rect>` pill or a `paint-order: stroke` halo
+  (`stroke-width >= 2` with opaque stroke).
 - **text-contrast / small-target:** review findings. Contrast uses computed solid
   backgrounds; images, gradients, effects, interaction states and intended target
   spacing need visual/platform review.

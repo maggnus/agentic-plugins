@@ -60,11 +60,18 @@ limits.
   never shrink a `viewBox` so much that the rendered screen font size of any
   `<text>` falls below `10px` (use a dedicated mobile `viewBox`/type scale or
   reflow the chart).
-- **Clear label placement:** place callouts and axis labels in clean margins or
-  on an opaque `<rect>` pill background so text never collides with other
-  `<text>` labels, structural `<rect>` borders, or solid `<line>` paths.
-- **Mathematical consistency:** ensure time axes, tick intervals, and plotted
-  extrema on charts match all adjacent text timers, KPIs, and summary cards.
+- **Preserve informative vector detail (no defensive simplification):** keep
+  meaningful structural detail—coordinate grids, `<pattern>` material hatching,
+  leader lines, and annotated callouts—rather than stripping diagrams down to
+  bare boxes or numbers.
+- **Clear label placement:** place callouts and axis labels in clean margins,
+  on an opaque `<rect>` pill background, or with a `paint-order: stroke` halo
+  (`stroke-width >= 2` in an opaque background color) so text never collides
+  with other `<text>` labels, structural `<rect>` borders, or solid `<line>`
+  paths.
+- **Mathematical consistency:** ensure time axes, tick intervals, units, and
+  plotted extrema on charts match all adjacent text timers, KPIs, and summary
+  cards.
 - **Scale & gauge end-labels:** keep the rightmost scale label (e.g. `0 % ...
   100 %`) on a single line (`white-space: nowrap` with sufficient horizontal
   clearance) so it never wraps below the scale.

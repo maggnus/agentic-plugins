@@ -33,11 +33,11 @@ selects this direction unchanged; otherwise the authored visual contract wins.
 - serif display, sans body, mono for metadata only
 - no shadows, no rounded cards — borders + whitespace do the work
 - one decisive image, cropped only at the bottom
-- kicker / eyebrow in mono uppercase, restrained palette with clear semantic color roles (`--accent` for primary action/selection, `--accent-soft` for tonal support); never create peach/pink/orange-beige page washes unless the brand/reference requires them
+- kicker / eyebrow in mono uppercase, visual scarcity with neutral paper + ink + a single restrained `--accent` used sparingly; never create peach/pink/orange-beige page washes unless the brand/reference requires them
 
 ### Modern minimal — Linear / Vercel  `(id: modern-minimal)`
 
-**Mood:** Quiet, precise, software-native. System fonts, crisp neutral foundations, and a small but visible product palette (primary + secondary + status/accent) so the interface feels shipped rather than greyscale. The chrome stays restrained while interaction states, illustrations, charts, and product moments carry color.
+**Mood:** Quiet, precise, software-native. System fonts, crisp neutral foundations, and a single focal `--accent` used with restraint (adding status or series colors only when real data or states demand them). The chrome stays quiet while interaction states, focused illustrations, charts, and product moments carry clarity.
 
 **References:** Linear, Vercel, Notion 2024, Stripe docs.
 
@@ -62,7 +62,7 @@ selects this direction unchanged; otherwise the authored visual contract wins.
 - hairline borders only, no shadows except dropdowns/modals
 - mono numerics with `font-variant-numeric: tabular-nums`
 - sticky frosted nav, content-led layouts with one product illustration, device mockup, or data visualization when it clarifies the product
-- controlled color system: primary action color + one secondary signal + status colors; avoid monochrome/unstyled outputs, but never flood every card with gradients
+- economical color system: neutral canvas + one restrained `--accent` for primary actions and active states; introduce a second series hue or status colors only when real data or incidents require them, and never flood every card with gradients
 
 ### Human / approachable — Airbnb / Duolingo systems  `(id: human-approachable)`
 
