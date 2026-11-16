@@ -224,7 +224,7 @@ try {
     assert.equal(darkReviewFail.data.status,'needs-review');
     const htmlHash=createHash('sha256').update(readFileSync(html)).digest('hex');
     const defaultOnlyRes=join(work,'default-only-res.json');
-    writeFileSync(defaultOnlyRes,JSON.stringify({version:1,sourceSha256:htmlHash,items:[{code:'text-contrast',rationale:'Default theme check rationale with enough length.',evidence:'Checked default frame PNGs carefully'}]}));
+    writeFileSync(defaultOnlyRes,JSON.stringify({version:1,sourceSha256:htmlHash,items:[{code:'text-contrast',resolution:'source-exception',rationale:'Default theme check rationale with enough length.',evidence:'Checked default frame PNGs carefully'}]}));
     const stillNeedsReview=runVerify(['--resolutions',defaultOnlyRes]);
     assert.equal(stillNeedsReview.status,1,'default resolution must not silence dark-theme finding');
     assert.equal(stillNeedsReview.data.status,'needs-review');
