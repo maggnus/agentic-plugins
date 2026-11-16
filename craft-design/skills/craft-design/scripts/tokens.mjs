@@ -326,6 +326,9 @@ export function inspectHtml(html) {
   const classifyProp = prop => {
     if (prop === 'font-family') return 'font';
     if (prop === 'font-size' || prop === 'line-height') return 'text';
+    if (prop === 'font-weight') return 'weight';
+    if (prop === 'letter-spacing' || prop === 'word-spacing') return 'tracking';
+    if (prop === 'opacity') return 'opacity';
     if (/^border-(?:.*-)?radius$/.test(prop)) return 'radius';
     if (/^(?:padding|margin|gap|row-gap|column-gap|inset|top|right|bottom|left|width|min-width|max-width|height|min-height|max-height)(?:-|$)/.test(prop)) return 'space';
     if (COLOR_PROPERTY.test(prop)) return 'color';
@@ -353,6 +356,10 @@ export function inspectHtml(html) {
   };
   for (const d of decls) {
     if (d.ignored || d.prop.startsWith('--')) continue;
+    if (d.prop === 'font') {
+      for (const ref of refs(d.value)) { addUsage(ref, 'text'); addUsage(ref, 'font'); addUsage(ref, 'weight'); }
+      continue;
+    }
     const kind = classifyProp(d.prop);
     if (kind) for (const ref of refs(d.value)) addUsage(ref, kind);
   }
@@ -361,6 +368,7 @@ export function inspectHtml(html) {
     const clean = uncomment(rawValue).trim();
     if (colorLiterals(clean).length || /\bcolor-mix\s*\(/i.test(clean)) return 'color';
     if (/["']/.test(clean) || /(?:^|,)\s*(?:sans-serif|serif|monospace|system-ui|ui-sans-serif|ui-serif|ui-monospace|cursive|fantasy)\b/i.test(clean)) return 'font';
+    if (/^(?:[1-9]00|bold|normal|lighter|bolder)$/i.test(clean) && candidateKinds.has('weight')) return 'weight';
     if (/\d(?:\.\d+)?(?:px|rem|em|vw|vh|vmin|vmax|ch|ex|%)\b|\b(?:clamp|min|max|calc)\s*\(/i.test(clean)) {
       if (candidateKinds.has('radius') && !candidateKinds.has('text') && !candidateKinds.has('space')) return 'radius';
       if (candidateKinds.has('text') && !candidateKinds.has('radius') && !candidateKinds.has('space')) return 'text';
@@ -383,10 +391,10 @@ export function inspectHtml(html) {
       continue;
     }
     if (counts && counts.size > 0) {
-      const priority = ['color', 'font', 'text', 'radius', 'space'];
+      const priority = ['color', 'font', 'text', 'weight', 'tracking', 'opacity', 'radius', 'space'];
       tokenKinds[name] = [...counts.entries()].sort((a, b) => b[1] - a[1] || priority.indexOf(a[0]) - priority.indexOf(b[0]))[0][0];
     } else {
-      tokenKinds[name] = fromVal ?? 'color';
+      tokenKinds[name] = fromVal ?? null;
     }
   }
   // A component variable with a copied literal is not a second semantic token.
@@ -537,19 +545,28 @@ async function mutateTheme(tokens, semanticTokens, pureReferences, tokenKinds = 
   const restore = () => original === null ? root.removeAttribute('style') : root.setAttribute('style', original);
   try {
     for (const token of tokens) {
-      const kind = tokenKinds[token] ?? 'color';
-      const properties = kind === 'font' ? ['font-family'] : kind === 'text' ? ['font-size', 'line-height'] : kind === 'radius'
-        ? ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius']
+      const kind = Object.prototype.hasOwnProperty.call(tokenKinds, token) ? tokenKinds[token] : null;
+      if (!kind) {
+        results.push({ token, skipped: true, kind: null, changed: 0, examples: [], activeConsumers: null, boundToHiddenState: false, duplicates: [], duplicateCount: 0, restored: true });
+        continue;
+      }
+      const properties = kind === 'font' ? ['font-family'] : kind === 'text' ? ['font-size', 'line-height']
+        : kind === 'weight' ? ['font-weight'] : kind === 'tracking' ? ['letter-spacing', 'word-spacing'] : kind === 'opacity' ? ['opacity']
+        : kind === 'radius' ? ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius']
         : kind === 'space' ? ['padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'row-gap', 'column-gap', 'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'top', 'right', 'bottom', 'left']
         : ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color', 'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'text-shadow', 'background-image'];
-      const sampleProperty = { font: 'font-family', text: 'font-size', space: 'padding-top', radius: 'border-top-left-radius', color: 'color' }[kind];
+      const sampleProperty = { font: 'font-family', text: 'font-size', weight: 'font-weight', tracking: 'letter-spacing', opacity: 'opacity', space: 'padding-top', radius: 'border-top-left-radius', color: 'color' }[kind];
       probe.style.setProperty(sampleProperty, `var(${token})`);
       const raw = getComputedStyle(root).getPropertyValue(token).trim();
       const sample = getComputedStyle(probe).getPropertyValue(sampleProperty);
       const snapshot = () => elements.map(el => { const style = getComputedStyle(el); return properties.map(p => style.getPropertyValue(p)); });
       const before = snapshot();
-      let control = kind === 'font' ? (sample === 'monospace' ? 'serif' : 'monospace') : kind === 'color'
-        ? (sample === 'rgb(17, 239, 113)' ? 'rgb(231, 19, 193)' : 'rgb(17, 239, 113)') : `${Math.max(1, parseFloat(sample) || 0) * 1.37 + 13}px`;
+      let control = kind === 'font' ? (sample === 'monospace' ? 'serif' : 'monospace')
+        : kind === 'color' ? (sample === 'rgb(17, 239, 113)' ? 'rgb(231, 19, 193)' : 'rgb(17, 239, 113)')
+        : kind === 'weight' ? ((sample === '900' || sample === 'bold') ? '300' : '900')
+        : kind === 'tracking' ? (raw === '0.47em' ? '0.67em' : '0.47em')
+        : kind === 'opacity' ? ((parseFloat(sample) > 0.5) ? '0.17' : '0.89')
+        : `${Math.max(1, parseFloat(sample) || 0) * 1.37 + 13}px`;
       let after, restored, restoration;
       try {
         root.style.setProperty(token, control, 'important');
@@ -1022,6 +1039,10 @@ export async function main(argv) {
     log(`${width}px: inspected ${result.elements} rendered element(s)`);
     if (result.viewport !== width) warning('viewport-mismatch', `${width}px requested, page laid out at ${result.viewport}px; check the viewport meta tag`);
     for (const row of result.results) {
+      if (row.skipped) {
+        log(`  ${width}px ${row.token}: skipped (unsupported property kind)`);
+        continue;
+      }
       log(`  ${width}px ${row.token}: ${row.changed} element(s) changed; ${row.restored ? 'restored' : 'RESTORATION FAILED'}`);
       if (!row.restored) throw new Error(`could not restore ${row.token}: ${JSON.stringify(row.restoration)}`);
       const inactive = !row.changed && row.activeConsumers === 0 && frames.some(frame => frame.results.some(other => other.token === row.token && other.changed > 0));

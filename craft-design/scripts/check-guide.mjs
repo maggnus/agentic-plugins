@@ -243,7 +243,10 @@ try{
  assert.match(latest.repeatCommand,/--resolutions/,'repeatCommand retains --resolutions');
  writeFileSync(html,'<!doctype html><p>fixture edited</p>');
  assert.equal(verify([html,'--state',state,'--resolutions',resFile],evidence({review:true})),1,'stale sourceSha256 in --resolutions is rejected');
- assert.equal(latest.passed,false);assert.equal(latest.status,'needs-review');assert.ok(latest.resolutionsError);
+ assert.equal(latest.passed,false);assert.equal(latest.technicalPassed,false);assert.equal(latest.status,'incomplete');assert.ok(latest.resolutionsError);
+ calls.length=0;
+ assert.equal(verify([html,'--state',state,'--theme','dark'],evidence()),0);
+ assert.ok(calls[0].includes('--theme')&&calls[0][calls[0].indexOf('--theme')+1]==='dark','explicit --theme is forwarded to primary tokens.mjs check');
  writeFileSync(html,'<!doctype html><p>fixture</p>');
  calls.length=0;
  assert.equal(verify([html,'--state',state,'--strict'],evidence()),0);

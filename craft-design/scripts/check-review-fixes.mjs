@@ -7,6 +7,7 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { inspectHtml } from '../skills/craft-design/scripts/tokens.mjs';
 import { capabilities, validatePlan, curriculum } from '../skills/craft-design/scripts/craft-guide.mjs';
 const skill=join(dirname(fileURLToPath(import.meta.url)),'../skills/craft-design');
@@ -195,6 +196,53 @@ try {
     assert.equal(calmVerify.data.clean,true);
     assert.equal(calmVerify.data.counts.renderErrors,0);
     assert.equal(calmVerify.data.counts.renderReviews,0);
+
+    // 6. Non-color property categories (--weight, --tracking, --opacity, --z-modal) in tokens.mjs.
+    const propKindsTheme=':root{--bg:#ffffff;--fg:#111111;--font-body:sans-serif;--weight:600;--tracking:0.04em;--fade:0.85;--z-modal:40}';
+    const propKindsStyles='body{background:var(--bg);color:var(--fg);font-family:var(--font-body)}h1{font-weight:var(--weight);letter-spacing:var(--tracking);opacity:var(--fade);position:relative;z-index:var(--z-modal)}';
+    const propKindsOk=runTokens(wrap(propKindsTheme,propKindsStyles,'<main><h1>Typed tokens</h1></main>'));
+    assert.equal(propKindsOk.status,0,'weight/tracking/opacity/z-index pass without false mutation-no-effect: '+propKindsOk.stdout);
+    const zRow=propKindsOk.data.frames[0].results.find(x=>x.token==='--z-modal');
+    assert.equal(zRow.skipped,true,'z-index token is skipped cleanly instead of falling back to color');
+    const brokenWeight=runTokens(wrap(':root{--bg:#ffffff;--fg:#111111;--font-body:sans-serif;--weight:600}','body{background:var(--bg);color:var(--fg);font-family:var(--font-body)}@media(min-width:1px){h1{font-weight:600}}','<main><h1>Broken weight</h1></main>'));
+    assert.equal(brokenWeight.status,1,'unused/unbound weight token is caught');
+
+    // 7. Invalid/stale --resolutions fails closed even with 0 review findings.
+    const badResFile=join(work,'bad-resolutions.json');
+    writeFileSync(badResFile,JSON.stringify({version:1,sourceSha256:'0000000000000000',items:[]}));
+    const staleZeroReview=runVerify(['--resolutions',badResFile]);
+    assert.equal(staleZeroReview.status,1,'stale --resolutions fails even when 0 review findings exist');
+    assert.equal(staleZeroReview.data.passed,false);
+    assert.equal(staleZeroReview.data.technicalPassed,false);
+
+    // 8. State-scoped resolutions (default vs dark-theme) & 768px small-target threshold.
+    const darkReviewTheme=':root{--bg:#ffffff;--fg:#111111;--font-body:sans-serif;--text-body:16px}[data-theme="dark"]{--bg:#111111;--fg:#222222}';
+    const darkReviewCss='body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:var(--text-body);padding:20px}button{min-height:44px;min-width:88px}';
+    writeFileSync(html,wrap(darkReviewTheme,darkReviewCss,'<main><h1>Dark contrast</h1><p>Low contrast in dark theme only.</p></main>'));
+    const darkReviewFail=runVerify();
+    assert.equal(darkReviewFail.status,1);
+    assert.equal(darkReviewFail.data.status,'needs-review');
+    const htmlHash=createHash('sha256').update(readFileSync(html)).digest('hex');
+    const defaultOnlyRes=join(work,'default-only-res.json');
+    writeFileSync(defaultOnlyRes,JSON.stringify({version:1,sourceSha256:htmlHash,items:[{code:'text-contrast',rationale:'Default theme check rationale with enough length.',evidence:'Checked default frame PNGs carefully'}]}));
+    const stillNeedsReview=runVerify(['--resolutions',defaultOnlyRes]);
+    assert.equal(stillNeedsReview.status,1,'default resolution must not silence dark-theme finding');
+    assert.equal(stillNeedsReview.data.status,'needs-review');
+    const darkRes=join(work,'dark-res.json');
+    writeFileSync(darkRes,JSON.stringify({version:1,sourceSha256:htmlHash,items:[{code:'text-contrast',state:'dark-theme',resolution:'source-exception',rationale:'Dark theme contrast exception documented explicitly.',evidence:'frame-dark-1440.png inspected'}]}));
+    const darkResolved=runVerify(['--resolutions',darkRes]);
+    assert.equal(darkResolved.status,0,'explicit state:dark-theme resolution closes dark-theme finding: '+darkResolved.stdout);
+
+    // 768px small-target detection & false-positive rejection.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--font-body:sans-serif;--text-body:16px}','body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:var(--text-body);padding:20px}button{width:36px;height:36px;padding:0}','<main><button type="button">OK</button></main>'));
+    const res768=spawnSync(process.execPath,[join(skill,'scripts/verify.mjs'),html,'--state',state,'--width','768','--wait','0'],{encoding:'utf8',timeout:120000});
+    const data768=JSON.parse(res768.stdout);
+    assert.equal(res768.status,1);
+    assert.ok(data768.diagnostics.some(d=>d.code==='small-target'&&d.width===768),'768px enforces >= 44px touch target');
+    const fp768=join(work,'fp-768.json');
+    writeFileSync(fp768,JSON.stringify({version:1,sourceSha256:createHash('sha256').update(readFileSync(html)).digest('hex'),items:[{code:'small-target',width:768,resolution:'false-positive',rationale:'Trying to waive 36px button at 768px as false-positive.',evidence:'Measured 36x36 in inspector'}]}));
+    const fp768Res=spawnSync(process.execPath,[join(skill,'scripts/verify.mjs'),html,'--state',state,'--width','768','--wait','0','--resolutions',fp768],{encoding:'utf8',timeout:120000});
+    assert.equal(fp768Res.status,1,'false-positive for small-target at 768px is rejected');
 
 
 

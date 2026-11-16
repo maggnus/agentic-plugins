@@ -240,7 +240,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
           }
         }
       }
-      if (innerWidth < 600 && (targetRect.width < 44 || targetRect.height < 44)) add('small-target', 'review', el,
+      if (innerWidth <= 768 && (targetRect.width < 44 || targetRect.height < 44)) add('small-target', 'review', el,
         'Target is smaller than the skill’s 44 px touch guideline; check spacing and the intended platform.');
       if (fit && outside(r)) add('outside-frame', 'error', el, 'Control is outside the required single-screen frame.');
       occlusion(el, r, true);

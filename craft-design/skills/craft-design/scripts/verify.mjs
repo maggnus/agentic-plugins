@@ -112,8 +112,14 @@ export function verify(argv, run = spawnSync) {
     }
   }
 
-  const steps = [['tokens', ['check', targetSpec, '--width', widths, ...modeArgs, '--strict', '--json']], ['inspect', [targetSpec, ...inspectArgs, '--out', join(directory, 'frame.png'), '--strict']]];
+  const themeIndex = inspectArgs.indexOf('--theme');
+  const explicitTheme = themeIndex >= 0 ? inspectArgs[themeIndex + 1] : null;
+  if (explicitTheme !== null && !['dark', 'light'].includes(explicitTheme)) throw new Error('Invalid --theme; expected dark or light.');
+  const themeArgs = explicitTheme ? ['--theme', explicitTheme] : [];
+
+  const steps = [['tokens', ['check', targetSpec, '--width', widths, ...modeArgs, ...themeArgs, '--strict', '--json']], ['inspect', [targetSpec, ...inspectArgs, '--out', join(directory, 'frame.png'), '--strict']]];
   const results = [], diagnostics = [], frames = [], stateFrames = [], deferredInCalibrate = [];
+  if (resolutionsError) results.push({ name: 'resolutions', exitCode: 1, error: resolutionsError, evidenceError: resolutionsError });
   let tokenReport = null, firstReport = null;
   let activeTokenWarnings = 0;
 
@@ -254,12 +260,14 @@ export function verify(argv, run = spawnSync) {
   const acceptedReviews = [], unresolvedReviews = [];
   const matchesResolution = (f, width, stateLabel, item) => {
     if (!item || item.code !== f.code) return false;
+    const targetState = item.state ?? 'default';
+    if (targetState !== stateLabel) return false;
     if (item.width !== undefined && item.width !== width) return false;
     if (item.selector !== undefined && item.selector !== f.selector) return false;
     if (!['false-positive', 'source-exception', 'verified-after-scroll'].includes(item.resolution)) return false;
     if (typeof item.rationale !== 'string' || item.rationale.trim().length < 15) return false;
     if (typeof item.evidence !== 'string' || item.evidence.trim().length < 10) return false;
-    if (item.resolution === 'false-positive' && (f.code === 'hover-contrast-loss' || f.code === 'competing-solid-actions' || (f.code === 'small-target' && width < 600))) return false;
+    if (item.resolution === 'false-positive' && (f.code === 'hover-contrast-loss' || f.code === 'competing-solid-actions' || (f.code === 'small-target' && width <= 768))) return false;
     return true;
   };
   for (const fr of allFrames) {
