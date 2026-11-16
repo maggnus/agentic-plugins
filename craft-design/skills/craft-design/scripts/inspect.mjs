@@ -264,6 +264,35 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       add('hidden-attribute-visible', 'error', el, 'Element has the HTML hidden attribute, but CSS overrides display so it remains visible.', { display: cs.display, tag: el.localName }, hr);
     }
   }
+  const authoredSafeArea = el => {
+    let usesSafeAreaPadding = false, hasRigidHeightWithoutSafeArea = false;
+    const inspectDecl = decl => {
+      if (!decl) return;
+      const pb = decl.getPropertyValue('padding-bottom') || '', p = decl.getPropertyValue('padding') || '';
+      if (/safe-area-inset-bottom/i.test(pb) || /safe-area-inset-bottom/i.test(p)) usesSafeAreaPadding = true;
+      const h = decl.getPropertyValue('height') || '', mh = decl.getPropertyValue('max-height') || '';
+      for (const hv of [h, mh]) {
+        if (hv && !/^(auto|none|fit-content|min-content|max-content)$/i.test(hv.trim()) && !/safe-area-inset-bottom/i.test(hv)) {
+          hasRigidHeightWithoutSafeArea = true;
+        }
+      }
+    };
+    const scanRules = list => {
+      for (const rule of list || []) {
+        if (rule instanceof CSSStyleRule) {
+          try { if (el.matches(rule.selectorText)) inspectDecl(rule.style); } catch {}
+        } else if (rule.cssRules) {
+          if (rule.media?.mediaText && !matchMedia(rule.media.mediaText).matches) continue;
+          scanRules(rule.cssRules);
+        }
+      }
+    };
+    for (const sheet of document.styleSheets) {
+      try { scanRules(sheet.cssRules); } catch {}
+    }
+    inspectDecl(el.style);
+    return { usesSafeAreaPadding, hasRigidHeightWithoutSafeArea };
+  };
   for (const el of document.querySelectorAll('body *')) {
     const ps = style(el);
     if (ps.position !== 'fixed' || !visible(el)) continue;
@@ -271,12 +300,16 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     if (pr.width < innerWidth * 0.35 || pr.height <= 0 || pr.height > 160 || pr.bottom < innerHeight - 8) continue;
     const hasInteractive = [...el.querySelectorAll('button, a[href], [role="button"], [role="tab"]')].some(c => visible(c) && c.getBoundingClientRect().width > 0);
     if (!hasInteractive) continue;
+    const sa = authoredSafeArea(el);
+    if (width > 768 && !sa.usesSafeAreaPadding) continue;
     const pt = parseFloat(ps.paddingTop) || 0, pb = parseFloat(ps.paddingBottom) || 0;
     const bt = parseFloat(ps.borderTopWidth) || 0, bb = parseFloat(ps.borderBottomWidth) || 0;
     const innerH = pr.height - pt - pb - bt - bb;
-    if (innerH < 44) {
-      add('fixed-bar-safe-area-clip', 'review', el, `Fixed bottom bar leaves only ${Math.round(innerH * 10) / 10}px inner height (< 44px) after padding/borders, risking clipped touch targets.`,
-        { height: Math.round(pr.height * 10) / 10, paddingTop: pt, paddingBottom: pb, innerHeight: Math.round(innerH * 10) / 10 }, pr);
+    const safeAreaReserve = (sa.usesSafeAreaPadding && sa.hasRigidHeightWithoutSafeArea && ps.boxSizing === 'border-box') ? 34 : 0;
+    const effectiveInnerH = innerH - safeAreaReserve;
+    if (effectiveInnerH < 44) {
+      add('fixed-bar-safe-area-clip', 'review', el, `Fixed bottom bar leaves only ${Math.round(effectiveInnerH * 10) / 10}px expected inner height (< 44px) after padding/borders${safeAreaReserve ? ' and 34px safe-area-inset-bottom reserve' : ''}, risking clipped touch targets.`,
+        { height: Math.round(pr.height * 10) / 10, paddingTop: pt, paddingBottom: pb, innerHeight: Math.round(innerH * 10) / 10, safeAreaReserve, effectiveInnerHeight: Math.round(effectiveInnerH * 10) / 10 }, pr);
     }
   }
   const root = document.documentElement;
@@ -558,11 +591,21 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
           if (tr.width > 0 && tr.height > 0) {
             const ts = style(t);
             const poFirst = (ts.paintOrder || '').trim().toLowerCase().split(/\s+/)[0];
-            const haloW = parseFloat(ts.strokeWidth) || 0;
+            const ctm = typeof t.getScreenCTM === 'function' ? t.getScreenCTM() : null;
+            const ctmScale = ctm ? Math.min(Math.hypot(ctm.a, ctm.b), Math.hypot(ctm.c, ctm.d)) : 1;
+            const haloW = (parseFloat(ts.strokeWidth) || 0) * (ctmScale > 0 ? ctmScale : 1);
             const haloOp = parseFloat(ts.strokeOpacity);
-            const haloAlpha = ts.stroke && ts.stroke !== 'none' && ts.stroke !== 'transparent'
-              ? colour(ts.stroke)[3] * (Number.isNaN(haloOp) ? 1 : haloOp) : 0;
-            const hasStrokeHalo = poFirst === 'stroke' && haloW >= 2 && haloAlpha >= 0.85;
+            let textAncestorOp = 1;
+            for (let p = t; p && p !== svg.parentElement; p = p.parentElement) {
+              const po = parseFloat(style(p).opacity);
+              if (!Number.isNaN(po)) textAncestorOp *= po;
+            }
+            const strokeCol = ts.stroke && ts.stroke !== 'none' && ts.stroke !== 'transparent' ? colour(ts.stroke) : null;
+            const fillCol = ts.fill && ts.fill !== 'none' && ts.fill !== 'transparent' ? colour(ts.fill) : null;
+            const haloAlpha = strokeCol ? strokeCol[3] * (Number.isNaN(haloOp) ? 1 : haloOp) * textAncestorOp : 0;
+            const noDash = !ts.strokeDasharray || ts.strokeDasharray === 'none';
+            const distinctColor = Boolean(strokeCol && (!fillCol || Math.abs(strokeCol[0] - fillCol[0]) + Math.abs(strokeCol[1] - fillCol[1]) + Math.abs(strokeCol[2] - fillCol[2]) > 24));
+            const hasStrokeHalo = poFirst === 'stroke' && haloW >= 2 && haloAlpha >= 0.85 && noDash && distinctColor;
             textNodes.push({ el: t, r: tr, text: t.textContent.trim().slice(0, 40), hasStrokeHalo });
           }
         }
@@ -628,20 +671,18 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (Math.hypot(x2 - x1, y2 - y1) > 20) lineSegs.push({ el: line, x1, y1, x2, y2 });
           }
           for (const tn of textNodes) {
-            if (tn.hasStrokeHalo) continue;
             const labelPills = rectInfos.filter(ri => ri.opaqueFill &&
               ri.r.left <= tn.r.left + 1 && ri.r.right >= tn.r.right - 1 &&
               ri.r.top <= tn.r.top + 1 && ri.r.bottom >= tn.r.bottom - 1 &&
-              ri.r.width <= Math.max(tn.r.width * 2.2, tn.r.width + 40) &&
-              ri.r.height <= Math.max(tn.r.height * 2.5, tn.r.height + 24) &&
               Boolean(ri.el.compareDocumentPosition(tn.el) & Node.DOCUMENT_POSITION_FOLLOWING));
-            const shieldedByPill = obstacleEl => labelPills.some(pill =>
-              Boolean(obstacleEl.compareDocumentPosition(pill.el) & Node.DOCUMENT_POSITION_FOLLOWING));
+            const shielded = obstacleEl =>
+              (tn.hasStrokeHalo && Boolean(obstacleEl.compareDocumentPosition(tn.el) & Node.DOCUMENT_POSITION_FOLLOWING)) ||
+              labelPills.some(pill => Boolean(obstacleEl.compareDocumentPosition(pill.el) & Node.DOCUMENT_POSITION_FOLLOWING));
             let hit = null;
             for (const ri of rectInfos) {
               if (!ri.hasStroke || ri.r.width < 16 || ri.r.height < 16) continue;
               if (ri.r.width >= sr.width * 0.96 && ri.r.height >= sr.height * 0.96) continue;
-              if (shieldedByPill(ri.el)) continue;
+              if (shielded(ri.el)) continue;
               if (tn.r.right <= ri.r.left + 1 || tn.r.left >= ri.r.right - 1 || tn.r.bottom <= ri.r.top + 1 || tn.r.top >= ri.r.bottom - 1) continue;
               if (tn.r.left >= ri.r.left + 1 && tn.r.right <= ri.r.right - 1 && tn.r.top >= ri.r.top + 1 && tn.r.bottom <= ri.r.bottom - 1) continue;
               const hitsHorizWall = (tn.r.left < ri.r.left - 0.5 && tn.r.right > ri.r.left + 2) || (tn.r.left < ri.r.right - 2 && tn.r.right > ri.r.right + 0.5);
@@ -654,12 +695,12 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (!hit && lineSegs.length) {
               const cx1 = tn.r.left + Math.min(4, tn.r.width * 0.2), cx2 = tn.r.right - Math.min(4, tn.r.width * 0.2);
               const cy1 = tn.r.top + Math.min(3, tn.r.height * 0.2), cy2 = tn.r.bottom - Math.min(3, tn.r.height * 0.2);
-              if (cx2 > cx1 && cy2 > cy1 && lineSegs.some(seg => !shieldedByPill(seg.el) && segHitsBox(seg, cx1, cy1, cx2, cy2))) {
+              if (cx2 > cx1 && cy2 > cy1 && lineSegs.some(seg => !shielded(seg.el) && segHitsBox(seg, cx1, cy1, cx2, cy2))) {
                 hit = { kind: 'solid-line', text: tn.text };
               }
             }
             if (hit) {
-              add('svg-label-collision', 'review', svg, 'SVG <text> label crosses a structural <rect> border or solid <line> without a background pill.', hit, sr);
+              add('svg-label-collision', 'review', svg, 'SVG <text> label crosses a structural <rect> border or solid <line> without an opaque <rect> pill or paint-order: stroke halo.', hit, sr);
               svgCollisionCount++;
               break;
             }
@@ -720,98 +761,158 @@ export async function inspectPage(send, options) {
   delete report.fontSamples;
   for (const face of report.fontFaces.filter(f => f.status === 'error')) report.findings.push({ code: 'font-load-error', severity: 'review',
     selector: null, craftId: null, rect: null, message: 'A declared font failed to load; compare requested and actual fonts.', evidence: face });
-  report.discoveredStates.tabKeyboard = { applicable: false, tested: false, passed: true };
-  try {
-    const tabSetup = await send('Runtime.evaluate', {
-      expression: `(() => {
-        const isVis = el => {
-          if (!el.getClientRects().length) return false;
-          for (let p = el; p; p = p.parentElement) {
-            const s = getComputedStyle(p);
-            if (s.visibility === 'hidden' || s.visibility === 'collapse' || Number(s.opacity) === 0 || s.contentVisibility === 'hidden') return false;
+  report.discoveredStates.tabKeyboard = { applicable: false, tested: false, passed: null, tablists: [] };
+  if (!options.skipTabKeyboard) {
+    try {
+      const tabSetup = await send('Runtime.evaluate', {
+        expression: `(() => {
+          const isVis = el => {
+            if (!el.getClientRects().length) return false;
+            for (let p = el; p; p = p.parentElement) {
+              const s = getComputedStyle(p);
+              if (s.visibility === 'hidden' || s.visibility === 'collapse' || Number(s.opacity) === 0 || s.contentVisibility === 'hidden') return false;
+            }
+            return true;
+          };
+          const sel = el => {
+            if (el.id) return '#' + CSS.escape(el.id);
+            const parts = [];
+            for (let p = el; p && p.nodeType === 1; p = p.parentElement) {
+              const tag = p.localName;
+              const sibs = p.parentElement ? [...p.parentElement.children].filter(e => e.localName === tag) : [p];
+              parts.unshift(tag + (sibs.length > 1 ? ':nth-of-type(' + (sibs.indexOf(p) + 1) + ')' : ''));
+              if (p === document.body) break;
+            }
+            return parts.join(' > ');
+          };
+          const lists = [];
+          for (const list of document.querySelectorAll('[role="tablist"]')) {
+            if (!isVis(list)) continue;
+            const tabs = [...list.querySelectorAll('[role="tab"]')].filter(t =>
+              t.closest('[role="tablist"]') === list &&
+              isVis(t) &&
+              !t.disabled &&
+              t.getAttribute('aria-disabled') !== 'true'
+            );
+            if (tabs.length < 2) continue;
+            const r = list.getBoundingClientRect();
+            const startSelectedIdx = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+            const startActiveIdx = startSelectedIdx >= 0 ? startSelectedIdx : 0;
+            lists.push({
+              list,
+              tabs,
+              vertical: list.getAttribute('aria-orientation') === 'vertical',
+              startSelectedIdx,
+              startActiveIdx,
+              selector: sel(list),
+              craftId: list.closest('[data-craft-id]')?.getAttribute('data-craft-id') ?? null,
+              rect: { x: Math.round(r.x * 10) / 10, y: Math.round(r.y * 10) / 10, width: Math.round(r.width * 10) / 10, height: Math.round(r.height * 10) / 10 },
+              tabCount: tabs.length,
+            });
           }
-          return true;
-        };
-        const sel = el => {
-          if (el.id) return '#' + CSS.escape(el.id);
-          const parts = [];
-          for (let p = el; p && p.nodeType === 1; p = p.parentElement) {
-            const tag = p.localName;
-            const sibs = p.parentElement ? [...p.parentElement.children].filter(e => e.localName === tag) : [p];
-            parts.unshift(tag + (sibs.length > 1 ? ':nth-of-type(' + (sibs.indexOf(p) + 1) + ')' : ''));
-            if (p === document.body) break;
+          window.__craftTabProbes = lists;
+          return lists.map((item, idx) => ({
+            idx,
+            vertical: item.vertical,
+            atEnd: item.startActiveIdx === item.tabs.length - 1,
+            selector: item.selector,
+            craftId: item.craftId,
+            rect: item.rect,
+            tabCount: item.tabCount,
+          }));
+        })()`,
+        returnByValue: true,
+      });
+      const infos = tabSetup.result?.value ?? [];
+      if (infos.length) {
+        const listResults = [];
+        for (const info of infos) {
+          const fwd = info.vertical
+            ? { key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 }
+            : { key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 };
+          const bwd = info.vertical
+            ? { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 }
+            : { key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 };
+          await send('Runtime.evaluate', {
+            expression: `(() => {
+              const p = window.__craftTabProbes?.[${info.idx}];
+              if (p) p.tabs[p.startActiveIdx].focus({ preventScroll: true });
+            })()`,
+          });
+          const firstKey = info.atEnd ? bwd : fwd;
+          const secondKey = info.atEnd ? fwd : bwd;
+          await send('Input.dispatchKeyEvent', { type: 'keyDown', ...firstKey });
+          await send('Input.dispatchKeyEvent', { type: 'keyUp', ...firstKey });
+          const step1Res = await send('Runtime.evaluate', {
+            expression: `(() => {
+              const p = window.__craftTabProbes?.[${info.idx}];
+              if (!p) return null;
+              const focusIdx = p.tabs.indexOf(document.activeElement);
+              const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+              const moved = (focusIdx >= 0 && focusIdx !== p.startActiveIdx) || (selIdx >= 0 && selIdx !== p.startSelectedIdx);
+              return { moved, focusIdx, selIdx };
+            })()`,
+            returnByValue: true,
+          });
+          await send('Input.dispatchKeyEvent', { type: 'keyDown', ...secondKey });
+          await send('Input.dispatchKeyEvent', { type: 'keyUp', ...secondKey });
+          const step2Res = await send('Runtime.evaluate', {
+            expression: `(() => {
+              const p = window.__craftTabProbes?.[${info.idx}];
+              if (!p) return null;
+              const focusIdx = p.tabs.indexOf(document.activeElement);
+              const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+              return { focusIdx, selIdx };
+            })()`,
+            returnByValue: true,
+          });
+          await send('Runtime.evaluate', {
+            expression: `(() => {
+              const p = window.__craftTabProbes?.[${info.idx}];
+              if (!p) return;
+              const curSel = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+              if (p.startSelectedIdx >= 0 && curSel !== p.startSelectedIdx) p.tabs[p.startSelectedIdx].click();
+              if (document.activeElement && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+            })()`,
+          });
+          const s1 = step1Res.result?.value;
+          const s2 = step2Res.result?.value;
+          const step1Moved = Boolean(s1?.moved);
+          const step2Moved = Boolean(s1 && s2 && ((s2.focusIdx >= 0 && s2.focusIdx !== s1.focusIdx) || (s2.selIdx >= 0 && s2.selIdx !== s1.selIdx)));
+          const movedForward = info.atEnd ? step2Moved : step1Moved;
+          const movedBackward = info.atEnd ? step1Moved : step2Moved;
+          const passed = movedForward && movedBackward;
+          listResults.push({
+            selector: info.selector,
+            tabCount: info.tabCount,
+            vertical: info.vertical,
+            movedForward,
+            movedBackward,
+            passed,
+          });
+          if (!passed) {
+            report.findings.push({
+              code: 'tab-keyboard-navigation',
+              severity: 'review',
+              selector: info.selector,
+              craftId: info.craftId,
+              rect: info.rect,
+              message: `Tabs inside [role="tablist"] do not respond to ${info.vertical ? 'ArrowDown/ArrowUp' : 'ArrowRight/ArrowLeft'} keyboard navigation in both directions.`,
+              evidence: { tabCount: info.tabCount, vertical: info.vertical, movedForward, movedBackward },
+            });
           }
-          return parts.join(' > ');
-        };
-        for (const list of document.querySelectorAll('[role="tablist"]')) {
-          if (!isVis(list)) continue;
-          const tabs = [...list.querySelectorAll('[role="tab"]')].filter(t => t.closest('[role="tablist"]') === list && isVis(t));
-          if (tabs.length < 2) continue;
-          const active = tabs.find(t => t.getAttribute('aria-selected') === 'true') || tabs[0];
-          active.focus({ preventScroll: true });
-          const r = list.getBoundingClientRect();
-          window.__craftTabProbe = { list, tabs, startIndex: tabs.indexOf(active), startSelected: tabs.findIndex(t => t.getAttribute('aria-selected') === 'true') };
-          return { applicable: true, selector: sel(list), craftId: list.closest('[data-craft-id]')?.getAttribute('data-craft-id') ?? null, rect: { x: Math.round(r.x * 10) / 10, y: Math.round(r.y * 10) / 10, width: Math.round(r.width * 10) / 10, height: Math.round(r.height * 10) / 10 }, tabCount: tabs.length };
         }
-        return { applicable: false };
-      })()`,
-      returnByValue: true,
-    });
-    const info = tabSetup.result?.value;
-    if (info?.applicable) {
-      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 });
-      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 });
-      const afterRight = await send('Runtime.evaluate', {
-        expression: `(() => {
-          const p = window.__craftTabProbe;
-          if (!p) return null;
-          const focusIdx = p.tabs.indexOf(document.activeElement);
-          const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
-          return { focusMoved: focusIdx >= 0 && focusIdx !== p.startIndex, selectedMoved: selIdx >= 0 && selIdx !== p.startSelected, focusIdx, selIdx };
-        })()`,
-        returnByValue: true,
-      });
-      await send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 });
-      await send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 });
-      const afterLeft = await send('Runtime.evaluate', {
-        expression: `(() => {
-          const p = window.__craftTabProbe;
-          delete window.__craftTabProbe;
-          if (!p) return null;
-          const focusIdx = p.tabs.indexOf(document.activeElement);
-          const selIdx = p.tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
-          return { focusIdx, selIdx };
-        })()`,
-        returnByValue: true,
-      });
-      const rVal = afterRight.result?.value;
-      const lVal = afterLeft.result?.value;
-      const arrowRightMoved = Boolean(rVal && (rVal.focusMoved || rVal.selectedMoved));
-      const arrowLeftMoved = Boolean(lVal && rVal && (lVal.focusIdx !== rVal.focusIdx || lVal.selIdx !== rVal.selIdx));
-      const passed = arrowRightMoved;
-      report.discoveredStates.tabKeyboard = {
-        applicable: true,
-        tested: true,
-        passed,
-        tablistSelector: info.selector,
-        tabCount: info.tabCount,
-        arrowRightMoved,
-        arrowLeftMoved,
-      };
-      if (!passed) {
-        report.findings.push({
-          code: 'tab-keyboard-navigation',
-          severity: 'review',
-          selector: info.selector,
-          craftId: info.craftId,
-          rect: info.rect,
-          message: 'Tabs inside [role="tablist"] do not respond to ArrowRight/ArrowLeft keyboard navigation.',
-          evidence: { tabCount: info.tabCount, arrowRightMoved, arrowLeftMoved },
-        });
+        await send('Runtime.evaluate', { expression: 'delete window.__craftTabProbes;' });
+        report.discoveredStates.tabKeyboard = {
+          applicable: true,
+          tested: true,
+          passed: listResults.every(r => r.passed),
+          tablists: listResults,
+        };
       }
+    } catch (err) {
+      report.limitations.push('Tab keyboard navigation check unavailable: ' + err.message);
     }
-  } catch (err) {
-    report.limitations.push('Tab keyboard navigation check unavailable: ' + err.message);
   }
   report.summary = { errors: report.findings.filter(f => f.severity === 'error').length,
     review: report.findings.filter(f => f.severity === 'review').length };

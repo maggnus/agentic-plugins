@@ -39,11 +39,12 @@ principles; the figures in them are examples, not a house style to repeat.
   Each main section helps a decision (what to choose, how much, when, where, how
   to get it); a section that only sets a mood is cut or merged, and the art idea
   grows out of those facts, not beside them.
-- **It works.** A prototype, not a picture: tabs switch content, toggles and
+- **It works (interactive & screen artifacts).** A web or app prototype, not a picture: tabs switch content, toggles and
   steppers change state, forms validate with inline errors and end in a success
   state, unavailable options look and behave disabled, derived details update
   (open now, totals, the chosen slot summarized). Plain JS state in one script;
-  no dead buttons, no `href="#"` primary actions.
+  no dead buttons, no `href="#"` primary actions. (Not applicable to static print,
+  posters, invoices, resumes, or static diagrams.)
 - **Typographic voice.** A display face with character for this subject, set at
   a scale that decides the page, with a body face that stays quiet; size
   contrast carries the hierarchy, not boxes and shadows. On a landing or
@@ -91,13 +92,13 @@ between numbers and units (`5&nbsp;мин`, `350&nbsp;₽`), `ё` where it matte
 `hyphens: auto` for narrow columns. Russian runs 15–25 % longer than English:
 size buttons and headlines for it.
 
-### One action, one primary CTA
+### One action, one primary CTA (interactive & conversion pages)
 
-One primary-styled button per action on the page. A long page may repeat it once
+For pages and screens with user actions, keep one primary-styled button per action. A long page may repeat it once
 at the end, never twice in one viewport. Other entry points are secondary, ghost
 or text links, with different wording. A button group has at most one solid
 primary. Three or more buttons for the same action is a failed delivery unless the
-user asked for it.
+user asked for it. (Static print, posters, resumes, invoices, and informational diagrams need no CTA.)
 
 ### States and contrast
 
@@ -126,7 +127,8 @@ Touch targets (`button`, `a`, `input`, `select`, `textarea`) at least `44×44px`
 15px on a phone; print body text at least 12pt (`print-and-diagrams.md`); no
 horizontal scroll on mobile, and no
 block wider than its container; redesign for small screens instead of squeezing
-the desktop layout.
+the desktop layout. When using a `position: fixed` bottom bar on screen/mobile layouts, apply
+`env(safe-area-inset-bottom)` both to the bar's `padding-bottom` (with flexible/sufficient height so inner touch targets keep `>= 44px`) and to the main content's `padding-bottom` so the last interactive control is never covered.
 
 ### Layout integrity
 
@@ -196,8 +198,7 @@ axes on variable-ratio content; cap one axis with `max-height`/`max-width`
 instead. Declare dimensions to avoid layout shift; accurate `alt` for meaningful
 images, empty `alt` for decoration.
 
-Build a full palette: primary, domain-relevant accent and state colors, with
-product-scale controls.
+Match the palette and control density to the genre: a quiet neutral base with a single restrained `--accent` by default, adding secondary/state hues and interactive controls only when real data or product actions require them.
 
 ## Technical contract
 

@@ -52,7 +52,7 @@ selects this direction unchanged; otherwise the authored visual contract wins.
   --border:  oklch(92% 0.005 250);
   --accent:  oklch(58% 0.18 255);
 
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'IBM Plex Sans', 'Onest', sans-serif;
   --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
 }
 ```
@@ -89,7 +89,7 @@ selects this direction unchanged; otherwise the authored visual contract wins.
 **Posture:**
 - sans display with strong weight contrast, system body for readability
 - comfortable radii (12–18px) paired with crisp grid alignment
-- primary action color plus a secondary/domain accent and clear status colors; use color to separate panels, states, and product moments
+- restrained `--accent` for primary actions and active states; introduce a secondary/series color or status hues only when real data or system states require them
 - subtle elevation only on interactive cards; tasteful gradients/glows are allowed for hero/device/product moments, never as a full-page beige/pastel wash
 - avoid generic pastel/beige gradients; use real product screenshots, data, or labelled placeholders
 
@@ -110,8 +110,8 @@ selects this direction unchanged; otherwise the authored visual contract wins.
   --border:  oklch(90% 0.008 240);
   --accent:  oklch(58% 0.16 145);
 
-  --font-display: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --font-body:    -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'IBM Plex Sans', 'Golos Text', 'Onest', sans-serif;
+  --font-body:    -apple-system, BlinkMacSystemFont, 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 }
 ```
@@ -159,5 +159,5 @@ Avoid stacking three or more uniform card grids in a row. Alternate structural g
 
 - **Asymmetric split (`0.8fr / 1.2fr`):** anchor narrative, index, or visual proof on the narrower track while giving dense interactive or media content the wider track.
 - **Operational ledger:** hairline-bordered tabular rows with `tabular-nums`, inline status pills, and monospace IDs instead of boxed stat cards.
-- **Editorial dossier:** numbered or Roman-numeral chapters with sticky margin metadata, pull quotes, and full-bleed contrast bands.
+- **Editorial dossier:** numbered or Roman-numeral chapters with sticky margin metadata, pull quotes, and optional contrast bands only where justified by the subject.
 - **Engineering configurator:** live interactive controls (toggles, sliders, range filters, preset switches) paired directly with computed output.

@@ -386,6 +386,66 @@ try {
     spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',svgCalPng],{encoding:'utf8',timeout:60000});
     const svgCalRep=JSON.parse(readFileSync(svgCalPng.replace('.png','.json'),'utf8'));
     assert.ok(!svgCalRep.findings.some(f=>f.code==='svg-label-collision'),'faint ancestor opacity grid and paint-order:stroke halo avoid false-positive svg-label-collision');
+
+    // 18. tokens.mjs still checks font-size/font-family literals inside <svg> while routing SVG colors to svg-colors.
+    const svgLitTok=runTokens(wrap(':root{--bg:#ffffff;--fg:#111111}','body{margin:0;background:var(--bg);color:var(--fg)}',
+      '<main><svg width="100" height="40"><text x="10" y="20" style="font-size:12px">SVG literal</text></svg></main>'));
+    assert.equal(svgLitTok.status,1,'font-size literal inside <svg> style is still caught');
+    assert.ok(svgLitTok.data.findings.some(f=>f.code==='literal'&&f.message.includes('font-size')));
+
+    // 19. Desktop compact fixed bar (<= 40px) does not trigger fixed-bar-safe-area-clip; rigid height + env(safe-area-inset-bottom) padding does.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--surface:#f8fafc}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}.desk-bar{box-sizing:border-box;position:fixed;left:0;right:0;bottom:0;height:40px;padding:3px 16px;background:var(--surface);display:flex;align-items:center}.desk-bar button{height:34px}',
+      '<main><h1>Desktop bar</h1></main><div class="desk-bar"><button>Status</button></div>'));
+    const deskBarPng=join(work,'desk-bar.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',deskBarPng],{encoding:'utf8',timeout:60000});
+    const deskBarRep=JSON.parse(readFileSync(deskBarPng.replace('.png','.json'),'utf8'));
+    assert.ok(!deskBarRep.findings.some(f=>f.code==='fixed-bar-safe-area-clip'),'desktop compact fixed bar at 1440px does not false-positive');
+
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--surface:#f8fafc}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}.env-bar{box-sizing:border-box;position:fixed;left:0;right:0;bottom:0;height:56px;padding:6px 16px calc(6px + env(safe-area-inset-bottom));background:var(--surface);display:flex;align-items:center}.env-bar button{min-height:44px}',
+      '<main><h1>Env bar</h1></main><nav class="env-bar"><button>Home</button></nav>'));
+    const envBarPng=join(work,'env-bar.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','390','--inspect','--wait','0','--out',envBarPng],{encoding:'utf8',timeout:60000});
+    const envBarRep=JSON.parse(readFileSync(envBarPng.replace('.png','.json'),'utf8'));
+    assert.ok(envBarRep.findings.some(f=>f.code==='fixed-bar-safe-area-clip'),'rigid height + env(safe-area-inset-bottom) padding triggers fixed-bar-safe-area-clip even in headless Chrome');
+
+    // 20. Tab keyboard: vertical tablist, one-way failure, and non-applicable stateCoverage.tabs.keyboard.passed === null.
+    const oneWayTabHtml=wrap(':root{--bg:#ffffff;--fg:#111111;--border:#cbd5e1;--font-body:sans-serif}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}[role="tablist"]{display:flex;gap:8px}[role="tab"]{min-height:44px;min-width:88px;border:1px solid var(--border);background:transparent}[hidden]{display:none}',
+      '<main><div role="tablist"><button role="tab" aria-selected="true" aria-controls="p1" id="t1">Tab 1</button><button role="tab" aria-selected="false" aria-controls="p2" id="t2">Tab 2</button></div><section id="p1" role="tabpanel">Panel 1</section><section id="p2" role="tabpanel" hidden>Panel 2</section></main><script>const ts=[...document.querySelectorAll("[role=tab]")];ts.forEach((b,i)=>{b.onclick=()=>{ts.forEach(x=>x.setAttribute("aria-selected",String(x===b)));};b.onkeydown=e=>{if(e.key==="ArrowRight"){ts[(i+1)%ts.length].focus();ts[(i+1)%ts.length].click();}};});</script>');
+    writeFileSync(html,oneWayTabHtml);
+    const oneWayRes=runVerify();
+    assert.equal(oneWayRes.status,1,'one-way arrow navigation fails tab-keyboard-navigation');
+    assert.equal(oneWayRes.data.stateCoverage.tabs.keyboard.passed,false);
+
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--font-body:sans-serif}','body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}','<main><h1>No tabs</h1><p>Plain document.</p></main>'));
+    const noTabsRes=runVerify();
+    assert.equal(noTabsRes.status,0);
+    assert.equal(noTabsRes.data.stateCoverage.tabs.keyboard.tested,false);
+    assert.equal(noTabsRes.data.stateCoverage.tabs.keyboard.passed,null);
+
+    // 21. SVG collision: same-color halo does not shield; large opaque node rect (>2.2x text) shields obstacle behind it.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}',
+      `<main><svg width="320" height="160" viewBox="0 0 320 160">
+        <line x1="20" y1="80" x2="300" y2="80" stroke="#111" stroke-width="2"/>
+        <text x="100" y="84" font-size="12" fill="#111" stroke="#111" stroke-width="4" paint-order="stroke">Bad halo</text>
+      </svg></main>`));
+    const badHaloPng=join(work,'bad-halo.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',badHaloPng],{encoding:'utf8',timeout:60000});
+    const badHaloRep=JSON.parse(readFileSync(badHaloPng.replace('.png','.json'),'utf8'));
+    assert.ok(badHaloRep.findings.some(f=>f.code==='svg-label-collision'),'same-color stroke halo does not suppress svg-label-collision');
+
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}',
+      `<main><svg width="320" height="160" viewBox="0 0 320 160">
+        <line x1="20" y1="80" x2="300" y2="80" stroke="#111" stroke-width="2"/>
+        <rect x="40" y="50" width="240" height="60" fill="#ffffff" stroke="#111" stroke-width="1"/>
+        <text x="120" y="84" font-size="12" fill="#111">Node title</text>
+      </svg></main>`));
+    const largeNodePng=join(work,'large-node.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--inspect','--wait','0','--out',largeNodePng],{encoding:'utf8',timeout:60000});
+    const largeNodeRep=JSON.parse(readFileSync(largeNodePng.replace('.png','.json'),'utf8'));
+    assert.ok(!largeNodeRep.findings.some(f=>f.code==='svg-label-collision'),'large opaque node rect shields underlying line');
   }
 
   // Non-browser: validatePlan rejects tools.*.status='unavailable' when evidence only says "not needed" / "не нужна" (including MCP/browser phrasing).

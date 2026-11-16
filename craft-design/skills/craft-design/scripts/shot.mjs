@@ -567,7 +567,7 @@ async function shoot(width) {
     if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
   }
   if (inspect) {
-    const report = await inspectPage(s, { fit, width, height });
+    const report = await inspectPage(s, { fit, width, height, skipTabKeyboard: clicks.length > 0 });
     Object.assign(report, evidence, { runtime });
     if (themeSwitch === 'broken-toggle-fallback') {
       report.findings.push({

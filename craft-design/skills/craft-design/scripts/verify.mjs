@@ -182,15 +182,17 @@ export function verify(argv, run = spawnSync) {
   const discovered = firstReport?.discoveredStates ?? { hasDarkTheme: false, tabs: [] };
   const stateCoverage = {
     darkTheme: { declared: Boolean(discovered.hasDarkTheme), checked: false, frames: [] },
-    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, totalChecks: 0, checked: 0, keyboard: { applicable: false, tested: false, passed: true }, perWidth: [], frames: [] },
+    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, totalChecks: 0, checked: 0, keyboard: { applicable: false, tested: false, passed: null }, perWidth: [], frames: [] },
   };
   const keyboardReports = [...reportsByWidth.values()].map(r => r?.discoveredStates?.tabKeyboard).filter(Boolean);
   const applicableKb = keyboardReports.filter(k => k.applicable);
   if (applicableKb.length) {
+    const tested = applicableKb.every(k => k.tested);
+    const anyFailed = applicableKb.some(k => k.passed === false);
     stateCoverage.tabs.keyboard = {
       applicable: true,
-      tested: applicableKb.every(k => k.tested),
-      passed: applicableKb.every(k => k.passed),
+      tested,
+      passed: tested ? !anyFailed : (anyFailed ? false : null),
     };
   }
   const hasAt = inspectArgs.includes('--at'), hasThemeFlag = inspectArgs.includes('--theme'), hasClickFlag = inspectArgs.includes('--click');

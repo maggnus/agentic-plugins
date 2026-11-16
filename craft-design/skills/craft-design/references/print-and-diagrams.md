@@ -75,7 +75,3 @@ limits.
 - **Scale & gauge end-labels:** keep the rightmost scale label (e.g. `0 % ...
   100 %`) on a single line (`white-space: nowrap` with sufficient horizontal
   clearance) so it never wraps below the scale.
-- **Fixed bottom bars:** when using a `position: fixed` bottom bar, apply
-  `env(safe-area-inset-bottom)` both to the bar itself and to the main
-  content's bottom `padding-bottom` so the last interactive control is never
-  covered.

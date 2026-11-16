@@ -35,6 +35,8 @@ At `BASE COMPLETE`, inspect at most two catalog candidates if needed with
 node <skill>/scripts/craft-guide.mjs decide --state <abs>/.craft-guide.json --json '{"visualPath":"direct","reason":"...","tools":{"generation":{"status":"...","evidence":"..."},"viewing":{"status":"...","evidence":"..."}},"visualContract":{"source":"library-system","systemId":"...","adaptation":"..."},"entryId":"...","use":["library","tokens","inspection","preview"]}'
 ```
 
+`visualContract` accepts three modes: `{"source":"library-system","systemId":"...","adaptation":"..."}`, `{"source":"custom-spec","palette":"...","tonalPlan":"...","typography":"...","inspiredBy":"directions.md#..."}`, or `{"source":"project-brand","brandSource":"..."}`.
+
 Compact `use: [...]` (or full `capabilities`) compiles the selected references,
 the chosen `ENTRY.md` and its `craft` files into 24 KB packets. When the
 compiled slice fits in one packet, `decide` returns it and `READY` immediately;

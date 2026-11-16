@@ -12,7 +12,7 @@ ones into the system prompt above the active skill body.
 | `skills/` | Functional capabilities invoked while doing work | `design-brief`, `brand-extract`, `imagegen` |
 | `design-templates/` | Packaged artifact shapes | `saas-landing`, `dashboard`, `pricing-page` |
 | `design-systems/` | Brand package: prose, token contract, and optional rich resources | `linear-app`, `apple`, `notion` |
-| `craft/` | **Universal** craft knowledge — true regardless of brand | letter-spacing rules, semantic color roles, anti-AI-slop |
+| `craft/` | **Universal** craft knowledge — true regardless of brand | letter-spacing rules, figure-ground color scarcity, anti-AI-slop |
 
 `DESIGN.md` tells the agent which colors and fonts a brand uses. `craft/`
 tells the agent the universal rules a competent designer applies on top —

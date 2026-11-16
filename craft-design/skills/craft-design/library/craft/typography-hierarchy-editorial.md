@@ -92,7 +92,7 @@ A pull quote is not a blockquote. It is a visual interrupt.
 | Tracking | Slightly negative (`-0.01em`) or zero |
 | Alignment | Break from body column — full width, or offset inline-start/inline-end |
 | Spacing | Large above and below — equal to or greater than a section break |
-| Color | Uses `var(--accent)` or `var(--accent-soft)` as a purposeful semantic signal |
+| Color | Uses readable `var(--fg)` by default (with optional restrained `var(--accent)` when contrast >= 4.5:1; never use low-contrast `--accent-soft` for text) |
 
 Pull quotes placed at regular intervals destroy their effect. One per
 long-form article is usually correct. Two is a maximum.
@@ -175,7 +175,7 @@ between compression and expansion:
 - [ ] Section spacing alternates — one gap ≥ 1.5× baseline rhythm while another
       is ≤ 1.2×. (long-form only — guidance)
 - [ ] Bold used ≤ 2 times per 400 words in body copy. (long-form only)
-- [ ] `var(--accent)` follows the four semantic color roles without competing solid buttons (see `color.md` §Semantic color roles & tonal masses).
+- [ ] `var(--accent)` is used sparingly as a single focal accent without competing solid buttons (see `color.md` §Figure-ground scarcity & conditional roles).
 - [ ] Section separators (rules, dingbats) are used only when they
   reinforce publication identity or clearly mark unrelated-content boundaries;
   they must not be used as a hierarchy fallback. (guidance)
