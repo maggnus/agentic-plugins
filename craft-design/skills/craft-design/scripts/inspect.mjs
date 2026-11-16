@@ -558,7 +558,12 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (rr.width <= 0 || rr.height <= 0) continue;
             const rs = style(rect);
             const fillOp = parseFloat(rs.fillOpacity);
-            const fillAlpha = colour(rs.fill)[3] * (Number.isNaN(fillOp) ? 1 : fillOp);
+            let ancestorOp = 1;
+            for (let p = rect; p && p !== svg.parentElement; p = p.parentElement) {
+              const po = parseFloat(style(p).opacity);
+              if (!Number.isNaN(po)) ancestorOp *= po;
+            }
+            const fillAlpha = colour(rs.fill)[3] * (Number.isNaN(fillOp) ? 1 : fillOp) * ancestorOp;
             const opaqueFill = Boolean(rs.fill && rs.fill !== 'none' && rs.fill !== 'transparent' && rs.fill !== 'rgba(0, 0, 0, 0)' && fillAlpha >= 0.85);
             const strokeW = parseFloat(rs.strokeWidth) || 0;
             const strokeOp = parseFloat(rs.strokeOpacity);

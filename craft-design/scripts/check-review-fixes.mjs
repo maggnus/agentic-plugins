@@ -271,9 +271,12 @@ try {
     const overlapSvg=`<svg id="ov" width="280" height="120" viewBox="0 0 280 120"><text x="40" y="60" font-size="14">Alpha Label</text><text x="60" y="64" font-size="14">Beta Label</text></svg>`;
     const wallCollisionSvg=`<svg id="wc" width="280" height="120" viewBox="0 0 280 120"><rect x="80" y="20" width="120" height="80" fill="none" stroke="#111" stroke-width="2"/><text x="40" y="65" font-size="14">Crosses Wall</text></svg>`;
     const topWallSvg=`<svg id="tw" width="280" height="120" viewBox="0 0 280 120"><rect x="40" y="40" width="200" height="60" fill="none" stroke="#111" stroke-width="2"/><text x="90" y="44" font-size="14">Top Wall</text></svg>`;
+    const bottomWallSvg=`<svg id="bw" width="280" height="120" viewBox="0 0 280 120"><rect x="40" y="20" width="200" height="60" fill="none" stroke="#111" stroke-width="2"/><text x="90" y="84" font-size="14">Bottom Wall</text></svg>`;
+    const rightWallSvg=`<svg id="rw" width="280" height="120" viewBox="0 0 280 120"><rect x="40" y="20" width="120" height="80" fill="none" stroke="#111" stroke-width="2"/><text x="120" y="65" font-size="14">Right Wall</text></svg>`;
     const lineCollisionSvg=`<svg id="lc" width="280" height="120" viewBox="0 0 280 120"><line x1="20" y1="60" x2="260" y2="60" stroke="#111" stroke-width="2"/><text x="80" y="64" font-size="14">Crosses Line</text></svg>`;
     const pillBeforeLineSvg=`<svg id="pbl" width="280" height="120" viewBox="0 0 280 120"><rect x="75" y="45" width="120" height="26" fill="#ffffff"/><line x1="20" y1="60" x2="260" y2="60" stroke="#111" stroke-width="2"/><text x="80" y="64" font-size="14">Pill Under Line</text></svg>`;
     const faintPillSvg=`<svg id="fp" width="280" height="120" viewBox="0 0 280 120"><line x1="20" y1="60" x2="260" y2="60" stroke="#111" stroke-width="2"/><rect x="75" y="45" width="120" height="26" fill="#ffffff" fill-opacity="0.1"/><text x="80" y="64" font-size="14">Faint Pill</text></svg>`;
+    const opacityPillSvg=`<svg id="op" width="280" height="120" viewBox="0 0 280 120"><line x1="20" y1="60" x2="260" y2="60" stroke="#111" stroke-width="2"/><g opacity="0.2"><rect x="75" y="45" width="120" height="26" fill="#ffffff"/></g><text x="80" y="64" font-size="14">Opacity Pill</text></svg>`;
     const cleanDiagramSvg=`<svg id="okd" width="280" height="120" viewBox="0 0 280 120"><rect x="20" y="20" width="140" height="80" fill="none" stroke="#111" stroke-width="2"/><text x="36" y="65" font-size="14">Inside Box</text><line x1="20" y1="105" x2="260" y2="105" stroke="#111" stroke-width="2"/><rect x="175" y="90" width="76" height="24" fill="#ffffff"/><text x="180" y="107" font-size="14">With Pill</text><line x1="160" y1="40" x2="195" y2="40" stroke="#111" stroke-width="1.5"/><text x="200" y="45" font-size="14">Callout</text></svg>`;
     writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main>${overlapSvg}${wallCollisionSvg}${topWallSvg}${lineCollisionSvg}${cleanDiagramSvg}</main>`));
     const colPng=join(work,'svg-col.png');
@@ -282,11 +285,17 @@ try {
     assert.deepEqual(colRep.findings.filter(f=>f.code==='svg-label-overlap').map(f=>f.selector),['#ov'],'overlap detected only on #ov');
     assert.deepEqual(colRep.findings.filter(f=>f.code==='svg-label-collision').map(f=>f.selector).sort(),['#lc','#tw','#wc'],'collision detected on vertical/top walls and line, not #okd');
 
-    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main>${pillBeforeLineSvg}${faintPillSvg}</main>`));
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main>${pillBeforeLineSvg}${faintPillSvg}${opacityPillSvg}</main>`));
     const colPng2=join(work,'svg-col2.png');
     spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--wait','0','--out',colPng2],{encoding:'utf8',timeout:60000});
     const colRep2=JSON.parse(readFileSync(colPng2.replace('.png','.json'),'utf8'));
-    assert.deepEqual(colRep2.findings.filter(f=>f.code==='svg-label-collision').map(f=>f.selector).sort(),['#fp','#pbl'],'pill-before-line and faint-fill pill do not shield line collisions');
+    assert.deepEqual(colRep2.findings.filter(f=>f.code==='svg-label-collision').map(f=>f.selector).sort(),['#fp','#op','#pbl'],'pill-before-line, fill-opacity and element/ancestor opacity pills do not shield line collisions');
+
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main>${bottomWallSvg}${rightWallSvg}</main>`));
+    const colPng3=join(work,'svg-col3.png');
+    spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--wait','0','--out',colPng3],{encoding:'utf8',timeout:60000});
+    const colRep3=JSON.parse(readFileSync(colPng3.replace('.png','.json'),'utf8'));
+    assert.deepEqual(colRep3.findings.filter(f=>f.code==='svg-label-collision').map(f=>f.selector).sort(),['#bw','#rw'],'bottom and right rect borders trigger svg-label-collision');
 
     // 12. broken-theme-toggle vs clicked theme toggle & priority over "Open theme settings".
     const toggleThemeCss=':root{--bg:#ffffff;--fg:#111111}[data-theme="dark"]{--bg:#0f172a;--fg:#f8fafc}body{background:var(--bg);color:var(--fg);font-family:sans-serif;padding:24px}button{min-height:44px;min-width:120px}';
@@ -321,6 +330,7 @@ try {
     assert.ok(multiTabRes.data.stateFrames.some(f=>f.state==='tab-1'&&f.width===390));
     assert.equal(multiTabRes.data.stateCoverage.tabs.totalChecks,2);
     assert.equal(multiTabRes.data.stateCoverage.tabs.checked,2);
+    assert.deepEqual(multiTabRes.data.stateCoverage.tabs.perWidth,[{width:1440,total:2,inactive:1,checked:1},{width:390,total:2,inactive:1,checked:1}]);
   }
 
   // Non-browser: validatePlan rejects tools.*.status='unavailable' when evidence only says "not needed" / "не нужна" (including MCP/browser phrasing).
