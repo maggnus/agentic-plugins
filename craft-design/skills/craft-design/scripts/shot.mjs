@@ -374,14 +374,21 @@ async function shoot(width) {
       if (currentTheme === 'dark') {
         themeSwitch = 'already-dark';
       } else {
-        const THEME_TOGGLE_SEL = '[data-theme-toggle], [data-set-theme="dark"], button[aria-label*="dark" i], button[aria-label*="theme" i], button[aria-label*="тема" i], button[aria-label*="темн" i], button[aria-label*="тёмн" i]';
+        const THEME_TIER1 = '[data-theme-toggle], [data-set-theme="dark"], [aria-pressed][aria-label*="dark" i], [aria-pressed][aria-label*="theme" i], [aria-pressed][aria-label*="тема" i], [aria-pressed][aria-label*="тёмн" i], [aria-pressed][aria-label*="темн" i]';
+        const THEME_TIER2 = 'button[aria-label*="dark" i], button[aria-label*="тёмн" i], button[aria-label*="темн" i], button[aria-label*="theme" i], button[aria-label*="тема" i]';
         const togglePrep = (await s('Runtime.evaluate', {
           expression: `(async () => {
             const visible = el => {
               const st = getComputedStyle(el);
               return Boolean(el.getClientRects().length) && st.visibility !== 'hidden' && st.display !== 'none' && Number(st.opacity) !== 0;
             };
-            const list = [...document.querySelectorAll(${JSON.stringify(THEME_TOGGLE_SEL)})].filter(visible);
+            const notDialogOrSettings = el => {
+              if (el.getAttribute('aria-haspopup') === 'dialog' || el.getAttribute('aria-haspopup') === 'menu') return false;
+              const lbl = (el.getAttribute('aria-label') || '') + ' ' + (el.textContent || '');
+              return !/(?:settings|menu|config|dialog|modal|open|настройк|меню|параметр)/i.test(lbl);
+            };
+            let list = [...document.querySelectorAll(${JSON.stringify(THEME_TIER1)})].filter(visible);
+            if (!list.length) list = [...document.querySelectorAll(${JSON.stringify(THEME_TIER2)})].filter(el => visible(el) && notDialogOrSettings(el));
             if (!list.length) return { found: false };
             const el = list[0];
             const desc = el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.getAttribute('aria-label') ? '[aria-label="' + el.getAttribute('aria-label') + '"]' : '');

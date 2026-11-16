@@ -264,9 +264,9 @@ export function validatePlan(plan) {
     }
     if (v.status === 'unavailable') {
       const ev = v.evidence.trim();
-      const notNeededOnly = /^(?:не\s+нужн[аоы]?|не\s+требуется|not\s+needed|unnecessary)$/i.test(ev);
-      const mentionsNotNeeded = /(?:не\s+нужн|не\s+требуется|not\s+needed|unnecessary)/i.test(ev);
-      const hasAbsenceFact = /(?:отсутств|нет\s+инструмент|не\s+обнаруж|не\s+доступ|не\s+установл|missing|not\s+available|no\s+tool|absent|disabled|unavailable|failed|error|browser|mcp|env)/i.test(ev);
+      const notNeededOnly = /^(?:не\s+нужн[аоы]?|не\s+требуется|не\s+используется|not\s+needed|unnecessary|not\s+required)$/i.test(ev);
+      const mentionsNotNeeded = /(?:не\s+нужн[аоы]?|не\s+требуется|не\s+используется|без\s+необходимости|not\s+needed|unnecessary|not\s+required)/i.test(ev);
+      const hasAbsenceFact = /(?:отсутств|нет\s+инструмент|нет\s+доступа|не\s+обнаруж|не\s+доступ|не\s+установл|не\s+подключ|отключ|missing|not\s+available|no\s+tool|absent|disabled|unavailable|not\s+installed|not\s+configured|denied|failed|error)/i.test(ev);
       if (notNeededOnly || (mentionsNotNeeded && !hasAbsenceFact)) {
         throw new Error(`tools.${kind}.status cannot be "unavailable" when evidence only states it is not needed ("${ev}"). Record actual tool status (available/unknown) when choosing visualPath: "direct", and explain skipping in reason.`);
       }

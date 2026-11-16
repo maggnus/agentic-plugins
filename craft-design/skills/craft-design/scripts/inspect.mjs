@@ -558,11 +558,12 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (rr.width <= 0 || rr.height <= 0) continue;
             const rs = style(rect);
             const fillOp = parseFloat(rs.fillOpacity);
-            const hasFill = Boolean(rs.fill && rs.fill !== 'none' && rs.fill !== 'transparent' && rs.fill !== 'rgba(0, 0, 0, 0)' && (Number.isNaN(fillOp) || fillOp > 0.05));
+            const fillAlpha = colour(rs.fill)[3] * (Number.isNaN(fillOp) ? 1 : fillOp);
+            const opaqueFill = Boolean(rs.fill && rs.fill !== 'none' && rs.fill !== 'transparent' && rs.fill !== 'rgba(0, 0, 0, 0)' && fillAlpha >= 0.85);
             const strokeW = parseFloat(rs.strokeWidth) || 0;
             const strokeOp = parseFloat(rs.strokeOpacity);
             const hasStroke = Boolean(rs.stroke && rs.stroke !== 'none' && rs.stroke !== 'transparent' && strokeW > 0 && (Number.isNaN(strokeOp) || strokeOp > 0.15));
-            rectInfos.push({ el: rect, r: rr, hasFill, hasStroke });
+            rectInfos.push({ el: rect, r: rr, opaqueFill, hasStroke });
           }
           const lineSegs = [];
           for (const line of svg.querySelectorAll('line')) {
@@ -579,23 +580,27 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             const lx2 = line.x2?.baseVal?.value ?? 0, ly2 = line.y2?.baseVal?.value ?? 0;
             const x1 = ctm.a * lx1 + ctm.c * ly1 + ctm.e, y1 = ctm.b * lx1 + ctm.d * ly1 + ctm.f;
             const x2 = ctm.a * lx2 + ctm.c * ly2 + ctm.e, y2 = ctm.b * lx2 + ctm.d * ly2 + ctm.f;
-            if (Math.hypot(x2 - x1, y2 - y1) > 20) lineSegs.push({ x1, y1, x2, y2 });
+            if (Math.hypot(x2 - x1, y2 - y1) > 20) lineSegs.push({ el: line, x1, y1, x2, y2 });
           }
           for (const tn of textNodes) {
-            const hasLabelPill = rectInfos.some(ri => ri.hasFill &&
+            const labelPills = rectInfos.filter(ri => ri.opaqueFill &&
               ri.r.left <= tn.r.left + 1 && ri.r.right >= tn.r.right - 1 &&
               ri.r.top <= tn.r.top + 1 && ri.r.bottom >= tn.r.bottom - 1 &&
               ri.r.width <= Math.max(tn.r.width * 2.2, tn.r.width + 40) &&
               ri.r.height <= Math.max(tn.r.height * 2.5, tn.r.height + 24) &&
               Boolean(ri.el.compareDocumentPosition(tn.el) & Node.DOCUMENT_POSITION_FOLLOWING));
-            if (hasLabelPill) continue;
+            const shieldedByPill = obstacleEl => labelPills.some(pill =>
+              Boolean(obstacleEl.compareDocumentPosition(pill.el) & Node.DOCUMENT_POSITION_FOLLOWING));
             let hit = null;
             for (const ri of rectInfos) {
               if (!ri.hasStroke || ri.r.width < 16 || ri.r.height < 16) continue;
               if (ri.r.width >= sr.width * 0.96 && ri.r.height >= sr.height * 0.96) continue;
-              if (tn.r.bottom <= ri.r.top + 1 || tn.r.top >= ri.r.bottom - 1) continue;
-              if (tn.r.left >= ri.r.left + 1 && tn.r.right <= ri.r.right - 1) continue;
-              if ((tn.r.left < ri.r.left - 0.5 && tn.r.right > ri.r.left + 2) || (tn.r.left < ri.r.right - 2 && tn.r.right > ri.r.right + 0.5)) {
+              if (shieldedByPill(ri.el)) continue;
+              if (tn.r.right <= ri.r.left + 1 || tn.r.left >= ri.r.right - 1 || tn.r.bottom <= ri.r.top + 1 || tn.r.top >= ri.r.bottom - 1) continue;
+              if (tn.r.left >= ri.r.left + 1 && tn.r.right <= ri.r.right - 1 && tn.r.top >= ri.r.top + 1 && tn.r.bottom <= ri.r.bottom - 1) continue;
+              const hitsHorizWall = (tn.r.left < ri.r.left - 0.5 && tn.r.right > ri.r.left + 2) || (tn.r.left < ri.r.right - 2 && tn.r.right > ri.r.right + 0.5);
+              const hitsVertWall = (tn.r.top < ri.r.top - 0.5 && tn.r.bottom > ri.r.top + 2) || (tn.r.top < ri.r.bottom - 2 && tn.r.bottom > ri.r.bottom + 0.5);
+              if (hitsHorizWall || hitsVertWall) {
                 hit = { kind: 'rect-border', text: tn.text };
                 break;
               }
@@ -603,7 +608,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
             if (!hit && lineSegs.length) {
               const cx1 = tn.r.left + Math.min(4, tn.r.width * 0.2), cx2 = tn.r.right - Math.min(4, tn.r.width * 0.2);
               const cy1 = tn.r.top + Math.min(3, tn.r.height * 0.2), cy2 = tn.r.bottom - Math.min(3, tn.r.height * 0.2);
-              if (cx2 > cx1 && cy2 > cy1 && lineSegs.some(seg => segHitsBox(seg, cx1, cy1, cx2, cy2))) {
+              if (cx2 > cx1 && cy2 > cy1 && lineSegs.some(seg => !shieldedByPill(seg.el) && segHitsBox(seg, cx1, cy1, cx2, cy2))) {
                 hit = { kind: 'solid-line', text: tn.text };
               }
             }

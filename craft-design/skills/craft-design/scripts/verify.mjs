@@ -179,7 +179,7 @@ export function verify(argv, run = spawnSync) {
   const discovered = firstReport?.discoveredStates ?? { hasDarkTheme: false, tabs: [] };
   const stateCoverage = {
     darkTheme: { declared: Boolean(discovered.hasDarkTheme), checked: false, frames: [] },
-    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, checked: 0, frames: [] },
+    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, totalChecks: 0, checked: 0, perWidth: [], frames: [] },
   };
   const hasAt = inspectArgs.includes('--at'), hasThemeFlag = inspectArgs.includes('--theme'), hasClickFlag = inspectArgs.includes('--click');
   if (stage === 'full' && !hasAt && firstReport) {
@@ -236,7 +236,13 @@ export function verify(argv, run = spawnSync) {
             if (inactiveTabs.length >= 6) break;
           }
         }
-        if (!inactiveTabs.length) continue;
+        if (!inactiveTabs.length) {
+          stateCoverage.tabs.perWidth.push({ width: tabWidth, total: widthTabs.length, inactive: 0, checked: 0 });
+          continue;
+        }
+        stateCoverage.tabs.totalChecks += inactiveTabs.length;
+        const widthStat = { width: tabWidth, total: widthTabs.length, inactive: inactiveTabs.length, checked: 0 };
+        stateCoverage.tabs.perWidth.push(widthStat);
         const tabInspectArgs = [];
         for (let idx = 0; idx < inspectArgs.length; idx++) {
           if (inspectArgs[idx] === '--width') { tabInspectArgs.push('--width', String(tabWidth)); idx++; }
@@ -255,9 +261,10 @@ export function verify(argv, run = spawnSync) {
             const errCount = report.findings.filter(f => f.severity === 'error').length;
             const revFindings = report.findings.filter(f => f.severity === 'review');
             tabCheck.hasErrors = errCount > 0;
-            stateFrames.push({ state: `tab-${n}`, selector: tab.selector, width: tabWidth, height: report.viewport.height, capture: report.capture, screenshot: tabPng, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings });
-            stateCoverage.tabs.frames.push({ index: n, selector: tab.selector, text: tab.text, width: tabWidth, screenshot: tabPng, report: reportPath, errors: errCount, review: revFindings.length });
+            stateFrames.push({ state: `tab-${n}`, tabIndex: tab.index, selector: tab.selector, width: tabWidth, height: report.viewport.height, capture: report.capture, screenshot: tabPng, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings });
+            stateCoverage.tabs.frames.push({ index: n, tabIndex: tab.index, selector: tab.selector, text: tab.text, width: tabWidth, screenshot: tabPng, report: reportPath, errors: errCount, review: revFindings.length });
             stateCoverage.tabs.checked++;
+            widthStat.checked++;
             for (const f of report.findings) diagnostics.push({ ...f, check: `inspect-tab-${n}-${tabWidth}`, state: `tab-${n}`, width: tabWidth, repair: repairs[f.code] ?? 'Inspect this finding in the tab state PNG and correct confirmed defects.' });
           } catch (error) { tabCheck.evidenceError = error.message; }
         }
