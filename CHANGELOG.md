@@ -1,3 +1,29 @@
+## [14.3.0](https://github.com/maggnus/agentic-plugins/compare/v14.2.0...v14.3.0) (2026-11-16)
+
+### Features
+
+* **craft-design:** enforce monotonic OKLch surfaces, anti-contour-congestion, SVG detail and overlays ([5c21884](https://github.com/maggnus/agentic-plugins/commit/5c218841242f86c30b02872ef4b484e25ac44a25))
+* **craft-design:** implement 2-step rule compiler, 1:1 viewport strips, calibration stage and composition checks ([6b2a89a](https://github.com/maggnus/agentic-plugins/commit/6b2a89ab528181ea04c4f1263f274bc3b48202a6))
+* **craft-design:** restore core typography craft, 3-plane oklch surface model and surface separation checks ([d17f04a](https://github.com/maggnus/agentic-plugins/commit/d17f04a58a337f312df5cb69c8cc1b357302d337))
+* **craft-design:** restore verbatim 24KB charter packets, linear YAML parser, hierarchy modules and border physics ([6049ca3](https://github.com/maggnus/agentic-plugins/commit/6049ca32399bd192e70d01f528095eff523a47b1))
+* **craft-design:** streamline guide delivery, harden verification and upgrade preview board ([ba323aa](https://github.com/maggnus/agentic-plugins/commit/ba323aad8be557d7c27e847c54c0e5e1b1cac17c))
+
+### Bug Fixes
+
+* **craft-design:** account for SVG ancestor opacity on label background pills ([f489f99](https://github.com/maggnus/agentic-plugins/commit/f489f994d365ef45390046517c29c778ae319991))
+* **craft-design:** address review feedback on universality, tokens, and inspection ([4befcce](https://github.com/maggnus/agentic-plugins/commit/4befcce71fe0eb33bab9cb7551b6c0fd6050e62b))
+* **craft-design:** address review findings for token kinds, state-scoped resolutions, and 768px target check ([2c5ce70](https://github.com/maggnus/agentic-plugins/commit/2c5ce70412843832c784b64d07a90ee298926044))
+* **craft-design:** calibrate inspect heuristics and strengthen overlay overrides ([2b130f6](https://github.com/maggnus/agentic-plugins/commit/2b130f622c6bf125c8099012dcb36c91efea4db5))
+* **craft-design:** close P0-P2 verification, token, state coverage, and craft guidance gaps ([75df309](https://github.com/maggnus/agentic-plugins/commit/75df3099ca8f64a382eb5ad73e26a5e8e79ae75f))
+* **craft-design:** close R10 edge cases in inspect, verify and RU dictionary ([828aba6](https://github.com/maggnus/agentic-plugins/commit/828aba6d73ab04cb8de781d27a483ed8ba499531))
+* **craft-design:** document state-scoped resolutions <=768px and fix regression test ([ffcea4a](https://github.com/maggnus/agentic-plugins/commit/ffcea4aaf6d9ace41ac559ea089ed68abb1b08e7))
+* **craft-design:** finalize group-title zoom geometry, oklab hover contrast and library plan output ([67bd436](https://github.com/maggnus/agentic-plugins/commit/67bd4368752d5dbca39f47714c59224ed45423f9))
+* **craft-design:** harden font allowlist, verification key isolation, strip coverage and preview layout ([8b65b79](https://github.com/maggnus/agentic-plugins/commit/8b65b79a2c8f9ec8a37f6e96fdbba9a3c4ff7aae))
+* **craft-design:** harden SVG pill/wall order, theme toggle priority, unavailable validation, and tab metrics ([285539f](https://github.com/maggnus/agentic-plugins/commit/285539f7db07668b6404fbffedfd0abd907563a0))
+* **craft-design:** harden SVG/scroll/theme-toggle/tab inspection and craft rules ([82a8bd2](https://github.com/maggnus/agentic-plugins/commit/82a8bd2ff936fd4674293be262226e6ac67da9da))
+* **craft-design:** preserve library hint for compact use plans in readyOutput ([83d2387](https://github.com/maggnus/agentic-plugins/commit/83d2387ab9f5950e04fd3d2501460d6ce73ad136))
+* **craft-design:** restore color scarcity, neutral tonal planning, and inspection calibration ([be01b8e](https://github.com/maggnus/agentic-plugins/commit/be01b8eb4d478624712943d14f0ab6494ce4d29c))
+
 ## [14.2.0](https://github.com/maggnus/agentic-plugins/compare/v14.1.0...v14.2.0) (2026-11-14)
 
 ### Features
