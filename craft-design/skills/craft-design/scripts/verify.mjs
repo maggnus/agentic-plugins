@@ -67,7 +67,7 @@ export function verify(argv, run = spawnSync) {
   if (stage === 'full' && !args.includes('--fit') && !args.includes('--at') && !args.includes('--full')) args.push('--full');
   for (let n = args.indexOf('--strict'); n >= 0; n = args.indexOf('--strict')) args.splice(n, 1);
 
-  const VALUE_FLAGS = new Set(['--height', '--wait', '--at', '--mode', '--contract', '--scenario', '--click', '--width']);
+  const VALUE_FLAGS = new Set(['--height', '--wait', '--at', '--mode', '--theme', '--contract', '--scenario', '--click', '--width', '--resolutions']);
   const BOOL_FLAGS = new Set(['--full', '--strips', '--fit', '--inspect']);
   for (let idx = 0; idx < args.length; idx++) {
     const a = args[idx];
@@ -79,6 +79,17 @@ export function verify(argv, run = spawnSync) {
     }
   }
 
+  let resolutionsPath = null;
+  const inspectArgs = [];
+  for (let idx = 0; idx < args.length; idx++) {
+    if (args[idx] === '--resolutions') {
+      resolutionsPath = resolve(args[idx + 1]);
+      idx++;
+    } else {
+      inspectArgs.push(args[idx]);
+    }
+  }
+
   const startedAtMs = Date.now();
   const rawKey = basename(source, extname(source)).replace(/[^\w.]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'artifact';
   const safeKey = rawKey + (suffix ? '-' + hash(suffix).slice(0, 6) : '') + (stage === 'calibrate' ? '-calibrate' : '');
@@ -86,10 +97,39 @@ export function verify(argv, run = spawnSync) {
   mkdirSync(verifyRoot, { recursive: true });
   const directory = mkdtempSync(join(verifyRoot, safeKey + '--'));
   const before = hash(readFileSync(source)), scriptRoot = dirname(fileURLToPath(import.meta.url));
-  const steps = [['tokens', ['check', targetSpec, '--width', widths, ...modeArgs, '--strict', '--json']], ['inspect', [targetSpec, ...args, '--out', join(directory, 'frame.png'), '--strict']]];
-  const results = [], diagnostics = [], frames = [], deferredInCalibrate = [];
-  let tokenReport = null;
+
+  let resolutionsData = null, resolutionsError = null;
+  if (resolutionsPath) {
+    try {
+      resolutionsData = JSON.parse(readFileSync(resolutionsPath, 'utf8'));
+      if (!resolutionsData || resolutionsData.version !== 1 || typeof resolutionsData.sourceSha256 !== 'string' || !Array.isArray(resolutionsData.items)) {
+        resolutionsError = 'Invalid resolutions schema: expected version 1, sourceSha256 and items array.';
+      } else if (resolutionsData.sourceSha256 !== before) {
+        resolutionsError = `Stale resolutions sourceSha256 (${resolutionsData.sourceSha256.slice(0, 12)} !== ${before.slice(0, 12)}).`;
+      }
+    } catch (error) {
+      resolutionsError = 'Could not read resolutions file: ' + error.message;
+    }
+  }
+
+  const steps = [['tokens', ['check', targetSpec, '--width', widths, ...modeArgs, '--strict', '--json']], ['inspect', [targetSpec, ...inspectArgs, '--out', join(directory, 'frame.png'), '--strict']]];
+  const results = [], diagnostics = [], frames = [], stateFrames = [], deferredInCalibrate = [];
+  let tokenReport = null, firstReport = null;
   let activeTokenWarnings = 0;
+
+  const validateInspectFrame = (reportPath, png, width) => {
+    const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+    if (report.schemaVersion !== 1 || report.sourceSha256 !== before || report.viewport?.width !== width || report.screenshot !== png || hash(readFileSync(png)) !== report.screenshotSha256 || !Array.isArray(report.findings) || report.truncated || report.capture?.width !== width || !(report.capture?.height > 0) || !Number.isFinite(report.capture?.height) || !(report.capture?.documentHeight > 0) || !Number.isFinite(report.capture?.documentHeight) || typeof report.capture?.limited !== 'boolean' || typeof report.capture?.fullDocument !== 'boolean') {
+      throw new Error('Missing, truncated or mismatched render evidence for ' + width + 'px.');
+    }
+    const strips = Array.isArray(report.strips) ? report.strips : [];
+    for (const strip of strips) {
+      if (!strip?.screenshot || !existsSync(strip.screenshot) || hash(readFileSync(strip.screenshot)) !== strip.screenshotSha256) {
+        throw new Error('Missing or mismatched strip evidence for ' + width + 'px.');
+      }
+    }
+    return report;
+  };
 
   for (const [name, options] of steps) {
     const result = run(process.execPath, [join(scriptRoot, name + '.mjs'), ...options], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
@@ -114,25 +154,140 @@ export function verify(argv, run = spawnSync) {
       } else {
         for (const width of widthList) {
           const png = join(directory, widthList.length > 1 ? 'frame-' + width + '.png' : 'frame.png');
-          const reportPath = png.replace(/\.png$/, '.json'), report = JSON.parse(readFileSync(reportPath, 'utf8'));
-          if (report.schemaVersion !== 1 || report.sourceSha256 !== before || report.viewport?.width !== width || report.screenshot !== png || hash(readFileSync(png)) !== report.screenshotSha256 || !Array.isArray(report.findings) || report.truncated || report.capture?.width !== width || !(report.capture?.height > 0) || !Number.isFinite(report.capture?.height) || !(report.capture?.documentHeight > 0) || !Number.isFinite(report.capture?.documentHeight) || typeof report.capture?.limited !== 'boolean' || typeof report.capture?.fullDocument !== 'boolean') throw new Error('Missing, truncated or mismatched render evidence for ' + width + 'px.');
+          const reportPath = png.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, png, width);
+          if (!firstReport) firstReport = report;
           const strips = Array.isArray(report.strips) ? report.strips : [];
-          for (const strip of strips) {
-            if (!strip?.screenshot || !existsSync(strip.screenshot) || hash(readFileSync(strip.screenshot)) !== strip.screenshotSha256) {
-              throw new Error('Missing or mismatched strip evidence for ' + width + 'px.');
-            }
-          }
-          frames.push({ width, height: report.viewport.height, capture: report.capture, screenshot: png, strips, report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: report.findings.filter(f => f.severity === 'error').length, review: report.findings.filter(f => f.severity === 'review').length });
+          frames.push({ width, height: report.viewport.height, capture: report.capture, screenshot: png, strips, uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: report.findings.filter(f => f.severity === 'error').length, review: report.findings.filter(f => f.severity === 'review').length, reviewFindings: report.findings.filter(f => f.severity === 'review') });
           for (const f of report.findings) diagnostics.push({ ...f, check: name, width, repair: repairs[f.code] ?? 'Inspect this finding in the final PNG and correct confirmed defects.' });
         }
       }
     } catch (error) { check.evidenceError = error.message; }
   }
 
+  const discovered = firstReport?.discoveredStates ?? { hasDarkTheme: false, tabs: [] };
+  const stateCoverage = {
+    darkTheme: { declared: Boolean(discovered.hasDarkTheme), checked: false, frames: [] },
+    tabs: { total: Array.isArray(discovered.tabs) ? discovered.tabs.length : 0, checked: 0, frames: [] },
+  };
+  const hasAt = inspectArgs.includes('--at'), hasThemeFlag = inspectArgs.includes('--theme'), hasClickFlag = inspectArgs.includes('--click');
+  if (stage === 'full' && !hasAt && firstReport) {
+    if (discovered.hasDarkTheme && !hasThemeFlag) {
+      const tokDarkRes = run(process.execPath, [join(scriptRoot, 'tokens.mjs'), 'check', targetSpec, '--width', widths, ...modeArgs, '--theme', 'dark', '--strict', '--json'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
+      const tokDarkLog = join(directory, 'tokens-dark.log');
+      writeFileSync(tokDarkLog, (tokDarkRes.stdout ?? '') + (tokDarkRes.stderr ?? '') + (tokDarkRes.error ? '\n' + tokDarkRes.error.message : ''));
+      const tokDarkCheck = { name: 'tokens-dark', exitCode: tokDarkRes.status ?? null, error: tokDarkRes.error?.message ?? null, signal: tokDarkRes.signal ?? null, log: tokDarkLog };
+      results.push(tokDarkCheck);
+      try {
+        const darkTok = JSON.parse(tokDarkRes.stdout);
+        if (darkTok.schemaVersion !== 1 || darkTok.sourceSha256 !== before || !darkTok.browserAvailable) throw new Error('Missing or mismatched dark token evidence.');
+        writeFileSync(join(directory, 'tokens-dark.json'), JSON.stringify(darkTok, null, 2) + '\n');
+        tokDarkCheck.hasFindings = darkTok.findings.length > 0;
+        for (const f of darkTok.findings) {
+          activeTokenWarnings++;
+          diagnostics.push({ ...f, check: 'tokens-dark', theme: 'dark', severity: 'warning', repair: repairs[f.code] ?? 'Read the linked report and correct the confirmed cause.' });
+        }
+      } catch (error) { tokDarkCheck.evidenceError = error.message; }
+
+      const darkOutBase = join(directory, widthList.length > 1 ? 'frame-dark.png' : `frame-dark-${widthList[0]}.png`);
+      const darkRes = run(process.execPath, [join(scriptRoot, 'inspect.mjs'), targetSpec, ...inspectArgs, '--theme', 'dark', '--out', darkOutBase, '--strict'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
+      const darkLog = join(directory, 'inspect-dark.log');
+      writeFileSync(darkLog, (darkRes.stdout ?? '') + (darkRes.stderr ?? '') + (darkRes.error ? '\n' + darkRes.error.message : ''));
+      const darkCheck = { name: 'inspect-dark', exitCode: darkRes.status ?? null, error: darkRes.error?.message ?? null, signal: darkRes.signal ?? null, log: darkLog };
+      results.push(darkCheck);
+      try {
+        let darkErrors = 0;
+        for (const width of widthList) {
+          const png = join(directory, `frame-dark-${width}.png`);
+          const reportPath = png.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, png, width);
+          const errCount = report.findings.filter(f => f.severity === 'error').length;
+          const revFindings = report.findings.filter(f => f.severity === 'review');
+          darkErrors += errCount;
+          const frameInfo = { state: 'dark-theme', width, height: report.viewport.height, capture: report.capture, screenshot: png, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings };
+          stateFrames.push(frameInfo);
+          stateCoverage.darkTheme.frames.push({ width, screenshot: png, report: reportPath, errors: errCount, review: revFindings.length });
+          for (const f of report.findings) diagnostics.push({ ...f, check: 'inspect-dark', state: 'dark-theme', width, repair: repairs[f.code] ?? 'Inspect this finding in the dark-theme PNG and correct confirmed defects.' });
+        }
+        darkCheck.hasErrors = darkErrors > 0;
+        stateCoverage.darkTheme.checked = stateCoverage.darkTheme.frames.length === widthList.length;
+      } catch (error) { darkCheck.evidenceError = error.message; }
+    }
+
+    if (!hasClickFlag && Array.isArray(discovered.tabs) && discovered.tabs.length) {
+      const inactiveTabs = [], seenTabSel = new Set();
+      for (const t of discovered.tabs) {
+        if (!t.selected && t.visible !== false && t.selector && !seenTabSel.has(t.selector)) {
+          seenTabSel.add(t.selector);
+          inactiveTabs.push(t);
+          if (inactiveTabs.length >= 6) break;
+        }
+      }
+      const tabWidth = widthList[0];
+      const tabInspectArgs = [];
+      for (let idx = 0; idx < inspectArgs.length; idx++) {
+        if (inspectArgs[idx] === '--width') { tabInspectArgs.push('--width', String(tabWidth)); idx++; }
+        else tabInspectArgs.push(inspectArgs[idx]);
+      }
+      for (let tIdx = 0; tIdx < inactiveTabs.length; tIdx++) {
+        const tab = inactiveTabs[tIdx], n = tIdx + 1;
+        const tabPng = join(directory, `state-tab-${n}-${tabWidth}.png`);
+        const tabRes = run(process.execPath, [join(scriptRoot, 'inspect.mjs'), targetSpec, ...tabInspectArgs, '--click', tab.selector, '--out', tabPng, '--strict'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
+        const tabLog = join(directory, `inspect-tab-${n}.log`);
+        writeFileSync(tabLog, (tabRes.stdout ?? '') + (tabRes.stderr ?? '') + (tabRes.error ? '\n' + tabRes.error.message : ''));
+        const tabCheck = { name: `inspect-tab-${n}`, exitCode: tabRes.status ?? null, error: tabRes.error?.message ?? null, signal: tabRes.signal ?? null, log: tabLog };
+        results.push(tabCheck);
+        try {
+          const reportPath = tabPng.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, tabPng, tabWidth);
+          const errCount = report.findings.filter(f => f.severity === 'error').length;
+          const revFindings = report.findings.filter(f => f.severity === 'review');
+          tabCheck.hasErrors = errCount > 0;
+          stateFrames.push({ state: `tab-${n}`, selector: tab.selector, width: tabWidth, height: report.viewport.height, capture: report.capture, screenshot: tabPng, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings });
+          stateCoverage.tabs.frames.push({ index: n, selector: tab.selector, text: tab.text, width: tabWidth, screenshot: tabPng, report: reportPath, errors: errCount, review: revFindings.length });
+          stateCoverage.tabs.checked++;
+          for (const f of report.findings) diagnostics.push({ ...f, check: `inspect-tab-${n}`, state: `tab-${n}`, width: tabWidth, repair: repairs[f.code] ?? 'Inspect this finding in the tab state PNG and correct confirmed defects.' });
+        } catch (error) { tabCheck.evidenceError = error.message; }
+      }
+    }
+  }
+
+  const allFrames = [...frames, ...stateFrames];
+  const validResolutions = !resolutionsError && resolutionsData ? resolutionsData.items : [];
+  const acceptedReviews = [], unresolvedReviews = [];
+  const matchesResolution = (f, width, stateLabel, item) => {
+    if (!item || item.code !== f.code) return false;
+    if (item.width !== undefined && item.width !== width) return false;
+    if (item.selector !== undefined && item.selector !== f.selector) return false;
+    if (!['false-positive', 'source-exception', 'verified-after-scroll'].includes(item.resolution)) return false;
+    if (typeof item.rationale !== 'string' || item.rationale.trim().length < 15) return false;
+    if (typeof item.evidence !== 'string' || item.evidence.trim().length < 10) return false;
+    if (item.resolution === 'false-positive' && (f.code === 'hover-contrast-loss' || f.code === 'competing-solid-actions' || (f.code === 'small-target' && width < 600))) return false;
+    return true;
+  };
+  for (const fr of allFrames) {
+    for (const f of fr.reviewFindings ?? []) {
+      const matched = validResolutions.find(item => matchesResolution(f, fr.width, fr.state ?? 'default', item));
+      if (matched) acceptedReviews.push({ code: f.code, width: fr.width, state: fr.state ?? 'default', selector: f.selector, resolution: matched.resolution, rationale: matched.rationale, evidence: matched.evidence });
+      else unresolvedReviews.push({ code: f.code, width: fr.width, state: fr.state ?? 'default', selector: f.selector, message: f.message });
+    }
+    delete fr.reviewFindings;
+  }
+
   const unchanged = hash(readFileSync(source)) === before;
-  const validationExit = r => r.exitCode === 1 && (r.name === 'tokens' ? tokenReport?.findings?.length > 0 : frames.some(f => f.errors > 0));
-  const counts = { tokenWarnings: tokenReport ? activeTokenWarnings : null, renderErrors: frames.reduce((n, f) => n + f.errors, 0), renderReviews: frames.reduce((n, f) => n + f.review, 0), checkFailures: results.filter(r => r.error || r.evidenceError || (r.exitCode !== 0 && !validationExit(r))).length };
-  const passed = unchanged && counts.checkFailures === 0 && counts.tokenWarnings === 0 && counts.renderErrors === 0 && frames.length === widthList.length;
+  const validationExit = r => r.exitCode === 1 && (
+    r.name === 'tokens' ? tokenReport?.findings?.length > 0 :
+    r.name === 'tokens-dark' ? r.hasFindings :
+    r.name === 'inspect' ? frames.some(f => f.errors > 0) :
+    r.hasErrors
+  );
+  const counts = {
+    tokenWarnings: tokenReport ? activeTokenWarnings : null,
+    renderErrors: allFrames.reduce((n, f) => n + f.errors, 0),
+    renderReviews: allFrames.reduce((n, f) => n + f.review, 0),
+    unresolvedReviews: unresolvedReviews.length,
+    checkFailures: results.filter(r => r.error || r.evidenceError || (r.exitCode !== 0 && !validationExit(r))).length,
+  };
+  const technicalPassed = unchanged && counts.checkFailures === 0 && counts.tokenWarnings === 0 && counts.renderErrors === 0 && frames.length === widthList.length;
+  const reviewResolved = counts.unresolvedReviews === 0;
+  const passed = technicalPassed && reviewResolved;
 
   if (counts.checkFailures === 0) {
     for (const entry of readdirSync(verifyRoot, { withFileTypes: true })) {
@@ -146,10 +301,11 @@ export function verify(argv, run = spawnSync) {
 
   const stageArgs = stage === 'calibrate' ? ['--stage', 'calibrate'] : [];
   const repeat = ['node', join(scriptRoot, 'verify.mjs'), targetSpec, '--state', statePath, ...stageArgs, ...args].map(quote).join(' ');
-  const status = counts.checkFailures ? 'incomplete' : !passed ? 'failed' : counts.renderReviews ? 'needs-review' : 'passed';
-  const hasStrips = frames.some(f => f.strips?.length > 0);
+  const status = counts.checkFailures ? 'incomplete' : !technicalPassed ? 'failed' : counts.unresolvedReviews > 0 ? 'needs-review' : 'passed';
+  const hasStrips = allFrames.some(f => f.strips?.length > 0);
+  const uncoveredIntervals = allFrames.flatMap(f => (f.uncoveredIntervals ?? []).map(u => ({ width: f.width, state: f.state ?? 'default', ...u })));
   const nextMessage = status === 'needs-review'
-    ? 'Review findings remain. Inspect each in the final PNGs' + (hasStrips ? ' and 1:1 viewport strips (frame-*-s*.png)' : '') + ' and resolve or document it before delivery; passed covers blocking technical checks only.'
+    ? 'Unresolved review findings block acceptance (passed: false, exit 1). Inspect each in the final PNGs' + (hasStrips ? ' and 1:1 viewport strips (frame-*-s*.png)' : '') + ' and fix the layout or supply valid --resolutions FILE before delivery.'
     : passed
       ? (stage === 'calibrate'
         ? 'Calibration passed. View the 1:1 first-screen PNGs, build remaining sections, and run full verify.mjs without --stage calibrate.'
@@ -157,16 +313,18 @@ export function verify(argv, run = spawnSync) {
       : 'Work remains. Read diagnostics and logs, fix confirmed causes without removing required content or weakening checks, then repeat this full command. An environment failure must be reported as incomplete, not passed.';
 
   const report = {
-    schemaVersion: 2, stage, source, sourceSha256: before, guideEdition: state.edition, route: state.plan.visualPath, checks: results, sourceUnchanged: unchanged, counts, passed, clean: passed && counts.renderReviews === 0, status, acceptedExceptions: tokenReport?.exceptions ?? [],
+    schemaVersion: 2, stage, source, sourceSha256: before, guideEdition: state.edition, route: state.plan.visualPath, checks: results, sourceUnchanged: unchanged, counts, technicalPassed, reviewResolved, passed, clean: passed && counts.renderReviews === 0, status, acceptedExceptions: tokenReport?.exceptions ?? [],
+    acceptedReviews, unresolvedReviews, ...(resolutionsError && { resolutionsError }),
+    stateCoverage, ...(uncoveredIntervals.length && { uncoveredIntervals }),
     ...(stage === 'calibrate' && { deferredInCalibrate }),
     coverage: { content: args.includes('--contract') ? 'explicit expectations only' : 'not checked: compare required facts across every frame', screenshots: frames.some(f => f.capture.internalScrollRegions > 0) ? 'document canvas only; internal scroll regions require separate captures' : frames.length === widthList.length && frames.every(f => f.capture.fullDocument) ? 'full documents' : 'requested frames or regions; not all page content' },
-    frames, diagnostics, repeatCommand: repeat, next: nextMessage,
+    frames, ...(stateFrames.length && { stateFrames }), diagnostics, repeatCommand: repeat, next: nextMessage,
     visualReview: 'Not verified by this command. A technical pass is not evidence of visual quality, correct facts or complete accessibility.',
   };
   const reportPath = join(directory, 'summary.json');
   writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
   const compact = []; let budget = 0;
-  for (const f of diagnostics) { const item = { check: f.check, severity: f.severity, code: f.code, width: f.width, line: f.line, selector: f.selector, message: f.message, repair: f.repair }; const bytes = Buffer.byteLength(JSON.stringify(item)); if (budget + bytes > 6000) break; compact.push(item); budget += bytes; }
+  for (const f of diagnostics) { const item = { check: f.check, severity: f.severity, code: f.code, width: f.width, ...(f.state && { state: f.state }), ...(f.theme && { theme: f.theme }), line: f.line, selector: f.selector, message: f.message, repair: f.repair }; const bytes = Buffer.byteLength(JSON.stringify(item)); if (budget + bytes > 6000) break; compact.push(item); budget += bytes; }
   console.log(JSON.stringify({ ...report, report: reportPath, diagnostics: compact, remainingDiagnostics: diagnostics.length - compact.length }, null, 2));
   return passed ? 0 : 1;
 }

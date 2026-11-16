@@ -382,8 +382,9 @@ recheck only the affected area.
    required facts, readable type and meaningful theme bindings. A genuine supplied
    theme exception stays visible in the report. A recognized unchanged bundled
    scale is an accepted exception; unresolved warnings still prevent a technical
-   pass. `status:needs-review` requires assessment of each manual finding before
-   delivery. Full-page screenshots do not establish completeness: compare every
+   pass. `status: needs-review` (`passed: false`, exit 1) blocks delivery until
+   findings are fixed or verified via `--resolutions FILE` (matching `sourceSha256`).
+   Full-page screenshots do not establish completeness: compare every
    frame's required facts with the brief, using explicit content checks for facts
    that must survive responsive changes.
 

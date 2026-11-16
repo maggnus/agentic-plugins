@@ -80,7 +80,7 @@ try {
  }
  assert.ok(!blocked(guard({...event(''),tool_name:'Read',tool_input:{file_path:join(skillRoot,'library',resource)}},options)),'a client read tool also works while choosing');
  assert.ok(blocked(guard(event('echo premature > index.html'),options)),'choosing is not authoring');
- const plan={visualPath:'direct',reason:'test',tools:{generation:{status:'unknown',evidence:'not checked'},viewing:{status:'unknown',evidence:'not checked'}},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'fixture'}]))};
+ const plan={visualPath:'direct',reason:'test',tools:{generation:{status:'unknown',evidence:'not checked'},viewing:{status:'unknown',evidence:'not checked'}},visualContract:{source:'project-brand',brandSource:'brand/tokens.css fixture'},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'fixture'}]))};
  state.plan=plan;state.phase='ready';writeFileSync(statePath,JSON.stringify(state));
  assert.ok(!blocked(guard(event('cat x | tail -1; echo y > index.html'),options)),'ready authoring unaffected');
  assert.ok(!blocked(guard({...event(''),tool_name:'Write',tool_input:{file_path:'index.html'}},options)));

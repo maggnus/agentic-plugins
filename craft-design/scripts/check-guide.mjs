@@ -74,7 +74,8 @@ assert.ok(baseDone.includes(script+' read --path skills/ID/'),'selection names t
 const quickState=join(dir,'quick-state.json');
 r=run('begin','--state',quickState);assert.equal(r.status,0,r.stderr);
 finishPackets(quickState,r.stdout);
-const quickPlan={visualPath:'direct',reason:'Fast route test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens','inspection','preview']};
+const vc={source:'library-system',systemId:'stripe',adaptation:'Adapted crisp surfaces and palette for this test fixture'};
+const quickPlan={visualPath:'direct',reason:'Fast route test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},visualContract:vc,entryId:'saas-landing',use:['library','tokens','inspection','preview']};
 r=run('decide','--state',quickState,'--json',JSON.stringify(quickPlan));
 assert.equal(r.status,0,r.stderr);
 const quickDone=finishPackets(quickState,r.stdout);
@@ -89,7 +90,7 @@ assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for compact u
 const mixedUseState=join(dir,'mixed-use-state.json');
 r=run('begin','--state',mixedUseState);assert.equal(r.status,0,r.stderr);
 finishPackets(mixedUseState,r.stdout);
-const mixedUsePlan={visualPath:'direct',reason:'Mixed use+capabilities test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{tokens:{choice:'skip',evidence:'Static snippet only'}}};
+const mixedUsePlan={visualPath:'direct',reason:'Mixed use+capabilities test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},visualContract:vc,entryId:'saas-landing',use:['library','tokens'],capabilities:{tokens:{choice:'skip',evidence:'Static snippet only'}}};
 r=run('decide','--state',mixedUseState,'--json',JSON.stringify(mixedUsePlan));
 assert.equal(r.status,0,r.stderr);
 const mixedUseDone=finishPackets(mixedUseState,r.stdout);
@@ -102,7 +103,7 @@ assert.match(r.stdout,/read --path skills\/saas-landing\//,'status for mixed pla
 const mixedState=join(dir,'mixed-state.json');
 r=run('begin','--state',mixedState);assert.equal(r.status,0,r.stderr);
 finishPackets(mixedState,r.stdout);
-const mixedPlan={visualPath:'direct',reason:'Mixed plan test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},entryId:'saas-landing',use:['library','tokens'],capabilities:{library:{choice:'skip',evidence:'Only custom tokens'}}};
+const mixedPlan={visualPath:'direct',reason:'Mixed plan test',tools:{generation:{status:'unavailable',evidence:'none'},viewing:{status:'available',evidence:'shot.mjs'}},visualContract:vc,entryId:'saas-landing',use:['library','tokens'],capabilities:{library:{choice:'skip',evidence:'Only custom tokens'}}};
 r=run('decide','--state',mixedState,'--json',JSON.stringify(mixedPlan));
 assert.equal(r.status,0,r.stderr);
 const mixedDone=finishPackets(mixedState,r.stdout);
@@ -113,7 +114,7 @@ assert.ok(!r.stdout.includes('library/skills/saas-landing/ENTRY.md'),'skip overr
 
 const oddDir=join(dir,"it's a dir"),oddState=join(oddDir,'state.json');mkdirSync(oddDir);
 r=run('begin','--state',oddState);assert.equal(r.status,0,r.stderr);assert.ok(!r.stdout.includes('<skill>'));
-const plan={visualPath:'direct',reason:'Existing component change',tools:{generation:{status:'unknown',evidence:'Not discovered'},viewing:{status:'available',evidence:'view_image'}},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'Not required by this fixture'}]))};
+const plan={visualPath:'direct',reason:'Existing component change',tools:{generation:{status:'unknown',evidence:'Not discovered'},viewing:{status:'available',evidence:'view_image'}},visualContract:{source:'project-brand',brandSource:'src/styles/tokens.css'},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'Not required by this fixture'}]))};
 const planFile=join(dir,'plan.json');writeFileSync(planFile,JSON.stringify(plan));
 assert.equal(run('next','--state',state,'--receipt','wrong').status,2,'next fails when not in reading phase');
 // Ranked search: exact ids, compound English, mapped Russian, empty and unmapped queries.
@@ -153,6 +154,18 @@ assert.throws(()=>libraryResource('skills/x/leak.md',{root:fake}),/outside/,'sym
 assert.throws(()=>libraryResource('skills/x/up/outside.md',{root:fake}),/outside/,'symlinked directory cannot escape');
 const listing=libraryResource('skills/x/',{root:fake}).pages.join('');assert.match(listing,/skills\/x\/ENTRY\.md/);assert.ok(!/leak|outside|secret/.test(listing),'listing omits escaping links; loops terminate');
 assert.throws(()=>validatePlan({...plan,visualPath:'generated'}),/both/);
+assert.throws(()=>validatePlan({...plan,visualContract:{source:'custom-spec',palette:'TBD',tonalPlan:'default',typography:'standard'}}),/palette|tonalPlan|typography/);
+assert.throws(()=>validatePlan({...plan,visualContract:{source:'library-system',systemId:'nonexistent-sys',adaptation:'Valid adaptation text'}}),/systemId/);
+const libExtra=validatePlan({...plan,visualContract:{source:'library-system',systemId:'stripe',adaptation:'Keep Stripe crisp light canvas and slate borders'}});
+assert.ok(libExtra.includes('library/design-systems/stripe/DESIGN.md'),'library-system auto-delivers DESIGN.md');
+assert.ok(libExtra.includes('library/design-systems/stripe/tokens.css'),'library-system auto-delivers tokens.css');
+const customExtra=validatePlan({...plan,visualContract:{source:'custom-spec',palette:'oklch(0.98 0.005 90) canvas, oklch(0.2 0.01 90) ink, oklch(0.55 0.16 250) accent',tonalPlan:'80% light paper canvas, 15% elevated cards, 5% high-contrast dark anchor footer',typography:'Golos Text + JetBrains Mono (Cyrillic + Latin)',inspiredBy:'directions.md#tech-utility'}});
+assert.ok(customExtra.includes('library/directions.md'),'custom-spec with directions.md reference delivers directions.md');
+const catRes=searchCatalog('fintech dashboard');
+assert.ok(Array.isArray(catRes.systems)&&catRes.systems.length>=3,'searchCatalog returns systems');
+assert.ok(Array.isArray(catRes.directions)&&catRes.directions.length>=1,'searchCatalog returns directions');
+const catOut=run('catalog','--query','fintech dashboard');
+assert.match(catOut.stdout,/Design systems \(use in visualContract\.systemId\):/,'catalog --query prints Design systems section');
 assert.throws(()=>validatePlan({...plan,capabilities:{}}),/every/);
 plan.capabilities.inspection.choice='use';
 plan.capabilities.library.choice='use';plan.entryId='dashboard';
@@ -221,11 +234,20 @@ try{
  assert.equal(verify([html,'--state',state],evidence({tokenWarnings:true})),1,'findings fail even with zero child exit');
  assert.equal(verify([html,'--state',state],evidence({stale:true})),1,'stale source evidence fails');
  assert.equal(verify([html,'--state',state],evidence({badPng:true})),1,'changed PNG evidence fails');
- assert.equal(verify([html,'--state',state],evidence({review:true})),0,'review findings retain their non-error semantics');
- assert.equal(latest.clean,false);assert.equal(latest.counts.renderReviews,2);assert.equal(latest.status,'needs-review');
+ assert.equal(verify([html,'--state',state],evidence({review:true})),1,'unresolved review findings block pass with exit 1');
+ assert.equal(latest.passed,false);assert.equal(latest.technicalPassed,true);assert.equal(latest.reviewResolved,false);assert.equal(latest.clean,false);assert.equal(latest.counts.renderReviews,2);assert.equal(latest.counts.unresolvedReviews,2);assert.equal(latest.status,'needs-review');
+ const resFile=join(dir,'resolutions.json');
+ writeFileSync(resFile,JSON.stringify({version:1,sourceSha256:digest(readFileSync(html)),items:[{code:'possible-occlusion',resolution:'verified-after-scroll',rationale:'Verified in full-page and strip PNGs that sticky header clears on scroll.',evidence:'frame-1440-s2.png shows button unobstructed'}]}));
+ assert.equal(verify([html,'--state',state,'--resolutions',resFile],evidence({review:true})),0,'valid --resolutions unblocks pass');
+ assert.equal(latest.passed,true);assert.equal(latest.technicalPassed,true);assert.equal(latest.reviewResolved,true);assert.equal(latest.clean,false);assert.equal(latest.status,'passed');assert.equal(latest.counts.unresolvedReviews,0);assert.equal(latest.acceptedReviews.length,2);
+ assert.match(latest.repeatCommand,/--resolutions/,'repeatCommand retains --resolutions');
+ writeFileSync(html,'<!doctype html><p>fixture edited</p>');
+ assert.equal(verify([html,'--state',state,'--resolutions',resFile],evidence({review:true})),1,'stale sourceSha256 in --resolutions is rejected');
+ assert.equal(latest.passed,false);assert.equal(latest.status,'needs-review');assert.ok(latest.resolutionsError);
+ writeFileSync(html,'<!doctype html><p>fixture</p>');
  calls.length=0;
  assert.equal(verify([html,'--state',state,'--strict'],evidence()),0);
- assert.equal(latest.clean,true);assert.deepEqual(latest.counts,{tokenWarnings:0,renderErrors:0,renderReviews:0,checkFailures:0});
+ assert.equal(latest.clean,true);assert.deepEqual(latest.counts,{tokenWarnings:0,renderErrors:0,renderReviews:0,unresolvedReviews:0,checkFailures:0});
  assert.ok(calls.every(a=>a.includes('1440,390')),'default viewports match across checks');
  assert.ok(calls.every(a=>a.filter(x=>x==='--strict').length===1),'strict is normalized');
  assert.equal(latest.status,'passed');assert.ok(calls[1].includes('--full'),'ordinary pages capture the whole document');assert.ok(latest.repeatCommand.includes('--full'));

@@ -308,8 +308,87 @@ export function inspectHtml(html) {
   }
   const registry = theme ? decls.filter(d => d.start >= theme.start && d.start < theme.end && d.prop.startsWith('--') && /(^|[\s>,]):root\b/.test(d.selector)) : [];
   if (theme && !registry.length) warn('theme-registry', 'no :root token registry between the theme markers', theme.start);
-  const tokens = [...new Set(registry.map(d => d.prop))]
-    .filter(name => used.has(name) && /^(?:--accent|--fg|--bg|--font-display|--text-[\w-]+|--space-[\w-]+|--radius-[\w-]+)$/.test(name));
+  const usedByStyle = new Set();
+  for (const d of decls) if (!d.ignored && !d.prop.startsWith('--')) refs(d.value).forEach(n => usedByStyle.add(n));
+  for (const a of parts.svgColors) refs(a.value).forEach(n => usedByStyle.add(n));
+  for (const js of parts.scripts) {
+    for (const m of js.matchAll(/--[\w-]+/g)) {
+      if (/\$\{/.test(js.slice(m.index + m[0].length, m.index + m[0].length + 2))) {
+        for (const name of definitions.keys()) if (name.startsWith(m[0])) usedByStyle.add(name);
+      } else usedByStyle.add(m[0]);
+    }
+  }
+  for (let prev = -1; prev !== usedByStyle.size;) {
+    prev = usedByStyle.size;
+    for (const d of decls) if (!d.ignored && d.prop.startsWith('--') && usedByStyle.has(d.prop)) refs(d.value).forEach(n => usedByStyle.add(n));
+  }
+  const tokens = [...new Set(registry.map(d => d.prop))].filter(name => usedByStyle.has(name));
+  const classifyProp = prop => {
+    if (prop === 'font-family') return 'font';
+    if (prop === 'font-size' || prop === 'line-height') return 'text';
+    if (/^border-(?:.*-)?radius$/.test(prop)) return 'radius';
+    if (/^(?:padding|margin|gap|row-gap|column-gap|inset|top|right|bottom|left|width|min-width|max-width|height|min-height|max-height)(?:-|$)/.test(prop)) return 'space';
+    if (COLOR_PROPERTY.test(prop)) return 'color';
+    return null;
+  };
+  const aliasDeps = new Map();
+  for (const d of decls) {
+    if (d.ignored || !d.prop.startsWith('--')) continue;
+    const set = aliasDeps.get(d.prop) ?? new Set();
+    for (const ref of refs(d.value)) set.add(ref);
+    aliasDeps.set(d.prop, set);
+  }
+  const usageCounts = new Map();
+  const addUsage = (token, kind) => {
+    const queue = [token], seen = new Set();
+    while (queue.length) {
+      const cur = queue.shift();
+      if (seen.has(cur)) continue;
+      seen.add(cur);
+      const counts = usageCounts.get(cur) ?? new Map();
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+      usageCounts.set(cur, counts);
+      for (const dep of aliasDeps.get(cur) ?? []) queue.push(dep);
+    }
+  };
+  for (const d of decls) {
+    if (d.ignored || d.prop.startsWith('--')) continue;
+    const kind = classifyProp(d.prop);
+    if (kind) for (const ref of refs(d.value)) addUsage(ref, kind);
+  }
+  for (const a of parts.svgColors) for (const ref of refs(a.value)) addUsage(ref, 'color');
+  const inferKindFromValue = (rawValue, candidateKinds) => {
+    const clean = uncomment(rawValue).trim();
+    if (colorLiterals(clean).length || /\bcolor-mix\s*\(/i.test(clean)) return 'color';
+    if (/["']/.test(clean) || /(?:^|,)\s*(?:sans-serif|serif|monospace|system-ui|ui-sans-serif|ui-serif|ui-monospace|cursive|fantasy)\b/i.test(clean)) return 'font';
+    if (/\d(?:\.\d+)?(?:px|rem|em|vw|vh|vmin|vmax|ch|ex|%)\b|\b(?:clamp|min|max|calc)\s*\(/i.test(clean)) {
+      if (candidateKinds.has('radius') && !candidateKinds.has('text') && !candidateKinds.has('space')) return 'radius';
+      if (candidateKinds.has('text') && !candidateKinds.has('radius') && !candidateKinds.has('space')) return 'text';
+      if (candidateKinds.has('space') && !candidateKinds.has('radius') && !candidateKinds.has('text')) return 'space';
+      return null;
+    }
+    return null;
+  };
+  const tokenKinds = {};
+  for (const name of tokens) {
+    const counts = usageCounts.get(name);
+    if (counts && counts.size === 1) {
+      tokenKinds[name] = [...counts.keys()][0];
+      continue;
+    }
+    const candidateKinds = new Set(counts ? counts.keys() : []);
+    const fromVal = inferKindFromValue(definitions.get(name)?.value ?? '', candidateKinds);
+    if (fromVal && (!candidateKinds.size || candidateKinds.has(fromVal))) {
+      tokenKinds[name] = fromVal;
+      continue;
+    }
+    if (counts && counts.size > 0) {
+      const priority = ['color', 'font', 'text', 'radius', 'space'];
+      tokenKinds[name] = [...counts.entries()].sort((a, b) => b[1] - a[1] || priority.indexOf(a[0]) - priority.indexOf(b[0]))[0][0];
+    } else {
+      tokenKinds[name] = fromVal ?? 'color';
+    }
+  }
   // A component variable with a copied literal is not a second semantic token.
   // Only theme definitions and aliases whose every definition derives from them
   // earn the same-value exemption. Literal shadowing outside the theme revokes it.
@@ -325,11 +404,11 @@ export function inspectHtml(html) {
       })) semantic.add(name);
     }
   }
-  return { warnings, tokens, exceptions, semanticTokens:[...semantic] };
+  return { warnings, tokens, tokenKinds, exceptions, semanticTokens:[...semantic] };
 }
 
 // Serialized into the page, so keep this function self-contained.
-async function mutateTheme(tokens, semanticTokens, pureReferences) {
+async function mutateTheme(tokens, semanticTokens, pureReferences, tokenKinds = {}) {
   const semantic = new Set(semanticTokens);
   const root = document.documentElement, original = root.getAttribute('style');
   const freeze = document.createElement('style');
@@ -458,10 +537,10 @@ async function mutateTheme(tokens, semanticTokens, pureReferences) {
   const restore = () => original === null ? root.removeAttribute('style') : root.setAttribute('style', original);
   try {
     for (const token of tokens) {
-      const kind = token === '--font-display' ? 'font' : token.startsWith('--text-') ? 'text' : token.startsWith('--space-') ? 'space' : token.startsWith('--radius-') ? 'radius' : 'color';
+      const kind = tokenKinds[token] ?? 'color';
       const properties = kind === 'font' ? ['font-family'] : kind === 'text' ? ['font-size', 'line-height'] : kind === 'radius'
         ? ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-left-radius', 'border-bottom-right-radius']
-        : kind === 'space' ? ['padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'row-gap', 'column-gap', 'width', 'height', 'top', 'right', 'bottom', 'left']
+        : kind === 'space' ? ['padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'row-gap', 'column-gap', 'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'top', 'right', 'bottom', 'left']
         : ['color', 'background-color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color', 'text-decoration-color', 'fill', 'stroke', 'box-shadow', 'text-shadow', 'background-image'];
       const sampleProperty = { font: 'font-family', text: 'font-size', space: 'padding-top', radius: 'border-top-left-radius', color: 'color' }[kind];
       probe.style.setProperty(sampleProperty, `var(${token})`);
@@ -512,7 +591,7 @@ function findBrowser() {
   return null;
 }
 
-async function browserCheck(file, widths, tokens, semanticTokens, report, { mode = 'auto', suffix = '' } = {}) {
+async function browserCheck(file, widths, tokens, semanticTokens, report, { mode = 'auto', suffix = '', theme = null, tokenKinds = {} } = {}) {
   const browser = findBrowser();
   if (!browser || typeof WebSocket !== 'function') return false;
   const profile = mkdtempSync(join(tmpdir(), 'craft-design-tokens-'));
@@ -558,7 +637,8 @@ async function browserCheck(file, widths, tokens, semanticTokens, report, { mode
           await timed(loaded, 20000, 'page load timed out');
         } finally { listeners.delete(listener); }
         await s('Runtime.evaluate', { expression: 'Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,5000))]).then(()=>true)', awaitPromise: true });
-        const result = await s('Runtime.evaluate', { expression: `(${mutateTheme.toString()})(${JSON.stringify(tokens)},${JSON.stringify(semanticTokens)},${pureReferences.toString()})`, awaitPromise: true, returnByValue: true });
+        if (theme) await s('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)})` });
+        const result = await s('Runtime.evaluate', { expression: `(${mutateTheme.toString()})(${JSON.stringify(tokens)},${JSON.stringify(semanticTokens)},${pureReferences.toString()},${JSON.stringify(tokenKinds)})`, awaitPromise: true, returnByValue: true });
         if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description ?? result.exceptionDetails.text);
         report(width, result.result.value);
       } finally { await send('Target.closeTarget', { targetId }); }
@@ -923,19 +1003,20 @@ export async function main(argv) {
   if (json) args.splice(jsonIndex, 1);
   const widths = String(take('--width', '1440,390')).split(',').map(Number);
   const mode = take('--mode', 'auto');
+  const theme = take('--theme', null);
   const strictIndex = args.indexOf('--strict'), strict = strictIndex >= 0;
   if (strict) args.splice(strictIndex, 1);
-  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000) || !['auto', 'desktop', 'mobile'].includes(mode)) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--mode auto|desktop|mobile] [--strict] [--json]');
+  if (args.length !== 1 || args[0].startsWith('--') || widths.some(w => !Number.isInteger(w) || w < 1 || w > 10000) || !['auto', 'desktop', 'mobile'].includes(mode) || (theme !== null && !['dark', 'light'].includes(theme))) throw new Error('usage: tokens.mjs check file.html [--width 1440,390] [--mode auto|desktop|mobile] [--theme dark|light] [--strict] [--json]');
   const [, rawFile, suffix = ''] = args[0].match(/^([^?#]*)(.*)$/);
   const file = resolve(rawFile), html = readFileSync(file, 'utf8');
-  const { warnings, tokens, exceptions, semanticTokens } = inspectHtml(html);
+  const { warnings, tokens, tokenKinds, exceptions, semanticTokens } = inspectHtml(html);
   const findings = [], frames = [], log = (...values) => { if (!json) console.log(...values); };
   const warning = (code, message, line, selector) => { findings.push({code, message, line:line ?? null, selector:selector ?? null}); log(`warning ${code}: ${file}${line ? ':' + line : ''}${selector ? ' [' + selector + ']' : ''}: ${message}`); };
   warnings.forEach(w => warning(w.code, w.message, w.line, w.selector));
   for (const item of exceptions) log(`accepted ${item.code}: ${item.matchingSystems.join(", ")}, ${item.tokens.length} unchanged library token(s) retained`);
   const available = await browserCheck(file, widths, tokens, semanticTokens, (width, result) => {
     frames.push({width, ...result});
-  }, { mode, suffix });
+  }, { mode, suffix, theme, tokenKinds });
   for (const result of frames) {
     const { width } = result;
     log(`${width}px: inspected ${result.elements} rendered element(s)`);
@@ -954,7 +1035,7 @@ export async function main(argv) {
   }
   if (!available) log('browser unavailable: static checks only (set CHROME_PATH; Node 22+ required)');
   log(`tokens: ${findings.length} warning(s); HTML unchanged`);
-  if (json) console.log(JSON.stringify({schemaVersion:1, source:file, sourceSha256:createHash('sha256').update(html).digest('hex'), browserAvailable:available, widths, findings, exceptions, summary:{warnings:findings.length}, frames}));
+  if (json) console.log(JSON.stringify({schemaVersion:1, source:file, sourceSha256:createHash('sha256').update(html).digest('hex'), browserAvailable:available, widths, theme, findings, exceptions, summary:{warnings:findings.length}, frames}));
   return strict && findings.length ? 1 : available ? 0 : 3;
 }
 

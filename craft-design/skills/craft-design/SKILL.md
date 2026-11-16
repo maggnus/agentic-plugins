@@ -32,7 +32,7 @@ At `BASE COMPLETE`, inspect at most two catalog candidates if needed with
 `entry --id ID --page N` or `read --path skills/ID/`, then submit the route:
 
 ```sh
-node <skill>/scripts/craft-guide.mjs decide --state <abs>/.craft-guide.json --json '{"visualPath":"direct","reason":"...","tools":{"generation":{"status":"...","evidence":"..."},"viewing":{"status":"...","evidence":"..."}},"entryId":"...","use":["library","tokens","inspection","preview"]}'
+node <skill>/scripts/craft-guide.mjs decide --state <abs>/.craft-guide.json --json '{"visualPath":"direct","reason":"...","tools":{"generation":{"status":"...","evidence":"..."},"viewing":{"status":"...","evidence":"..."}},"visualContract":{"source":"library-system","systemId":"...","adaptation":"..."},"entryId":"...","use":["library","tokens","inspection","preview"]}'
 ```
 
 Compact `use: [...]` (or full `capabilities`) compiles the selected references,
@@ -61,12 +61,7 @@ Every new artifact selects an entry, craft rules and a visual contract:
    `anti-ai-slop`, plus `typography-hierarchy-editorial` for landing/editorial
    entries). Read `form-validation` yourself for forms. Ignore frontmatter
    requirements with no file.
-4. Bind exactly one visual contract: supplied brand source, active project/design
-   system, or a subject-specific design spec. It overrides template aesthetics.
-   For a library system read USAGE.md → DESIGN.md → tokens.css (not delivered by
-   the guide); preserve actual
-   theme values. Directions may inform an original spec; they are not a ceiling.
-   Read one block from `<skill>/library/directions.md`, not every direction.
+4. Bind exactly one `visualContract` in `decide` (`library-system`, `project-brand`, or `custom-spec`). It overrides template aesthetics. For `library-system`, the guide automatically delivers `USAGE.md`, `DESIGN.md`, and `tokens.css`; preserve actual theme values. Directions may inform an original spec (`inspiredBy`); read one block from `<skill>/library/directions.md`.
 
 The guide routes applicable references: brief, platform/print, host conventions,
 shared components and scenarios, visual proposals, and inspection. An entry using
@@ -106,8 +101,7 @@ phone. Add `--height` for another common height, `--fit` for a no-scroll frame,
 first-screen calibration. The command owns output paths and returns current
 counts, source-bound PNGs, 1:1 viewport `strips` (`frame-*-s*.png`) for long
 pages, diagnostics and a `repeatCommand`.
-When passed:false, repair the listed causes and run that complete command again;
-ordinary quality findings are not a reason to stop after one diagnostic. Read
+When `passed:false`, repair listed causes (or pass `--resolutions FILE` with matching `sourceSha256` for verified review findings) and repeat the command; `needs-review` also exits 1. Read
 summary.json if remainingDiagnostics is nonzero. Never change checks or hide
 required content to obtain a pass. Use the latest counts, not earlier logs or
 memory; an edit invalidates the previous verification at every affected size.

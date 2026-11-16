@@ -74,11 +74,11 @@ principles; the figures in them are examples, not a house style to repeat.
 - Take the palette from the visual contract, never from the host's chrome.
 - Derive missing state colors with `oklch()` from the contract's tokens.
 - **Monotonic OKLch lightness & anti-contour-congestion.**
-  - Light mode: `--bg` (`oklch(0.965–0.982 ...)`) → elevated `--surface` (`oklch(0.996–1.0 ...)` with `1px solid oklch(0.20 0.01 H / 0.10)` and a two-layer physical shadow: contact occlusion + soft penumbra). `--surface-2` must NEVER be darker than `--bg` (`L_bg <= L_surface2 <= L_surface`, e.g. `oklch(0.976–0.986 ...)`).
-  - Dark mode: lightness increases monotonically with elevation (`--bg 0.13–0.15` → `--surface 0.18–0.20` → `--surface-2 0.22–0.25`) with `oklch(1 0 0 / 0.08)` border and `inset 0 1px 0 oklch(1 0 0 / 0.06)` top highlight.
-  - Inside `--surface` cards/panels, charts, KPI summaries, logs, specs, and action footers keep `background: transparent` and structure via whitespace and `1px solid var(--border)` hairlines — no nested grey boxes! Reserve `--surface-2` strictly for functional wells (switch tracks, `thead`, code blocks).
-- **Action hierarchy (Chevreul).** At most ONE solid high-contrast button per action group or panel footer — including `--danger`. Never place a solid `--accent` button beside or above a solid `--danger` button; render destructive actions beside a primary CTA as quiet outlined/transparent buttons (border + `--danger` text) until explicit confirmation. In dense operational panels, keep buttons compact (`34–38px` tall, `flex-wrap` horizontal row), not stacked full-width banners.
-- One accent color, spent where it carries meaning (85–10–5 neutral/surface/accent pixel budget), not sprinkled. A second accent or categorical colors take the first one's lightness and chroma in OKLch and differ in hue, kept inside sRGB gamut; the contract's own values win over this rule.
+  - Light: `--bg` (`oklch(0.965–0.982 ...)`) → `--surface` (`0.996–1.0` + `1px solid oklch(0.20 0.01 H / 0.10)` + 2-layer shadow); `--surface-2` never darker than `--bg` (`L_bg <= L_surface2 <= L_surface`).
+  - Dark: monotonic step-up (`--bg 0.13–0.15` → `--surface 0.18–0.20` → `--surface-2 0.22–0.25`), `oklch(1 0 0 / 0.08)` border, `inset 0 1px 0 oklch(1 0 0 / 0.06)`.
+  - Inside `--surface`, keep charts/summaries/logs/footers `transparent` with `1px solid var(--border)` dividers (no nested grey boxes); reserve `--surface-2` for wells (`thead`, switch tracks, code).
+- **Action hierarchy.** At most ONE solid button per action group/footer (render `--danger` beside a primary CTA as quiet outlined `--danger` until confirmation). Use horizontal `flex-wrap` rows (`34–38px` only in dense desktop `>= 1024px`; `>= 44×44px` on touch `<= 768px`).
+- **Four semantic color roles & tonal masses.** Replace accent-count caps: (1) `--accent`/`--accent-on` with crisp OKLch chroma on 70–85% neutral canvas; (2) `--accent-soft` (`color-mix`) for selected rows/ranges; (3) `--accent-2`/series colors at equal OKLch lightness/chroma; (4) status signals (`--danger`, `--warn`, `--success`) so critical incidents stand out from nominal rows. Use tonal anchors (`.on-dark`, tinted panels) only when they sharpen hierarchy; the contract wins.
 - Near-neutrals stay neutral: keep chroma under `0.02` unless tint is intentional.
 - Display and body faces differ; one family only for utilitarian or data-dense briefs. Never leave generic `Inter`, `Roboto`, or `Arial` as `--font-display` unless an external brand contract explicitly requires them.
 - **Optical typography & Cyrillic restraint (Bringhurst / Korolkova).** Avoid shouting with `800/900` weights simultaneously across headings, prices, and logos. Build hierarchy with modular scale ratios (`1.200` for operational consoles, `1.333–1.414` for editorial/brand pages), tight display tracking (`-0.02em..-0.035em`), and restrained `400–600` weights on crisp Cyrillic webfonts (`Golos Text`, `Manrope`, `Onest`, `IBM Plex Sans`, `PT Serif`, `Cormorant Garamond 500/600`, `Playfair Display 500/600`, `Spectral`, `JetBrains Mono`, `IBM Plex Mono`).
@@ -124,7 +124,7 @@ dialogs, data tables, motion).
 
 ### Sizing
 
-Touch targets at least 44px; screen text at least 12px and body copy at least
+Touch targets (`button`, `a`, `input`, `select`, `textarea`) at least `44×44px` on mobile and touch widths (`<= 768px`); `34–38px` is allowed exclusively for dense desktop panels (`>= 1024px`). Screen text at least 12px and body copy at least
 15px on a phone; print body text at least 12pt (`print-and-diagrams.md`); no
 horizontal scroll on mobile, and no
 block wider than its container; redesign for small screens instead of squeezing

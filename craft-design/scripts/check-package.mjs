@@ -530,11 +530,13 @@ try {
       const full = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/full.html'), '--width', '1440,390', '--wait', '0', '--full', '--strips', '--out', join(work, 'full.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(full.status, 0, `full capture runs: ${full.stderr}`);
       assert.ok(existsSync(join(work, 'full-1440-s1.png')), '--strips creates 1:1 viewport strip PNGs');
-      // Verify 5350px page bottom coverage by last 1:1 strip on 1440x900.
+      // Verify 5350px page bottom coverage by last 1:1 strip on 1440x900 (continuous overlapping strips without cap=6).
       writeFileSync(join(root, 'demo/strips-bottom.html'), '<!doctype html><body style="margin:0;background:white"><div style="height:5270px"></div><footer style="height:80px;background:#00ff00"></footer></body>');
       const stripsBottom = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/strips-bottom.html'), '--width', '1440', '--wait', '0', '--full', '--strips', '--out', join(work, 'strips5350.png')], { encoding: 'utf8', timeout: 60000 });
       assert.equal(stripsBottom.status, 0, stripsBottom.stderr);
-      assert.deepEqual(screenshot(join(work, 'strips5350-s6.png')).pixel(10, 899), [0, 255, 0], 'last 1:1 strip reaches bottom of 5350px document');
+      const stripFiles = readdirSync(work).filter(n => /^strips5350-s\d+\.png$/.test(n)).sort((a, b) => Number(a.match(/s(\d+)/)[1]) - Number(b.match(/s(\d+)/)[1]));
+      assert.ok(stripFiles.length >= 6, 'continuous 1:1 strips cover 5350px document');
+      assert.deepEqual(screenshot(join(work, stripFiles[stripFiles.length - 1])).pixel(10, 899), [0, 255, 0], 'last 1:1 strip reaches bottom of 5350px document');
       // Verify hover-contrast-loss triggers on a button with CSS transition.
       writeFileSync(join(root, 'demo/hover-trans.html'), '<!doctype html><style>body{margin:0;background:#fff}button{background:#111;color:#fff;padding:12px 20px;border:0;transition:background-color 0.4s}button:hover{background:#eee}</style><button>Hover me</button>');
       const hoverCheck = spawnSync(process.execPath, [join(scripts, 'shot.mjs'), join(root, 'demo/hover-trans.html'), '--width', '1440', '--wait', '0', '--inspect', '--out', join(work, 'hover-trans.png')], { encoding: 'utf8', timeout: 60000 });

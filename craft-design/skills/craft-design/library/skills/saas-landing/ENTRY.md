@@ -51,7 +51,7 @@ craft:
     - file_write
 ---
 
-> **craft-design adaptation.** Reuse engineering primitives (reset, responsive tokens, accessible controls) when helpful, but DO NOT copy a canned section sequence from `layouts.md` or freeze global classes when designing a bespoke subject. Derive section types, rhythm and grid proportions from the subject's design spec, vary section structures (tables, interactive tools, asymmetric splits, contrasting bands) instead of repeating uniform 3-card grids, and keep every visual value bound to the `:root` theme.
+> **craft-design adaptation.** Reuse engineering primitives (reset, responsive tokens, accessible controls) when helpful, but DO NOT copy a canned section sequence from `layouts.md` or freeze global classes when designing a bespoke subject. Derive section types, rhythm, tonal masses (using contrast anchors or `.on-dark` bands only where they sharpen the subject), and grid proportions from the subject's design spec, apply the 4 semantic color roles without artificial accent-count caps, vary section structures (tables, interactive tools, asymmetric splits) instead of repeating uniform 3-card grids, and keep every visual value bound to the `:root` theme.
 
 # SaaS Landing Skill
 

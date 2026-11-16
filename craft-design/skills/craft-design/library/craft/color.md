@@ -28,17 +28,16 @@ Obey monotonic lightness in `oklch()` and avoid **contour congestion** ("box ins
 - **Keep nested card regions transparent:** charts, KPI summaries, logs, specs, and button footers inside `--surface` use `background: transparent` with whitespace and `1px solid var(--border)` hairlines. Reserve `--surface-2` strictly for functional wells (`thead`, switch tracks, code blocks). Never paint nested blocks inside `--surface` back to `--bg`.
 - **85–10–5 budget & action restraint:** keep 85% neutral planes, 10% quiet structural contrast, 5% `--accent`. At most ONE solid high-contrast button per action group (including `--danger`: beside `--accent`, style destructive actions as quiet outlined/transparent buttons with `--danger` text). Avoid the default warm-beige + terracotta cliché (`#F4F1EA + #A8421E`) unless requested by the brand.
 
-## Accent discipline
+## Semantic color roles & tonal masses
 
-The single biggest readability failure in AI-generated UIs is accent
-overuse. Hard caps:
+Replace arbitrary accent counting with four purposeful color roles and clear tonal massing:
 
-- **At most 2 visible uses of `--accent` per screen.** Typical pair:
-  one eyebrow / chip + one primary CTA. Or one accent card + one tab
-  pill. Pick a pair, not a flood.
-- Links count as accent; demote to `--fg` underline if you also have a
-  CTA on the same screen.
-- Hover/focus rings count as accent. Ration accordingly.
+1. **Primary action & active selection (`--accent`, `--accent-on`)** — give `--accent` genuine OKLch chromatic clarity (avoid washed-out greyed tints) while keeping 70–85% of the page canvas quiet and neutral. Keep at most ONE solid high-contrast button per action group. Links and `:focus-visible` rings should stay clearly perceptible without counting against a quota.
+2. **Tinted support (`--accent-soft` / `color-mix(in oklch, var(--accent) 12%, transparent)`)** — for selected rows, active ranges, soft status pills, and subtle focus bands.
+3. **Secondary domain tone or series color (`--accent-2` / categorical series)** — match the primary accent's perceptual OKLch lightness and chroma when the subject needs a second pole or data-series comparison.
+4. **Semantic signals (`--danger`, `--warn`, `--success`)** — in operational consoles, a critical incident must stand out clearly from calm nominal rows (rather than blending into an even card grid), while keeping destructive buttons beside a primary CTA outlined until explicit confirmation.
+
+Use large tonal masses and contrast anchors (`.on-dark`, drafting boards, tinted focal panels, or a high-contrast anchor section) where they sharpen hierarchy and subject drama — never as a forced dark band on every page.
 
 ## Contrast minimums
 

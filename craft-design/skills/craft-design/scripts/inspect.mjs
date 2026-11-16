@@ -94,15 +94,77 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     }
     return false;
   };
-  const occlusion = (el, r) => {
-    if (!inViewport(r)) return;
-    const points = [.2, .5, .8].map(t => [r.left + r.width * t, r.top + r.height * .5])
-      .filter(([x, y]) => x >= 0 && y >= 0 && x < innerWidth && y < innerHeight);
-    const blockers = points.map(([x, y]) => document.elementFromPoint(x, y))
-      .filter(top => top && top !== el && !el.contains(top) && !top.contains(el));
-    if (points.length && blockers.length >= Math.ceil(points.length * 2 / 3)) {
+  const isFixedOrSticky = node => {
+    for (let p = node; p && p !== document.documentElement; p = p.parentElement) {
+      const pos = style(p).position;
+      if (pos === 'fixed' || pos === 'sticky') return true;
+    }
+    return false;
+  };
+  let safeTop = 0, safeBottom = innerHeight;
+  if (!fit) {
+    for (const el of document.querySelectorAll('body *')) {
+      const pos = style(el).position;
+      if ((pos !== 'fixed' && pos !== 'sticky') || !visible(el)) continue;
+      const pr = el.getBoundingClientRect();
+      if (pr.width < innerWidth * 0.35 || pr.height <= 0 || pr.height >= innerHeight * 0.45) continue;
+      if (pr.top <= 40) safeTop = Math.max(safeTop, pr.bottom + 2);
+      if (pr.bottom >= innerHeight - 40) safeBottom = Math.min(safeBottom, pr.top - 2);
+    }
+  }
+  const occlusion = (el, r, isControl = false) => {
+    const sampleOcclusion = rect => {
+      const pts = [.2, .5, .8].map(t => [rect.left + rect.width * t, rect.top + rect.height * .5])
+        .filter(([x, y]) => x >= 0 && y >= 0 && x < innerWidth && y < innerHeight);
+      const blks = pts.map(([x, y]) => document.elementFromPoint(x, y))
+        .filter(top => top && top !== el && !el.contains(top) && !top.contains(el));
+      return { pts, blks };
+    };
+    if (inViewport(r)) {
+      const { pts, blks } = sampleOcclusion(r);
+      if (!pts.length || blks.length < Math.ceil(pts.length * 2 / 3)) return;
+      if (!fit && !isFixedOrSticky(el) && blks.some(isFixedOrSticky)) {
+        const savedY = window.scrollY;
+        try {
+          const absTop = r.top + savedY;
+          const maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+          const safeCenter = safeTop + Math.max(0, safeBottom - safeTop) / 2;
+          const targetY = Math.max(0, Math.min(maxScroll, absTop + r.height / 2 - safeCenter));
+          window.scrollTo({ top: targetY, behavior: 'instant' });
+          const nr = el.getBoundingClientRect();
+          const after = sampleOcclusion(nr);
+          if (after.pts.length && after.blks.length >= Math.ceil(after.pts.length * 2 / 3)) {
+            add('possible-occlusion', 'review', el, 'Another element covers most sampled points even after scrolling; inspect the screenshot.',
+              { blocker: selector(after.blks[0]), blockedSamples: after.blks.length, samples: after.pts.length }, nr);
+          }
+        } finally {
+          window.scrollTo({ top: savedY, behavior: 'instant' });
+        }
+        return;
+      }
       add('possible-occlusion', 'review', el, 'Another element covers most sampled points; inspect the screenshot.',
-        { blocker: selector(blockers[0]), blockedSamples: blockers.length, samples: points.length }, r);
+        { blocker: selector(blks[0]), blockedSamples: blks.length, samples: pts.length }, r);
+      return;
+    }
+    if (isControl && !fit && !isFixedOrSticky(el) && (safeTop > 0 || safeBottom < innerHeight)) {
+      const savedY = window.scrollY;
+      const absTop = r.top + savedY, absBottom = r.bottom + savedY;
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+      if (absBottom - safeBottom > maxScroll - 1 || absTop - safeTop < -1) {
+        try {
+          const safeCenter = safeTop + Math.max(0, safeBottom - safeTop) / 2;
+          const targetY = Math.max(0, Math.min(maxScroll, absTop + r.height / 2 - safeCenter));
+          window.scrollTo({ top: targetY, behavior: 'instant' });
+          const nr = el.getBoundingClientRect();
+          const after = sampleOcclusion(nr);
+          if (after.pts.length && after.blks.length >= Math.ceil(after.pts.length * 2 / 3) && after.blks.some(isFixedOrSticky)) {
+            add('possible-occlusion', 'review', el, 'Control remains covered by a fixed/sticky element at the scroll boundary.',
+              { blocker: selector(after.blks[0]), blockedSamples: after.blks.length, samples: after.pts.length }, nr);
+          }
+        } finally {
+          window.scrollTo({ top: savedY, behavior: 'instant' });
+        }
+      }
     }
   };
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1;
@@ -181,7 +243,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       if (innerWidth < 600 && (targetRect.width < 44 || targetRect.height < 44)) add('small-target', 'review', el,
         'Target is smaller than the skill’s 44 px touch guideline; check spacing and the intended platform.');
       if (fit && outside(r)) add('outside-frame', 'error', el, 'Control is outside the required single-screen frame.');
-      occlusion(el, r);
+      occlusion(el, r, true);
     }
   }
   const root = document.documentElement;
@@ -411,6 +473,30 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
       if (primitives < 12) {
         add('primitive-svg', 'review', svg, `Large diagram/chart SVG has only ${primitives} primitives; enrich with gridlines, stroke hierarchy, hatching/bands, and callouts.`, { primitives }, sr);
         primSvgCount++;
+        continue;
+      }
+      const rects = svg.querySelectorAll('rect').length;
+      const nonRectShapes = svg.querySelectorAll('path, circle, ellipse, polygon, polyline').length;
+      const lines = svg.querySelectorAll('line').length;
+      const geoCount = rects + nonRectShapes + lines;
+      if (geoCount > 0 && rects / geoCount > 0.8 && nonRectShapes === 0 && lines < 3) {
+        add('primitive-svg', 'review', svg, 'Large diagram/chart SVG is box-only (mostly <rect> without paths, curves, circles, or >= 3 lines); enrich with structural geometry.', { rects, geoCount, lines }, sr);
+        primSvgCount++;
+        continue;
+      }
+      const vb = svg.viewBox?.baseVal;
+      const scale = vb && vb.width > 0 && vb.height > 0 ? Math.min(sr.width / vb.width, sr.height / vb.height) : 1;
+      for (const t of svg.querySelectorAll('text')) {
+        if (!t.textContent?.trim() || !visible(t)) continue;
+        const tr = t.getBoundingClientRect();
+        if (tr.width <= 0 || tr.height <= 0) continue;
+        const fsAttr = parseFloat(style(t).fontSize) || 0;
+        const screenFs = fsAttr > 0 ? fsAttr * scale : tr.height;
+        if (screenFs < 9.5 || tr.height < 9.5) {
+          add('primitive-svg', 'review', svg, `Large SVG contains unreadable tiny <text> label (~${Math.round(Math.min(screenFs, tr.height) * 10) / 10}px < 9.5px).`, { text: t.textContent.trim().slice(0, 40), screenFontPx: Math.round(screenFs * 10) / 10 }, sr);
+          primSvgCount++;
+          break;
+        }
       }
     }
   }
@@ -418,8 +504,30 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     { scrollWidth: root.scrollWidth, viewportWidth: width });
   if (fit && root.scrollHeight > height + 1) add('vertical-overflow', 'error', root, 'Document is taller than the required frame.',
     { scrollHeight: root.scrollHeight, viewportHeight: height });
+  let hasDarkCss = false;
+  const scanDarkRules = list => {
+    for (const rule of list || []) {
+      if (hasDarkCss) return;
+      if (rule instanceof CSSStyleRule && /\[data-theme\s*=\s*["']?dark["']?\]/i.test(rule.selectorText) && rule.style.length > 0) {
+        hasDarkCss = true; return;
+      }
+      if (rule.cssRules) scanDarkRules(rule.cssRules);
+    }
+  };
+  for (const sheet of document.styleSheets) {
+    try { scanDarkRules(sheet.cssRules); } catch {}
+    if (hasDarkCss) break;
+  }
+  const hasThemeToggle = Boolean(document.querySelector('[data-theme-toggle], [data-set-theme], button[aria-label*="dark" i], button[aria-label*="theme" i], button[aria-label*="тема" i]'));
+  const tabSeen = new Set(), tabs = [];
+  for (const el of document.querySelectorAll('[role="tab"], [role="tablist"] button, .tabs button, [data-tabs] button, button[aria-controls], button[data-tab], button[data-view], a[role="tab"]')) {
+    if (tabSeen.has(el)) continue;
+    tabSeen.add(el);
+    const selected = el.getAttribute('aria-selected') === 'true' || el.classList.contains('active') || el.classList.contains('is-active') || el.getAttribute('data-state') === 'active' || el.getAttribute('aria-pressed') === 'true';
+    tabs.push({ index: tabs.length, text: (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 80), selector: selector(el), selected, visible: visible(el) });
+  }
   return { viewport: { width, height }, layoutViewport: { width: innerWidth, height: innerHeight }, document: { width: root.scrollWidth, height: root.scrollHeight },
-    fit, findings, truncated, coverage: { textNodes: textCount, complexBackgroundsSkipped: complexBackgrounds },
+    fit, findings, truncated, discoveredStates: { hasDarkTheme: hasDarkCss || hasThemeToggle, tabs }, coverage: { textNodes: textCount, complexBackgroundsSkipped: complexBackgrounds },
     fontSamples: [...fontSamples.values()], fontFaces: [...document.fonts].map(f => ({ family: f.family, status: f.status, weight: f.weight })),
     limitations: ['Heuristic text/box checks, not a complete accessibility or visual-quality audit.',
       'Occlusion samples visible hit targets; transparent and pointer-events:none overlays may need manual review.',

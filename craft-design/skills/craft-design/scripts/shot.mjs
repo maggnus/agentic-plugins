@@ -51,14 +51,15 @@ const inspect = bool('--inspect');
 const fit = bool('--fit');
 const strict = bool('--strict');
 const mode = flag('--mode', 'auto');
+const theme = flag('--theme');
 const contractPath = flag('--contract');
 const scenarioPath = flag('--scenario');
 const outFlag = flag('--out');
 const target = args[0];
 const unknown = args.filter(a => a.startsWith('--'));
 if (unknown.length) { console.error(`unknown option: ${unknown.join(' ')}`); process.exit(2); }
-if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict || contractPath) && !inspect || !['auto', 'desktop', 'mobile'].includes(mode)) {
-  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--mode auto|desktop|mobile] [--full] [--scenario fixture.json] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict] [--contract file.json]]');
+if (!target || args.length > 1 || widths.some(w => !(Number.isFinite(w) && w > 0)) || heightFlag !== undefined && !(Number.isFinite(Number(heightFlag)) && Number(heightFlag) > 0) || !Number.isFinite(wait) || wait < 0 || (fit || strict || contractPath) && !inspect || !['auto', 'desktop', 'mobile'].includes(mode) || (theme !== undefined && !['dark', 'light'].includes(theme))) {
+  console.error('usage: node shot.mjs <file-or-url> [--width 1440,390] [--height 900] [--mode auto|desktop|mobile] [--theme dark|light] [--full] [--scenario fixture.json] [--at <y|selector>] [--click <selector>]... [--out shot.png] [--inspect [--fit] [--strict] [--contract file.json]]');
   process.exit(2);
 }
 let contract = null, contractBytes;
@@ -366,6 +367,10 @@ async function shoot(width) {
     clearTimeout(loadTimer);
   }
   await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
+  if (theme) {
+    await s('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)})` });
+    await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+  }
   await new Promise(ok => setTimeout(ok, wait));
   const appliedScenario = scenario ? await applyScenario(s, scenario) : null;
   if (scenario) {
@@ -374,8 +379,50 @@ async function shoot(width) {
   }
   if (suffix) await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
   for (const selector of clicks) {
-    const clicked = (await s('Runtime.evaluate', { expression: `(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) return false; el.click(); return true; })()`, returnByValue: true })).result.value;
-    if (!clicked) throw new Error(`no element matches ${selector}`);
+    const prep = (await s('Runtime.evaluate', {
+      expression: `(async () => {
+        const el = document.querySelector(${JSON.stringify(selector)});
+        if (!el) return { error: 'no element matches ' + ${JSON.stringify(selector)} };
+        const st = getComputedStyle(el);
+        if (!el.getClientRects().length || st.visibility === 'hidden' || st.display === 'none' || Number(st.opacity) === 0) {
+          return { error: 'click target is not visible: ' + ${JSON.stringify(selector)} };
+        }
+        let safeTop = 0, safeBottom = innerHeight;
+        for (const f of document.querySelectorAll('body *')) {
+          const fs = getComputedStyle(f);
+          if ((fs.position !== 'fixed' && fs.position !== 'sticky') || !f.getClientRects().length || fs.visibility === 'hidden' || fs.display === 'none') continue;
+          if (f === el || f.contains(el) || el.contains(f)) continue;
+          const fr = f.getBoundingClientRect();
+          if (fr.width < innerWidth * 0.35 || fr.height <= 0 || fr.height >= innerHeight * 0.45) continue;
+          if (fr.top <= 40) safeTop = Math.max(safeTop, fr.bottom + 2);
+          if (fr.bottom >= innerHeight - 40) safeBottom = Math.min(safeBottom, fr.top - 2);
+        }
+        const r0 = el.getBoundingClientRect();
+        const absTop = r0.top + scrollY;
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+        const safeCenter = safeTop + Math.max(0, safeBottom - safeTop) / 2;
+        const targetY = Math.max(0, Math.min(maxScroll, absTop + r0.height / 2 - safeCenter));
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+        await new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok)));
+        const r = el.getBoundingClientRect();
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        if (cx < 0 || cy < 0 || cx >= innerWidth || cy >= innerHeight) {
+          return { error: 'click target outside viewport after scroll: ' + ${JSON.stringify(selector)} };
+        }
+        const hit = document.elementFromPoint(cx, cy);
+        if (!hit || (hit !== el && !el.contains(hit) && !hit.contains(el))) {
+          const desc = hit ? (hit.tagName.toLowerCase() + (hit.id ? '#' + hit.id : hit.classList[0] ? '.' + hit.classList[0] : '')) : 'nothing';
+          return { error: 'click target occluded by ' + desc };
+        }
+        return { cx, cy };
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    })).result.value;
+    if (prep?.error) throw new Error(prep.error);
+    await s('Input.dispatchMouseEvent', { type: 'mouseMoved', x: prep.cx, y: prep.cy, button: 'none' });
+    await s('Input.dispatchMouseEvent', { type: 'mousePressed', x: prep.cx, y: prep.cy, button: 'left', clickCount: 1 });
+    await s('Input.dispatchMouseEvent', { type: 'mouseReleased', x: prep.cx, y: prep.cy, button: 'left', clickCount: 1 });
     await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
   }
   const readiness = contract ? await waitForExpectations(s, contract) : null;
@@ -402,15 +449,17 @@ async function shoot(width) {
   writeFileSync(out, Buffer.from(data, 'base64'));
   const hash = value => createHash('sha256').update(value).digest('hex');
   const strips = [];
+  const uncoveredIntervals = [];
   if (full && (stripsFlag || inspect)) {
     const captureHeight = Math.min(metrics.page, MAX_CAPTURE_HEIGHT);
     if (captureHeight > height * 1.35) {
-      const maxTop = Math.max(0, captureHeight - height);
-      const count = Math.min(6, Math.max(2, Math.ceil(captureHeight / Math.max(200, height - 120))));
-      const yList = [];
-      for (let i = 0; i < count; i++) {
-        const y = count === 1 ? 0 : Math.round((i * maxTop) / (count - 1));
-        if (yList.length === 0 || y > yList[yList.length - 1]) yList.push(y);
+      const MAX_STRIPS = 24;
+      const step = Math.max(120, height - 80);
+      const yList = [0];
+      while (yList[yList.length - 1] + height < captureHeight && yList.length < MAX_STRIPS) {
+        const nextY = Math.min(captureHeight - height, yList[yList.length - 1] + step);
+        if (nextY <= yList[yList.length - 1]) break;
+        yList.push(nextY);
       }
       for (let idx = 0; idx < yList.length; idx++) {
         const y = yList[idx];
@@ -425,16 +474,24 @@ async function shoot(width) {
         writeFileSync(stripPath, stripBuf);
         strips.push({ index: idx + 1, y, width, height: stripHeight, screenshot: stripPath, screenshotSha256: hash(stripBuf) });
       }
+      let coveredEnd = 0;
+      for (const st of strips) {
+        if (st.y > coveredEnd) uncoveredIntervals.push({ from: coveredEnd, to: st.y });
+        coveredEnd = Math.max(coveredEnd, st.y + st.height);
+      }
+      if (coveredEnd < metrics.page) uncoveredIntervals.push({ from: coveredEnd, to: metrics.page });
+    } else if (captureHeight < metrics.page) {
+      uncoveredIntervals.push({ from: captureHeight, to: metrics.page });
     }
   }
   let evidence;
   if (inspect || scenario) {
     const rendered = await s('Runtime.evaluate', { expression: 'document.documentElement.outerHTML', returnByValue: true });
-    evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, strips, viewport: { width, height },
+    evidence = { schemaVersion: 1, source: target, url, capturedAt: new Date().toISOString(), screenshot: out, strips, uncoveredIntervals, viewport: { width, height },
       capture: { width, height: full ? Math.min(metrics.page, MAX_CAPTURE_HEIGHT) : height, documentHeight: metrics.page, documentWidth: metrics.scrollWidth, internalScrollRegions: metrics.internalScrollRegions,
         fullDocument: metrics.internalScrollRegions === 0 && metrics.scrollWidth <= width && (full ? metrics.page <= MAX_CAPTURE_HEIGHT : !at && metrics.page <= height), limited: full && metrics.page > MAX_CAPTURE_HEIGHT },
       screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
-      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment: suffix, at, full, mode, mobile } };
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment: suffix, at, full, mode, mobile, theme: theme ?? null } };
     if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
   }
   if (inspect) {

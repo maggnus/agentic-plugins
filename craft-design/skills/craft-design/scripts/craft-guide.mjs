@@ -86,7 +86,14 @@ export function searchCatalog(query, { includeSeeds = false } = {}) {
     const mobileBonus = hasMobile && !hasDesktop && r.row.platform === 'mobile' ? 8 : 0;
     return { ...r, covered, score: score + mobileBonus + (exact.has(r.row.id) ? 1000 : 0) + (words.includes(r.row.id) ? 100 : 0) };
   }).filter(r => r.covered).sort((a, b) => b.covered - a.covered || b.score - a.score || a.order - b.order);
-  return { groups, ignored, unknown, complete: ranked.filter(r => r.covered === groups.length).length, rows: ranked.slice(0, 8).map(r => r.row) };
+  const hasTokensCss = r => existsSync(join(skillRoot, r.path, 'tokens.css'));
+  const rankedSystems = ranked.filter(r => r.row.kind === 'system' && !isExcludedSeed(r.row) && hasTokensCss(r.row)).map(r => r.row);
+  const fallbackSystems = catalog().filter(r => r.kind === 'system' && !isExcludedSeed(r) && hasTokensCss(r) && !rankedSystems.some(s => s.id === r.id));
+  const systems = [...rankedSystems, ...fallbackSystems].slice(0, 4);
+  const rankedDirections = ranked.filter(r => r.row.kind === 'direction').map(r => r.row);
+  const fallbackDirections = catalog().filter(r => r.kind === 'direction' && !rankedDirections.some(d => d.id === r.id));
+  const directions = [...rankedDirections, ...fallbackDirections].slice(0, 2);
+  return { groups, ignored, unknown, complete: ranked.filter(r => r.covered === groups.length).length, rows: ranked.slice(0, 8).map(r => r.row), systems, directions };
 }
 
 const READABLE = /\.(md|css|html|json|txt|ya?ml|svg|js|mjs|ts|tsx)$/i;
@@ -290,7 +297,40 @@ export function validatePlan(plan) {
     }
   }
 
+  const vc = plan.visualContract;
+  const isPlaceholder = v => /^(?:tbd|todo|default|standard|none|n\/a|na|placeholder|\.\.\.|-)$/i.test(String(v ?? '').trim());
+  if (!vc || !['project-brand', 'library-system', 'custom-spec'].includes(vc.source)) {
+    throw new Error('visualContract.source must be project-brand, library-system, or custom-spec.');
+  }
   const extra = capabilities.filter(c => normalizedCaps[c.id].choice === 'use').flatMap(c => c.details);
+  if (vc.source === 'library-system') {
+    const sysRow = catalog().find(r => r.kind === 'system' && r.id === vc.systemId);
+    if (!sysRow) throw new Error(`visualContract.systemId must be a valid system id from catalog.tsv (got ${vc.systemId}).`);
+    if (typeof vc.adaptation !== 'string' || vc.adaptation.trim().length < 10 || isPlaceholder(vc.adaptation)) {
+      throw new Error('visualContract.adaptation must explain task-specific adaptation (>= 10 chars, no placeholder).');
+    }
+    for (const fname of ['USAGE.md', 'DESIGN.md', 'tokens.css']) {
+      const rel = `library/design-systems/${vc.systemId}/${fname}`;
+      if (existsSync(join(skillRoot, rel))) extra.push(rel);
+    }
+  } else if (vc.source === 'project-brand') {
+    if (typeof vc.brandSource !== 'string' || vc.brandSource.trim().length < 8 || isPlaceholder(vc.brandSource)) {
+      throw new Error('visualContract.brandSource must name the project brand source/path (>= 8 chars).');
+    }
+  } else if (vc.source === 'custom-spec') {
+    if (typeof vc.palette !== 'string' || vc.palette.trim().length < 16 || isPlaceholder(vc.palette)) {
+      throw new Error('visualContract.palette must describe concrete palette/role tokens (>= 16 chars, no placeholder).');
+    }
+    if (typeof vc.tonalPlan !== 'string' || vc.tonalPlan.trim().length < 16 || isPlaceholder(vc.tonalPlan)) {
+      throw new Error('visualContract.tonalPlan must describe distribution of light, tinted, and dark anchor masses (>= 16 chars).');
+    }
+    if (typeof vc.typography !== 'string' || vc.typography.trim().length < 12 || isPlaceholder(vc.typography)) {
+      throw new Error('visualContract.typography must specify chosen fonts supporting the target script (>= 12 chars).');
+    }
+    if (typeof vc.inspiredBy === 'string' && vc.inspiredBy.includes('directions.md') && existsSync(join(skillRoot, 'library/directions.md'))) {
+      extra.push('library/directions.md');
+    }
+  }
   if (normalizedCaps.library.choice === 'use') {
     const row = entry(plan.entryId);
     extra.push(row.path, ...craftFilesForEntry(row));
@@ -308,14 +348,15 @@ export function requireReady(path) {
 }
 
 function choosePrompt(path) {
-  return 'BASE COMPLETE. Before authoring: inspect actual tools and select the route. Save plan JSON: {"visualPath":"direct|reference|generated","reason":"why for this task","tools":{"generation":{"status":"available|unavailable|unknown","evidence":"observed tool or discovery result"},"viewing":{"status":"available|unavailable|unknown","evidence":"observed viewer"}},"entryId":"catalog id when using library","use":["library","tokens","inspection","preview"]}.\nIds: ' + capabilities.map(c => c.id).join(', ') + '\nSelect with ' + guideCommand('catalog', '--query', 'WORDS') + ' (ranked), ' + guideCommand('entry', '--id', 'ID') + ' and ' + guideCommand('read', '--path', 'skills/ID/') + ' (or design-systems/ID/) to list files; read --path FILE --page N pages any listed text file. Then ' + guideCommand('decide', '--state', path, '--json', 'JSON') + ' (or --plan PLAN.json).';
+  return 'BASE COMPLETE. Before authoring: inspect actual tools and select the route. Save plan JSON: {"visualPath":"direct|reference|generated","reason":"why for this task","tools":{"generation":{"status":"available|unavailable|unknown","evidence":"observed tool or discovery result"},"viewing":{"status":"available|unavailable|unknown","evidence":"observed viewer"}},"visualContract":{"source":"library-system|project-brand|custom-spec","systemId":"...","adaptation":"..."},"entryId":"catalog id when using library","use":["library","tokens","inspection","preview"]}.\nIds: ' + capabilities.map(c => c.id).join(', ') + '\nSelect with ' + guideCommand('catalog', '--query', 'WORDS') + ' (ranked, also lists systems & directions), ' + guideCommand('entry', '--id', 'ID') + ' and ' + guideCommand('read', '--path', 'skills/ID/') + ' (or design-systems/ID/) to list files; read --path FILE --page N pages any listed text file. Then ' + guideCommand('decide', '--state', path, '--json', 'JSON') + ' (or --plan PLAN.json).';
 }
 
 function readyOutput(state) {
   const usesLibrary = state.plan?.capabilities?.library ? state.plan.capabilities.library.choice === 'use' : Boolean(state.plan?.use?.includes('library'));
   const row = usesLibrary && state.plan?.entryId ? entry(state.plan.entryId) : null;
   const folder = row && dirname(row.path).replace(/^library\//, '') + '/';
-  return 'READY. Delivered and acknowledged: core briefing, capability map, and targeted detail packets' + (row ? `, plus ${row.path} and its craft files` : '') + '. Route recorded. Not delivered automatically: ' + (row ? `the other files of ${folder} (sections, references, templates, examples), ` : '') + 'design-system and brand files. Read those the task needs before authoring' + (row ? '; ' + guideCommand('read', '--path', folder) + ' lists the entry files' : '') + '. Build within scope, then use verify.mjs with this state.';
+  const sysId = state.plan?.visualContract?.source === 'library-system' ? state.plan.visualContract.systemId : null;
+  return 'READY. Delivered and acknowledged: core briefing, capability map, and targeted detail packets' + (row ? `, plus ${row.path} and its craft files` : '') + (sysId ? `, plus design-system ${sysId} (USAGE/DESIGN/tokens.css)` : '') + '. Route recorded. Not delivered automatically: ' + (row ? `the other files of ${folder} (sections, references, templates, examples)` : 'unselected library sections/examples') + (sysId ? '' : ' and external brand files') + '. Read those the task needs before authoring' + (row ? '; ' + guideCommand('read', '--path', folder) + ' lists the entry files' : '') + '. Build within scope, then use verify.mjs with this state.';
 }
 
 function formatCatalog(query, includeSeeds = false) {
@@ -324,7 +365,10 @@ function formatCatalog(query, includeSeeds = false) {
     throw new Error('No searchable word in the query' + (result.unknown.length ? ' (unmapped: ' + result.unknown.join(', ') + ')' : '') + '. Use English catalog words such as landing, dashboard, mobile, onboarding, poster, report, or an id.');
   }
   const note = [result.ignored.length ? 'ignored: ' + result.ignored.join(', ') : '', result.unknown.length ? 'unmapped: ' + result.unknown.join(', ') : ''].filter(Boolean).join('; ');
-  return `Catalog matches for ${result.groups.map(g => g.join('/')).join(' + ')}${note ? ' (' + note + ')' : ''}. ${result.complete ? Math.min(result.complete, 8) + ' shown match every word.' : 'No entry matches every word; partial matches, best first.'}\n` + (result.rows.map(r => `${r.kind} ${r.id} ${[r.mode, r.platform, r.scenario].filter(Boolean).join('/')}: ${r.summary.slice(0, 180)}`).join('\n') || 'No matching entry.') + `\nPreview a skill: ${guideCommand('entry', '--id', 'ID')}. List an entry's or system's files: ${guideCommand('read', '--path', 'skills/ID/')} or design-systems/ID/.`;
+  const formatRow = r => `${r.kind} ${r.id} ${[r.mode, r.platform, r.scenario].filter(Boolean).join('/')}: ${r.summary.slice(0, 180)}`;
+  const sysSection = result.systems?.length ? '\n\nDesign systems (use in visualContract.systemId):\n' + result.systems.map(formatRow).join('\n') : '';
+  const dirSection = result.directions?.length ? '\n\nDirections (use in visualContract.inspiredBy):\n' + result.directions.map(formatRow).join('\n') : '';
+  return `Catalog matches for ${result.groups.map(g => g.join('/')).join(' + ')}${note ? ' (' + note + ')' : ''}. ${result.complete ? Math.min(result.complete, 8) + ' shown match every word.' : 'No entry matches every word; partial matches, best first.'}\n` + (result.rows.map(formatRow).join('\n') || 'No matching entry.') + sysSection + dirSection + `\n\nPreview a skill: ${guideCommand('entry', '--id', 'ID')}. List an entry's or system's files: ${guideCommand('read', '--path', 'skills/ID/')} or design-systems/ID/.`;
 }
 
 export function main(argv) {

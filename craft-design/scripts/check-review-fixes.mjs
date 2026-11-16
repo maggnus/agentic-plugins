@@ -70,7 +70,7 @@ try {
     const unsafeAlias=runTokens(wrap(theme.replace('--bg:', '--other-space:var(--gutter);--bg:'),styles+':root{--gutter:16px}.bar{padding:var(--other-space)}','<div class="bar">Alias to copied local value</div>'));
     assert.equal(unsafeAlias.status,1,unsafeAlias.stdout);
     assert.ok(unsafeAlias.data.findings.some(f=>f.code==='possible-duplicate'));
-    const plan={visualPath:'direct',reason:'Test fixture',tools:{generation:{status:'unavailable',evidence:'Unit fixture'},viewing:{status:'available',evidence:'Test screenshots'}},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'Unit fixture'}]))};
+    const plan={visualPath:'direct',reason:'Test fixture',tools:{generation:{status:'unavailable',evidence:'Unit fixture'},viewing:{status:'available',evidence:'Test screenshots'}},visualContract:{source:'project-brand',brandSource:'fixture/brand.css'},capabilities:Object.fromEntries(capabilities.map(c=>[c.id,{choice:'skip',evidence:'Unit fixture'}]))};
     const extra=validatePlan(plan),guide=curriculum(extra),state=join(work,'state.json');
     // Fixture only: no host delivery is claimed; real-client tests use the guard.
     writeFileSync(state,JSON.stringify({schema:1,extra,plan,phase:'ready',edition:guide.edition,acknowledged:guide.pages.length}));
@@ -119,6 +119,82 @@ try {
     const bodyScroll=runVerify();
     assert.ok(bodyScroll.data.frames.every(f=>f.capture.internalScrollRegions>0&&!f.capture.fullDocument));
     assert.match(bodyScroll.data.coverage.screenshots,/internal scroll regions/);
+
+    // 1. Arbitrary CSS variable names in tokens.mjs check (clean pass + broken binding detection).
+    const customTheme=':root{--bg-canvas:#fafafa;--ink-primary:#18181b;--surface-alt:#ffffff;--f-ui:sans-serif;--fs-hero:36px;--pad-box:20px;--round-panel:10px}';
+    const customStyles='body{background:var(--bg-canvas);color:var(--ink-primary);font-family:var(--f-ui)}.card{background:var(--surface-alt);padding:var(--pad-box);border-radius:var(--round-panel)}h1{font-size:var(--fs-hero)}';
+    const customOk=runTokens(wrap(customTheme,customStyles,'<main class="card"><h1>Custom tokens</h1></main>'));
+    assert.equal(customOk.status,0,'arbitrary token names pass cleanly: '+customOk.stdout);
+    const customBroken=runTokens(wrap(':root{--bg-canvas:#fafafa;--ink-primary:#18181b;--f-ui:sans-serif;--pad-box:20px;--unused-custom:12px}',
+      'body{background:var(--bg-canvas);color:var(--ink-primary);font-family:var(--f-ui)}.card{padding:20px}','<main class="card"><h1>Broken</h1></main>'));
+    assert.equal(customBroken.status,1,'arbitrary token literal/unused failure caught');
+    assert.ok(customBroken.data.findings.some(f=>f.code==='literal'||f.code==='unused-token'));
+
+    // 2. Auto-check of [data-theme="dark"] and inactive [role="tab"] in verify.mjs (pass + fail).
+    const themedTabsTheme=':root{--bg:#f8fafc;--surface:#ffffff;--fg:#0f172a;--border:#cbd5e1;--accent:#1d4ed8;--accent-on:#ffffff;--font-body:system-ui,sans-serif}[data-theme="dark"]{--bg:#0f172a;--surface:#1e293b;--fg:#f1f5f9;--border:#334155;--accent:#60a5fa;--accent-on:#0f172a}';
+    const themedTabsCss='body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);padding:24px}.tabs{display:flex;gap:8px;margin-bottom:16px}[role="tab"]{min-height:44px;min-width:88px;padding:10px 16px;border:1px solid var(--border);background:var(--surface);color:var(--fg)}[role="tab"][aria-selected="true"]{background:var(--accent);color:var(--accent-on)}.panel{padding:20px;background:var(--surface);border:1px solid var(--border)}[hidden]{display:none}';
+    const themedTabsBody=`<main><div role="tablist" class="tabs"><button role="tab" id="t1" aria-selected="true" aria-controls="p1">Overview</button><button role="tab" id="t2" aria-selected="false" aria-controls="p2">Details</button></div><section id="p1" class="panel"><h1>Overview</h1><p>Primary panel content with readable contrast.</p></section><section id="p2" class="panel" hidden><h2>Details</h2><p>Secondary tab panel content.</p></section></main><script>for(const b of document.querySelectorAll('[role=tab]'))b.onclick=()=>{for(const x of document.querySelectorAll('[role=tab]')){const on=x===b;x.setAttribute('aria-selected',String(on));document.getElementById(x.getAttribute('aria-controls')).hidden=!on;}};</script>`;
+    writeFileSync(html,wrap(themedTabsTheme,themedTabsCss,themedTabsBody));
+    const goodStates=runVerify();
+    assert.equal(goodStates.status,0,'page with valid dark theme and 2 tabs passes: '+goodStates.stdout);
+    assert.equal(goodStates.data.stateCoverage.darkTheme.declared,true);
+    assert.equal(goodStates.data.stateCoverage.darkTheme.checked,true);
+    assert.equal(goodStates.data.stateCoverage.tabs.total,2);
+    assert.equal(goodStates.data.stateCoverage.tabs.checked,1);
+
+    // Bad dark theme contrast should fail verify.
+    const badDarkTheme=themedTabsTheme.replace('--fg:#f1f5f9','--fg:#1e293b');
+    writeFileSync(html,wrap(badDarkTheme,themedTabsCss,themedTabsBody));
+    const badDark=runVerify();
+    assert.equal(badDark.status,1,'low contrast in dark theme fails verify');
+    assert.ok(badDark.data.diagnostics.some(d=>d.code==='text-contrast'&&d.state==='dark-theme'));
+
+    // Runtime error on 2nd tab should fail verify.
+    const errTabBody=themedTabsBody.replace('document.getElementById(x.getAttribute(\'aria-controls\')).hidden=!on;','if(b.id==="t2")throw new Error("tab2 boom");document.getElementById(x.getAttribute("aria-controls")).hidden=!on;');
+    writeFileSync(html,wrap(themedTabsTheme,themedTabsCss,errTabBody));
+    const badTab=runVerify();
+    assert.equal(badTab.status,1,'runtime error on 2nd tab fails verify');
+    assert.ok(badTab.data.diagnostics.some(d=>d.code==='runtime-error'&&d.state==='tab-1'));
+
+    // 3. Geometric --click reachability in shot.mjs & smart possible-occlusion in inspect.mjs.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}.overlay{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,0.2)}#target{margin:40px;padding:12px 20px}',
+      '<div class="overlay"></div><button id="target">Covered button</button>'));
+    const occludedClick=spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--wait','0','--click','#target','--out',join(work,'occl.png')],{encoding:'utf8',timeout:60000});
+    assert.notEqual(occludedClick.status,0,'shot.mjs rejects --click on occluded target');
+    assert.match(occludedClick.stderr,/occluded by/i);
+
+    // Long scroll under fixed header: unobstructed when scrolled -> NO possible-occlusion; trapped under bottom fixed bar -> possible-occlusion.
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--bar:#e2e8f0}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif}header{position:fixed;top:0;left:0;right:0;height:60px;background:var(--bar);z-index:10}main{padding-top:80px}section{min-height:1100px}.bottom-bar{position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--bar);z-index:10}#trapped-btn{min-height:44px;padding:10px 16px}',
+      '<header>Top bar</header><main><section><h1>Scrollable feed</h1><p>Normal copy below fixed header.</p></section><button id="trapped-btn">Trapped at bottom</button></main><div class="bottom-bar">Bottom nav</div>'));
+    const smartOcclPng=join(work,'smart-occl.png');
+    const smartOccl=spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--full','--wait','0','--out',smartOcclPng],{encoding:'utf8',timeout:60000});
+    assert.equal(smartOccl.status,0,smartOccl.stderr);
+    const smartReport=JSON.parse(readFileSync(smartOcclPng.replace('.png','.json'),'utf8'));
+    assert.ok(smartReport.findings.some(f=>f.code==='possible-occlusion'&&f.selector==='#trapped-btn'),'trapped bottom button triggers possible-occlusion');
+    assert.ok(!smartReport.findings.some(f=>f.code==='possible-occlusion'&&f.selector!=='#trapped-btn'),'normal flow under fixed header does not false-positive');
+
+    // 4. Extended primitive-svg (box-only rect diagram + tiny <9.5px text).
+    const boxSvg=`<svg width="320" height="180" viewBox="0 0 320 180"><rect x="10" y="10" width="300" height="160" fill="#eee"/><rect x="20" y="20" width="80" height="40" fill="#ccc"/><rect x="120" y="20" width="80" height="40" fill="#ccc"/><rect x="220" y="20" width="80" height="40" fill="#ccc"/><rect x="20" y="70" width="80" height="40" fill="#ccc"/><rect x="120" y="70" width="80" height="40" fill="#ccc"/><rect x="220" y="70" width="80" height="40" fill="#ccc"/><rect x="20" y="120" width="80" height="40" fill="#ccc"/><rect x="120" y="120" width="80" height="40" fill="#ccc"/><rect x="220" y="120" width="80" height="40" fill="#ccc"/><rect x="30" y="30" width="20" height="20" fill="#999"/><rect x="130" y="30" width="20" height="20" fill="#999"/></svg>`;
+    const tinyTextSvg=`<svg width="320" height="180" viewBox="0 0 640 360"><path d="M10 10 L600 10" stroke="#333"/><path d="M10 60 L600 60" stroke="#333"/><path d="M10 110 L600 110" stroke="#333"/><path d="M10 160 L600 160" stroke="#333"/><path d="M10 210 L600 210" stroke="#333"/><path d="M10 260 L600 260" stroke="#333"/><circle cx="100" cy="100" r="10" fill="#333"/><circle cx="200" cy="120" r="10" fill="#333"/><circle cx="300" cy="140" r="10" fill="#333"/><circle cx="400" cy="160" r="10" fill="#333"/><circle cx="500" cy="180" r="10" fill="#333"/><text x="20" y="30" font-size="12">Too small at 0.5x scale (6px)</text></svg>`;
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}','<main><section>'+boxSvg+'</section><section>'+tinyTextSvg+'</section><section></section><section></section></main>'));
+    const svgPng=join(work,'svg.png');
+    spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--wait','0','--out',svgPng],{encoding:'utf8',timeout:60000});
+    const svgReport=JSON.parse(readFileSync(svgPng.replace('.png','.json'),'utf8'));
+    const svgFindings=svgReport.findings.filter(f=>f.code==='primitive-svg');
+    assert.equal(svgFindings.length,2,'both box-only and tiny-text SVGs flagged as primitive-svg');
+
+    // 5. Regression test for a calm restrained light interface (0 errors, 0 review findings).
+    writeFileSync(html,wrap(':root{--bg:#f8f9fa;--surface:#ffffff;--fg:#111827;--muted:#4b5563;--border:#d1d5db;--accent:#1d4ed8;--accent-on:#ffffff;--font-body:system-ui,sans-serif;--text-hero:34px;--text-body:16px}',
+      '*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);line-height:1.5;padding:32px 20px}main{max-width:760px;margin:0 auto;background:var(--surface);border:1px solid var(--border);padding:32px}h1{font-size:var(--text-hero);margin:0 0 12px}p{font-size:var(--text-body);color:var(--muted);margin:0 0 24px}button{min-height:44px;min-width:140px;padding:12px 20px;background:var(--accent);color:var(--accent-on);border:1px solid var(--accent);font-size:var(--text-body);cursor:pointer}button:hover{background:var(--fg);border-color:var(--fg)}',
+      '<main data-craft-id="hero"><h1>Calm Studio Brief</h1><p>Restrained light layout with clear contrast and a single primary action.</p><button type="button">Request proposal</button></main>'));
+    const calmVerify=runVerify();
+    assert.equal(calmVerify.status,0,'calm restrained UI passes verify cleanly: '+calmVerify.stdout);
+    assert.equal(calmVerify.data.passed,true);
+    assert.equal(calmVerify.data.clean,true);
+    assert.equal(calmVerify.data.counts.renderErrors,0);
+    assert.equal(calmVerify.data.counts.renderReviews,0);
 
 
 

@@ -10,8 +10,10 @@ Reuse the active system's component inventory. For a repeated component or a
 decision whose consistency matters, record only what the existing system leaves
 open: purpose, when to use it, relevant states and transitions, action placement,
 phone adaptation and which properties stay invariant. Identify the source as
-product code, a library example or an authored decision. Static frames show the
-requested states; they do not require implementing all transitions.
+product code, a library example or an authored decision. Static presentation
+frames show their requested states and do not need synthetic loading spinners;
+the five-state matrix in `state-coverage.md` applies to interactive data-fetching,
+search, and list surfaces by contract.
 
 Keep a small frame list alongside the artifact (or in its existing spec): stable
 id, entry URL/fragment, viewport, theme and state. Capture those states at their

@@ -2,11 +2,11 @@
 
 Concrete, checkable rules that distinguish "designed by a human who has
 shipped product" from "default LLM output." Several rules below are
-auto-enforced by the daemon's `lint-artifact` linter — failing an
-enforced rule is not a style preference, it is a regression. The
-rest are guidance for agents and reviewers and are flagged inline as
-"(guidance, not auto-checked)" so the contract with the linter stays
-honest.
+auto-enforced by `scripts/tokens.mjs`, `scripts/inspect.mjs`, and
+`scripts/verify.mjs` — failing an enforced rule is not a style preference,
+it is a regression. The rest are guidance for agents and reviewers and are
+flagged inline as "(guidance, not auto-checked)" so the contract with the
+automated checks stays honest.
 
 > Adapted from [refero_skill](https://github.com/referodesign/refero_skill)
 > (MIT), tightened to match this library's lint surface.
@@ -17,10 +17,8 @@ These are the patterns the linter blocks at P0 (must-fix):
 
 1. **Default Tailwind indigo as accent** — exactly `#6366f1`, `#4f46e5`,
    `#4338ca`, `#3730a3`, `#8b5cf6`, `#7c3aed`, `#a855f7`. The active
-   `DESIGN.md` provides `--accent`; use it. Indigo is the textbook AI
-   tell. (The daemon's `lint-artifact` flags any of these as a solid
-   accent; keep this list in sync with `AI_DEFAULT_INDIGO` in
-   `apps/daemon/src/lint-artifact.ts`.)
+   `DESIGN.md` or visual contract provides `--accent`; use it. Indigo is the
+   textbook AI tell (keep semantic tokens bound and checked via `scripts/tokens.mjs`).
 2. **Two-stop "trust" gradient on the hero** — purple→blue, blue→cyan,
    indigo→pink. A flat surface + intentional type beats this every
    time.
@@ -48,12 +46,13 @@ These are the patterns the linter blocks at P0 (must-fix):
   wall as full-bleed quote, pricing as comparison-against-status-quo,
   an inline mini-product-demo).
 - **External placeholder image CDNs** (`unsplash.com`, `placehold.co`,
-  `placekitten.com`, `picsum.photos`). Fragile and obvious. Use the
-  shipped `.ph-img` placeholder class.
-- **More than ~12 raw hex values outside `:root`.** Tokens were not
-  honoured.
-- **`var(--accent)` used 6+ times in the rendered body.** Cap at 2
-  visible uses per screen.
+  `placekitten.com`, `picsum.photos`). Fragile and obvious. Use bundled
+  assets, `scripts/images.mjs`, or inline SVG/CSS media frames.
+- **Hardcoded literals outside `:root`.** Tokens were not honoured (`scripts/tokens.mjs`).
+- **Competing solid action buttons or unfocused accent scatter.** Keep at
+  most one solid CTA per action group and allocate color by the four
+  semantic roles (`--accent`, `--accent-soft`, `--accent-2`, status signals)
+  rather than sprinkling solid fills everywhere.
 
 ## Polish tells (P2 — nice to fix)
 

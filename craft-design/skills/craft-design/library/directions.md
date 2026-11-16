@@ -33,7 +33,7 @@ selects this direction unchanged; otherwise the authored visual contract wins.
 - serif display, sans body, mono for metadata only
 - no shadows, no rounded cards — borders + whitespace do the work
 - one decisive image, cropped only at the bottom
-- kicker / eyebrow in mono uppercase, one accent color, used at most twice; never create peach/pink/orange-beige page washes unless the brand/reference requires them
+- kicker / eyebrow in mono uppercase, restrained palette with clear semantic color roles (`--accent` for primary action/selection, `--accent-soft` for tonal support); never create peach/pink/orange-beige page washes unless the brand/reference requires them
 
 ### Modern minimal — Linear / Vercel  `(id: modern-minimal)`
 

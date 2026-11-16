@@ -12,7 +12,7 @@ ones into the system prompt above the active skill body.
 | `skills/` | Functional capabilities invoked while doing work | `design-brief`, `brand-extract`, `imagegen` |
 | `design-templates/` | Packaged artifact shapes | `saas-landing`, `dashboard`, `pricing-page` |
 | `design-systems/` | Brand package: prose, token contract, and optional rich resources | `linear-app`, `apple`, `notion` |
-| `craft/` | **Universal** craft knowledge — true regardless of brand | letter-spacing rules, accent-overuse caps, anti-AI-slop |
+| `craft/` | **Universal** craft knowledge — true regardless of brand | letter-spacing rules, semantic color roles, anti-AI-slop |
 
 `DESIGN.md` tells the agent which colors and fonts a brand uses. `craft/`
 tells the agent the universal rules a competent designer applies on top —
@@ -70,10 +70,10 @@ motion.
 
 Craft files mix auto-checked rules and guidance.
 
-- **Auto-checked.** Rules wired into `apps/daemon/src/lint-artifact.ts` — currently the P0 list in `anti-ai-slop.md` (Tailwind-indigo accent, two-stop hero gradients, emoji-as-icons, etc.). The linter reports these as findings back to the UI (for P0/P1 badges) and to the agent (as a system reminder for self-correction). Artifact persistence is not currently hard-blocked on P0 hits.
-- **Guidance.** The rest. The agent reads the rules, reviewers apply them, the linter doesn't check them.
+- **Auto-checked.** Rules enforced by `scripts/tokens.mjs`, `scripts/inspect.mjs`, and `scripts/verify.mjs` (token bindings, contrast, hover contrast loss, competing solid actions, surface separation, SVG detail). `verify.mjs` blocks `passed: true` when technical checks fail or unresolved review findings remain.
+- **Guidance.** The rest. The agent reads the rules, reviewers apply them, the automated scripts don't check them.
 
-A purely behavioral craft file (state-coverage, animation-discipline) is guidance unless a specific rule is later promoted into `lint-artifact.ts`.
+A purely behavioral craft file (state-coverage, animation-discipline) is guidance unless a specific rule is enforced by `scripts/inspect.mjs` or `scripts/tokens.mjs`.
 
 ## Files
 

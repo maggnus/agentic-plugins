@@ -10,7 +10,7 @@ is shipping only the populated state.
 
 ## The five required states
 
-Every surface that fetches, transforms, or accepts data must render all five.
+Every interactive surface that fetches, searches, filters, or accepts data by contract must handle these five states (static presentation or editorial pages do not need a synthetic loading spinner):
 
 | State | Triggered when | Must contain |
 |---|---|---|
