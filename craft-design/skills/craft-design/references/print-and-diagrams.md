@@ -56,3 +56,19 @@ limits.
   every branch labelled.
 - One reading direction (left to right or top to bottom), levels aligned on a
   grid, one accent for the main path; status by shape or label, not hue alone.
+- **Responsive SVG charts & mobile legibility:** on narrow viewports (`390px`),
+  never shrink a `viewBox` so much that the rendered screen font size of any
+  `<text>` falls below `10px` (use a dedicated mobile `viewBox`/type scale or
+  reflow the chart).
+- **Clear label placement:** place callouts and axis labels in clean margins or
+  on an opaque `<rect>` pill background so text never collides with other
+  `<text>` labels, structural `<rect>` borders, or solid `<line>` paths.
+- **Mathematical consistency:** ensure time axes, tick intervals, and plotted
+  extrema on charts match all adjacent text timers, KPIs, and summary cards.
+- **Scale & gauge end-labels:** keep the rightmost scale label (e.g. `0 % ...
+  100 %`) on a single line (`white-space: nowrap` with sufficient horizontal
+  clearance) so it never wraps below the scale.
+- **Fixed bottom bars:** when using a `position: fixed` bottom bar, apply
+  `env(safe-area-inset-bottom)` both to the bar itself and to the main
+  content's bottom `padding-bottom` so the last interactive control is never
+  covered.

@@ -30,7 +30,11 @@ const repairs = {
   'weak-surface-separation': 'Separate --bg, --surface, and --surface-2 in oklch() with monotonic lightness (or add a crisp structural border and two-layer shadow).',
   'sunken-inner-surface': 'Keep nested regions inside elevated --surface cards transparent with 1px solid var(--border) dividers, or use a subtle --surface-2 that is never darker than --bg (L_bg <= L_surface2 <= L_surface).',
   'competing-solid-actions': 'Keep at most ONE solid high-contrast button per action group (including --danger); render secondary and destructive actions beside a primary CTA as quiet outlined/transparent buttons.',
-  'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 12 SVG primitives).',
+  'primitive-svg': 'Enrich large diagrams and charts with reference grids, varied stroke weights, material hatching or tolerance bands, and dimension/value callouts (>= 12 SVG primitives) and keep screen <text> >= 10px.',
+  'internal-horizontal-scroll': 'Reflow wide content, tables, or grids into stacked cards/rows on mobile (<= 768px) instead of relying on internal horizontal scroll.',
+  'svg-label-overlap': 'Reposition or stagger overlapping SVG <text> labels so their bounding boxes have clear separation.',
+  'svg-label-collision': 'Move SVG <text> labels into clear space or add an opaque background pill behind the label so it never crosses structural <rect> borders or solid <line> paths.',
+  'broken-theme-toggle': 'Wire the visible theme toggle button to update document.documentElement.dataset.theme (data-theme="dark") on real click.',
 };
 
 export function verify(argv, run = spawnSync) {
@@ -121,6 +125,7 @@ export function verify(argv, run = spawnSync) {
   const results = [], diagnostics = [], frames = [], stateFrames = [], deferredInCalibrate = [];
   if (resolutionsError) results.push({ name: 'resolutions', exitCode: 1, error: resolutionsError, evidenceError: resolutionsError });
   let tokenReport = null, firstReport = null;
+  const reportsByWidth = new Map();
   let activeTokenWarnings = 0;
 
   const validateInspectFrame = (reportPath, png, width) => {
@@ -162,6 +167,7 @@ export function verify(argv, run = spawnSync) {
           const png = join(directory, widthList.length > 1 ? 'frame-' + width + '.png' : 'frame.png');
           const reportPath = png.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, png, width);
           if (!firstReport) firstReport = report;
+          reportsByWidth.set(width, report);
           const strips = Array.isArray(report.strips) ? report.strips : [];
           frames.push({ width, height: report.viewport.height, capture: report.capture, screenshot: png, strips, uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: report.findings.filter(f => f.severity === 'error').length, review: report.findings.filter(f => f.severity === 'review').length, reviewFindings: report.findings.filter(f => f.severity === 'review') });
           for (const f of report.findings) diagnostics.push({ ...f, check: name, width, repair: repairs[f.code] ?? 'Inspect this finding in the final PNG and correct confirmed defects.' });
@@ -218,39 +224,43 @@ export function verify(argv, run = spawnSync) {
       } catch (error) { darkCheck.evidenceError = error.message; }
     }
 
-    if (!hasClickFlag && Array.isArray(discovered.tabs) && discovered.tabs.length) {
-      const inactiveTabs = [], seenTabSel = new Set();
-      for (const t of discovered.tabs) {
-        if (!t.selected && t.visible !== false && t.selector && !seenTabSel.has(t.selector)) {
-          seenTabSel.add(t.selector);
-          inactiveTabs.push(t);
-          if (inactiveTabs.length >= 6) break;
+    if (!hasClickFlag) {
+      for (const tabWidth of widthList) {
+        const widthTabs = reportsByWidth.get(tabWidth)?.discoveredStates?.tabs;
+        if (!Array.isArray(widthTabs) || !widthTabs.length) continue;
+        const inactiveTabs = [], seenTabSel = new Set();
+        for (const t of widthTabs) {
+          if (!t.selected && t.visible !== false && t.selector && !seenTabSel.has(t.selector)) {
+            seenTabSel.add(t.selector);
+            inactiveTabs.push(t);
+            if (inactiveTabs.length >= 6) break;
+          }
         }
-      }
-      const tabWidth = widthList[0];
-      const tabInspectArgs = [];
-      for (let idx = 0; idx < inspectArgs.length; idx++) {
-        if (inspectArgs[idx] === '--width') { tabInspectArgs.push('--width', String(tabWidth)); idx++; }
-        else tabInspectArgs.push(inspectArgs[idx]);
-      }
-      for (let tIdx = 0; tIdx < inactiveTabs.length; tIdx++) {
-        const tab = inactiveTabs[tIdx], n = tIdx + 1;
-        const tabPng = join(directory, `state-tab-${n}-${tabWidth}.png`);
-        const tabRes = run(process.execPath, [join(scriptRoot, 'inspect.mjs'), targetSpec, ...tabInspectArgs, '--click', tab.selector, '--out', tabPng, '--strict'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
-        const tabLog = join(directory, `inspect-tab-${n}.log`);
-        writeFileSync(tabLog, (tabRes.stdout ?? '') + (tabRes.stderr ?? '') + (tabRes.error ? '\n' + tabRes.error.message : ''));
-        const tabCheck = { name: `inspect-tab-${n}`, exitCode: tabRes.status ?? null, error: tabRes.error?.message ?? null, signal: tabRes.signal ?? null, log: tabLog };
-        results.push(tabCheck);
-        try {
-          const reportPath = tabPng.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, tabPng, tabWidth);
-          const errCount = report.findings.filter(f => f.severity === 'error').length;
-          const revFindings = report.findings.filter(f => f.severity === 'review');
-          tabCheck.hasErrors = errCount > 0;
-          stateFrames.push({ state: `tab-${n}`, selector: tab.selector, width: tabWidth, height: report.viewport.height, capture: report.capture, screenshot: tabPng, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings });
-          stateCoverage.tabs.frames.push({ index: n, selector: tab.selector, text: tab.text, width: tabWidth, screenshot: tabPng, report: reportPath, errors: errCount, review: revFindings.length });
-          stateCoverage.tabs.checked++;
-          for (const f of report.findings) diagnostics.push({ ...f, check: `inspect-tab-${n}`, state: `tab-${n}`, width: tabWidth, repair: repairs[f.code] ?? 'Inspect this finding in the tab state PNG and correct confirmed defects.' });
-        } catch (error) { tabCheck.evidenceError = error.message; }
+        if (!inactiveTabs.length) continue;
+        const tabInspectArgs = [];
+        for (let idx = 0; idx < inspectArgs.length; idx++) {
+          if (inspectArgs[idx] === '--width') { tabInspectArgs.push('--width', String(tabWidth)); idx++; }
+          else tabInspectArgs.push(inspectArgs[idx]);
+        }
+        for (let tIdx = 0; tIdx < inactiveTabs.length; tIdx++) {
+          const tab = inactiveTabs[tIdx], n = tIdx + 1;
+          const tabPng = join(directory, `state-tab-${n}-${tabWidth}.png`);
+          const tabRes = run(process.execPath, [join(scriptRoot, 'inspect.mjs'), targetSpec, ...tabInspectArgs, '--click', tab.selector, '--out', tabPng, '--strict'], { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, timeout: 180000 });
+          const tabLog = join(directory, `inspect-tab-${n}-${tabWidth}.log`);
+          writeFileSync(tabLog, (tabRes.stdout ?? '') + (tabRes.stderr ?? '') + (tabRes.error ? '\n' + tabRes.error.message : ''));
+          const tabCheck = { name: `inspect-tab-${n}-${tabWidth}`, exitCode: tabRes.status ?? null, error: tabRes.error?.message ?? null, signal: tabRes.signal ?? null, log: tabLog };
+          results.push(tabCheck);
+          try {
+            const reportPath = tabPng.replace(/\.png$/, '.json'), report = validateInspectFrame(reportPath, tabPng, tabWidth);
+            const errCount = report.findings.filter(f => f.severity === 'error').length;
+            const revFindings = report.findings.filter(f => f.severity === 'review');
+            tabCheck.hasErrors = errCount > 0;
+            stateFrames.push({ state: `tab-${n}`, selector: tab.selector, width: tabWidth, height: report.viewport.height, capture: report.capture, screenshot: tabPng, strips: report.strips ?? [], uncoveredIntervals: report.uncoveredIntervals ?? [], report: reportPath, sourceSha256: report.sourceSha256, screenshotSha256: report.screenshotSha256, errors: errCount, review: revFindings.length, reviewFindings: revFindings });
+            stateCoverage.tabs.frames.push({ index: n, selector: tab.selector, text: tab.text, width: tabWidth, screenshot: tabPng, report: reportPath, errors: errCount, review: revFindings.length });
+            stateCoverage.tabs.checked++;
+            for (const f of report.findings) diagnostics.push({ ...f, check: `inspect-tab-${n}-${tabWidth}`, state: `tab-${n}`, width: tabWidth, repair: repairs[f.code] ?? 'Inspect this finding in the tab state PNG and correct confirmed defects.' });
+          } catch (error) { tabCheck.evidenceError = error.message; }
+        }
       }
     }
   }
@@ -311,13 +321,14 @@ export function verify(argv, run = spawnSync) {
   const repeat = ['node', join(scriptRoot, 'verify.mjs'), targetSpec, '--state', statePath, ...stageArgs, ...args].map(quote).join(' ');
   const status = counts.checkFailures ? 'incomplete' : !technicalPassed ? 'failed' : counts.unresolvedReviews > 0 ? 'needs-review' : 'passed';
   const hasStrips = allFrames.some(f => f.strips?.length > 0);
+  const hasMobileTabs = stateFrames.some(f => f.state?.startsWith('tab-') && f.width <= 768);
   const uncoveredIntervals = allFrames.flatMap(f => (f.uncoveredIntervals ?? []).map(u => ({ width: f.width, state: f.state ?? 'default', ...u })));
   const nextMessage = status === 'needs-review'
-    ? 'Unresolved review findings block acceptance (passed: false, exit 1). Inspect each in the final PNGs' + (hasStrips ? ' and 1:1 viewport strips (frame-*-s*.png)' : '') + ' and fix the layout or supply valid --resolutions FILE before delivery.'
+    ? 'Unresolved review findings block acceptance (passed: false, exit 1). Inspect each in the final PNGs' + (hasStrips ? ' and ALL 1:1 viewport strips (frame-*-s*.png)' : '') + (hasMobileTabs ? ' as well as mobile tab captures (state-tab-*-390.png)' : '') + ' and fix the layout or supply valid --resolutions FILE before delivery.'
     : passed
       ? (stage === 'calibrate'
         ? 'Calibration passed. View the 1:1 first-screen PNGs, build remaining sections, and run full verify.mjs without --stage calibrate.'
-        : 'View every final PNG' + (hasStrips ? ' and 1:1 viewport strips (frame-*-s*.png)' : '') + ' and reconcile required facts for each width/state with the brief; deliver these exact files.')
+        : 'View EVERY final PNG' + (hasStrips ? ' (including ALL 1:1 viewport strips frame-*-s*.png)' : '') + (hasMobileTabs ? ' and mobile tab captures (state-tab-*.png)' : '') + ' and reconcile required facts for each width/state with the brief; deliver these exact files.')
       : 'Work remains. Read diagnostics and logs, fix confirmed causes without removing required content or weakening checks, then repeat this full command. An environment failure must be reported as incomplete, not passed.';
 
   const report = {

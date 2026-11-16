@@ -141,7 +141,9 @@ try {
     assert.equal(goodStates.data.stateCoverage.darkTheme.declared,true);
     assert.equal(goodStates.data.stateCoverage.darkTheme.checked,true);
     assert.equal(goodStates.data.stateCoverage.tabs.total,2);
-    assert.equal(goodStates.data.stateCoverage.tabs.checked,1);
+    assert.equal(goodStates.data.stateCoverage.tabs.checked,2,'inactive tabs checked on both 1440 and 390');
+    assert.ok(goodStates.data.stateCoverage.tabs.frames.some(f=>f.width===1440&&f.screenshot.endsWith('state-tab-1-1440.png')));
+    assert.ok(goodStates.data.stateCoverage.tabs.frames.some(f=>f.width===390&&f.screenshot.endsWith('state-tab-1-390.png')));
 
     // Bad dark theme contrast should fail verify.
     const badDarkTheme=themedTabsTheme.replace('--fg:#f1f5f9','--fg:#1e293b');
@@ -244,8 +246,69 @@ try {
     const fp768Res=spawnSync(process.execPath,[join(skill,'scripts/verify.mjs'),html,'--state',state,'--width','768','--wait','0','--resolutions',fp768],{encoding:'utf8',timeout:120000});
     assert.equal(fp768Res.status,1,'false-positive for small-target at 768px is rejected');
 
+    // 9. internal-horizontal-scroll at 390px (and clean on 1440px).
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111;--border:#cbd5e1}',
+      'body{margin:0;background:var(--bg);color:var(--fg);font-family:sans-serif;padding:16px}.tbl-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--border)}table{min-width:680px;width:100%;border-collapse:collapse}th,td{padding:8px 12px;border-bottom:1px solid var(--border)}',
+      '<main><h1>Schedule</h1><div class="tbl-wrap"><table><thead><tr><th>Stage</th><th>Metric</th><th>Target</th><th>Notes</th></tr></thead><tbody><tr><td>Build</td><td>120ms</td><td>150ms</td><td>Optimal</td></tr></tbody></table></div></main>'));
+    const hScrollRes=runVerify();
+    assert.equal(hScrollRes.status,1,'internal-horizontal-scroll at 390px triggers needs-review');
+    assert.ok(hScrollRes.data.diagnostics.some(d=>d.code==='internal-horizontal-scroll'&&d.width===390));
+    assert.ok(!hScrollRes.data.diagnostics.some(d=>d.code==='internal-horizontal-scroll'&&d.width===1440),'1440px fits 680px table without scroll');
 
+    // 10. Compressed SVG 300x100 (height < 130) with viewBox 0 0 600 200: tiny text flagged, readable text clean.
+    const compressedTinySvg=`<svg width="300" height="100" viewBox="0 0 600 200"><rect x="10" y="10" width="580" height="180" fill="#f8fafc" stroke="#cbd5e1"/><text x="30" y="60" font-size="14">7px on screen</text></svg>`;
+    const compressedOkSvg=`<svg width="300" height="100" viewBox="0 0 600 200"><rect x="10" y="10" width="580" height="180" fill="#f8fafc" stroke="#cbd5e1"/><text x="30" y="80" font-size="22">11px on screen</text></svg>`;
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main><section>${compressedTinySvg}</section><section>${compressedOkSvg}</section></main>`));
+    const compSvgPng=join(work,'comp-svg.png');
+    spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--wait','0','--out',compSvgPng],{encoding:'utf8',timeout:60000});
+    const compSvgRep=JSON.parse(readFileSync(compSvgPng.replace('.png','.json'),'utf8'));
+    const compPrim=compSvgRep.findings.filter(f=>f.code==='primitive-svg');
+    assert.equal(compPrim.length,1,'only compressed SVG with <9.5px text is flagged');
+    assert.ok(compPrim[0].evidence.text.includes('7px'));
 
+    // 11. svg-label-overlap & svg-label-collision (with negative controls).
+    const overlapSvg=`<svg id="ov" width="280" height="120" viewBox="0 0 280 120"><text x="40" y="60" font-size="14">Alpha Label</text><text x="60" y="64" font-size="14">Beta Label</text></svg>`;
+    const wallCollisionSvg=`<svg id="wc" width="280" height="120" viewBox="0 0 280 120"><rect x="80" y="20" width="120" height="80" fill="none" stroke="#111" stroke-width="2"/><text x="40" y="65" font-size="14">Crosses Wall</text></svg>`;
+    const lineCollisionSvg=`<svg id="lc" width="280" height="120" viewBox="0 0 280 120"><line x1="20" y1="60" x2="260" y2="60" stroke="#111" stroke-width="2"/><text x="80" y="64" font-size="14">Crosses Line</text></svg>`;
+    const cleanDiagramSvg=`<svg id="okd" width="280" height="120" viewBox="0 0 280 120"><rect x="20" y="20" width="140" height="80" fill="none" stroke="#111" stroke-width="2"/><text x="36" y="65" font-size="14">Inside Box</text><line x1="20" y1="105" x2="260" y2="105" stroke="#111" stroke-width="2"/><rect x="175" y="90" width="76" height="24" fill="#ffffff"/><text x="180" y="107" font-size="14">With Pill</text><line x1="160" y1="40" x2="195" y2="40" stroke="#111" stroke-width="1.5"/><text x="200" y="45" font-size="14">Callout</text></svg>`;
+    writeFileSync(html,wrap(':root{--bg:#ffffff;--fg:#111111}','body{background:var(--bg);color:var(--fg);font-family:sans-serif}',`<main>${overlapSvg}${wallCollisionSvg}${lineCollisionSvg}${cleanDiagramSvg}</main>`));
+    const colPng=join(work,'svg-col.png');
+    spawnSync(process.execPath,[join(skill,'scripts/inspect.mjs'),html,'--width','1440','--wait','0','--out',colPng],{encoding:'utf8',timeout:60000});
+    const colRep=JSON.parse(readFileSync(colPng.replace('.png','.json'),'utf8'));
+    assert.deepEqual(colRep.findings.filter(f=>f.code==='svg-label-overlap').map(f=>f.selector),['#ov'],'overlap detected only on #ov');
+    assert.deepEqual(colRep.findings.filter(f=>f.code==='svg-label-collision').map(f=>f.selector).sort(),['#lc','#wc'],'collision detected on #wc and #lc, not #okd');
+
+    // 12. broken-theme-toggle vs clicked theme toggle in shot.mjs.
+    const toggleThemeCss=':root{--bg:#ffffff;--fg:#111111}[data-theme="dark"]{--bg:#0f172a;--fg:#f8fafc}body{background:var(--bg);color:var(--fg);font-family:sans-serif;padding:24px}button{min-height:44px;min-width:120px}';
+    writeFileSync(html,wrap('',toggleThemeCss,'<main><button data-theme-toggle aria-label="Toggle dark theme">Dark mode</button><h1>Broken toggle</h1></main>'));
+    const brokenTogPng=join(work,'broken-toggle.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--theme','dark','--inspect','--wait','0','--out',brokenTogPng],{encoding:'utf8',timeout:60000});
+    const brokenTogRep=JSON.parse(readFileSync(brokenTogPng.replace('.png','.json'),'utf8'));
+    assert.equal(brokenTogRep.state.themeSwitch,'broken-toggle-fallback');
+    assert.ok(brokenTogRep.findings.some(f=>f.code==='broken-theme-toggle'&&f.severity==='review'));
+
+    writeFileSync(html,wrap('',toggleThemeCss,'<main><button data-theme-toggle aria-label="Toggle dark theme">Dark mode</button><h1>Working toggle</h1></main><script>document.querySelector("[data-theme-toggle]").onclick=()=>{document.documentElement.setAttribute("data-theme","dark");};</script>'));
+    const okTogPng=join(work,'ok-toggle.png');
+    spawnSync(process.execPath,[join(skill,'scripts/shot.mjs'),html,'--width','1440','--theme','dark','--inspect','--wait','0','--out',okTogPng],{encoding:'utf8',timeout:60000});
+    const okTogRep=JSON.parse(readFileSync(okTogPng.replace('.png','.json'),'utf8'));
+    assert.equal(okTogRep.state.themeSwitch,'clicked');
+    assert.ok(!okTogRep.findings.some(f=>f.code==='broken-theme-toggle'));
+
+    // 13. validatePlan rejects tools.*.status='unavailable' when evidence only says "not needed" / "не нужна".
+    for (const badEv of ['не нужна','не требуется','not needed','unnecessary']) {
+      assert.throws(()=>validatePlan({
+        visualPath:'direct',reason:'Direct HTML build',
+        tools:{generation:{status:'unavailable',evidence:badEv},viewing:{status:'available',evidence:'Browser screenshots'}},
+        visualContract:{source:'project-brand',brandSource:'brand.css'},
+        use:['inspection']
+      }),/cannot be "unavailable"/i,`rejects unavailable with "${badEv}"`);
+    }
+    assert.doesNotThrow(()=>validatePlan({
+      visualPath:'direct',reason:'Direct HTML build',
+      tools:{generation:{status:'unavailable',evidence:'Image generation MCP tool not available in environment'},viewing:{status:'available',evidence:'Browser screenshots'}},
+      visualContract:{source:'project-brand',brandSource:'brand.css'},
+      use:['inspection']
+    }),'accepts unavailable with factual absence evidence');
 
   }
   console.log('Review regression checks passed'+(process.env.CI?' (browser cases skipped in CI)':''));

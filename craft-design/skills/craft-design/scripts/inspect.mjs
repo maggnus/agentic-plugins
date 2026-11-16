@@ -213,6 +213,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     if (!fontSamples.has(key) && fontSamples.size < 48) fontSamples.set(key,
       { selector: selector(el), requested: s.fontFamily, weight: s.fontWeight, sample: node.textContent.trim().slice(0, 80) });
   }
+  let internalScrollCount = 0;
   for (const el of document.querySelectorAll('body *')) {
     if (!visible(el)) continue;
     const s = style(el), r = el.getBoundingClientRect();
@@ -220,6 +221,15 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     const scrollY = /^(auto|scroll)$/.test(s.overflowY) && el.scrollHeight > el.clientHeight + 1;
     if (fit && (scrollX || scrollY)) add('scroll-region', 'error', el, 'Scrollable content conflicts with --fit.',
       { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, scrollHeight: el.scrollHeight, clientHeight: el.clientHeight });
+    if (!fit && internalScrollCount < 3 && (s.overflowX === 'auto' || s.overflowX === 'scroll') && el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 2) {
+      const hasTableOrGrid = Boolean(el.querySelector('table, [role="grid"], [role="table"]'));
+      add('internal-horizontal-scroll', 'review', el,
+        width <= 768 || hasTableOrGrid
+          ? 'Visible container has internal horizontal scroll; reflow tables/grids or narrow blocks cleanly instead of clipping horizontally.'
+          : 'Visible container has internal horizontal scroll; verify that content is not cramped or awkwardly clipped.',
+        { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, viewportWidth: width, hasTableOrGrid }, r);
+      internalScrollCount++;
+    }
     if (el instanceof HTMLImageElement && el.currentSrc && el.complete && !el.naturalWidth)
       add('broken-image', 'error', el, 'An image failed to decode.', { src: el.getAttribute('src') });
     if (el.matches('button,input:not([type="hidden"]),select,textarea,a[href],[role="button"]')) {
@@ -463,43 +473,149 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
         }
       }
     }
-    let primSvgCount = 0;
+  }
+  let primSvgCount = 0, svgOverlapCount = 0, svgCollisionCount = 0;
+    const segHitsBox = (seg, x1, y1, x2, y2) => {
+      const dx = seg.x2 - seg.x1, dy = seg.y2 - seg.y1;
+      let t0 = 0, t1 = 1;
+      const clip = (p, q) => {
+        if (p === 0) return q >= 0;
+        const r = q / p;
+        if (p < 0) { if (r > t1) return false; if (r > t0) t0 = r; }
+        else { if (r < t0) return false; if (r < t1) t1 = r; }
+        return true;
+      };
+      return clip(-dx, seg.x1 - x1) && clip(dx, x2 - seg.x1) && clip(-dy, seg.y1 - y1) && clip(dy, y2 - seg.y1);
+    };
     for (const svg of document.querySelectorAll('svg')) {
-      if (primSvgCount >= 3) break;
       if (svg.getAttribute('aria-hidden') === 'true' || !visible(svg)) continue;
       const sr = svg.getBoundingClientRect();
-      if (sr.width < 220 || sr.height < 130) continue;
-      const primitives = svg.querySelectorAll('path, line, polyline, polygon, rect, circle, ellipse, text, use').length;
-      if (primitives < 12) {
-        add('primitive-svg', 'review', svg, `Large diagram/chart SVG has only ${primitives} primitives; enrich with gridlines, stroke hierarchy, hatching/bands, and callouts.`, { primitives }, sr);
-        primSvgCount++;
-        continue;
+      if (sr.width < 100 || sr.height < 40) continue;
+      if (primSvgCount < 3) {
+        let flaggedPrim = false;
+        if (sr.width >= 220 && sr.height >= 130) {
+          const primitives = svg.querySelectorAll('path, line, polyline, polygon, rect, circle, ellipse, text, use').length;
+          if (primitives < 12) {
+            add('primitive-svg', 'review', svg, `Large diagram/chart SVG has only ${primitives} primitives; enrich with gridlines, stroke hierarchy, hatching/bands, and callouts.`, { primitives }, sr);
+            primSvgCount++; flaggedPrim = true;
+          } else {
+            const rects = svg.querySelectorAll('rect').length;
+            const nonRectShapes = svg.querySelectorAll('path, circle, ellipse, polygon, polyline').length;
+            const lines = svg.querySelectorAll('line').length;
+            const geoCount = rects + nonRectShapes + lines;
+            if (geoCount > 0 && rects / geoCount > 0.8 && nonRectShapes === 0 && lines < 3) {
+              add('primitive-svg', 'review', svg, 'Large diagram/chart SVG is box-only (mostly <rect> without paths, curves, circles, or >= 3 lines); enrich with structural geometry.', { rects, geoCount, lines }, sr);
+              primSvgCount++; flaggedPrim = true;
+            }
+          }
+        }
+        if (!flaggedPrim) {
+          const vb = svg.viewBox?.baseVal;
+          const scale = vb && vb.width > 0 && vb.height > 0 ? Math.min(sr.width / vb.width, sr.height / vb.height) : 1;
+          for (const t of svg.querySelectorAll('text')) {
+            if (t.closest('svg') !== svg || !t.textContent?.trim() || !visible(t)) continue;
+            const tr = t.getBoundingClientRect();
+            if (tr.width <= 0 || tr.height <= 0) continue;
+            const fsAttr = parseFloat(style(t).fontSize) || 0;
+            const screenFs = fsAttr > 0 ? fsAttr * scale : tr.height;
+            const effectivePx = Math.min(screenFs, tr.height);
+            if (effectivePx < 9.5) {
+              add('primitive-svg', 'review', svg, `SVG contains unreadable tiny <text> label (~${Math.round(effectivePx * 10) / 10}px < 9.5px).`, { text: t.textContent.trim().slice(0, 40), screenFontPx: Math.round(screenFs * 10) / 10 }, sr);
+              primSvgCount++;
+              break;
+            }
+          }
+        }
       }
-      const rects = svg.querySelectorAll('rect').length;
-      const nonRectShapes = svg.querySelectorAll('path, circle, ellipse, polygon, polyline').length;
-      const lines = svg.querySelectorAll('line').length;
-      const geoCount = rects + nonRectShapes + lines;
-      if (geoCount > 0 && rects / geoCount > 0.8 && nonRectShapes === 0 && lines < 3) {
-        add('primitive-svg', 'review', svg, 'Large diagram/chart SVG is box-only (mostly <rect> without paths, curves, circles, or >= 3 lines); enrich with structural geometry.', { rects, geoCount, lines }, sr);
-        primSvgCount++;
-        continue;
-      }
-      const vb = svg.viewBox?.baseVal;
-      const scale = vb && vb.width > 0 && vb.height > 0 ? Math.min(sr.width / vb.width, sr.height / vb.height) : 1;
-      for (const t of svg.querySelectorAll('text')) {
-        if (!t.textContent?.trim() || !visible(t)) continue;
-        const tr = t.getBoundingClientRect();
-        if (tr.width <= 0 || tr.height <= 0) continue;
-        const fsAttr = parseFloat(style(t).fontSize) || 0;
-        const screenFs = fsAttr > 0 ? fsAttr * scale : tr.height;
-        if (screenFs < 9.5 || tr.height < 9.5) {
-          add('primitive-svg', 'review', svg, `Large SVG contains unreadable tiny <text> label (~${Math.round(Math.min(screenFs, tr.height) * 10) / 10}px < 9.5px).`, { text: t.textContent.trim().slice(0, 40), screenFontPx: Math.round(screenFs * 10) / 10 }, sr);
-          primSvgCount++;
-          break;
+      if (sr.width >= 180 && sr.height >= 80 && (svgOverlapCount < 3 || svgCollisionCount < 3)) {
+        const textNodes = [];
+        for (const t of svg.querySelectorAll('text')) {
+          if (t.closest('svg') !== svg || !t.textContent?.trim() || !visible(t)) continue;
+          const tr = t.getBoundingClientRect();
+          if (tr.width > 0 && tr.height > 0) textNodes.push({ el: t, r: tr, text: t.textContent.trim().slice(0, 40) });
+        }
+        if (svgOverlapCount < 3 && textNodes.length >= 2) {
+          let overlapped = false;
+          for (let i = 0; i < textNodes.length && !overlapped; i++) {
+            for (let j = i + 1; j < textNodes.length; j++) {
+              const a = textNodes[i].r, b = textNodes[j].r;
+              const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+              const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+              if (ox > 3 && oy > 3) {
+                add('svg-label-overlap', 'review', svg, 'Two SVG <text> labels overlap each other.', { first: textNodes[i].text, second: textNodes[j].text, overlapX: Math.round(ox * 10) / 10, overlapY: Math.round(oy * 10) / 10 }, sr);
+                svgOverlapCount++;
+                overlapped = true;
+                break;
+              }
+            }
+          }
+        }
+        if (svgCollisionCount < 3 && textNodes.length >= 1) {
+          const rectInfos = [];
+          for (const rect of svg.querySelectorAll('rect')) {
+            if (rect.closest('svg') !== svg || !visible(rect)) continue;
+            const rr = rect.getBoundingClientRect();
+            if (rr.width <= 0 || rr.height <= 0) continue;
+            const rs = style(rect);
+            const fillOp = parseFloat(rs.fillOpacity);
+            const hasFill = Boolean(rs.fill && rs.fill !== 'none' && rs.fill !== 'transparent' && rs.fill !== 'rgba(0, 0, 0, 0)' && (Number.isNaN(fillOp) || fillOp > 0.05));
+            const strokeW = parseFloat(rs.strokeWidth) || 0;
+            const strokeOp = parseFloat(rs.strokeOpacity);
+            const hasStroke = Boolean(rs.stroke && rs.stroke !== 'none' && rs.stroke !== 'transparent' && strokeW > 0 && (Number.isNaN(strokeOp) || strokeOp > 0.15));
+            rectInfos.push({ el: rect, r: rr, hasFill, hasStroke });
+          }
+          const lineSegs = [];
+          for (const line of svg.querySelectorAll('line')) {
+            if (line.closest('svg') !== svg || !visible(line)) continue;
+            const ls = style(line);
+            const strokeW = parseFloat(ls.strokeWidth) || 0;
+            const strokeOp = parseFloat(ls.strokeOpacity), op = parseFloat(ls.opacity);
+            if (!ls.stroke || ls.stroke === 'none' || ls.stroke === 'transparent' || strokeW <= 0) continue;
+            if ((!Number.isNaN(strokeOp) && strokeOp < 0.4) || (!Number.isNaN(op) && op < 0.4)) continue;
+            if (ls.strokeDasharray && ls.strokeDasharray !== 'none') continue;
+            const ctm = typeof line.getScreenCTM === 'function' ? line.getScreenCTM() : null;
+            if (!ctm) continue;
+            const lx1 = line.x1?.baseVal?.value ?? 0, ly1 = line.y1?.baseVal?.value ?? 0;
+            const lx2 = line.x2?.baseVal?.value ?? 0, ly2 = line.y2?.baseVal?.value ?? 0;
+            const x1 = ctm.a * lx1 + ctm.c * ly1 + ctm.e, y1 = ctm.b * lx1 + ctm.d * ly1 + ctm.f;
+            const x2 = ctm.a * lx2 + ctm.c * ly2 + ctm.e, y2 = ctm.b * lx2 + ctm.d * ly2 + ctm.f;
+            if (Math.hypot(x2 - x1, y2 - y1) > 20) lineSegs.push({ x1, y1, x2, y2 });
+          }
+          for (const tn of textNodes) {
+            const hasLabelPill = rectInfos.some(ri => ri.hasFill &&
+              ri.r.left <= tn.r.left + 1 && ri.r.right >= tn.r.right - 1 &&
+              ri.r.top <= tn.r.top + 1 && ri.r.bottom >= tn.r.bottom - 1 &&
+              ri.r.width <= Math.max(tn.r.width * 2.2, tn.r.width + 40) &&
+              ri.r.height <= Math.max(tn.r.height * 2.5, tn.r.height + 24) &&
+              Boolean(ri.el.compareDocumentPosition(tn.el) & Node.DOCUMENT_POSITION_FOLLOWING));
+            if (hasLabelPill) continue;
+            let hit = null;
+            for (const ri of rectInfos) {
+              if (!ri.hasStroke || ri.r.width < 16 || ri.r.height < 16) continue;
+              if (ri.r.width >= sr.width * 0.96 && ri.r.height >= sr.height * 0.96) continue;
+              if (tn.r.bottom <= ri.r.top + 1 || tn.r.top >= ri.r.bottom - 1) continue;
+              if (tn.r.left >= ri.r.left + 1 && tn.r.right <= ri.r.right - 1) continue;
+              if ((tn.r.left < ri.r.left - 0.5 && tn.r.right > ri.r.left + 2) || (tn.r.left < ri.r.right - 2 && tn.r.right > ri.r.right + 0.5)) {
+                hit = { kind: 'rect-border', text: tn.text };
+                break;
+              }
+            }
+            if (!hit && lineSegs.length) {
+              const cx1 = tn.r.left + Math.min(4, tn.r.width * 0.2), cx2 = tn.r.right - Math.min(4, tn.r.width * 0.2);
+              const cy1 = tn.r.top + Math.min(3, tn.r.height * 0.2), cy2 = tn.r.bottom - Math.min(3, tn.r.height * 0.2);
+              if (cx2 > cx1 && cy2 > cy1 && lineSegs.some(seg => segHitsBox(seg, cx1, cy1, cx2, cy2))) {
+                hit = { kind: 'solid-line', text: tn.text };
+              }
+            }
+            if (hit) {
+              add('svg-label-collision', 'review', svg, 'SVG <text> label crosses a structural <rect> border or solid <line> without a background pill.', hit, sr);
+              svgCollisionCount++;
+              break;
+            }
+          }
         }
       }
     }
-  }
   if (root.scrollWidth > width + 1) add('horizontal-overflow', 'error', root, 'Document is wider than the requested viewport.',
     { scrollWidth: root.scrollWidth, viewportWidth: width });
   if (fit && root.scrollHeight > height + 1) add('vertical-overflow', 'error', root, 'Document is taller than the required frame.',
@@ -518,7 +634,7 @@ export function measureLayout({ fit = false, width = innerWidth, height = innerH
     try { scanDarkRules(sheet.cssRules); } catch {}
     if (hasDarkCss) break;
   }
-  const hasThemeToggle = Boolean(document.querySelector('[data-theme-toggle], [data-set-theme], button[aria-label*="dark" i], button[aria-label*="theme" i], button[aria-label*="тема" i]'));
+  const hasThemeToggle = Boolean(document.querySelector('[data-theme-toggle], [data-set-theme], button[aria-label*="dark" i], button[aria-label*="theme" i], button[aria-label*="тема" i], button[aria-label*="темн" i], button[aria-label*="тёмн" i]'));
   const tabSeen = new Set(), tabs = [];
   for (const el of document.querySelectorAll('[role="tab"], [role="tablist"] button, .tabs button, [data-tabs] button, button[aria-controls], button[data-tab], button[data-view], a[role="tab"]')) {
     if (tabSeen.has(el)) continue;

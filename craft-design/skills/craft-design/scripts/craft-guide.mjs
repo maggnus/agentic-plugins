@@ -262,6 +262,15 @@ export function validatePlan(plan) {
     if (!v || !['available', 'unavailable', 'unknown'].includes(v.status) || typeof v.evidence !== 'string' || !v.evidence.trim()) {
       throw new Error(`tools.${kind} needs status and observed evidence; unknown is allowed but not a claim of absence.`);
     }
+    if (v.status === 'unavailable') {
+      const ev = v.evidence.trim();
+      const notNeededOnly = /^(?:не\s+нужн[аоы]?|не\s+требуется|not\s+needed|unnecessary)$/i.test(ev);
+      const mentionsNotNeeded = /(?:не\s+нужн|не\s+требуется|not\s+needed|unnecessary)/i.test(ev);
+      const hasAbsenceFact = /(?:отсутств|нет\s+инструмент|не\s+обнаруж|не\s+доступ|не\s+установл|missing|not\s+available|no\s+tool|absent|disabled|unavailable|failed|error|browser|mcp|env)/i.test(ev);
+      if (notNeededOnly || (mentionsNotNeeded && !hasAbsenceFact)) {
+        throw new Error(`tools.${kind}.status cannot be "unavailable" when evidence only states it is not needed ("${ev}"). Record actual tool status (available/unknown) when choosing visualPath: "direct", and explain skipping in reason.`);
+      }
+    }
   }
   if (plan.visualPath === 'generated' && ['generation', 'viewing'].some(k => plan.tools[k].status !== 'available')) throw new Error('Generated proposals require both generation and visual inspection.');
   if (plan.visualPath === 'reference' && plan.tools.viewing.status !== 'available') throw new Error('Visual reference transfer requires visual inspection.');

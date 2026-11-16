@@ -367,9 +367,74 @@ async function shoot(width) {
     clearTimeout(loadTimer);
   }
   await s('Runtime.evaluate', { expression: 'document.fonts ? document.fonts.ready.then(() => true) : true', awaitPromise: true });
+  let themeSwitch = null, themeToggleSelector = null;
   if (theme) {
-    await s('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)})` });
-    await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+    if (theme === 'dark') {
+      const currentTheme = (await s('Runtime.evaluate', { expression: `document.documentElement.getAttribute('data-theme')`, returnByValue: true })).result.value;
+      if (currentTheme === 'dark') {
+        themeSwitch = 'already-dark';
+      } else {
+        const THEME_TOGGLE_SEL = '[data-theme-toggle], [data-set-theme="dark"], button[aria-label*="dark" i], button[aria-label*="theme" i], button[aria-label*="тема" i], button[aria-label*="темн" i], button[aria-label*="тёмн" i]';
+        const togglePrep = (await s('Runtime.evaluate', {
+          expression: `(async () => {
+            const visible = el => {
+              const st = getComputedStyle(el);
+              return Boolean(el.getClientRects().length) && st.visibility !== 'hidden' && st.display !== 'none' && Number(st.opacity) !== 0;
+            };
+            const list = [...document.querySelectorAll(${JSON.stringify(THEME_TOGGLE_SEL)})].filter(visible);
+            if (!list.length) return { found: false };
+            const el = list[0];
+            const desc = el.id ? '#' + el.id : el.tagName.toLowerCase() + (el.getAttribute('aria-label') ? '[aria-label="' + el.getAttribute('aria-label') + '"]' : '');
+            let safeTop = 0, safeBottom = innerHeight;
+            for (const f of document.querySelectorAll('body *')) {
+              const fs = getComputedStyle(f);
+              if ((fs.position !== 'fixed' && fs.position !== 'sticky') || !f.getClientRects().length || fs.visibility === 'hidden' || fs.display === 'none') continue;
+              if (f === el || f.contains(el) || el.contains(f)) continue;
+              const fr = f.getBoundingClientRect();
+              if (fr.width < innerWidth * 0.35 || fr.height <= 0 || fr.height >= innerHeight * 0.45) continue;
+              if (fr.top <= 40) safeTop = Math.max(safeTop, fr.bottom + 2);
+              if (fr.bottom >= innerHeight - 40) safeBottom = Math.min(safeBottom, fr.top - 2);
+            }
+            const r0 = el.getBoundingClientRect();
+            const absTop = r0.top + scrollY;
+            const maxScroll = Math.max(0, document.documentElement.scrollHeight - innerHeight);
+            const safeCenter = safeTop + Math.max(0, safeBottom - safeTop) / 2;
+            const targetY = Math.max(0, Math.min(maxScroll, absTop + r0.height / 2 - safeCenter));
+            window.scrollTo({ top: targetY, behavior: 'instant' });
+            await new Promise(ok => requestAnimationFrame(() => requestAnimationFrame(ok)));
+            const r = el.getBoundingClientRect();
+            const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            if (cx < 0 || cy < 0 || cx >= innerWidth || cy >= innerHeight) return { found: true, reachable: false, selector: desc };
+            const hit = document.elementFromPoint(cx, cy);
+            if (!hit || (hit !== el && !el.contains(hit) && !hit.contains(el))) return { found: true, reachable: false, selector: desc };
+            return { found: true, reachable: true, cx, cy, selector: desc };
+          })()`,
+          awaitPromise: true,
+          returnByValue: true,
+        })).result.value;
+        const buttonFound = Boolean(togglePrep?.found);
+        themeToggleSelector = togglePrep?.selector ?? null;
+        if (buttonFound && togglePrep.reachable) {
+          await s('Input.dispatchMouseEvent', { type: 'mouseMoved', x: togglePrep.cx, y: togglePrep.cy, button: 'none' });
+          await s('Input.dispatchMouseEvent', { type: 'mousePressed', x: togglePrep.cx, y: togglePrep.cy, button: 'left', clickCount: 1 });
+          await s('Input.dispatchMouseEvent', { type: 'mouseReleased', x: togglePrep.cx, y: togglePrep.cy, button: 'left', clickCount: 1 });
+          await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+        }
+        const afterTheme = (await s('Runtime.evaluate', { expression: `document.documentElement.getAttribute('data-theme')`, returnByValue: true })).result.value;
+        if (afterTheme === 'dark') {
+          themeSwitch = 'clicked';
+        } else {
+          await s('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', 'dark')` });
+          await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+          themeSwitch = buttonFound ? 'broken-toggle-fallback' : 'attribute-fallback';
+        }
+        await s('Runtime.evaluate', { expression: 'window.scrollTo({ top: 0, behavior: "instant" })' });
+      }
+    } else {
+      await s('Runtime.evaluate', { expression: `document.documentElement.setAttribute('data-theme', ${JSON.stringify(theme)})` });
+      await s('Runtime.evaluate', { expression: SETTLE, awaitPromise: true });
+      themeSwitch = 'attribute-fallback';
+    }
   }
   await new Promise(ok => setTimeout(ok, wait));
   const appliedScenario = scenario ? await applyScenario(s, scenario) : null;
@@ -491,12 +556,23 @@ async function shoot(width) {
       capture: { width, height: full ? Math.min(metrics.page, MAX_CAPTURE_HEIGHT) : height, documentHeight: metrics.page, documentWidth: metrics.scrollWidth, internalScrollRegions: metrics.internalScrollRegions,
         fullDocument: metrics.internalScrollRegions === 0 && metrics.scrollWidth <= width && (full ? metrics.page <= MAX_CAPTURE_HEIGHT : !at && metrics.page <= height), limited: full && metrics.page > MAX_CAPTURE_HEIGHT },
       screenshotSha256: hash(Buffer.from(data, 'base64')), sourceSha256: sourceFile ? hash(readFileSync(sourceFile)) : null,
-      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment: suffix, at, full, mode, mobile, theme: theme ?? null } };
+      renderedHtmlSha256: hash(rendered.result.value), state: { clicks, fragment: suffix, at, full, mode, mobile, theme: theme ?? null, ...(themeSwitch ? { themeSwitch } : {}) } };
     if (scenario) evidence.state.scenario = { path: resolve(scenarioPath), sha256: hash(scenarioBytes), apply: scenario.apply, ...appliedScenario };
   }
   if (inspect) {
     const report = await inspectPage(s, { fit, width, height });
     Object.assign(report, evidence, { runtime });
+    if (themeSwitch === 'broken-toggle-fallback') {
+      report.findings.push({
+        code: 'broken-theme-toggle',
+        severity: 'review',
+        selector: themeToggleSelector,
+        craftId: null,
+        rect: null,
+        message: 'Visible theme toggle button did not switch data-theme to "dark" on real click; fell back to attribute mutation.',
+        evidence: { themeSwitch, selector: themeToggleSelector },
+      });
+    }
     if (hoverFindings.length) report.findings.push(...hoverFindings);
     if (evidence.capture.limited) report.findings.push({ code: 'capture-truncated', severity: 'error', selector: null,
       message: 'The full-page capture exceeded the image height limit. Capture and review the remaining sections explicitly.', evidence: evidence.capture });

@@ -106,8 +106,9 @@ summary.json if remainingDiagnostics is nonzero. Never change checks or hide
 required content to obtain a pass. Use the latest counts, not earlier logs or
 memory; an edit invalidates the previous verification at every affected size.
 Keep `.craft-verification` next to the state with the deliverable; its reports
-and screenshots are evidence, not scratch files. Then view every final PNG and
-the 1:1 viewport `strips` (`frame-*-s*.png`) and check facts against the brief. Explain genuine
+and screenshots are evidence, not scratch files. Then view EVERY final PNG (all
+widths, ALL 1:1 viewport `strips` `frame-*-s*.png`, dark-theme and
+`state-tab-*.png` captures on each width) and check facts against the brief. Explain genuine
 source-contract exceptions without claiming a full pass. No browser means
 incomplete checks, explicitly reported after diagnosing the environment failure.
 A technical pass does not prove taste, facts, accessibility or visual review.

@@ -59,10 +59,10 @@ principles; the figures in them are examples, not a house style to repeat.
 - **Intrinsic responsiveness.** `repeat(auto-fit, minmax(min(100%, Npx), 1fr))`,
   `flex-wrap` and `clamp()` for type, spacing and media heights, so 390 and 1440
   both work with few media queries; flex and grid with `gap`, not margins on
-  children; `text-wrap: balance` on headings and `pretty` on paragraphs. On the
-  phone the page stacks in reading order: columns become rows, a data table
-  scrolls inside its own container with a sticky first column (or becomes rows
-  when it has few columns), side-by-side actions go full width (a pair of
+  children; `text-wrap: balance` on headings and `pretty` on paragraphs. On `<= 768px`,
+  stack in reading order: columns become rows, never leave a data table in a
+  narrow horizontal scroll box clipping its right edge (reflow into stacked
+  cards or rows), side-by-side actions go full width (a pair of
   compact actions such as Cancel / Save may share one row); the mobile header
   stays one compact row.
 - **Grid proportions, Gestalt proximity & concentric radii.** Align blocks to 3–4 shared vertical grid axes (12-column desktop grid with asymmetric `5:7`, `4:8`, `7:5` splits instead of monotonous `1fr 1fr 1fr` card rows; never repeat the same section structure twice in a row). Enforce strict Gestalt proximity: `label→value (4–6px) < sibling gap (12–16px) < container padding (20–28px) < section rhythm (72–112px desktop, 48–64px phone)`. Pick one radius family per project (architectural `2–4px`, tooling `8–10px`, or tactile `14–16px`) and obey concentricity `R_inner = max(0, R_outer - padding)`.
@@ -115,8 +115,9 @@ Only disabled may lower contrast. Every focusable element has a visible
 Build it accessible as drawn: a real `<button>` for actions and `<a href>` for
 navigation, every form control with an accessible name (a `<label>`, or
 `aria-label` on icon-only controls), `aria-hidden` on decorative SVG, headings
-in order inside `header`, `nav`, `main` and `footer`; dialogs and tabs work from
-the keyboard and return focus to where they opened. Status is never carried by
+in order inside `header`, `nav`, `main` and `footer`; dialogs return focus on
+close; tabs support full keyboard control (`role="tablist"`/`"tab"`/`"tabpanel"`,
+`aria-selected`, `aria-controls`, `ArrowLeft`/`ArrowRight`, managed focus/scroll). Status is never carried by
 hue alone: a word or a symbol carries it, a lightness step only supports it,
 and red against green alone is never the signal. Read the parts of
 `library/craft/accessibility-baseline.md` that apply to the artifact (forms,
