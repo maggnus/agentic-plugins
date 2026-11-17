@@ -1,3 +1,9 @@
+## [14.4.0](https://github.com/maggnus/agentic-plugins/compare/v14.3.0...v14.4.0) (2026-11-17)
+
+### Features
+
+* **craft-design:** support Antigravity PreToolUse hooks and generic --no-guard mode ([ca8fbab](https://github.com/maggnus/agentic-plugins/commit/ca8fbab2b9fa186a4a4de460d14a9b2eefab8838))
+
 ## [14.3.0](https://github.com/maggnus/agentic-plugins/compare/v14.2.0...v14.3.0) (2026-11-16)
 
 ### Features
