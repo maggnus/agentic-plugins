@@ -1,0 +1,16 @@
+{
+  "craft-design-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/guard.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

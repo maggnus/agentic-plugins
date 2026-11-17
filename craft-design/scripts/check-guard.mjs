@@ -85,5 +85,27 @@ try {
  assert.ok(!blocked(guard(event('cat x | tail -1; echo y > index.html'),options)),'ready authoring unaffected');
  assert.ok(!blocked(guard({...event(''),tool_name:'Write',tool_input:{file_path:'index.html'}},options)));
  const b=guard({...event(`node ${script} begin --state ${statePath}`),session_id:'other'},options);assert.ok(!blocked(b),'session isolation');
- console.log('guard: pipelines, redirection, wrappers, premature writes, receipt reads, route selection, printed Next and library reading in client event forms, unrelated work and session isolation passed');
+ // Antigravity PreToolUse event shape (toolCall + conversationId, decision: allow/deny)
+ const agyDir=mkdtempSync(join(dir,'agy-')),agyState=join(agyDir,'state.json');
+ const agyCmd=CommandLine=>({conversationId:'agy-conv-1',cwd:agyDir,hookEventName:'PreToolUse',toolCall:{id:'tc1',name:'run_command',args:{CommandLine}}});
+ const agyBlocked=result=>result.decision==='deny';
+ const agyAllowed=result=>result.decision==='allow';
+ assert.ok(agyBlocked(guard(agyCmd(`node ${script} begin --no-guard --state ${agyState}`),options)),'antigravity: --no-guard rejected when host guard is active');
+ assert.ok(agyAllowed(guard(agyCmd(`node ${script} begin --state ${agyState}`),options)),'antigravity: begin allowed and observed');
+ writeFileSync(agyState,JSON.stringify({...state,phase:'reading',acknowledged:0,pending:'receipt',plan:null}));
+ assert.ok(agyBlocked(guard({conversationId:'agy-conv-1',cwd:agyDir,hookEventName:'PreToolUse',toolCall:{id:'tc2',name:'write_to_file',args:{TargetFile:'index.html'}}},options)),'antigravity: premature write_to_file blocked');
+ writeFileSync(agyState,JSON.stringify({...state,phase:'choose',acknowledged:base.pages.length,pending:null,plan:null}));
+ assert.ok(agyAllowed(guard({conversationId:'agy-conv-1',cwd:agyDir,hookEventName:'PreToolUse',toolCall:{id:'tc3',name:'read_file',args:{Path:join(skillRoot,'library',resource)}}},options)),'antigravity: read_file allowed while choosing');
+ assert.ok(agyAllowed(guard(agyCmd(`node ${script} read --path ${resource}`),options)),'antigravity: guide read allowed while choosing');
+ const agyRead=spawnSync(process.execPath,[script,'read','--path',resource],{cwd:agyDir,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ assert.equal(agyRead.status,0,agyRead.stderr);
+ assert.ok(agyRead.stdout.startsWith(`LIBRARY ${resource} 1/`),'antigravity: observed read returns the page');
+ // Generic --no-guard mode works without host guard proof
+ const noGuardState=join(agyDir,'no-guard-state.json');
+ const noGuardBegin=spawnSync(process.execPath,[script,'begin','--no-guard','--state',noGuardState],{cwd:agyDir,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ assert.equal(noGuardBegin.status,0,noGuardBegin.stderr);
+ assert.ok(noGuardBegin.stdout.includes('--no-guard'),'no-guard mode propagates --no-guard in Next command');
+ const noGuardCancel=spawnSync(process.execPath,[script,'cancel','--no-guard','--state',noGuardState,'--reason','test'],{cwd:agyDir,encoding:'utf8',env:{...process.env,TMPDIR:dir}});
+ assert.equal(noGuardCancel.status,0,noGuardCancel.stderr);
+ console.log('guard: pipelines, redirection, wrappers, premature writes, receipt reads, route selection, printed Next and library reading in client event forms (Claude, Codex, Antigravity), --no-guard generic mode, unrelated work and session isolation passed');
 }finally{rmSync(dir,{recursive:true,force:true});}

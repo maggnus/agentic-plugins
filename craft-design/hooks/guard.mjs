@@ -34,7 +34,11 @@ export function words(command) {
   if(started)result.push(word);
   return result;
 }
-const deny=reason=>({hookSpecificOutput:{hookEventName:'PreToolUse',permissionDecision:'deny',permissionDecisionReason:'craft-design: '+reason}});
+const isAntigravityEvent=event=>Boolean(event?.toolCall)||(typeof event?.conversationId==='string'&&!event?.session_id);
+const makeDeny=isAgy=>reason=>isAgy
+  ? {decision:'deny',reason:'craft-design: '+reason}
+  : {hookSpecificOutput:{hookEventName:'PreToolUse',permissionDecision:'deny',permissionDecisionReason:'craft-design: '+reason}};
+const makeAllow=isAgy=>isAgy?{decision:'allow'}:{};
 // Recognize literal command positions, not examples embedded in printf/grep or
 // heredoc bodies. This is intentionally not a shell interpreter. The CLI also
 // refuses any invocation the host cannot recognize and observe.
@@ -78,13 +82,16 @@ export function attemptsGuide(command,cwd,root,depth=0) {
   return false;
 }
 export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
-  const input=event.tool_input??{},command=input.command??input.cmd;
-  const session=event.session_id;
-  if(typeof session!=='string'||!session)return typeof command==='string'&&command.includes('craft-guide.mjs')?deny('No session id; guarded delivery is unavailable.'):{};
+  const isAgy=isAntigravityEvent(event);
+  const deny=makeDeny(isAgy),allow=makeAllow(isAgy);
+  const input=event.tool_input??event.toolCall?.args??{},command=input.command??input.cmd??input.CommandLine;
+  const session=event.session_id??event.conversationId;
+  const toolName=event.tool_name??event.toolCall?.name??'';
+  if(typeof session!=='string'||!session)return typeof command==='string'&&command.includes('craft-guide.mjs')?deny('No session id; guarded delivery is unavailable.'):allow;
   const registry=join(data,'guide-'+createHash('sha256').update(session).digest('hex')+'.json');
   let active=null;
   if(existsSync(registry))active=JSON.parse(readFileSync(registry,'utf8'));
-  const cwd=resolve(event.cwd??process.cwd(),input.cwd??input.workdir??'.');
+  const cwd=resolve(event.cwd??process.cwd(),input.cwd??input.workdir??input.Cwd??'.');
   // A malformed first invocation still signals an active preparation attempt.
   // Do not let a failed compound start silently turn into unprepared authoring.
   const attempted=attemptsGuide(command,cwd,root);
@@ -101,11 +108,12 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
       const prefix=command.match(/(?:^|[;&]\s*)\s*['"]?[^\s'"]*node['"]?\s+['"]?([^\s'"]*guide\.mjs)/);
       const targetsGuide=prefix && resolve(cwd,prefix[1])===join(root,'scripts/craft-guide.mjs');
       if(active || targetsGuide)return deny(error.message+' Run the printed guide command alone.');
-      return {};
+      return allow;
     }
   }
   const isGuide=argv && basename(argv[0]??'')==='node' && resolve(cwd,argv[1]??'')===join(root,'scripts/craft-guide.mjs');
   if(isGuide) {
+    if(argv.includes('--no-guard'))return deny('--no-guard cannot be used when the host guard is active.');
     const verb=argv[2],i=argv.indexOf('--state'),state=i>=0&&argv[i+1]?resolve(cwd,argv[i+1]):null;
     if(!['begin','next','status','decide','catalog','entry','read','cancel','--help'].includes(verb))return deny('Unsupported guide command.');
     if(verb==='cancel') {
@@ -118,29 +126,33 @@ export function guard(event,{root=skillRoot,data=guardDirectory()}={}) {
       if(!values['--state'] || !values['--reason'])return deny('Cancellation requires exactly --state FILE --reason TEXT.');
       if(active?.state && (!state || state!==resolve(active.state)))return deny('Cannot cancel another active state: '+active.state);
       if(existsSync(registry))unlinkSync(registry);
-      issueInvocation(root,cwd,argv.slice(2),data);return {};
+      issueInvocation(root,cwd,argv.slice(2),data);return allow;
     }
     if(verb==='begin') {
       if(!state)return deny('begin requires --state.');
       mkdirSync(data,{recursive:true,mode:0o700});writeFileSync(registry,JSON.stringify({state,root}),{mode:0o600});
-      issueInvocation(root,cwd,argv.slice(2),data);return {};
+      issueInvocation(root,cwd,argv.slice(2),data);return allow;
     }
     if(active?.pendingStart && verb!=='--help')return deny('Start preparation with a standalone node '+join(root,'scripts/craft-guide.mjs')+' begin --state FILE.');
     if(active && !['catalog','entry','read','cancel','--help'].includes(verb) && state!==active.state)return deny('Use the active state: '+active.state);
-    issueInvocation(root,cwd,argv.slice(2),data);return {};
+    issueInvocation(root,cwd,argv.slice(2),data);return allow;
   }
-  if(!active)return {};
+  if(!active)return allow;
   if(active.pendingStart)return deny('Preparation has not started successfully. Run the standalone craft-guide.mjs begin command; cancel --state FILE --reason TEXT releases this task if it was explicitly cancelled.');
   if(!existsSync(active.state))return deny('Guide start did not finish. Retry the plain guide begin command with --state '+active.state);
   let state;
   try{state=loadState(active.state).state;}catch(error){return deny(error.message);}
-  if(state.phase==='ready')return {};
+  if(state.phase==='ready')return allow;
   // During route selection the author may inspect entries and discover tools.
   // Shell writes and arbitrary execution stay blocked; use decide --json.
-  if(state.phase==='choose' && /^(Read|Glob|Grep|ToolSearch|tool_search|list_tools|search_tools)$/.test(event.tool_name??''))return {};
+  if(state.phase==='choose' && /^(Read|Glob|Grep|ToolSearch|tool_search|list_tools|search_tools|read_file|view_file|view_file_outline|view_code_item|find_by_name|grep_search|list_dir)$/.test(toolName))return allow;
   return deny(`Instructions are incomplete (${state.phase}). Run node ${join(root,'scripts/craft-guide.mjs')} status --state ${active.state} alone, then its next command. At BASE COMPLETE use catalog, entry and read for library files, then decide --json. Do not shorten output or start authoring.`);
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
-  try{console.log(JSON.stringify(guard(JSON.parse(readFileSync(0,'utf8')))));}
-  catch(error){console.log(JSON.stringify(deny('Workflow guard failed: '+error.message+'. No readiness claim can be made.')));}
+  let raw='';
+  try{raw=readFileSync(0,'utf8');console.log(JSON.stringify(guard(JSON.parse(raw))));}
+  catch(error){
+    let isAgy=false;try{isAgy=isAntigravityEvent(JSON.parse(raw));}catch{}
+    console.log(JSON.stringify(makeDeny(isAgy)('Workflow guard failed: '+error.message+'. No readiness claim can be made.')));
+  }
 }

@@ -22,9 +22,11 @@ node <skill>/scripts/craft-guide.mjs begin --state <absolute-artifact-directory>
 
 Run this as one literal command with the actual absolute skill path (no path
 variable, `cd &&`, wrapper, pipe or redirection). Use absolute `--state` and
-`--plan` paths. The bundled host guard must be enabled/trusted: if a call fails
-as unobserved, retry the printed literal command once in the same directory; if
-that also fails, stop and report activation as unverified.
+`--plan` paths. When the host runtime provides the bundled `PreToolUse` guard,
+if a call fails as unobserved, retry the printed literal command once in the
+same directory. In generic runtimes without a host guard, pass `--no-guard` on
+`craft-guide.mjs` commands so the curriculum and packet checks still run in
+full.
 
 Acknowledge each base packet with the printed `next --state FILE --receipt TOKEN`
 command (retain at least 4500 output tokens per packet) until `BASE COMPLETE`.
